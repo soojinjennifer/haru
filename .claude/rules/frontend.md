@@ -5,7 +5,7 @@
 React · TypeScript (strict) · Vite · React Router · Tailwind CSS **v4** (CSS-first `@theme`) · CSS Variables · TanStack Query · Zod · pnpm workspaces · Playwright (E2E·시각 비교)
 
 - [승인 2026-09-14, Stage 0 #27] Supabase JS Client는 Frontend-only 단계(Stage 1–8)에서 사용하지 않는다. 인증은 `AuthGateway`, 녹음 업로드는 `recordingApi` (Mock | Http) + `UploadTransport` (Mock | TUS) **interface + Mock Adapter** 로 구현하고, 실제 Supabase Adapter는 사용자 승인 또는 Backend 연동 시점에 추가한다. 명칭 정의: `docs/API_CONTRACTS.md` §5.1.
-- 승인된 추가 도구·방식 (2026-09-14, Stage 0 #8·#9·#28): Playwright, import 경계 lint 규칙 도구(구체 도구는 Stage 1 Plan), dev 전용 UI gallery route(Production 제외), 차트는 inline SVG, 제스처·애니메이션은 CSS / Pointer Events 우선, (필요 시) TanStack Query persist, MSW 미사용. 아이콘 라이브러리 여부는 Stage 0 #21 결정에 따른다.
+- 승인된 추가 도구·방식 (2026-09-14, Stage 0 #8·#9·#28): Playwright, import 경계 lint 규칙 도구(구체 도구는 Stage 1 Plan), dev 전용 UI gallery route(Production 제외), 차트는 inline SVG, 제스처·애니메이션은 CSS / Pointer Events 우선, (필요 시) TanStack Query persist, MSW 미사용. 아이콘은 일반 아이콘 = Lucide(`lucide-react`), HARU 전용 아이콘 = Figma SVG export (Stage 0 #21). 브랜드 로고는 공식 에셋만 사용한다.
 - 그 밖의 스택 외 라이브러리(상태 관리, 폼, 제스처·애니메이션 라이브러리, 차트 라이브러리 등) 추가는 이유를 보고하고 승인 후 도입한다.
 
 ## 2. 디렉토리
@@ -75,6 +75,9 @@ Figma Variables / Styles → CSS Variables (packages/design-tokens) → Tailwind
 - 금지: 컴포넌트/화면 코드의 임의 HEX, `rgb()`, Tailwind arbitrary value(`bg-[#85bfb6]`, `p-[13px]`, `rounded-[28px]`), inline style 수치.
   - 예외: `packages/design-tokens` 내부 정의, 일러스트/캐릭터 에셋.
 - 필요한 토큰이 없으면 코드에 값을 넣지 말고 design-agent에 신규 토큰을 요청한다.
+- [승인 2026-09-14, Stage 0 #10] 토큰은 3-tier(primitive → semantic → component)로 구성하고, 값은 Figma만 기준으로 한다. 화면 raw 값은 정해진 스케일로 흡수한다.
+- 가값(provisional) 토큰(`docs/decisions/stage-0-approvals.md` §4)은 토큰 정의에 `provisional` 주석을 남긴다. 값이 확정되면 토큰 값만 교체한다.
+- [승인 2026-09-14, Stage 0 #11] 폰트: Apple 기기는 시스템 폰트(SF Pro), 그 외는 Inter. font stack은 `packages/design-tokens` 한 곳에서만 정의하며 `system-ui` 를 Inter 앞에 두지 않는다. SF Pro 폰트 파일은 저장소·빌드에 포함하지 않는다.
 - 화면 구현 전 Color / Typography / Spacing / Radius / Component / Variant / State / Responsive Rule 을 `docs/DESIGN_SYSTEM.md`, `docs/DESIGN_TOKEN_MAP.md`, Stage Design Spec에서 확인한다.
 - 기존 Component로 표현 가능한 UI를 Page 안에서 다시 구현하지 않는다.
 
@@ -94,7 +97,7 @@ PRD 13장 예외 처리(마이크 권한 거부 → 대화만 하기, 네트워�
 - 양육자 화면 WCAG AA (대비, 포커스, 레이블, 스크린리더 이름). 현재 Figma 토큰의 대비 미달 항목은 `docs/DESIGN_SYSTEM.md` 결정에 따른다.
 - 터치 타깃 최소 44×44pt [제안 — PRD §11 "충분히 확보"의 구체값].
 - 텍스트 의존 최소화(아이콘·애니메이션 병행), `prefers-reduced-motion` 존중.
-- Breakpoint는 승인된 값만 사용한다.
+- [승인 2026-09-14, Stage 0 #12] Breakpoint `--bp-md` 600px / `--bp-lg` 1024px. 모든 화면은 모바일 레이아웃이며 600px 이상에서는 최대 폭 480px 앱 컬럼을 가운데 정렬한다 (다단 레이아웃 없음). 앱은 세로 고정, 웹 가로 화면은 앱 컬럼으로 표시한다.
 
 ## 10. Test
 

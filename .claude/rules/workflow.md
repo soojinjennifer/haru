@@ -54,6 +54,7 @@ PASS가 될 때까지 반복한다.
 - 승인은 사용자의 명시적 승인 발화로만 성립한다 (예: "Stage 2 Plan 승인", "Design Spec 승인"). Agent와 Orchestrator는 스스로 승인하지 않는다.
 - [승인 2026-09-14, Stage 0 #24] **Stage 수행 요청("Stage 3을 진행해줘")은 Plan / Design Spec 승인이 아니다.** 요청은 워크플로 시작을 의미할 뿐이다.
 - [승인 2026-09-14, Stage 0 #24] 전체 구현 요청의 **승인 체크포인트**: plan-agent와 design-agent 산출물이 나오면 Orchestrator는 `stage-N-plan.md` + `stage-N-design-spec.md` 를 요약 보고하고 **멈춘다**. 사용자 승인 후 development-agent를 시작한다.- 승인되면 해당 문서의 `Status:` 를 `APPROVED (YYYY-MM-DD, user)` 로 갱신한다.
+- [승인 2026-09-14, Stage 0 #10-4] 가값 토큰(`docs/decisions/stage-0-approvals.md` §4)은 Stage 1 구현 완료 후 Orchestrator가 항목별로 하나씩 사용자에게 유지 / 수정 / 디자이너 대기 승인을 요청한다.
 - 한 Stage에 대한 승인은 다음 Stage로 확장되지 않는다. Stage Verdict 보고 후에도 멈추고 다음 Stage 지시를 기다린다.
 - Stage 1 구현은 Stage 0 산출물에 대한 사용자 승인 이후에만 시작한다.
 

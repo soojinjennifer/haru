@@ -4,8 +4,9 @@ HARU는 미국 1차 시장의 **Caregiver-facing Parenting Intelligence / Storyt
 3~9세 아이의 양육자가 아이와 약 15분 함께 책을 읽는 시간을 대화와 성장 관찰의 시간으로 바꾼다.
 아이에게 Screen Time을 추가하는 Child-facing App이 아니다.
 
-4대 내적 역량: Emotional Regulation · Self-Directed Agency · Resilience / Cognitive Flexibility · Intrinsic Motivation
-(사용자 노출 라벨과 contracts 코드 키는 Stage 0 결정 항목 — `PLANNING.md`)
+4대 내적 역량 (정의: PRD §4 — 감정 조절 · 자기주도 · 회복탄력성/인지 유연성 · 내적동기)
+- contracts 코드 키: `emotion_regulation` · `self_directed_agency` · `cognitive_flexibility` · `intrinsic_motivation` (Stage 0 #13)
+- 화면 표시 라벨: Emotion Regulation · Self-Direction · Cognitive Flexibility · Intrinsic Motivation (Stage 0 #14)
 
 MVP 전제: 양육자가 계정 소유자, 아이는 로그인 계정 없음, Child Profile 1명, 아동 음성·성장 데이터는 Privacy-sensitive Data.
 
@@ -29,7 +30,7 @@ MVP 전제: 양육자가 계정 소유자, 아이는 로그인 계정 없음, Ch
 - **Stage 1 이후 구현은 사용자 명시적 승인 전까지 시작하지 않는다. Production Code 작성 금지.**
 - 진행 상태와 요구사항 매핑: `PLANNING.md`
 - **사용자 결정 기록: `docs/decisions/stage-0-approvals.md`** — 기존 문서와 다르면 이 기록이 우선한다.
-- 승인된 기술 선택 (2026-09-14): pnpm workspaces · Tailwind CSS v4 · Playwright · MSW 미사용 · Supabase JS Client 미사용 (Stage 1–8) · Dark mode MVP 제외 · Capacitor 도입 (Stage 4에서 추가, Stage 1–3은 웹 전용) · 저장소 `~/dev/haru` (origin `https://github.com/soojinjennifer/haru.git`, private)
+- 승인된 기술 선택 (2026-09-14): pnpm workspaces · Tailwind CSS v4 · Playwright · MSW 미사용 · Supabase JS Client 미사용 (Stage 1–8) · Dark mode MVP 제외 · Capacitor 도입 (Stage 4에서 추가, Stage 1–3은 웹 전용) · 폰트 Apple=시스템(SF Pro) / 그 외=Inter · 아이콘 Lucide + HARU 전용 Figma SVG · 저장소 `~/dev/haru` (origin `https://github.com/soojinjennifer/haru.git`, private)
 
 ## 8 Stages (모두 Frontend Development Stage)
 

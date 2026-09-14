@@ -29,6 +29,8 @@ stage-qa-agent의 판정 기준과 검증 체크리스트. 상세 절차는 `.cl
 
 - Stage Verdict `PASS` 전에는 다음 Stage로 진행하지 않는다.
 - `INCOMPLETE` 는 PASS가 아니다. 사용자가 잔여 항목을 항목별로 명시 수용한 경우에만 `PASS (accepted: …)` 로 기록한다 [승인 2026-09-14, Stage 0 #25].
+- 사전 수용 예외(`docs/decisions/stage-0-approvals.md` §3, D-xx)는 요구사항 판정은 `FAIL` 로 기록하되 Stage Verdict 계산에서는 사용자 수용 항목으로 처리해 `PASS (accepted: D-xx)` 로 기록한다. 수용 범위를 벗어난 부분은 일반 규칙으로 판정한다.
+- 가값(`docs/decisions/stage-0-approvals.md` §4, P-xx)은 FAIL 사유가 아니다. QA 리포트에 남은 가값 목록을 기록한다.
 - In Scope 판단은 승인된 Stage Plan 기준이며, Out of Scope 구현(선행 구현, Backend 구현)은 `FAIL` Finding이다.
 
 ## 3. Severity
@@ -86,7 +88,7 @@ E2E · 시각 비교(구현 screenshot ↔ Figma screenshot) 도구는 **Playwri
 - [ ] Offline / Permission Denied / Retry / Pending / Not Eligible (해당 시)
 
 ### Responsive / Accessibility
-- [ ] 승인된 breakpoint별 레이아웃
+- [ ] breakpoint별 레이아웃 (320 / 600 / 1024px, 앱 컬럼 최대 480px 가운데 정렬)
 - [ ] 대비 AA, 터치 타깃, 포커스 표시, 접근성 이름
 
 ### Privacy (Frontend 검증 가능 항목)
