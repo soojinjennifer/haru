@@ -79,7 +79,7 @@ PASS에는 반드시 증거가 있어야 한다. 허용되는 증거:
 - Security (Secret 노출, 제3자 SDK)
 - Recording Client (시작 지연, Pause/Resume, 30분 자동 종료, 오프라인, 업로드 재시도(Mock), 크래시 복구, 백그라운드)
 - Test 결과
-- Stage 8: Backend Handoff 문서 7종과 `packages/contracts` 최종 검증
+- Stage 8: 이월 기능(C-15, 동의 이력 보기는 선택 C-19), Mock 데모 웹 프리뷰 배포(C-18), Backend Handoff 문서 7종과 `packages/contracts` 최종 검증
 
 ## 5. Stage Verdict 규칙
 

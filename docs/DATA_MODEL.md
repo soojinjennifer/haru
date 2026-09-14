@@ -1,7 +1,9 @@
 # HARU Data Requirements (Draft for Backend Developer)
 
-Status: DRAFT — Stage 0 산출물, 사용자 승인 대기 (Rev 4: cross-document critic 수정 — 참조 정정, 동의 철회 조건부, RECOMMENDED 라벨, 2026-09-14)
-Based on: PRD v1.4 §12.1·§7·§10·§11·§13, `docs/ARCHITECTURE.md` (DRAFT Rev 3), `docs/API_CONTRACTS.md` (DRAFT Rev 3), `docs/FIGMA_SCREEN_MAP.md` (M-28, M-38), `docs/decisions/stage-0-technical-research.md`, `CLAUDE.md` Development Scope, `.claude/rules/backend.md` §2·§4
+Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (Rev 6: #33 · C-19 반영)
+Reflects: `docs/decisions/stage-0-approvals.md` #16 · #17 · C-1 · C-2 · C-3 · C-4 · C-5 · C-6 · C-7 · C-8 · C-9 · C-10 · C-11 · C-12 · C-15 · D-03 · D-04 (Rev 5). #33 · C-19는 데이터 요구사항 변경 없음 (Rev 6)
+Decision log: `docs/decisions/stage-0-approvals.md` — 이 문서와 다르면 결정 기록이 우선한다. 라벨: `CONFIRMED (사용자 결정 YYYY-MM-DD, #id)` · `RECOMMENDED` · `NEEDS DECISION (법무, L-xx)`.
+Based on: PRD v1.4 §12.1·§7·§10·§11·§13, `docs/ARCHITECTURE.md` (DRAFT Rev 5), `docs/API_CONTRACTS.md` (DRAFT Rev 5), `docs/FIGMA_SCREEN_MAP.md` (M-28, M-38), `docs/decisions/stage-0-technical-research.md`, `CLAUDE.md` Development Scope, `.claude/rules/backend.md` §2·§4
 Author: plan-agent (2026-09-14)
 
 > **이 문서는 Backend Developer를 위한 Data Requirement 초안이다. Migration 계획이 아니다.** (Frontend-only Scope — CONFIRMED, 사용자 지시 2026-09-14)
@@ -23,7 +25,8 @@ Author: plan-agent (2026-09-14)
 | 만료 | Raw audio·클립: `expires_at` | NFR 90일 |
 | 동의 참조 | 녹음·분석 관련 row는 `consent_event_id`(당시 유효한 아동 음성 동의) 참조 | FR-02, rules/backend.md §4 (서버 측 동의 강제·Consent History) |
 | Enum | Postgres enum 대신 `text + CHECK` (contracts enum 변경 시 migration 부담 완화), 값은 contracts와 동일 | 기술 요구사항 |
-| PII | 아이 이름은 `children.nickname` 한 곳. 파생 텍스트에는 이름 치환 토큰 사용 | NFR 최소 수집 |
+| PII | 아이 이름은 `children.first_name`·`children.last_name` 한 곳 (D-03). 화면·알림 호칭은 `first_name` 만. 파생 텍스트·AI 입력에는 이름 치환 토큰 사용 | NFR 최소 수집, C-6 |
+| 동의 전 쓰기 금지 | 필수 동의 기록 전에는 아동 데이터(`children`, `onboarding_responses` 등)를 생성하지 않는다. Trial 응답은 서버에 없다 | FR-02, C-2, C-12 |
 
 ## 2. Ownership · RLS 접근 방식
 
@@ -38,9 +41,9 @@ Author: plan-agent (2026-09-14)
 | **R5 Append-only** | `consent_events` | `authenticated`: 본인 insert + select, update/delete 정책 없음 |
 
 - Helper: `auth_owns_child(child_id)` (security definer, `children.caregiver_id = auth.uid()`).
-- Trial 익명 사용자(ARCHITECTURE §7.4 옵션 B 채택 시에만): `(auth.jwt()->>'is_anonymous')::boolean = false` 조건을 R1 insert 정책에 추가해 익명 계정의 아동 데이터 생성을 차단.
+- Trial 익명 사용자: **해당 없음** — Trial은 기기 로컬 draft만 쓰고 익명 계정을 만들지 않는다 (CONFIRMED (사용자 결정 2026-09-14, C-12)). 익명 JWT 조건 정책 불필요.
 - Storage: bucket `recordings`, `highlight-clips`, `report-pdfs` 모두 private. 객체 경로 `{caregiver_id}/{child_id}/{session_id}/{recording_id}/part-{n}.{ext}` — 경로에 이름·이메일 금지. Storage RLS: 업로드는 서버가 발급한 signed upload token으로만, 읽기는 signed URL(짧은 만료)로만.
-- Backend Developer 검증 요구사항 (이 프로젝트에서 실행하지 않음): 소유자 허용 / 비소유자 차단 / 익명 차단 / R3 전면 차단.
+- Backend Developer 검증 요구사항 (이 프로젝트에서 실행하지 않음): 소유자 허용 / 비소유자 차단 / 필수 동의 전 아동 데이터 쓰기 차단 / R3 전면 차단.
 
 ## 3. 관계 개요
 
@@ -83,7 +86,7 @@ ai_generation_logs, audit_logs, data_deletion_requests (운영)
 | 7 | `report_cycles`, `reports`, `report_snapshots`, `report_pdfs` |
 | 8 | `data_deletion_requests` (Retention Job·전체 삭제 파이프라인은 Backend Handoff 요구사항, Frontend는 삭제 요청 UX·로컬 정리만) |
 
-> Stage 4의 세션별 녹음 삭제(FR-21 일부)를 Stage 4에 둘지 Stage 8에 둘지는 PLANNING.md §4.1 FR-21 행 참조.
+> FR-21: Stage 4 = 로컬 녹음 삭제 기반만, Stage 8 = 데이터 관리 UI·세션별 녹음 삭제·전체 삭제 요청·탈퇴 (CONFIRMED (사용자 결정 2026-09-14, C-15)).
 
 ---
 
@@ -100,12 +103,14 @@ ai_generation_logs, audit_logs, data_deletion_requests (운영)
 | locale | text default 'en-US' | |
 | plan | text default 'free' | §7.1 가입 시 Free 부여. 결제는 P2(FR-26) |
 | onboarding_status | text CHECK (not_started, in_progress, completed) | FR-03 Route Guard |
-| created_via | text CHECK (email, google, apple, anonymous_trial) | §12.1 인증 방식 |
+| created_via | text CHECK (email, google, apple) | §12.1 인증 방식 (익명 Trial 없음 — C-12) |
+| parent_verification_status | text CHECK (not_required, pending, verified, failed) | **RECOMMENDED** — VPC 단계 슬롯 상태 (C-3). 방식·증빙 필드는 NEEDS DECISION (법무, L-01) |
 
 ### consent_documents — R4
 | 컬럼 | 비고 |
 |---|---|
-| id, consent_type, version (text), locale, content_hash, url, effective_at, retired_at | 약관·방침·보호자 동의문의 버전 관리 |
+| id, consent_type, version (text), locale, content_hash, url, effective_at, retired_at | 약관·방침·보호자 동의문·파일럿 동의문의 버전 관리 (C-1 "각 동의는 문서 버전과 함께 기록") |
+| is_required bool | 필수 여부 — `pilot_participation` 은 법무 결정값 (L-02). Frontend는 contracts `ConsentDocument.required` 로 받아 필수 표시 (값 변경 시 코드 수정 없음) |
 
 ### consent_events — R5 append-only
 | 컬럼 | 타입 | 비고 |
@@ -113,26 +118,28 @@ ai_generation_logs, audit_logs, data_deletion_requests (운영)
 | id | uuid | |
 | caregiver_id | uuid FK | |
 | child_id | uuid null | 아동 대상 동의일 때 (가입 시점엔 child 미생성 → null 허용) |
-| consent_type | text | contracts `ConsentType`: `terms_of_service`, `privacy_policy`, `child_voice_data`(필수, 별도), `marketing`(선택), `third_party_disclosure`(개정 COPPA — 법무 결정 시), `pilot_participation`(Figma 존재·PRD 없음 — 결정 시) |
+| consent_type | text | contracts `ConsentType` — CONFIRMED (사용자 결정 2026-09-14, C-1): `terms_of_service`(필수), `privacy_policy`(필수), `child_voice_data`(필수, 별도 체크 — 아동 음성·성장 데이터), `marketing`(선택), `pilot_participation`(필수/선택 NEEDS DECISION (법무, L-02)). `third_party_disclosure` 는 C-1에 없음 — 필요 여부 NEEDS DECISION (법무) |
 | consent_document_id | uuid FK | 버전 참조 |
-| action | text CHECK (granted) — `revoked` 값은 동의 철회 채택 시에만 (NEEDS DECISION, OAQ-08·COPPA 법무; PRD·Figma 근거 없음) | append-only 이력 (PRD §12.1 "동의 이력") |
-| method | text | `checkbox` 또는 VPC 방식 코드 (NEEDS DECISION) |
-| source | text CHECK (signup_email, signup_oauth, settings, reconsent) | |
+| action | text CHECK (granted) — `revoked` 없음: 동의 철회 MVP 제외 (CONFIRMED (사용자 결정 2026-09-14, C-4); COPPA 관계 법무 L-03) | append-only 이력 (PRD §12.1 "동의 이력") |
+| method | text | `checkbox` 또는 VPC 방식 코드 — VPC 방식 NEEDS DECISION (법무, L-01) |
+| source | text CHECK (signup_email, signup_oauth, settings, reconsent) | 모든 가입 경로가 가입 직후 같은 동의 화면을 거친다 (C-2) |
 | occurred_at | timestamptz | |
 | ip_hash, user_agent_summary | text null | 증빙 최소화 (보관 기간 NEEDS DECISION) |
 
 - "현재 유효 동의" = type별 최신 행이 `granted` 이고 문서 버전이 현행 필수 버전 이상 → view `current_consents`.
-- 동의 철회는 PRD·Figma에 없다 → **NEEDS DECISION (OAQ-08, COPPA 법무)**. 채택 시 요구사항 후보: `child_voice_data` 철회 후 신규 녹음·업로드·분석 거부, 진행 중 job 취소, 기존 원본 삭제 여부(철회 = 삭제 요청으로 볼지).
+- **동의 철회 없음** (CONFIRMED (사용자 결정 2026-09-14, C-4)). 보호자 권리는 세션별 녹음 삭제·전체 데이터 삭제 요청·탈퇴(FR-21, §12.2)로 제공. 철회 미제공의 COPPA 적합성은 NEEDS DECISION (법무, L-03).
+- 필수 동의 = `terms_of_service` + `privacy_policy` + `child_voice_data` (+ L-02 결과에 따라 `pilot_participation`). 이 동의가 유효하기 전에는 R1 아동 데이터 쓰기를 거부한다 (`CONSENT_REQUIRED`, C-2).
 
 ## 6. Child · Onboarding · Profile (Stage 2)
 
-### children — R1
+### children — R1 (필수 동의 기록 후 온보딩 Step 1에서 생성 — CONFIRMED (사용자 결정 2026-09-14, C-5))
 | 컬럼 | 비고 |
 |---|---|
 | id, caregiver_id (UNIQUE — MVP 1명, FR-27 P2 시 제거) | |
-| nickname | 이름(닉네임, PRD §7.2). 유일한 아이 이름 저장 위치. Figma `179:1740` 의 성+이름 수집은 M-28 — 성(last name) 필드는 설계하지 않음 (NEEDS DECISION) |
-| birth_year_month | `date`(일=1 고정) — 생년월만 (§7.2) |
-| gender | text null — 선택 입력 (PRD §7.2). 값 목록 **NEEDS DECISION (M-38)**: 후보 girl, boy, other, prefer_not; 미선택 = null. Figma `Tag Color=Boy/Girl/Not selected` |
+| first_name | text — 이름. 화면·알림 호칭에 사용하는 유일한 이름 (CONFIRMED (사용자 결정 2026-09-14, C-6)) |
+| last_name | text — 성. Figma `179:1740` 두 칸 유지 (C-6). PRD "이름(닉네임)"·최소 수집과 다름 → 사용자 수용 예외 D-03, 수집 적합성 NEEDS DECISION (법무, L-07). 호칭·AI 입력·알림 payload에 사용하지 않음. 필수 여부는 Stage 2 Plan |
+| birth_year_month | `date`(일=1 고정) — 생년월만 (§7.2). 대상 연령 3~9세 가입 허용 (CONFIRMED (사용자 결정 2026-09-14, C-10)) |
+| gender | text null CHECK (girl, boy, prefer_not_to_say) — 선택 입력, 기본 미선택·미응답 = null (CONFIRMED (사용자 결정 2026-09-14, C-7)) |
 | language_environment | text[] 또는 jsonb | §7.2 Step 1 |
 | reading_routine | jsonb | 가족 내 독서 루틴 |
 | topic_tags | text[] | §7.2 Step 3 |
@@ -140,26 +147,29 @@ ai_generation_logs, audit_logs, data_deletion_requests (운영)
 | current_growth_capability | text (Capability) | FR-06 현재 값 (이력은 selections) |
 | deleted_at | | |
 
-### survey_instruments / survey_items — R4 (기술 요구사항, FR-03·OAQ-07)
-PRD §7.2 Step 5(역량별 동일 문항 수·5점 리커트)와 Baseline Survey v1(10문항 빈도 척도, 2/3/2/3, "Haven't seen" 비채점)이 충돌하므로 **문항을 코드에 하드코딩하지 않고 버전 관리**한다.
-| survey_instruments | id, code (`onboarding_v1`, `baseline_pilot_v1`), version, scale_type (`likert_5`, `frequency_5_with_na`), age_min_months, age_max_months, administration (`onboarding`, `exit`), active |
+### survey_instruments / survey_items — R4 (FR-03, C-8)
+온보딩 Step 5 = **Baseline Survey v1 10문항** — CONFIRMED (사용자 결정 2026-09-14, C-8). PRD §7.2 "역량별 동일 문항 수·5점 리커트"와 다름 → 사용자 수용 예외 D-04. 원문 `docs/source/HARU_Developmental_Baseline_Survey_v1.docx.md`. 문항 문구는 코드에 하드코딩하지 않고 instrument 데이터로 버전 관리한다.
+| survey_instruments | id, code (`baseline_v1`), version, stem ("In the past two weeks…"), scale_type (`frequency_5_with_not_observed`), age_min_months null, age_max_months null, administration (`onboarding` — Exit 설문 없음 C-11; 설정의 설문 재응답은 같은 instrument 재사용), active |
 |---|---|
-| survey_items | id, instrument_id, item_code (예 `ER1`), capability, order, prompt_text, reverse_scored bool, scored bool |
+| survey_items | id, instrument_id, item_code (`ER1`, `ER2`, `AG1`, `AG2`, `AG3`, `CF1`, `CF2`, `IM1`, `IM2`, `IM3`), capability (contracts `Capability`: ER=`emotion_regulation`, AG=`self_directed_agency`, CF=`cognitive_flexibility`, IM=`intrinsic_motivation`), order, prompt_text, scored bool (10문항 모두 true) |
+- 척도: Never · Rarely · Sometimes · Often · Almost always = 내부 1–5점. 비채점 응답 "Haven't had the chance to see this yet" = `not_observed` (결측 — 낮은 점수가 아님).
+- 역량별 문항 수: ER 2 · AG 3 · CF 2 · IM 3.
+- 대상 연령: 가입은 3~9세 (C-10). Baseline v1은 3.0–4.0세 대상으로 설계됨 — 4세 이상 적합성은 기획·전문가 확인 필요. 연령별 instrument 분리 여부는 그 결과에 따르며, 그때 `age_min_months`/`age_max_months` 를 채운다.
 
 ### onboarding_responses — R1 (FR-03 중도 저장·복귀)
 | 컬럼 | 비고 |
 |---|---|
 | id, caregiver_id, child_id, instrument_id | |
-| step | text (child_info, temperament, books, goals, capability_items) |
-| answers | jsonb — step별 contracts schema로 검증된 값. capability 문항은 `{item_code, value 1..5 \| null(na)}` |
+| step | text (child_info, temperament, books, goals, capability_items) — 5단계 구성·순서 CONFIRMED (사용자 결정 2026-09-14, C-9), 식별자 문자열 RECOMMENDED |
+| answers | jsonb — step별 contracts schema로 검증된 값 (API_CONTRACTS §3.4). `child_info` = `{first_name, last_name, birth_year_month, gender, …}` — 동의 기록 후에만 저장 (C-5). `capability_items` = `[{item_code, value: 1..5 \| 'not_observed'}]` |
 | status | draft, submitted |
-| administered_at_phase | onboarding, exit (Baseline T0/T1 채택 시) |
+| administered_at_phase | onboarding, settings_retake (PRD §7.8 설문 재응답) — Exit(T1) 설문 없음 (CONFIRMED (사용자 결정 2026-09-14, C-11)) |
 | submitted_at | |
 
 ### capability_snapshots — R2 / capability_scores — R2 (FR-04, FR-15, §12.1)
 | capability_snapshots | id, caregiver_id, child_id, source (`onboarding_survey`, `session_analysis`, `report_cycle`), source_ref_id, scoring_version, created_at |
 |---|---|
-| capability_scores | id, snapshot_id, capability, score numeric(2,1) 1.0–5.0, evidence_summary_key (근거 설명 템플릿 키), item_count, missing_count |
+| capability_scores | id, snapshot_id, capability, score numeric(2,1) 1.0–5.0 null — 온보딩 스냅샷은 **응답한 문항의 평균** (`not_observed` 제외, CONFIRMED (사용자 결정 2026-09-14, C-8); 한 역량 문항이 모두 결측일 때 처리는 Stage 2 Plan), evidence_summary_key (근거 설명 템플릿 키), item_count, missing_count |
 
 - 스냅샷은 불변. 최신 = `created_at` 최대. 리포트 오버레이(§7.7)는 두 스냅샷 비교.
 
@@ -237,13 +247,13 @@ PRD §7.2 Step 5(역량별 동일 문항 수·5점 리커트)와 Baseline Survey
 | id, caregiver_id, child_id | uuid | |
 | activity_card_id, activity_card_option_id | uuid null | 추천에서 시작한 경우 |
 | book_id, child_book_id | uuid null | 대화 전용이면 둘 다 null 가능 |
-| mode | text CHECK (recorded, conversation_only) | **RECOMMENDED** (ARCHITECTURE §10.1) — 승인 전 확정 아님 |
-| status | text CHECK (ready, recording, paused, completed, analyzing, analyzed, failed, abandoned) | contracts `SessionStatus` — PRD §12.2 7개 값 CONFIRMED, `abandoned` **RECOMMENDED** |
+| mode | text CHECK (recorded, conversation_only) | CONFIRMED (사용자 결정 2026-09-14, #16) |
+| status | text CHECK (ready, recording, paused, completed, analyzing, analyzed, failed, abandoned) | contracts `SessionStatus` — CONFIRMED (사용자 결정 2026-09-14, #16) |
 | reading_context | text null | |
 | ready_at, started_at, completed_at, abandoned_at | timestamptz | client `occurredAt` 기준 |
-| completed_reason | text null (user_done, auto_timeout, recovered_after_crash) | **RECOMMENDED** |
-| recorded_seconds | int default 0 | pause 제외 녹음 길이 — 리포트 eligibility 입력 |
-| analysis_outcome | text null (full, excluded_low_quality, skipped_audio_deleted; `skipped_consent_revoked` 는 OAQ-08에서 동의 철회 채택 시에만) | **RECOMMENDED** (skipped 값 OAQ-17) |
+| completed_reason | text null (user_done, auto_timeout, recovered_after_crash) | CONFIRMED (#16) |
+| recorded_seconds | int default 0, ≤ 1800 | 실제 녹음 시간 (일시정지 제외 — CONFIRMED (사용자 결정 2026-09-14, #17)) — 리포트 eligibility 입력 |
+| analysis_outcome | text null (full, excluded_low_quality) | CONFIRMED (#16). `excluded_low_quality` 세션은 리포트 발행 기준에서 제외 (#17). `skipped_audio_deleted` 는 OAQ-17 결정 전 제외, 동의 철회 값 없음 (C-4) |
 | consent_event_id | uuid null | 녹음 시작 시점 유효 동의 |
 | client_session_key | text UNIQUE | 오프라인 생성·재전송 멱등 키 |
 
@@ -257,11 +267,11 @@ PRD §7.2 Step 5(역량별 동일 문항 수·5점 리커트)와 Baseline Survey
 | 컬럼 | 비고 |
 |---|---|
 | id, caregiver_id, child_id, session_id | |
-| upload_status | `pending`, `uploaded`, `failed`, `deleted`, `expired` — **RECOMMENDED** (ARCHITECTURE §10.1 #4 별도 upload status, 승인 전 확정 아님) |
+| upload_status | `pending`, `uploaded`, `failed`, `deleted`, `expired` — CONFIRMED (사용자 결정 2026-09-14, #16 별도 upload status) |
 | part_count, total_bytes, duration_seconds, mime_type | |
 | consent_event_id | 업로드 확정 시점 유효 동의 |
 | uploaded_at, expires_at (= uploaded_at + 90d) | NFR |
-| deleted_at, deletion_reason (`retention_90d`, `caregiver_session_delete`, `full_data_delete`; `consent_revoked` 는 OAQ-08 채택 시에만) | FR-21 — 값 목록 **RECOMMENDED** |
+| deleted_at, deletion_reason (`retention_90d`, `caregiver_session_delete`, `full_data_delete`) | FR-21 — 값 목록 **RECOMMENDED** (동의 철회 값 없음 — C-4) |
 | upload_failed_notice_sent_at | §13 48h 안내 |
 
 ### recording_parts — R3
@@ -315,7 +325,7 @@ PRD §7.2 Step 5(역량별 동일 문항 수·5점 리커트)와 Baseline Survey
 
 ### notification_deliveries — R3 (FR-08, FR-13, FR-16, §13)
 | id, caregiver_id, kind (`session_invite`, `short_feedback_ready`, `report_published`, `report_deferred_encourage`, `upload_failed_48h`, `report_delayed`), provider_message_id, scheduled_for, sent_at, status, payload_template_id |
-- payload에 아이 이름 포함 여부는 결정 #6과 연동.
+- payload에 아이 이름 포함 여부는 Push Provider 결정(PLANNING §7 #6)·벤더 조건(법무 L-06)과 연동. 포함 시 `first_name` 만 (C-6).
 
 ## 10. Personalization (Stage 6)
 
@@ -329,8 +339,8 @@ PRD §7.2 Step 5(역량별 동일 문항 수·5점 리커트)와 Baseline Survey
 | 컬럼 | 비고 |
 |---|---|
 | id, caregiver_id, child_id | |
-| cycle_no, period_start date, period_end date | 4주. 기준일 OAQ-12 |
-| recorded_seconds, recorded_session_count | eligibility 입력 스냅샷 (판정 시점 값) |
+| cycle_no, period_start date, period_end date | 28일 주기 — **첫 세션 완료일부터 28일 단위 반복** (CONFIRMED (사용자 결정 2026-09-14, #17)). 대화 전용 세션의 시작일 포함 여부·시간대 경계는 Stage 7 Plan |
+| recorded_seconds, recorded_session_count | eligibility 입력 스냅샷 (판정 시점 값). 집계 대상 = `mode='recorded'` AND `analysis_outcome <> 'excluded_low_quality'` 세션만. 기준: `recorded_session_count ≥ 3` AND `recorded_seconds ≥ 3600` (#17 — contracts `MIN_REPORT_RECORDED_SESSIONS`, `MIN_REPORT_RECORDED_SECONDS`) |
 | eligibility | contracts `ReportEligibility` |
 | status | `in_progress`, `generating`, `published`, `deferred`, `delayed` |
 | deferred_to_cycle_id null | 이월 |
@@ -351,7 +361,7 @@ PRD §7.2 Step 5(역량별 동일 문항 수·5점 리커트)와 Baseline Survey
 ## 12. Audit · Deletion · Retention (Backend Handoff 요구사항 — Frontend는 Stage 4 로컬 삭제 기반, Stage 8 삭제 요청 UX·로컬 정리만)
 
 ### audit_logs — R3 (NFR 보안 "감사 로그", rules/backend.md §4 Audit Log)
-| id, occurred_at, actor_type (`caregiver`, `worker`, `cron`, `admin`), actor_id null, action (`consent_granted`, `consent_revoked`(OAQ-08 채택 시), `recording_uploaded`, `recording_deleted`, `retention_deleted`, `data_export`?, `full_deletion_started`, `full_deletion_completed`, `service_role_sensitive_read`), target_type, target_id, caregiver_id null, request_id, metadata jsonb (PII 금지) |
+| id, occurred_at, actor_type (`caregiver`, `worker`, `cron`, `admin`), actor_id null, action (`consent_granted`, `recording_uploaded`, `recording_deleted`, `retention_deleted`, `data_export`?, `full_deletion_started`, `full_deletion_completed`, `service_role_sensitive_read`), target_type, target_id, caregiver_id null, request_id, metadata jsonb (PII 금지) |
 - 전체 삭제 후에도 audit 행은 유지하되 `caregiver_id` 는 **가명 해시**로 치환 (삭제 증빙 vs 최소 보관 균형 — 보관 기간 NEEDS DECISION(법무)).
 
 ### data_deletion_requests — R1 insert/select (FR-21, §7.8)
@@ -380,7 +390,7 @@ Retention Job 멱등 조건: Storage delete가 404여도 성공 처리 후 메�
 3. Storage: 해당 recording 전 part + highlight clips 삭제 (Storage API).
 4. DB: `recording_parts` 삭제, `recordings.upload_status='deleted'`, `deletion_reason='caregiver_session_delete'`; `highlight_clips.deleted_at`.
 5. 유지: `storytime_sessions`, `session_reflections`, `sticker_awards`, `transcripts`·`session_metrics`·`observations`·`capability_signals` (NFR "전사·지표는 유지" — 단 보호자가 "녹음 삭제"를 전사 삭제까지 기대할 수 있음 → UI 안내 문구·범위 NEEDS DECISION).
-6. 분석 전이면 세션 `analysis_outcome='skipped_audio_deleted'` (OAQ-17).
+6. 분석 전이면 세션 종결 표현 — `skipped_audio_deleted` 후보, NEEDS DECISION (OAQ-17).
 7. 클라이언트: 로컬 미업로드 파일 삭제, TanStack 캐시 invalidate.
 8. audit `recording_deleted`.
 
@@ -397,10 +407,14 @@ FK 전략: 운영 안전을 위해 `ON DELETE CASCADE` 에만 의존하지 않�
 
 ## 13. Trial / Anonymous Users (FR-24, P1)
 
-| 결정 #10 옵션 | 데이터 모델 영향 |
+**CONFIRMED (사용자 결정 2026-09-14, C-12) — 기기에만 저장하는 체험. 동의 전 서버 데이터 없음.**
+
+| 항목 | 요구사항 |
 |---|---|
-| **A. 로컬 전용 Trial (RECOMMENDED)** | 서버 테이블 없음. 클라이언트 로컬 draft(`trialOnboardingDraft`)는 contracts `OnboardingDraftSchema` 로 저장 → 가입·동의 후 `POST /v1/onboarding/submit` 에 그대로 제출. 기기 로컬 draft 보관 상한(예 7일) 후 삭제 |
-| B. Supabase Anonymous | `caregiver_profiles.created_via='anonymous_trial'`, `is_anonymous` JWT로 RLS 제한, `linkIdentity` 후 동일 id 유지. 미전환 익명 계정 정리 Cron(예 30일) + 연결된 데이터 hard delete 필요. 동의 전 아동 데이터 저장 → 법무 승인 전제 |
+| 서버 테이블 | **없음.** 가입 전 온보딩 응답은 서버에 저장하지 않는다 |
+| 클라이언트 | 로컬 draft(`trialOnboardingDraft`)를 contracts `OnboardingDraftSchema` 로 저장 → 프로필 저장 시 가입 → 동의(C-2) → `POST /v1/onboarding/submit` 에 그대로 제출. 보관 상한·삭제 시점은 Stage 2 Plan |
+| 전환 후 서버 | submit 요청으로 `children`, `onboarding_responses(status=submitted)`, `capability_snapshots`, `personas` 를 한 번에 생성 (필수 동의 확인 후) |
+| 미채택 | 익명 계정(Anonymous Sign-in), `created_via='anonymous_trial'`, 익명 계정 정리 Cron, 다른 기기 이어하기 |
 
 ## 14. PRD §12.1 객체 ↔ 테이블 추적
 

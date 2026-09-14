@@ -33,6 +33,27 @@
 | 21 | 아이콘 소스 | **일반 아이콘 = Lucide** (npm `lucide-react`, 라이선스 ISC — 2026-09-14 npm registry 확인, 당시 최신 1.45.0; 버전 고정은 Stage 1 Plan). **HARU 전용 아이콘 = Figma SVG export** (출석 스티커 `attend`, thumb, record, flip 등). Figma의 일반 아이콘(settings, close, back, chevron 등)과 누락 아이콘(apple 제외)은 Lucide 대응 아이콘으로 대체. Google·Apple 로고는 공식 브랜드 에셋만 사용. 아이콘 크기 단계 값은 가값 P-09. Stack 외 라이브러리 추가 승인 포함 | 2026-09-14 |
 | 22 | 공통 상태 화면 | **design-agent 명세로 Stage 1에서 먼저 구현** — Loading · Empty · Error+Retry · Offline 배너 · Toast · Dialog, 컴포넌트 focus·error·loading 상태. 기존 토큰·컴포넌트만 사용한다. Stage 1 구현 후 가값 항목과 함께 화면을 제시하고 하나씩 유지/수정 승인 요청 (P-10). 디자이너는 이후 Figma에 반영할 수 있다 | 2026-09-14 |
 | 17 | contracts 상수 (OAQ-09·OAQ-12) | ① 리포트 최소 녹음 세션 수 **3** (누적 녹음 1시간 이상 조건과 함께, PRD §7.7) ② 세션 30분 자동 종료 = **실제 녹음 시간 기준(일시정지 제외)**, `MAX_RECORDED_SECONDS = 1800` ③ STT 실패·저품질 세션(`analysisOutcome: excluded_low_quality`)은 리포트 발행 기준(세션 수·누적 녹음 시간)에서 **제외** ④ 4주 주기는 **첫 세션 완료일부터 28일 단위 반복** — 대화 전용 세션 포함 여부·시간대 경계 등 세부는 Stage 7 Plan | 2026-09-14 |
+| C-1 | 동의 항목 (M-01·M-02) | PRD 기준 분리 + **파일럿 참여 동의 추가** — 필수 ① 이용약관 ② 개인정보처리방침 ③ 아동 음성·성장 데이터 처리 보호자 동의(별도 체크), 선택 ④ 마케팅 수신, 추가 ⑤ 파일럿(베타) 참여 동의 — 필수/선택 여부와 문구는 법무 확인 (§6 L-02). 각 동의는 문서 버전과 함께 기록. Figma 단일 체크박스는 디자이너에게 수정 요청 | 2026-09-14 |
+| C-2 | 소셜 가입 동의 시점 (M-27) | **소셜 로그인 직후 동의 화면 필수** — 이메일·Google·Apple 모든 가입 경로가 같은 동의 화면을 거친다. 동의 기록 전에는 아이 정보를 서버로 전송하지 않는다 (ARCHITECTURE §7.3.1) | 2026-09-14 |
+| C-3 | VPC 방식 | **법무 확인 후 결정** (§6 L-01). Stage 2 Frontend는 동의 화면 뒤에 VPC 단계를 끼울 수 있게 설계하고 Mock으로 진행 | 2026-09-14 |
+| C-4 | 동의 철회 (#32, OAQ-08) | **MVP 제외** — 탈퇴·전체 데이터 삭제 요청(FR-21)만 제공. `consent-revoked` scenario key, `skipped_consent_revoked` 값, 동의 철회 Contract는 범위에서 제거. COPPA 보호자 권리(추가 수집 거부·삭제)와의 관계는 법무 확인 (§6 L-03) | 2026-09-14 |
+| C-5 | 아이 정보 수집 위치 (M-28) | **온보딩 Step 1로 이동** — 가입 화면은 보호자 정보(이름·이메일·비밀번호)만 받는다. 아이 정보는 동의 기록 후 온보딩 Step 1에서 수집 (PRD §7.2). Figma 가입 화면(`179:1724`) 수정은 디자이너 요청 | 2026-09-14 |
+| C-6 | 아이 이름 필드 | **성·이름 두 칸 (Figma `179:1740` 유지)** — PRD "이름(닉네임)"·최소 수집 원칙과 다름 → §3 D-03, 법무 확인 §6 L-07. 화면·알림 호칭은 이름(first name)만 사용 | 2026-09-14 |
+| C-7 | 아이 성별 (M-38) | **선택 항목** Girl / Boy / Prefer not to say, 기본값 선택 안 함, 미응답으로도 진행 가능. contracts 값: `girl` · `boy` · `prefer_not_to_say`, 미응답은 `null` | 2026-09-14 |
+| C-8 | 온보딩 역량 문항 (M-03) | **Baseline Survey v1 10문항 채택** (`docs/source/HARU_Developmental_Baseline_Survey_v1.docx.md`, 원본 `$HARU_ONEDRIVE/기존 자료/`) — "In the past two weeks" 기준 빈도 5단계(Never · Rarely · Sometimes · Often · Almost always, 내부 1–5점) + 비채점 응답 "Haven't had the chance to see this yet"(결측). 역량별 문항 ER 2 · AG 3 · CF 2 · IM 3. 역량 점수 = 응답한 문항 평균(1.0–5.0, 다이아몬드 그래프 입력). 한 역량의 문항이 모두 결측일 때의 처리는 Stage 2 Plan. PRD "역량별 동일 문항 수"와 다름 → §3 D-04 | 2026-09-14 |
+| C-9 | 온보딩 단계 (M-06) | **PRD 5단계 유지** — Step 1 아이 정보 → 2 기질 카드 → 3 책·선호 주제 → 4 성장 목표 → 5 역량 문항(C-8), 중도 저장·복귀(FR-03). Figma 설문 소개의 "About 3 minutes · 10 cards" 문구는 전체 소요 시간에 맞게 수정 필요(디자이너·카피). Step 1~4 화면 디자인 방식은 별도 결정 | 2026-09-14 |
+| C-10 | 대상 연령 (M-04) | **PRD대로 3~9세** 가입 허용. 4세 이상용 문항·Prompt가 준비되기 전까지 3세용·범용 콘텐츠 사용(콘텐츠 준비는 운영 범위). Baseline v1 문항(3.0–4.0세 대상 설계)의 4세 이상 적합성은 기획·전문가 확인 필요 | 2026-09-14 |
+| C-11 | Exit 설문 (M-05) | **MVP 제외** — PRD 범위 유지. 설정의 설문 재응답(PRD §7.8)으로 보호자가 직접 다시 응답할 수는 있음 | 2026-09-14 |
+| C-12 | Trial → 계정 전환 (FR-24) | **기기에만 저장하는 체험** — 가입 전 온보딩 응답은 기기 로컬 draft로만 저장하고, 프로필 저장 시 가입 → 동의(C-2) → 서버 전송(`POST /v1/onboarding/submit`). 동의 전 아이 정보는 서버로 보내지 않는다. 다른 기기에서 이어하기는 지원하지 않으며 익명 계정 방식은 쓰지 않는다 | 2026-09-14 |
+| C-13 | Figma 누락 화면 디자인 방식 (M-06·M-07·M-16 등) | **해당 Stage에서 화면별로 결정** — 구현 Stage의 plan/design 단계에서 Orchestrator가 누락 화면마다 사용자에게 ① 디자이너에게 Figma 디자인 요청 ② design-agent가 명세 작성 중 무엇으로 할지 묻고, 사용자 승인 후 작업한다. 승인 전에는 누락 화면을 디자인·구현하지 않는다. Apple 로그인 버튼은 Apple 공식 가이드 버튼을 사용한다 | 2026-09-14 |
+| C-14 | Baseline Survey 문서 | **저장소 `docs/source/HARU_Developmental_Baseline_Survey_v1.docx.md` 에 사본 추가** (#4-2 포함 범위 확장) | 2026-09-14 |
+| C-15 | 이월 항목 위치 (#30) | **Stage 8 유지** — FR-21 데이터 관리 UI(P0: 보관 정책 안내·세션별 녹음 삭제·전체 삭제 요청), 동의 이력 보기(선택 기능, C-19), 탈퇴를 Stage 8에서 구현. Stage 8 = Frontend Final QA + Accessibility + Responsive + Regression + 이월 기능 + Backend Handoff → STOP | 2026-09-14 |
+| C-16 | 설정 진입점 (#31) | **Home 상단 설정 아이콘(`26:44`)을 Stage 2부터 연결하고 최소 목록에서 확장** — Stage 2 로그아웃 → Stage 3 알림 설정 → Stage 6 전체 설정(아이 프로필 수정·발전 역량 변경 등) → Stage 8 데이터 관리·동의 이력 보기·탈퇴. 목록 화면 디자인은 C-13 규칙에 따라 해당 Stage에서 확인 | 2026-09-14 |
+| C-17 | 에셋 사용 권리 (#23, M-35) | **캐릭터·책 표지 모두 바로 사용** — 사용자 확인: 권리 확보됨. 이미지 최적화 포맷·해상도는 Stage 1 Plan | 2026-09-14 |
+| C-18 | Stage 8 배포 (#3 잔여) | **Mock 데모용 웹 프리뷰만** — Mock 모드로 동작하는 웹을 정적 호스팅에 배포(시연·Backend Developer 인계용, 실제 아동 데이터 없음). 호스팅 서비스는 Stage 8 Plan에서 확인. 앱 테스트 빌드(TestFlight·Play)와 Backend 배포는 포함하지 않음 | 2026-09-14 |
+| 33 | Stage 2 착지 화면 | **Home 화면 골격 먼저** — Stage 2에서 Home 상단(워드마크 · 설정 아이콘 `26:44`)과 빈 상태 안내만 있는 Home 골격을 만들어 로그인·온보딩 완료 후 착지 화면으로 사용한다. Activity Card 등 Home 콘텐츠와 하단 탭바는 Stage 3에서 추가. 설정 아이콘은 처음부터 최종 위치(C-16) | 2026-09-14 |
+| C-19 | 동의 이력 보기 (C-15 보완) | **선택 기능** — Stage 8에서 여유가 있으면 구현하는 읽기 전용 목록. 미구현이어도 QA FAIL 아님. Stage 8 필수 이월 기능은 데이터 관리 UI · 탈퇴 | 2026-09-14 |
+| 1 | Stage 0 산출물 승인 | **승인** — 문서 9종(PLANNING, ARCHITECTURE, DATA_MODEL, API_CONTRACTS, FIGMA_SCREEN_MAP, COMPONENT_MAP, DESIGN_SYSTEM, DESIGN_TOKEN_MAP, FRONTEND_IMPLEMENTATION_PLAN) + 이 결정 기록 + CLAUDE.md · rules · agents (#33 · C-19 반영 기준). Stage 1은 사용자가 진행을 요청하면 plan-agent → design-agent → 승인 체크포인트 순서로 시작한다 | 2026-09-14 |
 
 ## 2. 결정 대기 — 요청 순서
 
@@ -50,8 +71,8 @@
 | ~~10~~ | 21 | 아이콘 소스 | **결정 완료** (§1) |
 | ~~11~~ | 22 | 공통 상태 디자인 방식 | **결정 완료** (§1) |
 | ~~12~~ | 17 | contracts 상수 가값 | **결정 완료** (§1) |
-| 13 | 1 | Stage 0 산출물 전체 승인 | 결정 반영 후 |
-| — | 3(잔여), 23, 30, 31, 32, M-01/02/03/04/05/06/07/16/27/28/38, Trial | Stage 2 전까지 | Stage 1 비차단 |
+| ~~13~~ | 1 | Stage 0 산출물 전체 승인 | **승인 완료** (2026-09-14) |
+| — | (없음) | Stage 2 전 결정 C-1~C-18 모두 완료 | — |
 
 ## 3. 사용자 수용 예외 (Accepted Deviations)
 
@@ -61,6 +82,8 @@ PRD 요구사항과 다르게 가기로 사용자가 명시적으로 결정한 �
 |---|---|---|---|---|
 | D-01 | §11 접근성: 양육자 화면 WCAG AA | Accent(주요) 버튼의 파스텔 teal `#85bfb6` 배경 + 흰 라벨(2.07:1) 유지 | 주요 버튼·선택 칩 등 `--color-action-primary-bg` 위 흰 라벨에 한정. 보조 텍스트·비텍스트·focus는 포함하지 않음 (디자이너 결정 대기) | 2026-09-14 |
 | D-02 | §6.1 내비게이션: 하단 3탭 서재 / 세션(중앙 강조) / 리포트, 홈 = 상단 집 아이콘 | 하단 탭 Library / Home(중앙) / Progress (Figma `25:87`). 세션은 Activity Card·서재에서 시작 | 탭 구조, 라우트(세션 탭 진입점 없음), 리포트 탭 라벨 | 2026-09-14 |
+| D-03 | §7.2 Step 1 "이름(닉네임)", §11 아동 데이터 최소 수집 | 아이 이름을 성·이름 두 칸으로 수집 (Figma `179:1740`) | 아이 이름 입력 필드. 화면 호칭은 이름(first name)만 사용. 법무 확인 L-07 | 2026-09-14 |
+| D-04 | §7.2 Step 5: 역량별 동일 문항 수, 5점 리커트 | Baseline Survey v1 10문항 (역량별 2/3/2/3, 빈도 5단계 + 비채점 응답) | 온보딩 Step 5 문항·역량 점수 산출 | 2026-09-14 |
 
 참고: 미국 시장 앱 접근성(ADA 등) 관련 분쟁 가능성은 출시 전 법무 검토 항목에 포함한다.
 
@@ -86,6 +109,14 @@ PRD 요구사항과 다르게 가기로 사용자가 명시적으로 결정한 �
 | P-08 | safe-area inset 토큰 | DESIGN_TOKEN_MAP §4 제안 (breakpoint 600/1024 · 앱 컬럼 480은 #12에서 확정) | 디자이너 대기 |
 | P-09 | 아이콘 크기 단계 `--size-icon-sm/md/lg` | DESIGN_SYSTEM §7 · TOKEN_MAP §4 제안 | 디자이너 대기 |
 | P-10 | 공통 상태 화면·컴포넌트 상태 디자인 (#22) | design-agent 명세 (DESIGN_SYSTEM · FRONTEND_IMPLEMENTATION_PLAN Stage 1) | Stage 1 구현 후 승인 요청 |
+| P-11 | glass·tinted 표면 위 `text-button`(`#5e7370`) 라벨 대비 4.18–4.48:1 — Glass 버튼 라벨, PromptPill, 설문 "Question 1 of 10" 등 (D-01 범위 밖) | 현재 Figma 값 | 디자이너 대기 |
+| P-12 | `--radius-surface` 22px vs 24px | Figma 화면 값 혼재 (DESIGN_TOKEN_MAP) | 디자이너 대기 |
+| P-13 | 화면 좌우 gutter 24px vs 26px | Figma 화면 값 혼재 | 디자이너 대기 |
+| P-14 | 배경 gradient stop 위치 46% vs 52% | Figma 화면 값 혼재 | 디자이너 대기 |
+| P-15 | 버튼 높이 (56px / 58px 혼재) | Figma 화면 값 혼재 | 디자이너 대기 |
+| P-16 | 캐릭터 medallion 크기 (188 / 200 / 232px 등 혼재) | Figma 화면 값 혼재 | 디자이너 대기 |
+
+디자이너 확인이 필요한 값이 새로 발견되면 같은 규칙(#10-4)으로 P-xx를 추가한다 (2026-09-14 critic 검토에서 P-11~P-16 추가).
 
 ## 5. 반영 상태
 
@@ -93,3 +124,18 @@ PRD 요구사항과 다르게 가기로 사용자가 명시적으로 결정한 �
 - 저장소 이전: OneDrive `HARU Dev` → `~/dev/haru` (2026-09-14). `docs/source/` 사본으로 경로 참조 교체, `$HARU_ONEDRIVE` 경로 정의는 CLAUDE.md
 - #26 hook: `.claude/settings.json` + `.claude/hooks/write_guard.py`, `scope_check.py` 설정 완료 (다음 세션부터 적용)
 - `PLANNING.md`, `docs/ARCHITECTURE.md`, `docs/API_CONTRACTS.md`, `docs/DATA_MODEL.md`, 디자인 문서 5종: 남은 Stage 1 차단 결정 수집 후 plan-agent / design-agent가 라벨·내용 일괄 반영 예정
+- Stage 0 문서 9종에 결정 반영 완료 → 독립 검토(critic) 반영 → 사용자 승인 (2026-09-14)
+
+## 6. 법무 검토 필요 항목 (Legal Review)
+
+출시 전 미국 변호사 검토가 필요한 항목. 결정이 나면 해당 결정 행과 문서를 갱신한다.
+
+| ID | 항목 | 관련 결정 | 상태 |
+|---|---|---|---|
+| L-01 | COPPA 검증 가능한 보호자 동의(VPC) 방식 | C-3 | 검토 대기 |
+| L-02 | 파일럿 참여 동의의 필수/선택 여부·문구 | C-1 | 검토 대기 |
+| L-03 | 동의 철회 미제공(C-4)이 COPPA 보호자 권리와 충돌하는지, 전체 삭제 요청(FR-21)으로 충분한지 | C-4 | 검토 대기 |
+| L-04 | 접근성(ADA 등) — 주요 버튼 대비 수용 예외 | D-01 | 검토 대기 |
+| L-05 | 개정 COPPA 서면 데이터 보관 정책·정보보안 프로그램 | research §12 | 검토 대기 |
+| L-06 | STT·AI·Push 벤더의 아동 데이터 처리 조건 (ZDR·DPA) | Backend Handoff | 검토 대기 |
+| L-07 | 아이 성(last name) 수집이 개정 COPPA 최소 수집 원칙에 맞는지 | C-6, D-03 | 검토 대기 |

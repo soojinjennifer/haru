@@ -67,7 +67,7 @@ model: opus
 - Frontend 코드·`VITE_*` 환경 변수에 Secret 포함
 - Request/Response 타입을 `packages/contracts` 밖에 다시 선언
 - 테스트를 통과시키기 위해 테스트를 약화하거나 skip 처리
-- 사용자 요청 없는 git commit / push, 배포
+- 사용자 요청 없는 git commit / push, 배포 (예외: 승인된 Stage 8 Plan의 Mock 데모 웹 프리뷰 정적 배포, Stage 0 C-18)
   - 저장소는 `~/dev/haru` (origin `haru.git`). commit·push는 사용자 요청 시에만 한다. 사용자 홈 디렉토리의 git 저장소는 건드리지 않는다.
 
 ## 5. Definition of Done (stage-qa-agent 인계 전 자체 확인)
@@ -86,7 +86,7 @@ model: opus
 
 ## 7. Stage 8 종료
 
-- Frontend Final QA 수정과 Backend Handoff 문서 7종(`BACKEND_HANDOFF.md`, `API_CONTRACTS.md`, `DATA_REQUIREMENTS.md`, `AUTH_REQUIREMENTS.md`, `RECORDING_UPLOAD_SPEC.md`, `ANALYSIS_PIPELINE_REQUIREMENTS.md`, `ERROR_CODES.md`) 작성, `packages/contracts` 최종 검증까지만 수행한다.
+- Stage 8 범위: Frontend Final QA 수정, 이월 기능(데이터 관리 UI·탈퇴, 동의 이력 보기는 선택 — Stage 0 C-15·C-19), Mock 데모 웹 프리뷰 정적 배포(Stage 0 C-18, 승인된 Stage 8 Plan에 따름), Backend Handoff 문서 7종(`BACKEND_HANDOFF.md`, `API_CONTRACTS.md`, `DATA_REQUIREMENTS.md`, `AUTH_REQUIREMENTS.md`, `RECORDING_UPLOAD_SPEC.md`, `ANALYSIS_PIPELINE_REQUIREMENTS.md`, `ERROR_CODES.md`) 작성, `packages/contracts` 최종 검증까지만 수행한다.
 - 그 후 Backend implementation, Supabase migration, Node API, STT, AI Analysis, Render deployment를 시작하지 않고 **STOP** 한다.
 
 ## 8. 보고 형식

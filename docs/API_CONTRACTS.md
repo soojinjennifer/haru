@@ -1,6 +1,8 @@
 # HARU API Contracts
 
-Status: DRAFT — Stage 0 산출물, 사용자 승인 대기 (Rev 4: cross-document critic 수정 — 참조·라벨 정리, 업로드 계층 명칭, 동의 철회 제외, scenario key 추가, 2026-09-14)
+Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (Rev 6: #33 · C-19 반영)
+Reflects: `docs/decisions/stage-0-approvals.md` #7 · #8 · #13 · #14 · #15 · #16 · #17 · #19 · #27 · C-1~C-10 · C-12 · C-13 · C-15 · C-16 · C-18 (Rev 5) · #33 · C-19 (Rev 6)
+Decision log: `docs/decisions/stage-0-approvals.md` — 이 문서와 다르면 결정 기록이 우선한다. 라벨: `CONFIRMED (사용자 결정 YYYY-MM-DD, #id)` · `RECOMMENDED` · `NEEDS DECISION (법무, L-xx)`.
 Based on: PRD v1.4, `docs/ARCHITECTURE.md` (DRAFT 2026-09-14), `docs/DATA_MODEL.md` (DRAFT 2026-09-14), design-agent `docs/FIGMA_SCREEN_MAP.md` · `docs/COMPONENT_MAP.md` (DRAFT 2026-09-14) — Rev 2: Figma 대비 gap §6 추가
 Author: plan-agent (2026-09-14)
 
@@ -46,7 +48,7 @@ Author: plan-agent (2026-09-14)
 | `FORBIDDEN` | 403 | 소유권 불일치 (존재 노출 방지를 위해 404로 대체 가능) | NFR 보안 |
 | `CONSENT_REQUIRED` | 403 | 필수 동의 또는 `child_voice_data` 동의 없음 (`details.missing: ConsentType[]`) | FR-02 |
 | `CONSENT_VERSION_OUTDATED` | 403 | 재동의 필요 | FR-02 |
-| `TRIAL_ACCOUNT_RESTRICTED` | 403 | 익명 Trial 계정 제한 기능 (결정 #10 B안 채택 시) | FR-24 |
+| ~~`TRIAL_ACCOUNT_RESTRICTED`~~ | — | **제거** — 익명 Trial 계정 미채택 (C-12) | FR-24 |
 | `ONBOARDING_INCOMPLETE` | 409 | 온보딩 미완료 상태에서 홈/세션 요청 | FR-03 |
 | `CHILD_NOT_FOUND` | 404 | | — |
 | `CHILD_LIMIT_REACHED` | 409 | MVP 1명 초과 | §1.6 |
@@ -74,39 +76,42 @@ Author: plan-agent (2026-09-14)
 
 ## 2. Shared Enums (`packages/contracts/src/enums`)
 
-### 2.1 Capability — 명칭 결정 필요
+### 2.1 Capability — CONFIRMED (사용자 결정 2026-09-14, #13 코드 키 · #14 표시 라벨)
 
-| 출처 | ① | ② | ③ | ④ |
-|---|---|---|---|---|
-| PRD §4 (국문) | 감정 조절 능력 | 자기주도 역량 | 회복탄력성·인지 유연성 | 내적동기부여 |
-| CLAUDE.md / 사용자 Stage 0 프롬프트 | Emotional Regulation | Self-Directed Agency | Resilience / Cognitive Flexibility | Intrinsic Motivation |
-| Figma (design-agent 확인, M-13) | Emotion Regulation (배지 "Emotion Day", "Emotion words") | Self-Direction | Cognitive Flexibility (책장 캡션 "Resilience", "Cognitive words") | Intrinsic Motivation ("Motivation words") — 책장 캡션 **"Confidence"** 는 4대 역량에 없음 |
-| Baseline Survey v1 | Emotion Regulation (ER) | Self-Directed Agency (AG) | Cognitive Flexibility (CF) | Intrinsic Meaning / Motivation (IM) |
+| 코드 키 (contracts enum, 불변) | 화면 표시 라벨 (Frontend copy 모듈) | Baseline v1 약어 | PRD §4 정의 |
+|---|---|---|---|
+| `emotion_regulation` | Emotion Regulation | ER | 감정 조절 능력 |
+| `self_directed_agency` | Self-Direction | AG | 자기주도 역량 |
+| `cognitive_flexibility` | Cognitive Flexibility | CF | 회복탄력성·인지 유연성 (라벨에 Resilience 미표시) |
+| `intrinsic_motivation` | Intrinsic Motivation | IM | 내적동기부여 |
 
-- **코드 키 (RECOMMENDED)** — 사용자 노출 라벨과 분리된 불변 키:
-  `emotion_regulation | self_directed_agency | cognitive_flexibility | intrinsic_motivation`
-  (Baseline 약어 ER/AG/CF/IM 과 1:1, 라벨 변경이 데이터 migration을 유발하지 않음)
-- **사용자 노출 라벨 (NEEDS DECISION)**: 예) "Emotion Regulation / Self-Direction / Cognitive Flexibility / Intrinsic Motivation"(Figma) vs "Resilience" 포함 여부. 라벨은 Frontend copy 모듈 한 곳에서 관리.
+- 코드 키는 contracts enum, 표시 라벨은 Frontend copy 모듈 한 곳에서 관리한다 (라벨 변경이 데이터 migration을 유발하지 않음). 배지·차트용 짧은 표기는 design-agent가 이 라벨 기준으로 정리한다 (#14).
+- 역량 색은 contracts가 아니라 design token이다 (#19 — 배지 색으로 통일, `docs/DESIGN_TOKEN_MAP.md`).
+- 이전 표기 비교(Figma 혼재, 구 CLAUDE.md 표기, 책장 "Confidence")는 PLANNING §6 M-13 — 해소됨.
 
 ### 2.2 목록
 
 | Enum | 값 | 근거 |
 |---|---|---|
-| `SessionStatus` | `ready, recording, paused, completed, analyzing, analyzed, failed, abandoned` | PRD §12.2 7개 값 **CONFIRMED** + `abandoned` **RECOMMENDED** (§13, ARCHITECTURE §10.2) |
-| `SessionMode` | `recorded, conversation_only` | **RECOMMENDED** (§7.4, §13) |
-| `CompletedReason` | `user_done, auto_timeout, recovered_after_crash` | **RECOMMENDED** (FR-09, NFR 안정성) |
-| `AnalysisOutcome` | `full, excluded_low_quality, skipped_audio_deleted` (+ `skipped_consent_revoked` 는 OAQ-08에서 동의 철회 채택 시에만) | **RECOMMENDED** (§13; skipped 값 OAQ-17) |
-| `UploadStatus` (server 응답) | `pending, uploaded, failed, deleted, expired` | **RECOMMENDED** (rules/architecture §6 별도 upload status). 클라이언트 UploadQueue 상태(`local_only…stalled_48h`)는 contracts 가 아니라 `features/recording` 내부 |
+| `SessionStatus` | `ready, recording, paused, completed, analyzing, analyzed, failed, abandoned` | **CONFIRMED (사용자 결정 2026-09-14, #16)** — PRD §12.2 7개 값 + `abandoned` (§13, ARCHITECTURE §10.2) |
+| `SessionMode` | `recorded, conversation_only` | **CONFIRMED (#16)** (§7.4, §13) |
+| `CompletedReason` | `user_done, auto_timeout, recovered_after_crash` | **CONFIRMED (#16)** (FR-09, NFR 안정성) |
+| `AnalysisOutcome` | `full, excluded_low_quality` | **CONFIRMED (#16)** (§13). `skipped_audio_deleted` 는 OAQ-17 결정 전 enum 제외 (#16). `skipped_consent_revoked` 제거 (C-4) |
+| `UploadStatus` (server 응답) | `pending, uploaded, failed, deleted, expired` | **CONFIRMED (#16)** (별도 upload status). 클라이언트 UploadQueue 상태(`local_only…stalled_48h`)는 contracts 가 아니라 `features/recording` 내부 |
 | `ReadingContext` | `now, bedtime, after_pickup, weekend_morning, in_the_car, custom_time` | §7.4, FR-08 ("유치원 하원 후" = after_pickup — 영문 라벨 design 확인) |
-| `ConsentType` | `terms_of_service, privacy_policy, child_voice_data, marketing` (+ 결정 시 `third_party_disclosure`, `pilot_participation`) | §7.1, FR-02, 개정 COPPA |
+| `ConsentType` | `terms_of_service, privacy_policy, child_voice_data, marketing, pilot_participation` | **CONFIRMED (사용자 결정 2026-09-14, C-1)** — 필수 여부는 enum이 아니라 `ConsentDocument.required` (pilot = 법무 L-02). `third_party_disclosure` 는 법무 결정 시에만 추가 |
+| `ConsentAction` | `granted` | **CONFIRMED (C-4)** — `revoked` 없음 (동의 철회 MVP 제외) |
+| `Gender` | `girl, boy, prefer_not_to_say` — 필드는 nullable, 미응답 = `null` | **CONFIRMED (사용자 결정 2026-09-14, C-7)** |
+| `SurveyAnswerValue` | `1 \| 2 \| 3 \| 4 \| 5` (Never · Rarely · Sometimes · Often · Almost always) 또는 `not_observed` ("Haven't had the chance to see this yet", 결측) | 척도 **CONFIRMED (C-8)** / 인코딩 RECOMMENDED (§3.4) |
+| `ParentVerificationStatus` | `not_required, pending, verified, failed` | **RECOMMENDED** — VPC 단계 슬롯 (C-3). 값은 방식 결정(법무 L-01) 후 조정 |
 | `AnalysisJobStatus` | `queued, running, succeeded, failed, cancelled` | FR-14 (Frontend 비노출, Backend/Worker 공유) |
-| `ReportEligibility` | `eligible, insufficient_recorded_minutes, insufficient_recorded_sessions, insufficient_both, cycle_in_progress` | FR-16, §7.7 |
+| `ReportEligibility` | `eligible, insufficient_recorded_minutes, insufficient_recorded_sessions, insufficient_both, cycle_in_progress` | FR-16, §7.7 — 기준 상수 CONFIRMED (#17, §3.5) |
 | `ReportStatus` | `in_progress, generating, published, deferred, delayed` | FR-16, §13 |
 | `ActivityOptionKind` | `book, reread_book, conversation_only` | §7.4, §13 |
 | `BookOwnership` | `owned, gifted, gift_pending, favorite_only` | FR-20/22/23 |
 | `GiftRequestStatus` | `requested, approved, shipped, delivered, cancelled, rejected` | FR-22, §13 |
 | `CaregiverRelationship` | `mother, father, grandparent, babysitter, tutor, therapist, other` | §3.1, §7.2 |
-| `OnboardingStep` | `child_info, temperament, books, goals, capability_items` | §7.2 (OAQ-07 결과에 따라 변경) |
+| `OnboardingStep` | `child_info, temperament, books, goals, capability_items` | 5단계 구성·순서 **CONFIRMED (사용자 결정 2026-09-14, C-9)** — PRD §7.2 / 식별자 문자열 **RECOMMENDED** |
 | `DeletionScope` | `session_recording, all_data` | FR-21, §7.8 |
 | `DeletionRequestStatus` | `received, processing, completed, failed` | FR-21 |
 | `NotificationKind` | `session_invite, short_feedback_ready, report_published, report_deferred_encourage, upload_failed_48h, report_delayed` | FR-08/13/16, §13 |
@@ -148,7 +153,7 @@ export const SESSION_TRANSITIONS: ReadonlyArray<{
 export const canTransition = (from: SessionStatus, to: SessionStatus, actor: Actor, mode: z.infer<typeof SessionModeSchema>) =>
   SESSION_TRANSITIONS.some(t => t.from === from && t.to === to && t.actor === actor && t.modes.includes(mode));
 
-export const MAX_RECORDED_SECONDS = 30 * 60;   // FR-09 (pause 포함 여부 OAQ-09)
+export const MAX_RECORDED_SECONDS = 30 * 60;   // FR-09 — 실제 녹음 시간 기준, 일시정지 제외 (CONFIRMED #17)
 export const READY_ABANDON_SECONDS = 10 * 60;  // §13
 ```
 
@@ -238,6 +243,126 @@ export const RecordingUploadCompleteResponseSchema = z.object({
 // Errors: CONSENT_REQUIRED, RECORDING_NOT_ALLOWED_FOR_MODE, UPLOAD_TOKEN_EXPIRED, RECORDING_INCOMPLETE, SESSION_INVALID_TRANSITION
 ```
 
+### 3.4 Consent · Child Info · Onboarding (C-1 · C-5 · C-6 · C-7 · C-8 · C-9)
+
+결정 내용은 CONFIRMED (사용자 결정 2026-09-14). 필드 이름·인코딩·길이 제한은 RECOMMENDED (Stage 2 Plan에서 확정).
+
+```ts
+// packages/contracts/src/enums/consent.ts — C-1, C-4
+export const ConsentTypeSchema = z.enum([
+  'terms_of_service', 'privacy_policy', 'child_voice_data', 'marketing', 'pilot_participation',
+]);
+export const ConsentActionSchema = z.enum(['granted']);           // 'revoked' 없음 (C-4)
+
+// packages/contracts/src/consent/documents.ts
+export const ConsentDocumentSchema = z.object({
+  type: ConsentTypeSchema,
+  documentId: z.string().uuid(),
+  version: z.string(),
+  required: z.boolean(),        // 서버 값. pilot_participation 필수 여부 = 법무 L-02
+  title: z.string(),
+  url: z.string().url(),
+});
+export const CurrentConsentDocumentsSchema = z.object({ documents: z.array(ConsentDocumentSchema) });
+
+// packages/contracts/src/auth/sign-up.ts — AuthGateway 입력 (HTTP 아님), C-5
+export const SignUpWithEmailInputSchema = z.object({
+  caregiverName: z.string().trim().min(1).max(60),
+  email: z.string().email(),
+  password: z.string().min(8),
+}).strict();                    // 아이 필드 없음 — child 정보는 동의 후 온보딩 Step 1
+
+// packages/contracts/src/enums/gender.ts — C-7
+export const GenderSchema = z.enum(['girl', 'boy', 'prefer_not_to_say']);
+
+// packages/contracts/src/onboarding/child-info.ts — Step 1 (C-5, C-6, C-10)
+export const ChildInfoAnswersSchema = z.object({
+  firstName: z.string().trim().min(1).max(40),   // 화면·알림 호칭 (C-6)
+  lastName: z.string().trim().max(40),           // 두 번째 칸 (C-6, D-03) — 필수 여부 Stage 2 Plan, 법무 L-07
+  birthYearMonth: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/), // 3~9세 (C-10) — 범위 검증은 clock 주입 refine
+  gender: GenderSchema.nullable(),               // 기본 미선택 = null (C-7)
+  // languageEnvironment, readingRoutine 등 PRD §7.2 Step 1 나머지 필드 형태는 Stage 2 Plan
+});
+
+// packages/contracts/src/onboarding/survey.ts — Step 5 (C-8)
+export const SurveyAnswerValueSchema = z.union([
+  z.number().int().min(1).max(5),   // 1 Never · 2 Rarely · 3 Sometimes · 4 Often · 5 Almost always
+  z.literal('not_observed'),        // "Haven't had the chance to see this yet" — 결측, 점수 아님
+]);
+export const SurveyItemSchema = z.object({
+  itemCode: z.string().regex(/^(ER|AG|CF|IM)\d$/),   // baseline_v1: ER1–2, AG1–3, CF1–2, IM1–3
+  capability: CapabilitySchema,
+  order: z.number().int(),
+  prompt: z.string(),                                 // 문항 문구는 instrument 응답으로 제공 (하드코딩 금지)
+});
+export const SurveyInstrumentSchema = z.object({
+  code: z.literal('baseline_v1'),
+  version: z.string(),
+  stem: z.string(),                                   // "In the past two weeks…"
+  scaleLabels: z.array(z.object({ value: SurveyAnswerValueSchema, label: z.string() })).length(6),
+  items: z.array(SurveyItemSchema).length(10),
+});
+export const CapabilityItemAnswerSchema = z.object({ itemCode: z.string(), value: SurveyAnswerValueSchema });
+export const CapabilityItemsAnswersSchema = z.object({
+  instrumentCode: z.literal('baseline_v1'),
+  answers: z.array(CapabilityItemAnswerSchema).max(10),   // draft = 일부, submit = 10개 전부 (not_observed 포함)
+});
+
+// packages/contracts/src/onboarding/steps.ts — 5단계 구성·순서 C-9 CONFIRMED, 식별자 문자열 RECOMMENDED
+export const OnboardingStepSchema = z.enum(['child_info', 'temperament', 'books', 'goals', 'capability_items']);
+
+// packages/contracts/src/onboarding/draft.ts — RECOMMENDED (C-12)
+// 기기 로컬 전용 draft (Trial·동의 전). 필수 동의 기록 전에는 어떤 endpoint로도 전송하지 않는다.
+// 가입 → 동의(C-2) → (VPC 슬롯) 이후 SubmitOnboarding 요청으로 변환해 1회 제출.
+export const OnboardingDraftSchema = z.object({
+  schemaVersion: z.literal(1),
+  instrumentCode: z.literal('baseline_v1'),
+  currentStep: OnboardingStepSchema,
+  answers: z.object({
+    child_info: ChildInfoAnswersSchema.partial().optional(),
+    temperament: z.unknown().optional(),        // Step 2–4 answer schema는 Stage 2 Plan
+    books: z.unknown().optional(),
+    goals: z.unknown().optional(),
+    capability_items: CapabilityItemsAnswersSchema.optional(),
+  }),
+  updatedAt: z.string().datetime(),
+}); // 보관 상한·삭제 시점(제출 완료·로그아웃)은 Stage 2 Plan
+
+// packages/contracts/src/rules/capability-score.ts — C-8 (Mock·향후 Backend 공유, Frontend는 응답 값 표시만)
+export const scoreCapabilities = (items: SurveyItem[], answers: CapabilityItemAnswer[]) =>
+  CAPABILITIES.map(capability => {
+    const values = items.filter(i => i.capability === capability)
+      .map(i => answers.find(a => a.itemCode === i.itemCode)?.value)
+      .filter((v): v is number => typeof v === 'number');                 // not_observed·미응답 제외
+    return {
+      capability,
+      score: values.length ? Math.round((values.reduce((s, v) => s + v, 0) / values.length) * 10) / 10 : null, // 1.0–5.0
+      itemCount: values.length,
+      missingCount: items.filter(i => i.capability === capability).length - values.length,
+    };
+  }); // score=null(한 역량 전부 결측) 처리·표시 규칙은 Stage 2 Plan. 반올림 소수 1자리는 RECOMMENDED
+```
+
+### 3.5 Report Eligibility Rules (#17)
+
+```ts
+// packages/contracts/src/rules/report-eligibility.ts — CONFIRMED (사용자 결정 2026-09-14, #17)
+export const MIN_REPORT_RECORDED_SESSIONS = 3;
+export const MIN_REPORT_RECORDED_SECONDS = 3600;   // 누적 녹음 1시간 (PRD §7.7)
+export const REPORT_CYCLE_DAYS = 28;               // 첫 세션 완료일부터 28일 단위 반복
+
+// 집계 입력: mode='recorded' && analysisOutcome !== 'excluded_low_quality' 인 세션만 (#17-③)
+// recordedSeconds = 실제 녹음 시간 (일시정지 제외, 세션당 ≤ MAX_RECORDED_SECONDS) (#17-②)
+export const isReportEligible = (p: { recordedSeconds: number; recordedSessions: number }) => {
+  const minutesOk = p.recordedSeconds >= MIN_REPORT_RECORDED_SECONDS;
+  const sessionsOk = p.recordedSessions >= MIN_REPORT_RECORDED_SESSIONS;
+  return minutesOk && sessionsOk ? 'eligible'
+    : !minutesOk && !sessionsOk ? 'insufficient_both'
+    : !minutesOk ? 'insufficient_recorded_minutes' : 'insufficient_recorded_sessions';
+};
+// 미결 (Stage 7 Plan): 대화 전용 세션이 주기 시작일(첫 세션 완료일)에 포함되는지, 시간대 경계, cycle_in_progress 판정 시점
+```
+
 ---
 
 ## 4. Endpoint Groups by Stage
@@ -250,28 +375,43 @@ export const RecordingUploadCompleteResponseSchema = z.object({
 |---|---|---|---|---|---|
 | GET | `/v1/health` | — | `Health` | — | 기술 요구사항 |
 
-Stage 1에서 contracts에 확정할 것: `common/*`(ErrorEnvelope, ErrorCode, Pagination), 모든 §2 enum, `rules/session-transitions`, `rules/report-eligibility`, `rules/recording-limits`.
+Stage 1에서 contracts에 확정할 것: `common/*`(ErrorEnvelope, ErrorCode, Pagination), 모든 §2 enum, `rules/session-transitions`, `rules/report-eligibility` (§3.5, #17), `rules/recording-limits`. (`rules/capability-score` 와 onboarding schema §3.4는 Stage 2)
 
 ### Stage 2 — Auth · Consent · Onboarding · Child Profile
 
-Auth 자체(가입·로그인·비밀번호 재설정·OAuth)는 HTTP API가 아니라 **`AuthGateway` interface** 로 다룬다 (ARCHITECTURE §7). Stage 2–8에서는 `MockAuthGateway` 만 구현하며, Supabase Auth Adapter는 Backend 연동 시점 또는 사용자 승인 후 추가한다 (Supabase JS Client 미사용 — rules/frontend §1).
+Auth 자체(가입·로그인·비밀번호 재설정·OAuth)는 HTTP API가 아니라 **`AuthGateway` interface** 로 다룬다 (ARCHITECTURE §7). Stage 2–3은 Web `MockAuthGateway`, Stage 4에 네이티브 provider Adapter 추가 (#7). Supabase Auth Adapter는 Backend 연동 시점 또는 사용자 승인 후 추가한다 (Supabase JS Client 미사용 — CONFIRMED #27).
+
+- **가입 입력 (CONFIRMED C-5)**: `SignUpWithEmailInput` = `{ caregiverName, email, password }` — **아이 필드 없음** (§3.4). OAuth 가입도 아이 정보를 받지 않는다.
+- **흐름 (CONFIRMED C-2 · C-3 · C-9 · C-12)**: 가입(Email · Google · Apple) → `GET /v1/consent-documents/current` → `POST /v1/consents` → (VPC 단계 슬롯) → `GET /v1/onboarding` → `PUT /v1/onboarding/steps/:step` (5단계) → `POST /v1/onboarding/submit`. Trial은 5단계 응답을 기기 로컬 draft로만 보관하고 가입·동의 후 submit 한 번으로 전송한다.
 
 | Method | Path | Request | Response | Key errors | PRD |
 |---|---|---|---|---|---|
-| GET | `/v1/me` | — | `Me` (caregiver, consentStatus{required[], missing[]}, onboardingStatus, child?, plan) | AUTH_REQUIRED | FR-01, FR-02, FR-03 |
+| GET | `/v1/me` | — | `Me` (caregiver, consentStatus{required[], missing[]}, parentVerification{status: `ParentVerificationStatus`} (RECOMMENDED, C-3), onboardingStatus, child?{id, firstName}, plan) | AUTH_REQUIRED | FR-01, FR-02, FR-03 |
 | PATCH | `/v1/me` | `UpdateCaregiver` (displayName, relationship, timezone) | `Me` | VALIDATION_FAILED | §7.2 Step1, §7.8 |
-| GET | `/v1/consent-documents/current` (public) | — | `CurrentConsentDocuments` | — | FR-02 |
-| POST | `/v1/consents` (IK) | `RecordConsents` (items[{type, documentId, action: 'granted'}], source — `revoked` 값은 OAQ-08 결정 전 미정의) | `ConsentStatus` | CONSENT_VERSION_OUTDATED | FR-02, §7.1 |
-| GET | `/v1/consents` | — | `ConsentHistory` | — | FR-02 |
-| GET | `/v1/onboarding` | — | `OnboardingState` (instrument, steps, draftAnswers, currentStep) | CONSENT_REQUIRED | FR-03 |
-| PUT | `/v1/onboarding/steps/:step` | `SaveOnboardingStep` (answers by step schema) | `OnboardingState` | CONSENT_REQUIRED, VALIDATION_FAILED | FR-03 중도 저장 |
-| POST | `/v1/onboarding/submit` (IK) | `SubmitOnboarding` (전체 draft — Trial 로컬 draft 제출도 동일) | `ProfileResult` (child, snapshot, persona, suggestedCapability) | CONSENT_REQUIRED (필수 동의 기록 전 제출 — ARCHITECTURE §7.3.1 Guard 3, §7.4 옵션 A), ONBOARDING_INCOMPLETE, CHILD_LIMIT_REACHED, PROVIDER_UNAVAILABLE(→ fallback persona로 200) | FR-03, FR-04, FR-05, FR-06, FR-24 |
+| GET | `/v1/consent-documents/current` (public) | — | `CurrentConsentDocuments` (documents[{type, documentId, version, required, title, url}] — C-1 5종, §3.4) | — | FR-02 |
+| POST | `/v1/consents` (IK) | `RecordConsents` (items[{type, documentId, action: 'granted'}], source) — `revoked` 없음 (C-4) | `ConsentStatus` | CONSENT_VERSION_OUTDATED, VALIDATION_FAILED (필수 항목 누락) | FR-02, §7.1 |
+| GET | `/v1/consents` | — | `ConsentHistory` (Stage 8 동의 이력 보기 — 선택 기능 (C-19, 미구현 시 QA FAIL 아님)) | — | FR-02 |
+| — | VPC 단계 (C-3) | — | — | — | **Contract 미정의** — 방식 NEEDS DECISION (법무, L-01). Stage 2는 `Me.parentVerification.status` + Mock 슬롯(`vpc-pending`)만 |
+| GET | `/v1/onboarding` | — | `OnboardingState` (instrument: `SurveyInstrument` baseline_v1 (§3.4), steps[5], draftAnswers, currentStep) | CONSENT_REQUIRED | FR-03 |
+| PUT | `/v1/onboarding/steps/:step` | `SaveOnboardingStep` (step별 schema — `child_info` = `ChildInfoAnswers`, `capability_items` = `CapabilityItemsAnswers` 일부 허용, §3.4) | `OnboardingState` | CONSENT_REQUIRED, VALIDATION_FAILED | FR-03 중도 저장 |
+| POST | `/v1/onboarding/submit` (IK) | `SubmitOnboarding` (5단계 전체 — capability 10문항 모두 1–5 또는 `not_observed`; Trial 로컬 draft 제출도 동일, C-12) | `ProfileResult` (child, snapshot{scores[4]{capability, score (응답 평균, null 가능), itemCount, missingCount}}, persona, suggestedCapability) | CONSENT_REQUIRED (필수 동의 기록 전 제출 — ARCHITECTURE §7.3.1, §7.4), ONBOARDING_INCOMPLETE, CHILD_LIMIT_REACHED, PROVIDER_UNAVAILABLE(→ fallback persona로 200) | FR-03, FR-04, FR-05, FR-06, FR-24 |
 | GET | `/v1/books/search?q=` | — | `Paginated<BookSummary>` | — | §7.2 Step3 (좋아하는 책 검색) |
 | GET | `/v1/children/:childId/profile` | — | `ChildProfile` (child, latestSnapshot, strengths[2], growingEdges[2], persona, growthCapability) | CHILD_NOT_FOUND | FR-04, FR-05, FR-06, §7.3 |
-| PATCH | `/v1/children/:childId` | `UpdateChild` | `ChildProfile` | — | §7.8 |
+| PATCH | `/v1/children/:childId` | `UpdateChild` (firstName, lastName, birthYearMonth, gender — Stage 6 설정) | `ChildProfile` | VALIDATION_FAILED | §7.8 |
 | PUT | `/v1/children/:childId/growth-capability` | `SetGrowthCapability` (capability) | `ChildProfile` | — | FR-06, §7.3 |
 | GET | `/v1/children/:childId/capability-snapshots` | cursor | `Paginated<CapabilitySnapshot>` | — | FR-15, §7.7 (Stage 6/7에서 사용) |
 | GET | `/v1/children/:childId/personas` | cursor | `Paginated<Persona>` | — | FR-15, §7.7 |
+
+#### 설정 진입점 — CONFIRMED (사용자 결정 2026-09-14, C-16)
+
+Home 상단 설정 아이콘(`26:44`) → 설정 목록. Stage 2는 `/` Home skeleton(워드마크·설정 아이콘·빈 상태 안내 — CONFIRMED #33)에 아이콘을 최종 위치로 둔다. Home skeleton은 contract 호출이 없다 (`HomeSummary` 는 Stage 3). 목록은 서버 데이터가 아니라 Frontend route config이며 (contract 없음), Stage마다 항목이 추가된다. 목록 화면 디자인은 C-13 절차.
+
+| Stage | 설정 항목 | 사용하는 contract |
+|---|---|---|
+| 2 | 로그아웃 | `AuthGateway.signOut()` + 로컬 draft·캐시 정리 (HTTP endpoint 없음) |
+| 3 | 알림 설정 | `GET` / `PUT /v1/notification-preferences` |
+| 6 | 전체 설정 — 아이 프로필 수정·설문 재응답·발전 역량 변경 등 | `PATCH /v1/children/:childId`, `PUT /v1/children/:childId/growth-capability`, 설문 재응답 contract 형태는 Stage 6 Plan |
+| 8 | 데이터 관리 · 탈퇴 (C-15) + 동의 이력 보기 선택 기능 (C-19, 미구현 시 QA FAIL 아님) | Stage 8 그룹 (`GET /v1/data-management`, `GET /v1/consents`, `DELETE /v1/me` …) |
 
 ### Stage 3 — Home · Activity Card · Library · Recommendation · Notifications
 
@@ -333,9 +473,9 @@ Auth 자체(가입·로그인·비밀번호 재설정·OAuth)는 HTTP API가 아
 | POST | `/v1/reports/:reportId/pdf` (IK) | — | `ReportPdfStatus` | REPORT_NOT_READY | FR-17 |
 | GET | `/v1/reports/:reportId/pdf` | — | `ReportPdfStatus` (status, downloadUrl?, expiresAt?) | PDF_NOT_READY | FR-17 |
 
-### Stage 8 (또는 Stage 6) — Data Management · Deletion · Account
+### Stage 8 — Data Management · Deletion · Account · Consent History
 
-> **이월 항목**: 이 그룹은 이전 "Privacy" Stage에서 넘어온 화면(FR-21 데이터 관리 P0, 동의 이력 보기, 계정 삭제)을 위한 계약이다. 사용자 Stage 8 정의에는 없으므로 **NEEDS DECISION — Stage 8 유지 vs Stage 6 설정 작업으로 이동** (PLANNING §10 #30). FR-21 계약은 어느 쪽이든 유지한다.
+> **이월 기능 — Stage 8 CONFIRMED (사용자 결정 2026-09-14, C-15)**: FR-21 데이터 관리 (P0), 탈퇴 (필수). 동의 이력 보기 = 선택 기능 (C-19, 미구현 시 QA FAIL 아님; 시간 여유 시 읽기 전용 목록, PRD 화면 요구 없음). 설정 목록에서 진입 (C-16).
 
 | Method | Path | Request | Response | Key errors | PRD |
 |---|---|---|---|---|---|
@@ -344,10 +484,10 @@ Auth 자체(가입·로그인·비밀번호 재설정·OAuth)는 HTTP API가 아
 | POST | `/v1/data-deletion-requests` (IK) | `CreateDeletionRequest` (scope='all_data', confirmation) | `DeletionRequest` | DELETION_ALREADY_REQUESTED | FR-21, NFR |
 | GET | `/v1/data-deletion-requests/:id` | — | `DeletionRequest` | — | FR-21 |
 | DELETE | `/v1/me` (IK) | `DeleteAccount` (confirmation) | `DeletionRequest` | — | §7.8 탈퇴 (범위 DATA_MODEL §12.2 B-5 결정) |
-| GET | `/v1/consents` (동의 이력 보기 화면 재사용 — 화면 자체는 RECOMMENDED) | — | `ConsentHistory` | — | FR-02, PRD §12.1 동의 이력 |
-| — | 동의 철회 | — | — | — | **Contract 미정의** — PRD·Figma 근거 없음. NEEDS DECISION (OAQ-08, COPPA 법무). 채택 시 `RecordConsents.items[].action='revoked'` 확장 후보 |
+| GET | `/v1/consents` (동의 이력 보기 — 선택 기능 (C-19, 미구현 시 QA FAIL 아님)) | — | `ConsentHistory` | — | FR-02, PRD §12.1 동의 이력 |
+| — | 동의 철회 | — | — | — | **범위 제외 — CONFIRMED (사용자 결정 2026-09-14, C-4)**. Contract·`action='revoked'`·Mock 없음. COPPA 관계는 NEEDS DECISION (법무, L-03) |
 
-> 세션별 녹음 삭제(FR-21)를 Stage 4에서 먼저 제공할지(녹음이 처음 생기는 Stage) Stage 8에 둘지는 PLANNING.md §4.1 FR-21 행의 결정 항목.
+> 세션별 녹음 삭제 UI와 `DELETE /v1/sessions/:sessionId/recording` 호출은 Stage 8 (C-15). Stage 4는 LocalRecordingStore 로컬 삭제 기반만 (PLANNING §4.1 FR-21).
 
 ---
 
@@ -369,7 +509,7 @@ apps/web/src/
 └── app/providers/              Adapter 선택 지점 1곳 (Mock | Http)
 ```
 
-#### 5.1.1 녹음 업로드 계층 명칭 (RECOMMENDED — Orchestrator 결정 명칭, Stage 0 승인 대상)
+#### 5.1.1 녹음 업로드 계층 명칭 (interface + Mock 구조 CONFIRMED (사용자 결정 2026-09-14, #27) — 명칭은 rules/frontend §1이 이 절을 기준으로 참조)
 
 | 계층 | Interface | Mock Adapter | 실제 Adapter (골격) | 책임 |
 |---|---|---|---|---|
@@ -384,13 +524,14 @@ apps/web/src/
 | 규칙 | 내용 | 라벨 |
 |---|---|---|
 | 호출 경로 | `Component → Query/Mutation hook → <domain>Api interface → Mock<Domain>Api \| Http<Domain>Api` (예: `SessionPage → useCreateSession → sessionApi.create → MockSessionApi \| HttpSessionApi`) | CONFIRMED (사용자 지시 docs/source/prompts/01-stage0-1-1-frontend-scope.md "Frontend Architecture" — SessionPage → useCreateSession → sessionApi.create → MockSessionApi / HttpSessionApi) |
-| Adapter 선택 | `app/providers` 한 곳, 환경 설정으로. Component·Feature·Query hook에서 분기 금지 | RECOMMENDED (rules/architecture §4 초안; Mock→Http 교체 가능성 자체는 사용자 지시 CONFIRMED) |
+| Adapter 선택 | `app/providers` 한 곳, 환경 설정으로. Component·Feature·Query hook에서 분기 금지 | RECOMMENDED (rules/architecture §4와 동일, 전체 승인 #1 대상; Mock→Http 교체 가능성 자체는 사용자 지시 CONFIRMED) |
 | 검증 | Mock/Http 모두 요청·응답을 contracts schema로 parse | CONFIRMED |
-| 중복 방지 | 도메인별 Mock 클래스는 공통 helper(지연·scenario 조회·error envelope 생성·전이 표 `canTransition`)를 사용하고 도메인 로직만 가진다 | RECOMMENDED |
+| 중복 방지 | 도메인별 Mock 클래스는 공통 helper(지연·scenario 조회·error envelope 생성·전이 표 `canTransition`)를 사용하고 도메인 로직만 가진다 | CONFIRMED (사용자 결정 2026-09-14, #8) |
+| MSW | 사용하지 않는다 (Adapter 계층으로 Mock) | CONFIRMED (사용자 결정 2026-09-14, #8) |
 | Http Adapter | Contract 기반 골격만 (endpoint path·method·schema 연결). 실제 연동 검증 = `BACKEND_INTEGRATION_PENDING`. 골격 작성 시점(각 Stage vs Stage 8)은 Stage 1 Plan 결정 | RECOMMENDED |
-| AuthGateway / Upload | `MockAuthGateway`; 업로드는 `MockRecordingApi` + `MockUploadTransport` (TUS/서명 URL 흉내) — Supabase·TUS 실제 Adapter 미구현 (§5.1.1) | RECOMMENDED (rules/frontend §1 [제안 — Stage 0 승인 대상]) |
-| 결정성 | 같은 scenario = 같은 결과 (테스트 재현성). 시간·ID는 주입 가능한 clock/id 생성기 사용 | RECOMMENDED (rules/frontend §5 초안) |
-| Production | Production 빌드에서 Mock 포함/비활성 방식은 Stage 1 Plan 결정 | NEEDS DECISION |
+| AuthGateway / Upload | `MockAuthGateway`; 업로드는 `MockRecordingApi` + `MockUploadTransport` (TUS/서명 URL 흉내) — Supabase·TUS 실제 Adapter 미구현 (§5.1.1) | CONFIRMED (사용자 결정 2026-09-14, #27) |
+| 결정성 | 같은 scenario = 같은 결과 (테스트 재현성). 시간·ID는 주입 가능한 clock/id 생성기 사용 | RECOMMENDED (rules/frontend §5와 동일, 전체 승인 #1 대상) |
+| Production | Production 빌드에서 Mock 포함/비활성 방식은 Stage 1 Plan 결정 (OAQ-21). Stage 8 웹 프리뷰는 Mock 모드 빌드를 정적 배포한다 (CONFIRMED C-18) | NEEDS DECISION (방식) |
 
 ### 5.3 Endpoint 그룹별 필수 Scenario
 
@@ -399,18 +540,18 @@ apps/web/src/
 | Endpoint 그룹 (§4) | 필요 Frontend Stage | 공통 | HARU 특화 (rules/frontend §5 필수 = 굵게) |
 |---|---|---|---|
 | health | 1 | `success`, `loading`, `error`, `retry` | `offline` |
-| me / consents / auth(AuthGateway) | 2 | `success`, `loading`, `error`, `retry` | `consent-missing`, `consent-version-outdated`, `token-expired`, `provider-cancelled`, `onboarding-incomplete` |
-| onboarding / children profile | 2 | `success`, `loading`, `error`, `retry` | `draft-resume`, `persona-fallback`, `child-limit-reached` |
+| me / consents / auth(AuthGateway) | 2 | `success`, `loading`, `error`, `retry` | `consent-missing`, `consent-version-outdated`, `token-expired`, `provider-cancelled`, `onboarding-incomplete`, `vpc-pending`, `vpc-failed` |
+| onboarding / children profile | 2 | `success`, `loading`, `error`, `retry` | `draft-resume`, `persona-fallback`, `child-limit-reached`, `capability-all-missing` |
 | home / activity-cards | 3 | `success`, `loading`, `empty`, `error`, `retry` | `offline-cached-card`, `conversation-only-option`, `reread-option`, `books-exhausted`, `session-already-active` |
 | library / books / gift-requests | 3 | `success`, `loading`, `empty`, `error`, `retry` | `gift-pending`, `gift-duplicate`, `user-entered-book` |
 | notifications / push-devices | 3 | `success`, `loading`, `error`, `retry` | `push-permission-denied` |
-| sessions (create / transitions) | 4 | `success`, `loading`, `error`, `retry` | `invalid-transition`, `session-already-active`, `onboarding-incomplete`, `consent-missing`, `mic-permission-denied`, `recording-interrupted`, `auto-timeout`, `crash-recovered`, `abandoned` (RECOMMENDED 상태 승인 시) |
-| recordings (upload init / tokens / complete) | 4 | `success`, `loading`, `error`, `retry` | **`recording-upload-success`**, **`recording-upload-failure`**, `upload-retry`, `upload-token-expired`, `recording-incomplete`, `offline-queued`, `upload-stalled-48h` |
+| sessions (create / transitions) | 4 | `success`, `loading`, `error`, `retry` | `invalid-transition`, `session-already-active`, `onboarding-incomplete`, `consent-missing`, `mic-permission-denied`, `recording-interrupted`, `auto-timeout`, `crash-recovered`, `abandoned` |
+| recordings (upload init / tokens / complete) | 4 | `success`, `loading`, `error`, `retry` | **`recording-upload-success`**, **`recording-upload-failure`**, `upload-retry`, `upload-token-expired`, `recording-incomplete`, `offline-queued`, `upload-stalled-48h`, `recording-deleted` (upload-tokens) |
 | reflections | 5 | `success`, `loading`, `empty`(skip), `error`, `retry` | `reflection-already-submitted`, `invalid-transition` (completed 이전 제출) |
 | analysis / short feedback | 5 | `success`, `loading`, `error`, `retry` | **`analysis-pending`**, **`analysis-completed`**, **`analysis-failed`**, `analysis-low-quality`, `analysis-not-available`, `recording-deleted` (skipped) |
 | profile update / recommendation (필드 확장) | 6 | `success`, `loading`, `empty`, `error`, `retry` | `cold-to-warm`, `persona-changed`, `difficulty-lowered` |
-| reports / highlight clips / PDF | 7 | `success`, `loading`, `empty`, `error`, `retry` | **`report-eligible`**, **`report-not-eligible`**, `report-deferred`, `report-delayed`, `pdf-generating`, `clip-expired`, `share-cancelled` |
-| data management / deletion / account (이월 — PLANNING §10 #30) | 8 또는 6 | `success`, `loading`, `empty`, `error`, `retry` | `deletion-processing`, `deletion-already-requested`, `recording-deleted` (`consent-revoked` 는 OAQ-08 채택 시에만) |
+| reports / highlight clips / PDF | 7 | `success`, `loading`, `empty`, `error`, `retry` | **`report-eligible`**, **`report-not-eligible`**, `report-deferred`, `report-delayed`, `pdf-generating`, `clip-expired`, `share-cancelled`, `recording-deleted` (highlight clips) |
+| data management / deletion / account / consent history (이월 — C-15) | 8 | `success`, `loading`, `empty`, `error`, `retry` | `deletion-processing`, `deletion-already-requested`, `recording-deleted` |
 
 ### 5.4 Scenario Key Catalogue — **scenario key의 유일한 기준 (Single Source)**
 
@@ -418,7 +559,7 @@ apps/web/src/
 - rules/frontend.md §5의 표시명은 "rules display name" 열에 1:1로 대응한다 (key 1개 = 표시명 1개).
 - Alias는 이전 초안에서 쓰던 이름이다. **신규 사용 금지** — 기존 문서 동기화 시 canonical key로 치환한다.
 - 조합: 공통 key는 endpoint 단위로, 특화 key는 해당 그룹에 적용한다 (예: activity-cards=`loading` + 나머지=`success`). 조합 표기 방식은 Stage 1 Plan에서 확정.
-- Key로 만들지 않는 것: `RECORDING_NOT_ALLOWED_FOR_MODE` 등 단일 error code 재현은 `error` + code 지정; 출석 스티커 멱등성은 같은 요청 replay 테스트; 저품질 세션을 리포트 집계에 포함할지는 OAQ-12 (key 아님).
+- Key로 만들지 않는 것: `RECORDING_NOT_ALLOWED_FOR_MODE` 등 단일 error code 재현은 `error` + code 지정; 출석 스티커 멱등성은 같은 요청 replay 테스트; 저품질 세션은 리포트 집계에서 제외 (#17) — `report-not-eligible` fixture 경계 테스트로 검증 (key 아님); Trial 로컬 draft는 Mock API가 아니라 로컬 저장소 테스트로 검증 (C-12).
 
 | Machine key | rules display name | 의미 (Mock 동작) | 적용 endpoint 그룹 | 최초 FE Stage | Alias (deprecated) |
 |---|---|---|---|---|---|
@@ -443,6 +584,9 @@ apps/web/src/
 | `persona-fallback` | — | 페르소나 생성 실패(`PROVIDER_UNAVAILABLE`) → fallback 페르소나로 200 | onboarding submit, children profile | 2 | — |
 | `child-limit-reached` | — | `CHILD_LIMIT_REACHED` | onboarding submit | 2 | — |
 | `onboarding-incomplete` | — | `Me.onboardingStatus != completed` → Route Guard가 `/onboarding/:step` 으로 이동, 홈·세션 endpoint는 `ONBOARDING_INCOMPLETE` | me, home, activity-cards, sessions (Route Guard) | 2 | — |
+| `vpc-pending` | — | **RECOMMENDED (C-3 슬롯)** — 동의 기록 후 `Me.parentVerification.status='pending'` → Route Guard가 VPC 단계 슬롯에 머묾. 방식 결정(법무 L-01) 후 동작 조정 | me, onboarding (Route Guard) | 2 | — |
+| `vpc-failed` | — | **RECOMMENDED (C-3 슬롯)** — VPC 검증 실패 또는 거절 → `Me.parentVerification.status='failed'`, 실패 안내·재시도 경로 표시, 온보딩 진입 차단 (아동 데이터 쓰기 없음). 기본 scenario는 `success`(통과). 방식 결정(법무 L-01) 후 동작 조정 | me, onboarding (Route Guard) | 2 | — |
+| `capability-all-missing` | — | **RECOMMENDED (C-8)** — 한 역량의 문항이 모두 `not_observed` 인 submit 응답 (해당 역량 `score: null`) → 프로필·다이아몬드 표시 검증. 처리 규칙은 Stage 2 Plan | onboarding submit, children profile | 2 | — |
 | `offline-cached-card` | — | `offline` + 최근 Activity Card 캐시 존재 | home, activity-cards | 3 | — |
 | `conversation-only-option` | — | 카드 옵션에 `kind=conversation_only` 포함 | activity-cards | 3 | — |
 | `reread-option` | — | 카드 옵션에 `kind=reread_book` 포함 | activity-cards | 3 | — |
@@ -457,7 +601,7 @@ apps/web/src/
 | `auto-timeout` | — | 누적 30분 도달 → `completed(auto_timeout)` (clock 주입) | sessions (RecorderAdapter mock) | 4 | — |
 | `crash-recovered` | — | 미완료 로컬 녹음 발견 → `completed(recovered_after_crash)` → 업로드 | sessions, recordings (LocalRecordingStore mock) | 4 | — |
 | `recording-interrupted` | — | RecorderAdapter mock 인터럽션(전화 수신 / 오디오 route 변경 / 백그라운드 전환) → 일시정지·재개 안내, 로컬 청크 보존 | sessions (RecorderAdapter mock) | 4 | — |
-| `abandoned` | — | ready 10분 경과 → `abandoned` (RECOMMENDED 상태 승인 시) | sessions | 4 | — |
+| `abandoned` | — | ready 10분 경과 → `abandoned` (상태 CONFIRMED #16) | sessions | 4 | — |
 | `upload-retry` | — | 업로드 1회 이상 실패 후 재시도 성공 | recordings | 4 | `upload-retry-success` |
 | `upload-token-expired` | — | `UPLOAD_TOKEN_EXPIRED` → 토큰 재발급 후 성공 | recordings | 4 | — |
 | `recording-incomplete` | — | complete 시 `RECORDING_INCOMPLETE` | recordings | 4 | — |
@@ -476,8 +620,8 @@ apps/web/src/
 | `share-cancelled` | — | platform mock: PDF 공유 시트 취소 (오류 아님, 상태 유지) | reports PDF (share) | 7 | — |
 | `deletion-processing` | — | 삭제 요청 `received → processing → completed` | data management | 8 | — |
 | `deletion-already-requested` | — | `DELETION_ALREADY_REQUESTED` | data management | 8 | — |
-| `recording-deleted` | — | `RECORDING_DELETED` / 분석 `skipped_audio_deleted` | recordings (upload-tokens), analysis, highlight clips, data management | 4 | — |
-| `consent-revoked` | — | **조건부 — OAQ-08에서 동의 철회를 채택한 경우에만 정의**: 철회 후 녹음 차단, 분석 `skipped_consent_revoked`. 채택 전 Mock·테스트에 사용 금지 | sessions, analysis (+ consents) | 4–5 (채택 시) | — |
+| `recording-deleted` | — | `RECORDING_DELETED` / 분석 종결 표현 (`skipped_audio_deleted` 후보 — OAQ-17 결정 전 enum 제외) | recordings (upload-tokens), analysis, highlight clips, data management | 4 | — |
+| ~~`consent-revoked`~~ | — | **제거 — CONFIRMED (사용자 결정 2026-09-14, C-4, 동의 철회 MVP 제외)**. Mock·테스트·문서에 사용 금지 | — | — | — |
 
 - Mock 응답도 contracts schema로 parse (fixture drift 방지).
 - Fixture 아동 데이터는 가상 이름만 사용 (실제 아동 데이터 금지 — rules/frontend.md §5 fixtures 규칙).
@@ -491,7 +635,7 @@ apps/web/src/
 
 | # | Gap | Figma 근거 | 현재 계약 | 채택 시 후보 변경 | 라벨 |
 |---|---|---|---|---|---|
-| G-01 | **주간 Progress 지표** (주간 세션 수·총 분·전주 대비 %, 요일별 분, 월 출석 달력, 주별 분, longest streak, % of nights read, 평균 세션 길이) | `31:102`, `110:522` | `ReportOverview` 에 주간 지표 없음 (PRD §7.7은 4주 리포트만) | `GET /v1/children/:childId/progress?weekStart=` → `WeeklyProgress`. 비교·달성률 표현("+18% vs last week", "80% of nights read")은 M-12 copy 결정 필요 | NEEDS DECISION (M-10) |
+| G-01 | **주간 Progress 지표** (주간 세션 수·총 분·전주 대비 %, 요일별 분, 월 출석 달력, 주별 분, longest streak, % of nights read, 평균 세션 길이) | `31:102`, `110:522` | `ReportOverview` 에 주간 지표 없음 (PRD §7.7은 4주 리포트만) | `GET /v1/children/:childId/progress?weekStart=` → `WeeklyProgress`. 비교·달성률 표현("+18% vs last week", "80% of nights read")은 M-12 copy 결정 필요. 탭 표시 이름 "Progress"는 #15로 확정 (지표 채택과 별개) | NEEDS DECISION (M-10) |
 | G-02 | **홈 누적 읽기 분** ("12-day/115 Min") | `26:40`, `26:43` | `HomeSummary` = `streakDays`, `sessionsThisWeek`, `lastHighlightLine?` — minutes 없음 | `HomeSummary.totalMinutes` (집계 기간 정의 필요: 누적 / 이번 주 / streak 기간). PRD §7.4 보조 요소에는 "분" 없음 | NEEDS DECISION (M-30) |
 | G-03 | **Prompt 단계·페이지 태그** PRE / POST / P.6 | `139:2410–2412`, `163:2648`, `145:1132`, `88:960` | `Prompt` = `text`, `kind`(question/follow_up) | `Prompt.phase: 'pre' \| 'during' \| 'post'`, `Prompt.pageRef: number \| null` (+ DATA_MODEL `prompts` 컬럼, 콘텐츠 제작 범위 확대) | NEEDS DECISION (M-29) |
 | G-04 | **책 저장 / My Saved, 책 평점, 읽기 진행** ("Save to my shelf", "Rated 4.5", "Reading now · 3 of 5 nights", "Last read Tue · 12 min") | `86:245`, `86:372`, `145:1157`, `109:511`, `145:1141–1152` | 없음 (PRD FR-20 범위 밖) | `LibraryBook.saved` + `PUT/DELETE /v1/children/:childId/library/books/:id/saved`; `LibraryBook.averageRating` (회고 별점 집계인지 정의 필요); reading plan 모델(`targetNights`, `nightsRead`, `lastReadAt`) | NEEDS DECISION (M-14) |
@@ -500,6 +644,6 @@ apps/web/src/
 | G-07 | **Prompt 노출 시점** | 모든 카드 변형이 책 선택 전 Prompt 노출 (`163:2648`, `86:438`, `86:512/545`) | `ActivityCard.options[]` 에 prompt 없음, `SelectActivityOption` 응답에서 `promptSet` 제공 (PRD §7.4) | Figma 채택 시 `options[].promptPreview` 추가 | NEEDS DECISION (M-09) |
 | G-08 | **세션 준비 버블에 Prompt 목록** ("Try this prompt !") | `139:2803` | `SessionSummary.bubble` = 검수 템플릿 인사, `prompts` 는 Prompt 모아보기용 | PRD §7.5(자동 제시 금지) 기준 현 계약 유지 | NEEDS DECISION (M-25) |
 | G-09 | **녹음 Discard / Submit** | `163:1618`, `163:1620` (용도 불명) | 녹음 폐기 전이 없음 | 채택 시 FR-21 삭제 흐름·동의 정책과 함께 정의 (예: 완료 전 폐기 = `abandoned` + 로컬 삭제, 서버 업로드 없음) | NEEDS DECISION (M-26) |
-| G-10 | **가입 화면 아이 정보** | `179:1740` | 동의 전 `child_info` 저장 불가 (`CONSENT_REQUIRED`) | 계약 변경 없음 — ARCHITECTURE §7.3.1 Guard (로컬 draft → 동의 후 전송) | RECOMMENDED (M-28) |
+| G-10 | **가입 화면 아이 정보** | `179:1740` | 가입 입력에 아이 필드 없음 (`SignUpWithEmailInput`), 아이 정보는 동의 후 온보딩 Step 1 `child_info` (성·이름 두 칸, 성별 선택) — §3.4 | 반영 완료. Figma 가입 화면 수정은 디자이너 요청 | CONFIRMED (사용자 결정 2026-09-14, C-5 · C-6 · C-7; M-28 해소) |
 | G-11 | **리포트 이메일 발송** | `110:861` | 없음 | `NotificationPreferences.reportEmailEnabled`, `NotificationKind.report_email` | NEEDS DECISION (M-11) |
 

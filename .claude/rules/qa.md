@@ -89,7 +89,7 @@ E2E · 시각 비교(구현 screenshot ↔ Figma screenshot) 도구는 **Playwri
 
 ### Responsive / Accessibility
 - [ ] breakpoint별 레이아웃 (320 / 600 / 1024px, 앱 컬럼 최대 480px 가운데 정렬)
-- [ ] 대비 AA, 터치 타깃, 포커스 표시, 접근성 이름
+- [ ] 대비 AA, 터치 타깃, 포커스 표시, 접근성 이름 (수용 예외 D-01은 `PASS (accepted: D-01)`, 가값 P-xx는 목록 기록)
 
 ### Privacy (Frontend 검증 가능 항목)
 - [ ] 동의 기록 전 아동 데이터가 Contract로 전송되지 않음 (Mock 요청 로그 증거)
@@ -128,3 +128,5 @@ E2E · 시각 비교(구현 screenshot ↔ Figma screenshot) 도구는 **Playwri
 - [ ] 전체 Stage의 `BACKEND_INTEGRATION_PENDING` 항목이 Handoff 문서에 1:1로 반영됨
 - [ ] `BACKEND_HANDOFF.md` 필수 항목(API 목록, Request/Response/Error, Auth, Authorization, Screen, Feature, PRD ID, 상태 변화, Mock 위치) 충족
 - [ ] `packages/contracts` 최종 검증 (typecheck, test, 문서와 일치)
+- [ ] 이월 기능 (Stage 0 C-15): 데이터 관리 UI(보관 정책 안내·세션별 녹음 삭제·전체 삭제 요청), 탈퇴 (동의 이력 보기는 선택 기능 — 미구현 시 FAIL 아님, C-19) — Frontend 부분 판정, 서버 처리는 `BACKEND_INTEGRATION_PENDING`
+- [ ] Mock 데모 웹 프리뷰 배포 (Stage 0 C-18): Mock 모드로 동작, 실제 아동 데이터·Secret 없음, 앱 테스트 빌드·Backend 배포 없음

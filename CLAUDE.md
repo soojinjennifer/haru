@@ -26,8 +26,8 @@ MVP 전제: 양육자가 계정 소유자, 아이는 로그인 계정 없음, Ch
 
 ## Current Status
 
-- **Stage 0 — Frontend Architecture + Figma Mapping + Agent Setup + Design System + API Contract Planning: 산출물 검토·승인 대기**
-- **Stage 1 이후 구현은 사용자 명시적 승인 전까지 시작하지 않는다. Production Code 작성 금지.**
+- **Stage 0 — Frontend Architecture + Figma Mapping + Agent Setup + Design System + API Contract Planning: 승인 완료 (2026-09-14)**
+- **Stage 1은 사용자가 진행을 요청하면 plan-agent → design-agent → 승인 체크포인트 순서로 시작한다. 그 전에는 Production Code를 작성하지 않는다.**
 - 진행 상태와 요구사항 매핑: `PLANNING.md`
 - **사용자 결정 기록: `docs/decisions/stage-0-approvals.md`** — 기존 문서와 다르면 이 기록이 우선한다.
 - 승인된 기술 선택 (2026-09-14): pnpm workspaces · Tailwind CSS v4 · Playwright · MSW 미사용 · Supabase JS Client 미사용 (Stage 1–8) · Dark mode MVP 제외 · Capacitor 도입 (Stage 4에서 추가, Stage 1–3은 웹 전용) · 폰트 Apple=시스템(SF Pro) / 그 외=Inter · 아이콘 Lucide + HARU 전용 Figma SVG · 저장소 `~/dev/haru` (origin `https://github.com/soojinjennifer/haru.git`, private)
@@ -38,13 +38,13 @@ MVP 전제: 양육자가 계정 소유자, 아이는 로그인 계정 없음, Ch
 |---|---|---|
 | 0 | Frontend Architecture + Figma Mapping + Agent Setup + Design System + API Contract Planning | 설계만 |
 | 1 | Frontend Foundation + Shared UI + Router + Layout + Design Tokens + Mock Infrastructure | 없음 |
-| 2 | Auth + Consent + Onboarding + Child Profile (Frontend) | Mock |
+| 2 | Auth + Consent + Onboarding + Child Profile (Frontend) + Home 화면 골격(착지 화면, #33) | Mock |
 | 3 | Home + Activity Card + Library + Book Selection + Recommendation (Frontend) | Mock |
 | 4 | Storytime Session + Recording Client + Pause / Resume + Prompt Drawer + Local Recording + Upload UX | Upload Contract + Mock |
 | 5 | Reflection + Async Analysis Status + Short Feedback (Frontend) | Analysis Mock |
 | 6 | Personalization + Profile Update + Recommendation Loop (Frontend) | Recommendation Mock |
 | 7 | 4-Week Report + History + Highlight Audio + PDF UX (Frontend) | Report Mock |
-| 8 | Frontend Final QA + Accessibility + Responsive + Regression + Backend Handoff Package | **완료 후 STOP** |
+| 8 | Frontend Final QA + Accessibility + Responsive + Regression + 이월 기능(데이터 관리·탈퇴, 동의 이력 보기는 선택 — Stage 0 C-15·C-19) + Mock 데모 웹 프리뷰 배포(C-18) + Backend Handoff Package | **완료 후 STOP** |
 
 ## Source of Truth
 
@@ -53,7 +53,7 @@ MVP 전제: 양육자가 계정 소유자, 아이는 로그인 계정 없음, Ch
 | Functional | `docs/source/HARU_PRD_v1.4.md` |
 | Visual | Figma HARU_MVP — fileKey `YWWu3AFEJpRxvw0T5klq0k` (page `8:2` Design Guide, page `16:2` MVP_KeyScreen_V.2) |
 | Scope | `docs/source/prompts/01-stage0-1-1-frontend-scope.md` (Frontend-only 경계) |
-| 참고 | `docs/source/HARU_Development_Architecture_8Stage_v0.2.md`, `$HARU_ONEDRIVE/디자인/**` 프로토타입, `$HARU_ONEDRIVE/기존 자료/HARU_Developmental_Baseline_Survey_v1.docx.md` |
+| 참고 | `docs/source/HARU_Development_Architecture_8Stage_v0.2.md`, `$HARU_ONEDRIVE/디자인/**` 프로토타입, `docs/source/HARU_Developmental_Baseline_Survey_v1.docx.md` |
 
 - PRD = Functional Source of Truth, Figma = Visual Source of Truth.
 - PRD와 Figma에 없는 요구사항을 임의로 추가하지 않는다. 불일치는 보고하고 결정을 기다린다.
@@ -107,7 +107,7 @@ Stage 8 Handoff (예정): `docs/BACKEND_HANDOFF.md` · `docs/API_CONTRACTS.md` �
 
 - 저장소: `~/dev/haru` (OneDrive 밖) · origin `https://github.com/soojinjennifer/haru.git` (private). GitHub가 백업·다른 컴퓨터 동기화 수단이다 (다른 컴퓨터: `git clone` → 작업 전 `git pull` → 작업 후 `git push`). commit·push는 사용자 요청 시에만 한다.
 - 원본 기획·디자인 자료는 OneDrive에 둔다. 문서의 `$HARU_ONEDRIVE` = `/Users/soojin/Library/CloudStorage/OneDrive-개인/HARU` (`디자인/`, `기존 자료/`, `Chracter/`). 이 경로에는 한글·공백이 있으므로 셸에서 반드시 인용한다.
-- 저장소에 포함된 원본 사본: `docs/source/HARU_PRD_v1.4.md`, `docs/source/HARU_Development_Architecture_8Stage_v0.2.md`, `docs/source/prompts/` (사용자 지시 원문). 사본은 수정하지 않으며, OneDrive 원본이 갱신되면 사본을 교체한다.
+- 저장소에 포함된 원본 사본: `docs/source/HARU_PRD_v1.4.md`, `docs/source/HARU_Development_Architecture_8Stage_v0.2.md`, `docs/source/prompts/` (사용자 지시 원문), `docs/source/HARU_Developmental_Baseline_Survey_v1.docx.md` (온보딩 역량 문항 원문, Stage 0 C-8·C-14). 사본은 수정하지 않으며, OneDrive 원본이 갱신되면 사본을 교체한다.
 - 이전 작업 폴더 `$HARU_ONEDRIVE/HARU Dev` 는 보존용이다. 개발·문서 갱신은 이 저장소에서만 한다.
 - 사용자 홈 디렉토리(`/Users/soojin`)에는 다른 프로젝트(Lawservice)의 git 저장소가 있다. 건드리지 않는다 (Stage 0 #4-3).
 - 쓰기 경로 guard hook (`.claude/settings.json`, `.claude/hooks/`, Stage 0 #26):

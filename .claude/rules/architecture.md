@@ -83,7 +83,7 @@ ready → recording ⇄ paused → completed → analyzing → analyzed
 
 - 상태 enum과 허용 전이 표는 `packages/contracts` 에 한 번만 정의하고 Frontend, Mock, 향후 Backend가 공유한다.
 - `retry` 는 상태가 아니라 행위다.
-- `abandoned`(10분 방치), `mode`(recorded / conversation_only), `completedReason`, `analysisOutcome`, 별도 upload status 는 ARCHITECTURE §10 모델로 승인되었다 [승인 2026-09-14, Stage 0 #16]. 단 `skipped_consent_revoked` 등 OAQ-08 · OAQ-17 결정에 의존하는 값은 결정 전까지 enum에 넣지 않는다.
+- `abandoned`(10분 방치), `mode`(recorded / conversation_only), `completedReason`, `analysisOutcome`, 별도 upload status 는 ARCHITECTURE §10 모델로 승인되었다 [승인 2026-09-14, Stage 0 #16]. `skipped_consent_revoked` 는 C-4(동의 철회 MVP 제외)로 제거되었고, `skipped_audio_deleted` 등 OAQ-17 결정에 의존하는 값은 결정 전까지 enum에 넣지 않는다.
 - Mock은 허용되지 않은 전이를 contracts error code로 거부해야 한다.
 
 ## 7. Recording Client

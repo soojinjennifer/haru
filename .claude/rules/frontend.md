@@ -94,7 +94,7 @@ PRD 13장 예외 처리(마이크 권한 거부 → 대화만 하기, 네트워�
 
 ## 9. Accessibility / Responsive
 
-- 양육자 화면 WCAG AA (대비, 포커스, 레이블, 스크린리더 이름). 현재 Figma 토큰의 대비 미달 항목은 `docs/DESIGN_SYSTEM.md` 결정에 따른다.
+- 양육자 화면 WCAG AA (대비, 포커스, 레이블, 스크린리더 이름). 대비 예외·가값은 `docs/decisions/stage-0-approvals.md` 를 따른다: 주요 버튼 흰 라벨 = 수용 예외 D-01, 보조 텍스트·비텍스트·focus ring·glass 위 라벨 = 가값 P-01·P-02·P-03·P-11.
 - 터치 타깃 최소 44×44pt [제안 — PRD §11 "충분히 확보"의 구체값].
 - 텍스트 의존 최소화(아이콘·애니메이션 병행), `prefers-reduced-motion` 존중.
 - [승인 2026-09-14, Stage 0 #12] Breakpoint `--bp-md` 600px / `--bp-lg` 1024px. 모든 화면은 모바일 레이아웃이며 600px 이상에서는 최대 폭 480px 앱 컬럼을 가운데 정렬한다 (다단 레이아웃 없음). 앱은 세로 고정, 웹 가로 화면은 앱 컬럼으로 표시한다.
