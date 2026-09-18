@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig/node.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "allowImportingTsExtensions": true,
+    "checkJs": true
+  },
+  "include": [
+    "types/**/*.d.ts",
+    "eslint/**/*.js",
+    "prettier/**/*.js",
+    "vitest/**/*.ts",
+    "__tests__/**/*.ts",
+    "vitest.config.ts"
+  ]
+}

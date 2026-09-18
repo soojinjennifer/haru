@@ -1,0 +1,41 @@
+{
+  "name": "haru",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "HARU — Caregiver-facing Parenting Intelligence / Storytime Coach (Frontend-only workspace)",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@12.4.2",
+  "engines": {
+    "node": ">=24.21.0 <25"
+  },
+  "scripts": {
+    "preinstall": "node scripts/check-node-version.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json && pnpm -r --if-present run typecheck",
+    "lint": "eslint .",
+    "lint:boundaries": "node scripts/lint-boundaries.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "node scripts/pending-script.mjs test:e2e \"Playwright E2E / visual comparison — deferred to Stage 1-B/1-C (no app to serve yet; Plan D-10 @playwright/test ~1.63.0)\"",
+    "build": "node scripts/pending-script.mjs build \"apps/web production build — added in Stage 1-B\" && pnpm -r --if-present run build",
+    "dev": "node scripts/pending-script.mjs dev \"apps/web dev server — added in Stage 1-B\" && pnpm -r --if-present run dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "assert:no-mocks": "node scripts/assert-no-mocks.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@haru/config": "workspace:*",
+    "@types/node": "^24.13.5",
+    "@vitest/coverage-v8": "~4.1.11",
+    "dependency-cruiser": "^18.3.1",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "jsdom": "^30.1.0",
+    "prettier": "^3.9.8",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "~4.1.11"
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "extends": "@haru/config/tsconfig/node.json",
+  "include": ["vitest.config.ts", "scripts/**/*.ts"],
+  "exclude": ["node_modules", "dist", "apps", "packages"]
+}

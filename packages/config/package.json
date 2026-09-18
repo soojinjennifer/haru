@@ -1,0 +1,48 @@
+{
+  "name": "@haru/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "HARU shared toolchain config \u2014 tsconfig / eslint / prettier / vitest (Stage 1 Plan \u00a79.1)",
+  "license": "UNLICENSED",
+  "exports": {
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./tsconfig/react.json": "./tsconfig/react.json",
+    "./tsconfig/node.json": "./tsconfig/node.json",
+    "./eslint/base": "./eslint/base.js",
+    "./eslint/react": "./eslint/react.js",
+    "./prettier": "./prettier/index.js",
+    "./vitest/base": "./vitest/base.ts"
+  },
+  "files": [
+    "types",
+    "tsconfig",
+    "eslint",
+    "prettier",
+    "vitest"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.13.5",
+    "@vitest/coverage-v8": "~4.1.11",
+    "eslint": "^10.10.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "jsdom": "^30.1.0",
+    "prettier": "^3.9.8",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "~4.1.11"
+  },
+  "peerDependencies": {
+    "eslint": "^10.10.0",
+    "prettier": "^3.9.8",
+    "typescript": "~6.0.3",
+    "vitest": "~4.1.11"
+  }
+}

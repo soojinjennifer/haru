@@ -1,0 +1,20 @@
+# 의존성 · 빌드 산출물
+node_modules/
+dist/
+build/
+coverage/
+.pnpm-store/
+playwright-report/
+test-results/
+blob-report/
+
+# 도구가 생성/관리하는 파일
+pnpm-lock.yaml
+.omc/
+.claude/
+
+# 원본 기획·디자인 문서와 승인 문서는 포맷을 변경하지 않는다.
+# (docs/source/** 는 OneDrive 원본의 사본이며 수정 금지 — CLAUDE.md)
+docs/
+My Prompt/
+*.md

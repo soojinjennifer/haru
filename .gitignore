@@ -39,3 +39,9 @@ apps/mobile/ios/App/build/
 apps/mobile/android/.gradle/
 apps/mobile/android/app/build/
 apps/mobile/android/build/
+
+# pnpm / vitest / dependency-cruiser local artifacts
+.pnpm-debug.log*
+node_modules/.vite/
+.vitest-cache/
+dependency-graph.*

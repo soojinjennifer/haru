@@ -1,0 +1,15 @@
+# HARU pnpm workspaces (Stage 1 Plan §9.0, 결정 #6)
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# pnpm 12 는 auth / registry 설정만 .npmrc 에서 읽고, 나머지 설정은 여기에서 읽는다.
+# (.npmrc 의 engine-strict=true 는 Plan §16.1 D-10 승인값이며 아래 engineStrict 가 실제 적용 지점이다.)
+engineStrict: true
+preferWorkspacePackages: true
+linkWorkspacePackages: deep
+
+# pnpm 12 supply-chain 정책(minimumReleaseAge)에 의해 자동 추가된 예외.
+# 승인된 버전(Plan §16.1 D-10)을 그대로 설치하기 위해 필요하다.
+minimumReleaseAgeExclude:
+  - prettier@3.9.8
