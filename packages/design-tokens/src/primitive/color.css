@@ -1,0 +1,68 @@
+/*
+ * HARU Design Tokens — Tier 1 Primitive · Color
+ * 기준: Stage 1 Design Spec §3.1.1 (palette 30) + §3.1.2 (status 8)
+ * 값의 유일한 기준은 Figma다 (Stage 0 #10-①). 로컬 `_ds` CSS 참조 금지.
+ *
+ * 의존 방향: Primitive 는 어떤 토큰도 참조하지 않는다 (리터럴 값만).
+ * Tier 1 은 `@theme` 에 노출하지 않는다 (AC-1-11, Design Spec §3.4).
+ */
+
+:root {
+  /* --- Accent palette (Figma `17:129` accents/*) --------------------------- */
+  --haru-palette-blue: #7faec1;
+  --haru-palette-cyan: #a0ccdd;
+  --haru-palette-teal: #85bfb6;
+  --haru-palette-mint: #b0cfc0;
+  --haru-palette-green: #90bfad;
+  --haru-palette-yellow: #d0cca1;
+  --haru-palette-orange: #eed2bd;
+  --haru-palette-red: #e8a9a0;
+  --haru-palette-pink: #efc3d4;
+  --haru-palette-purple: #c9b8d4;
+  --haru-palette-indigo: #a9b6cf;
+  --haru-palette-brown: #beafa4;
+
+  /* --- Ink (텍스트·경계) --------------------------------------------------- */
+  --haru-ink-800: #3b4a48;
+  --haru-ink-700: #4a5f5c;
+  --haru-ink-600: #5e7370;
+  --haru-ink-500: #7d9291;
+  --haru-ink-400: #9aabaa;
+  --haru-ink-300: #b3c0bf;
+
+  /* --- Ink alpha (Figma Corduroy 30% / stroke / divider) ------------------- */
+  --haru-ink-600-a30: rgb(94 115 112 / 0.3);
+  --haru-ink-600-a18: rgb(94 115 112 / 0.18);
+  --haru-ink-600-a12: rgb(94 115 112 / 0.12);
+
+  /* --- White + alpha (glass fill) ----------------------------------------- */
+  --haru-white: #ffffff;
+  --haru-white-a90: rgb(255 255 255 / 0.9);
+  --haru-white-a74: rgb(255 255 255 / 0.74);
+  --haru-white-a50: rgb(255 255 255 / 0.5);
+
+  /* --- Neutral surfaces ---------------------------------------------------- */
+  --haru-mist-50: #edf3f1;
+  --haru-mist-100: #dbeee7;
+  --haru-mist-200: #d3e3de;
+  --haru-dusk-200: #c7c9d7;
+  --haru-paper-100: #f0eee6;
+
+  /* --- Status primitive (Figma 에 값 없음 — design-agent 제안) -------------- */
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --haru-status-error-fg: #a8483e;
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --haru-status-error-bg: #f7e4e1;
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --haru-status-warning-fg: #7d6a2a;
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --haru-status-warning-bg: #f4f1de;
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --haru-status-success-fg: #3f7563;
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --haru-status-success-bg: #e3f0ea;
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --haru-status-info-fg: #3e6b7d;
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --haru-status-info-bg: #e2eef3;
+}

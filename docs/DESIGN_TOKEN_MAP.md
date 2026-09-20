@@ -258,20 +258,21 @@ HARU 화면에서 **사용 확인된 것은 `backgrounds/primary`(= white), `bac
 | Motion duration | `--motion-duration-instant` 100ms, `-fast` 180ms, `-base` 240ms, `-slow` 400ms, `-pulse` 1200ms | CSS Var 직접 참조 (§1.1) | 로컬 프로토타입 관찰값 [P] 기반 (press .18s, sheet .24s, pop-in .4s, dot 1.2s) — 참고만, 값 채택은 가값 | 1 | 이름 CONFIRMED (#10) · 값 `가값 (P-07)` |
 | Motion easing | `--motion-ease-standard` = `cubic-bezier(.32,.72,.28,1)`, `--motion-ease-spring` = `cubic-bezier(.34,1.3,.64,1)`, `--motion-ease-linear` = `linear` | v4 `--ease-*` | 좌기 값 | 1 | 이름 CONFIRMED (#10) · 값 `가값 (P-07)` |
 | Breakpoints | `--bp-md` **600px**, `--bp-lg` **1024px** (v4 `--breakpoint-md/lg`) | `md:`, `lg:` | 320–599px = 모바일 | 1 | **CONFIRMED (사용자 결정 2026-09-14, #12)**. `--bp-short-height` 는 **삭제** (세로 고정, #12-③) |
-| Layout | `--layout-min-width` **320px**, `--layout-app-max-width` **480px**, `--layout-gutter` = `--space-6`, `--layout-tabbar-height` 70 [DC] | `max-w-app`, `px-gutter` (노출 방식 Stage 1 Plan) | 좌기 값 | 1 | min·max width **CONFIRMED (사용자 결정 2026-09-14, #12)** · gutter 24 vs 26 = `가값 (P-13)` (가값 24) · tabbar RECOMMENDED |
+| Layout | `--layout-min-width` **320px**, `--layout-app-max-width` **480px**, `--layout-gutter` = `--space-6`, `--layout-tabbar-height` 70 [DC], `--layout-tabbar-center-overhang` **35** (Figma `140:2983` top=-35, **CONFIRMED (사용자 결정 2026-09-20, S1-D3)**) | `max-w-app`, `px-gutter` (노출 방식 Stage 1 Plan) | 좌기 값 | 1 | min·max width **CONFIRMED (사용자 결정 2026-09-14, #12)** · gutter 24 vs 26 = `가값 (P-13)` (가값 24) · tabbar RECOMMENDED |
 | Safe area | `--layout-safe-top`, `--layout-safe-bottom` (+ left/right) | — | `env(safe-area-inset-top, 0px)` 등, TopBar·Tab Bar·하단 CTA 에 적용 | 1 | 이름 CONFIRMED (#10) · 값 `가값 (P-08)` |
 | Touch | `--size-touch-min` | `min-h-touch min-w-touch` | 44 (rules/frontend 권장; PRD §11 은 "터치 타깃 충분히 확보" 만 명시) | 1 | RECOMMENDED |
-| Icon size | `--size-icon-sm` 16, `-md` 20, `-lg` 24 | `size-icon-md` | Lucide + HARU SVG 공통 (DESIGN_SYSTEM §7, #21) | 1 | `가값 (P-09)` |
-| Component sizes | `--size-button-md 45`, `--size-button-lg 56`, `--size-icon-button 38`, `--size-record-button 150`, `--size-tab-center 64`, `--size-medallion-{sm,md,lg}` | — | Figma `17:20`, `179:1746`(58→56), `78:158`, `163:1590`, `140:2971` [DC] | 1–4 | RECOMMENDED · `--size-button-lg` 56 vs 58 = `가값 (P-15)` (가값 56) · `--size-medallion-sm/md/lg` = `가값 (P-16)` (가값 136 / 188 / 232, Figma 174·200 혼재) |
+| Icon size | `--size-icon-sm` 16, `-md` 20, `-lg` 24 | `size-icon-md` | Lucide + HARU SVG 공통 (DESIGN_SYSTEM §7, #21). **예외**: BottomTabBar 아이콘 21 은 3단계로 표현할 수 없어 Tier 3 `--tabbar-icon-size` = 21 (Figma `25:35`) | 1 | `가값 (P-09)` · 탭 21 예외 **CONFIRMED (사용자 결정 2026-09-20, S1-D3)** |
+| Component sizes | `--size-button-md 45`, `--size-button-lg 56`, `--size-icon-button 38`, `--size-record-button 150`, `--size-tab-center 64`, `--size-medallion-{sm,md,lg}`, `--size-medallion-ring-offset` **8** (ring 바깥 지름 − avatar 지름, Figma `28:73` 190 − `28:74` 174; provisional 주석 대상 아님) | — | Figma `17:20`, `179:1746`(58→56), `78:158`, `163:1590`, `140:2971` [DC] | 1–4 | RECOMMENDED · `--size-button-lg` 56 vs 58 = `가값 (P-15)` (가값 56) · `--size-medallion-sm/md/lg` = `가값 (P-16)` (가값 136 / 188 / 232, Figma 174·200 혼재) |
 | Background gradient | `--color-bg-app-start/mid/end`, `--gradient-app` | `bg-app` | Figma raw `#dbeee7 → #d3e3de(46–52%) → #c7c9d7` | 1 | 색 RECOMMENDED · 중간 stop 위치 46% vs 52% = `가값 (P-14)` (가값 46%) |
 | Sticker gradient | `--gradient-reward` | `bg-reward` | yellow → orange 140° (`29:80`) | 4 | RECOMMENDED |
 | Chart | 역량 차트 = `--color-capability-*-chart` (§2.7, #19). 주간 막대 `--color-chart-bar`, `-bar-muted`, `-bar-empty`, `--color-chart-label` | — | teal / teal 55% / ink 18% / 대비 충족 라벨색 (`163:2568`) | 7 | 역량 차트 CONFIRMED (#19) · 주간 막대는 M-10 (주간 Progress 채택) 결정에 종속 — NEEDS DECISION |
-| Material fallback | `--material-glass-fill-fallback` | — | §5.4 | 1 | RECOMMENDED |
+| Material fallback | `--material-glass-fill-fallback` | — | `--haru-white-a90` (알파 유지 — 불투명 합성 `#f9f9fb` 아님), §5.4 | 1 | **CONFIRMED (사용자 결정 2026-09-20, S1-D3)** — 구현 `packages/design-tokens/src/semantic/material.css` |
 | Dark mode | (없음) | — | MVP Light 전용, dark 토큰 만들지 않음 | — | **CONFIRMED (사용자 결정 2026-09-14, #20)** |
 
 ### 4.1 가값 요약 (승인 로그 §4 P-01–P-16)
 
-development-agent 는 아래 토큰 정의에 `provisional` 주석을 남긴다. Stage 1 구현 완료 후 Orchestrator 가 하나씩 `유지(확정)` / `수정(새 값)` / `디자이너 대기 유지` 승인을 받고, 결정 값은 이 문서에 반영한 뒤 주석을 제거한다 (FRONTEND_IMPLEMENTATION_PLAN §1.7).
+development-agent 는 아래 토큰 정의에 `provisional` 주석을 남긴다.
+**Stage 1-B 구현 완료 (2026-09-20)**: 주석 위치는 `docs/design/stage-1-design-spec.md` §3.6 표와 1:1로 일치하며, 15개 항목 / 토큰 71개에 적용되었다 (P-10 은 토큰이 아니라 화면 명세이므로 제외). 기계 판독 가능한 목록은 빌드 산출물 `packages/design-tokens/dist/tokens-manifest.json` 의 `provisionalByItem` 이다. Stage 1 구현 완료 후 Orchestrator 가 하나씩 `유지(확정)` / `수정(새 값)` / `디자이너 대기 유지` 승인을 받고, 결정 값은 이 문서에 반영한 뒤 주석을 제거한다 (FRONTEND_IMPLEMENTATION_PLAN §1.7).
 
 | # | 토큰 | 가값 | 출처 |
 |---|---|---|---|

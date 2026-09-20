@@ -1,0 +1,20 @@
+/*
+ * HARU Design Tokens — Tier 2 Semantic · Radius
+ * 기준: Stage 1 Design Spec §3.2.3 (radius 6단계) · §3.5 흡수표
+ *
+ * 의존 방향: Semantic 은 리터럴 Figma 값만 갖는다 (Primitive 에 radius tier 가 없다).
+ * Tailwind 노출: `--radius-*` 네임스페이스 → `@theme` (rounded-card, rounded-pill …).
+ *
+ * 흡수: Checkbox 7 · 차트 막대 8 → control(8) / Input Line_1 20 · InfoRow 20 · 리포트 24 →
+ *       surface(22) / Survey intro 카드 26 · 30 · 32 → card(28) (§3.5, §13.2 ④).
+ */
+
+@theme static {
+  --radius-indicator: 4px; /* Figma `88:785` */
+  --radius-control: 8px;
+  --radius-field: 16px; /* Figma `corner radius/16` */
+  /* provisional: P-12 (docs/decisions/stage-0-approvals.md §4) */
+  --radius-surface: 22px;
+  --radius-card: 28px; /* Figma `17:33` --radius-card */
+  --radius-pill: 9999px; /* Figma radius-pill 100 */
+}

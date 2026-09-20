@@ -1,0 +1,43 @@
+/*
+ * HARU Design Tokens — 패키지 진입점
+ * 기준: Stage 1 Plan §9.2 · Design Spec §3
+ *
+ * 파이프라인 (Plan §5.5)
+ *   Figma 값 (유일 기준)
+ *   → Tier 1 primitive (`--haru-*`, :root)
+ *   → Tier 2 semantic  (`@theme` = Tailwind 노출 / `:root` = 네임스페이스 없는 토큰)
+ *   → `@utility` (z-index · motion · material · layout · safe-area · gradient · touch ·
+ *                 focus · disabled · icon size)
+ *   → packages/ui → apps/web
+ *
+ * import 순서가 의미를 갖는다:
+ *   theme.css 의 `--color-*: initial` 등 네임스페이스 초기화가 semantic/* 의 `@theme`
+ *   선언보다 **먼저** 와야 우리 토큰이 지워지지 않는다.
+ *
+ * Tier 3 component 토큰(`./component/index.css`)은 여기에 포함하지 않는다.
+ * `packages/ui` 만 `@haru/design-tokens/component.css` 로 따로 import 한다 (Design Spec §3.3).
+ */
+
+@import './fonts.css';
+@import './color-scheme.css';
+
+/* Tier 1 — Primitive */
+@import './primitive/color.css';
+@import './primitive/typography.css';
+
+/* Tailwind 네임스페이스 초기화 + breakpoint + animate (semantic/* 보다 먼저) */
+@import './theme.css';
+
+/* Tier 2 — Semantic */
+@import './semantic/color.css';
+@import './semantic/typography.css';
+@import './semantic/space.css';
+@import './semantic/radius.css';
+@import './semantic/shadow.css';
+@import './semantic/material.css';
+@import './semantic/motion.css';
+@import './semantic/layout.css';
+@import './semantic/z-index.css';
+
+/* Tailwind `@utility` 노출 */
+@import './utilities.css';

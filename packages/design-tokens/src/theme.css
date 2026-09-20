@@ -1,0 +1,79 @@
+/*
+ * HARU Design Tokens — Tailwind v4 `@theme` 진입점
+ * 기준: Stage 1 Design Spec §3.4 (`@theme` vs `@utility`) · §7.1 (breakpoint 2개) · AC-1-11
+ *
+ * 역할
+ *  1. Tailwind 기본 네임스페이스 **초기화** — 기본 팔레트·타입 스케일·radius·shadow·easing·
+ *     breakpoint·animate 를 전부 제거해 HARU semantic token 외에는 유틸리티가 생기지 않게 한다.
+ *  2. 파일 단위로 나눌 수 없는 theme key(`--breakpoint-*`, `--animate-*`)와 keyframes 정의.
+ *
+ * 개별 semantic token 의 `@theme` 선언은 각 `semantic/*.css` 안에 있다 (§3.6 파일 위치표를
+ * 지키기 위해). 이 파일은 index.css 에서 **semantic/* 보다 먼저** import 되어야 초기화가
+ * 이후 선언을 지우지 않는다.
+ *
+ * Tier 1 Primitive(`--haru-*`)와 Tier 3 Component(`--button-*` 등)는 `@theme` 에 넣지 않는다.
+ */
+
+@theme static {
+  /* --- 기본 네임스페이스 초기화 (§3.4, AC-1-11) --------------------------- */
+  --color-*: initial;
+  --font-*: initial;
+  --text-*: initial;
+  --font-weight-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --blur-*: initial;
+  --ease-*: initial;
+  --breakpoint-*: initial;
+  --animate-*: initial;
+
+  /* --- Breakpoint — md / lg 두 개만 (§7.1, Stage 0 #12) ------------------- */
+  /* Tailwind 는 `@media` 조건을 빌드 시점에 해석하므로 var() 를 쓸 수 없다.       */
+  /* 원천 토큰은 semantic/layout.css 의 `--bp-md` / `--bp-lg` 이며 값이 같아야 한다. */
+  --breakpoint-md: 600px;
+  --breakpoint-lg: 1024px;
+
+  /* --- Animation (§9.1) ---------------------------------------------------- */
+  --animate-skeleton: haru-skeleton-pulse var(--motion-duration-pulse) var(--motion-ease-standard)
+    infinite;
+  --animate-spinner: haru-spinner-rotate calc(var(--motion-duration-slow) * 2)
+    var(--motion-ease-linear) infinite;
+}
+
+@keyframes haru-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes haru-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*
+ * `prefers-reduced-motion: reduce` — §9.2.
+ * 전역 `*` 일괄 차단(shadow 전환·focus 표시까지 죽는다)을 쓰지 않고,
+ * 토큰 패키지가 소유한 **무한 반복 애니메이션 2종만** 정지 상태로 재정의한다.
+ * 나머지 컴포넌트 모션의 reduce 대체 동작은 packages/ui 가 §9.2 표대로 처리한다.
+ */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes haru-skeleton-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes haru-spinner-rotate {
+    to {
+      transform: none;
+    }
+  }
+}

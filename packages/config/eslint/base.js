@@ -123,7 +123,8 @@ export const haruBaseConfig = tseslint.config(
       '**/*.workspace.{js,cjs,mjs,ts}',
       'eslint.config.js',
       '.dependency-cruiser.cjs',
-      'scripts/**/*.{js,cjs,mjs}',
+      // 루트 `scripts/` 와 각 패키지의 `packages/*/scripts/` 빌드 스크립트 (Stage 1-B 에서 범위 확장).
+      '**/scripts/**/*.{js,cjs,mjs}',
       'packages/config/**/*.{js,ts}',
     ],
     languageOptions: {

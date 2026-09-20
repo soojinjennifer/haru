@@ -1,0 +1,86 @@
+/*
+ * HARU Design Tokens — Tier 2 Semantic · Typography
+ * 기준: Stage 1 Design Spec §3.2.2 · Stage 0 결정 #11 (폰트 스택)
+ *
+ * 의존 방향: Semantic → Primitive (`var(--haru-type-*)`, `var(--haru-weight-*)`).
+ * Tailwind 노출: `--font-*`, `--text-*`(+ modifier), `--font-weight-*` (Design Spec §3.4).
+ *
+ * `--text-{style}--font-weight` 의 기본 weight 는 Figma `17:298` 이 따르는 iOS 26 text style
+ * 규약(Headline 만 semibold, 나머지는 regular)을 그대로 옮긴 것이다. 새 값이 아니라
+ * §3.1.3 의 weight primitive 매핑이다. 디자이너 확정 시 이 매핑만 교체한다.
+ */
+
+@theme static {
+  /*
+   * 폰트 스택 단일 정의 지점 (AC-1-13, Stage 0 #11).
+   * - Apple 기기 = 시스템 폰트(SF Pro) → `-apple-system` / `BlinkMacSystemFont`
+   * - 그 외 = self-host Inter (fonts.css 의 @font-face 가 유일한 선언 지점)
+   * - `system-ui` 를 "Inter" 앞에 두지 않는다. `SF-Pro.ttf` 는 저장소·빌드에 포함하지 않는다.
+   */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+
+  /* --- Text styles (size / line-height / weight / letter-spacing) --------- */
+  --text-large-title: var(--haru-type-large-title-size);
+  --text-large-title--line-height: var(--haru-type-large-title-line);
+  --text-large-title--font-weight: var(--haru-weight-regular);
+  --text-large-title--letter-spacing: 0;
+
+  --text-title-1: var(--haru-type-title-1-size);
+  --text-title-1--line-height: var(--haru-type-title-1-line);
+  --text-title-1--font-weight: var(--haru-weight-regular);
+  --text-title-1--letter-spacing: 0;
+
+  --text-title-2: var(--haru-type-title-2-size);
+  --text-title-2--line-height: var(--haru-type-title-2-line);
+  --text-title-2--font-weight: var(--haru-weight-regular);
+  --text-title-2--letter-spacing: 0;
+
+  --text-title-3: var(--haru-type-title-3-size);
+  --text-title-3--line-height: var(--haru-type-title-3-line);
+  --text-title-3--font-weight: var(--haru-weight-regular);
+  --text-title-3--letter-spacing: 0;
+
+  --text-headline: var(--haru-type-headline-size);
+  --text-headline--line-height: var(--haru-type-headline-line);
+  --text-headline--font-weight: var(--haru-weight-semibold);
+  --text-headline--letter-spacing: 0;
+
+  --text-body: var(--haru-type-body-size);
+  --text-body--line-height: var(--haru-type-body-line);
+  --text-body--font-weight: var(--haru-weight-regular);
+  --text-body--letter-spacing: 0;
+
+  --text-callout: var(--haru-type-callout-size);
+  --text-callout--line-height: var(--haru-type-callout-line);
+  --text-callout--font-weight: var(--haru-weight-regular);
+  --text-callout--letter-spacing: 0;
+
+  --text-subheadline: var(--haru-type-subheadline-size);
+  --text-subheadline--line-height: var(--haru-type-subheadline-line);
+  --text-subheadline--font-weight: var(--haru-weight-regular);
+  --text-subheadline--letter-spacing: 0;
+
+  --text-footnote: var(--haru-type-footnote-size);
+  --text-footnote--line-height: var(--haru-type-footnote-line);
+  --text-footnote--font-weight: var(--haru-weight-regular);
+  --text-footnote--letter-spacing: 0;
+
+  --text-caption-1: var(--haru-type-caption-1-size);
+  --text-caption-1--line-height: var(--haru-type-caption-1-line);
+  --text-caption-1--font-weight: var(--haru-weight-regular);
+  --text-caption-1--letter-spacing: 0;
+
+  --text-caption-2: var(--haru-type-caption-2-size);
+  --text-caption-2--line-height: var(--haru-type-caption-2-line);
+  --text-caption-2--font-weight: var(--haru-weight-regular);
+  --text-caption-2--letter-spacing: 0;
+
+  /* --- Font weight -------------------------------------------------------- */
+  --font-weight-regular: var(--haru-weight-regular);
+  --font-weight-medium: var(--haru-weight-medium);
+  --font-weight-semibold: var(--haru-weight-semibold);
+  --font-weight-bold: var(--haru-weight-bold);
+  --font-weight-heavy: var(--haru-weight-heavy);
+}

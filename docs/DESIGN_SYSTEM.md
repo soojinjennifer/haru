@@ -128,7 +128,7 @@ iOS 26 text styles 11종 (Large Title 34/41 700 … Caption 2 11/13 400), family
 | 누락 아이콘 | alert/error, wifi-off(offline), cloud-upload, trash, play/pause(클립), share, lock(동의), info, calendar/time(Context), plus(책 등록), search | Lucide 대응 아이콘 사용 (apple 제외 — 아래 브랜드 로고). Stage 별 필요 목록은 FRONTEND_IMPLEMENTATION_PLAN. CONFIRMED (#21) |
 | HARU 전용 아이콘 | `Icon 50:157` 15개 — 출석 스티커 `attend`, thumb_gold/white, record, flip_to_back/front, star, clock 등. variant 이름 비일관 (`shape11`, `13`, `swape`, `shape=icon, Property 2=reply_all`) [M][S] | **Figma SVG export** 로 자산화. CONFIRMED (#21). export 대상 이름 = 의미 (`star-filled`, `thumb-up`, `sticker-attend`) 로 정리 요청 (디자이너) |
 | 스타일 | 둥근 선형(stroke) + 일부 filled(star, thumb), 색 = ink 계열 | Lucide stroke 와 HARU 전용 SVG 의 선 두께 정합은 Stage 1 design spec 에서 확인 (RECOMMENDED) |
-| 크기 | 12, 13, 15, 18, 19, 20, 21, 24, 26, 30 혼재 | `--size-icon-sm` / `--size-icon-md` / `--size-icon-lg` 3단계 — `가값 (P-09)` (값: TOKEN_MAP §4) |
+| 크기 | 12, 13, 15, 18, 19, 20, 21, 24, 26, 30 혼재 | `--size-icon-sm` / `--size-icon-md` / `--size-icon-lg` 3단계 — `가값 (P-09)` (값: TOKEN_MAP §4). **예외 1건**: BottomTabBar 아이콘 21 은 3단계로 흡수하지 않고 Tier 3 `--tabbar-icon-size` 로 고정 — CONFIRMED (사용자 결정 2026-09-20, S1-D3) |
 | 접근성 | — | 의미 있는 아이콘 = `label` 필수, 장식 = `aria-hidden`. 아이콘 단독 버튼은 IconButton 만 사용 |
 | 브랜드 로고 | Google "G" (`179:1710`); Apple 없음 | **Google·Apple 공식 브랜드 에셋만** 사용 (임의 재작성 금지). Apple 로그인 버튼은 Apple 공식 가이드 버튼 (C-13). CONFIRMED (#21) |
 

@@ -1,0 +1,25 @@
+/*
+ * HARU Design Tokens — Tier 2 Semantic · HARU Material (Glass)
+ * 기준: Stage 1 Design Spec §3.2.4 · DESIGN_SYSTEM §6 · DESIGN_TOKEN_MAP §5.4
+ *
+ * 합성 유틸리티(`material-glass-rest` 등)는 utilities.css 의 `@utility` 가 담당한다 (§3.4).
+ * saturate 는 쓰지 않는다 — 값은 Figma 만 기준 (Stage 0 #10-①).
+ *
+ * `--material-glass-fill-fallback`: `backdrop-filter` 미지원 · 저사양 ·
+ * `prefers-reduced-transparency: reduce` 대응. 불투명 합성(#f9f9fb)이 아니라 **알파를 유지**한다
+ * (사용자 승인 2026-09-20, Design Spec §13.3 S1-D3).
+ */
+
+@theme static {
+  /* Tailwind `--blur-*` 네임스페이스 → `backdrop-blur-material-md` / `-lg` */
+  --blur-material-md: 12px;
+  --blur-material-lg: 24px;
+}
+
+:root {
+  --material-glass-fill: var(--haru-white-a74);
+  --material-glass-fill-strong: var(--haru-white-a90);
+  --material-glass-fill-fallback: var(--haru-white-a90);
+  --material-blur-md: 12px; /* Figma instance blur */
+  --material-blur-lg: 24px; /* Figma Effect Style blur */
+}

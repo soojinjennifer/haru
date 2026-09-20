@@ -1,0 +1,41 @@
+/*
+ * HARU Design Tokens — Tier 1 Primitive · Typography
+ * 기준: Stage 1 Design Spec §3.1.3 (iOS 26 text style `17:298` + font weight `17:367`)
+ *
+ * 11px 미만 Figma raw(9 · 10 · 10.5)는 폐기하고 caption-2(11)로 흡수한다 (Stage 0 #10-②).
+ * 의존 방향: Primitive 는 어떤 토큰도 참조하지 않는다.
+ */
+
+:root {
+  /* --- Text style size / line-height -------------------------------------- */
+  --haru-type-large-title-size: 34px;
+  --haru-type-large-title-line: 41px;
+  --haru-type-title-1-size: 28px;
+  --haru-type-title-1-line: 34px;
+  --haru-type-title-2-size: 22px;
+  --haru-type-title-2-line: 28px;
+  --haru-type-title-3-size: 20px;
+  --haru-type-title-3-line: 25px;
+  --haru-type-headline-size: 17px;
+  --haru-type-headline-line: 22px;
+  --haru-type-body-size: 17px;
+  --haru-type-body-line: 22px;
+  --haru-type-callout-size: 16px;
+  --haru-type-callout-line: 21px;
+  --haru-type-subheadline-size: 15px;
+  --haru-type-subheadline-line: 20px;
+  --haru-type-footnote-size: 13px;
+  --haru-type-footnote-line: 18px;
+  --haru-type-caption-1-size: 12px;
+  --haru-type-caption-1-line: 16px;
+  /* 최소 텍스트 크기 (Stage 0 #10-②) */
+  --haru-type-caption-2-size: 11px;
+  --haru-type-caption-2-line: 13px;
+
+  /* --- Font weight (Figma `17:367` font weight/*) -------------------------- */
+  --haru-weight-regular: 400;
+  --haru-weight-medium: 510;
+  --haru-weight-semibold: 590;
+  --haru-weight-bold: 700;
+  --haru-weight-heavy: 860;
+}

@@ -1,0 +1,60 @@
+/*
+ * HARU Design Tokens — Tier 2 Semantic · Shadow / Elevation
+ * 기준: Stage 1 Design Spec §3.2.4 · DESIGN_TOKEN_MAP §5.3 (Figma Effect Style `17:367`)
+ *
+ * ink = `--haru-ink-600` `#5e7370`. Figma 는 ink 를 8 / 10 / 12 / 14 / 16 / 20 / 5 % 로 쓰는데
+ * Primitive 알파 3단계(a30 / a18 / a12)에 없는 비율이므로 `color-mix()` 로 Primitive 에서 합성한다
+ * (새 HEX 를 만들지 않는다 — Semantic → Primitive 참조 유지).
+ *
+ * 구현은 **명명된 Effect Style 값**으로 통일한다. Figma 의 Button / TabBar / Input instance 는
+ * Effect Style 을 바인딩하지 않고 raw 그림자를 쓰며, 그 차이는 §10.3 AD-3 허용 차이다.
+ *
+ * Tailwind 노출: `--shadow-*` / `--inset-shadow-*` 네임스페이스 → `@theme`.
+ */
+
+@theme static {
+  /* HARU/Glass Rest — Glass 버튼·카드 기본 */
+  --shadow-glass-rest:
+    0 2px 4px color-mix(in srgb, var(--haru-ink-600) 8%, transparent),
+    0 12px 28px color-mix(in srgb, var(--haru-ink-600) 16%, transparent),
+    0 28px 56px color-mix(in srgb, var(--haru-ink-600) 12%, transparent),
+    inset 0 1.5px 0 var(--haru-white-a90),
+    inset 0 -1px 0 color-mix(in srgb, var(--haru-ink-600) 5%, transparent);
+
+  /* HARU/Glass Raised — hover. 광원 좌상단(대각 offset)은 Figma 값을 따른다 */
+  --shadow-glass-raised:
+    4px 4px 8px color-mix(in srgb, var(--haru-ink-600) 10%, transparent),
+    18px 18px 40px color-mix(in srgb, var(--haru-ink-600) 20%, transparent),
+    0 4px 72px color-mix(in srgb, var(--haru-ink-600) 14%, transparent),
+    inset 0 1.5px 0 var(--haru-white-a90),
+    inset 0 -1px 0 color-mix(in srgb, var(--haru-ink-600) 5%, transparent);
+
+  /* HARU/Glass Pressed */
+  --shadow-glass-pressed:
+    0 1px 3px color-mix(in srgb, var(--haru-ink-600) 8%, transparent),
+    inset 0 3px 8px color-mix(in srgb, var(--haru-ink-600) 20%, transparent),
+    inset 0 1px 3px color-mix(in srgb, var(--haru-ink-600) 16%, transparent);
+
+  /* HARU/Shadow Rest — 버블·칩 (Glass Rest 와 동일하나 첫 drop 이 (0,6) r4) */
+  --shadow-rest:
+    0 6px 4px color-mix(in srgb, var(--haru-ink-600) 8%, transparent),
+    0 12px 28px color-mix(in srgb, var(--haru-ink-600) 16%, transparent),
+    0 28px 56px color-mix(in srgb, var(--haru-ink-600) 12%, transparent),
+    inset 0 1.5px 0 var(--haru-white-a90),
+    inset 0 -1px 0 color-mix(in srgb, var(--haru-ink-600) 5%, transparent);
+
+  /* HARU/Icon Chip */
+  --shadow-icon-chip:
+    0 4px 10px color-mix(in srgb, var(--haru-ink-600) 10%, transparent),
+    inset 0 1.5px 0 var(--haru-white-a50);
+
+  /* 위 4종에 포함되어 있으나 비-glass 표면 단독 사용을 위해 별도 유지 */
+  --shadow-highlight:
+    inset 0 1.5px 0 var(--haru-white-a90),
+    inset 0 -1px 0 color-mix(in srgb, var(--haru-ink-600) 5%, transparent);
+
+  /* Tailwind `inset-shadow-*` 네임스페이스 노출 (§3.4) */
+  --inset-shadow-highlight:
+    inset 0 1.5px 0 var(--haru-white-a90),
+    inset 0 -1px 0 color-mix(in srgb, var(--haru-ink-600) 5%, transparent);
+}

@@ -1,0 +1,22 @@
+/*
+ * HARU Design Tokens — Tier 2 Semantic · Z-index
+ * 기준: Stage 1 Design Spec §3.2.5 (TopBar < BottomTabBar < Sheet < Dialog < Toast)
+ *
+ * Tailwind v4 에 z-index 네임스페이스가 없다 → `:root` + `@utility z-*` (§3.4).
+ * 화면 코드에서 `style={{ zIndex: 'var(--z-dialog)' }}` 같은 inline 사용을 막기 위한 구조다.
+ */
+
+:root {
+  /* provisional: P-06 (docs/decisions/stage-0-approvals.md §4) */
+  --z-base: 0;
+  /* provisional: P-06 (docs/decisions/stage-0-approvals.md §4) */
+  --z-sticky: 10;
+  /* provisional: P-06 (docs/decisions/stage-0-approvals.md §4) */
+  --z-tabbar: 20;
+  /* provisional: P-06 (docs/decisions/stage-0-approvals.md §4) */
+  --z-sheet: 40;
+  /* provisional: P-06 (docs/decisions/stage-0-approvals.md §4) */
+  --z-dialog: 50;
+  /* provisional: P-06 (docs/decisions/stage-0-approvals.md §4) */
+  --z-toast: 60;
+}

@@ -1,0 +1,35 @@
+/*
+ * HARU Design Tokens — Tier 2 Semantic · Layout
+ * 기준: Stage 1 Design Spec §3.2.3 · §7 (반응형 규칙, Stage 0 결정 #12)
+ *
+ * 모든 화면은 모바일 레이아웃이며 600px 이상에서는 최대 폭 480px 앱 컬럼을 가운데 정렬한다.
+ * 다단 레이아웃·사이드 내비게이션 없음. `--layout-gutter` 는 semantic/space.css 에 있다 (§3.6 P-13).
+ *
+ * Tailwind 노출: breakpoint 는 theme.css 의 `--breakpoint-md/lg`,
+ *                나머지는 `@utility`(app-column, max-w-app, h-tabbar, pt-safe …) (§3.4).
+ */
+
+:root {
+  --layout-min-width: 320px;
+  --layout-app-max-width: 480px;
+  --layout-tabbar-height: 70px; /* Figma `25:87` h=70 */
+  /* 중앙 탭 버튼이 탭바 위로 올라오는 높이 (Figma `140:2983` top=-35) */
+  /* 사용자 승인 2026-09-20 (Design Spec §13.3 S1-D3) */
+  --layout-tabbar-center-overhang: 35px;
+
+  /* provisional: P-08 (docs/decisions/stage-0-approvals.md §4) */
+  --layout-safe-top: env(safe-area-inset-top, 0px);
+  /* provisional: P-08 (docs/decisions/stage-0-approvals.md §4) */
+  --layout-safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* provisional: P-08 (docs/decisions/stage-0-approvals.md §4) */
+  --layout-safe-left: env(safe-area-inset-left, 0px);
+  /* provisional: P-08 (docs/decisions/stage-0-approvals.md §4) */
+  --layout-safe-right: env(safe-area-inset-right, 0px);
+
+  /*
+   * Breakpoint 원천값. Tailwind 는 `@media` 조건을 빌드 시점에 해석하므로
+   * theme.css 의 `--breakpoint-md/lg` 는 `var()` 가 아니라 같은 리터럴을 갖는다.
+   */
+  --bp-md: 600px;
+  --bp-lg: 1024px;
+}

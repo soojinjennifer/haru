@@ -1,0 +1,163 @@
+/*
+ * HARU Design Tokens — Tier 2 Semantic · Color
+ * 기준: Stage 1 Design Spec §3.2.1 (최종 배정표, 색 64개) + §3.6 provisional 위치표
+ *
+ * 의존 방향: Semantic → Primitive 만 참조한다 (`var(--haru-*)`).
+ *            Tier 3 component 토큰을 참조하지 않는다.
+ * Tailwind 노출: `--color-*` 는 Tailwind v4 `--color-*` 네임스페이스이므로 `@theme` 에 둔다
+ *                (Design Spec §3.4 — `@theme` 에는 Semantic 만 들어간다).
+ *                `--gradient-app` 은 v4 네임스페이스가 없어 `:root` + `@utility bg-app` 로 노출한다.
+ * `static` 을 쓰는 이유: packages/ui 가 utility 뿐 아니라 CSS 의 `var(--color-*)` 로도 참조하므로
+ *                       미사용 판정에 의한 tree-shaking 을 막는다.
+ */
+
+@theme static {
+  /* ===== Foreground ====================================================== */
+  --color-fg-primary: var(--haru-ink-700);
+  --color-fg-strong: var(--haru-ink-800);
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  --color-fg-secondary: var(--haru-ink-500);
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  --color-fg-tertiary: var(--haru-ink-500);
+  /* WCAG 1.4.3 disabled 면제 — ink-500 에 --opacity-disabled 를 합성한다 */
+  --color-fg-disabled: color-mix(
+    in srgb,
+    var(--haru-ink-500) calc(var(--opacity-disabled) * 100%),
+    transparent
+  );
+  /* accepted deviation: D-01 (white label on teal = 2.07:1, approvals §3) */
+  --color-fg-on-accent: var(--haru-white);
+  /* Figma `179:1721` "Log in" — 사용 지점에서 text-decoration: underline 을 함께 적용한다 */
+  --color-fg-link: var(--haru-ink-700);
+
+  /* ===== Background (app gradient stop) ================================== */
+  --color-bg-app-start: var(--haru-mist-100);
+  --color-bg-app-mid: var(--haru-mist-200);
+  --color-bg-app-end: var(--haru-dusk-200);
+
+  /* ===== Surface ========================================================= */
+  --color-surface-glass: var(--haru-white-a74);
+  --color-surface-strong: var(--haru-white-a90);
+  --color-surface-solid: var(--haru-white);
+  --color-surface-subtle: var(--haru-mist-50);
+  --color-surface-tinted: var(--haru-mist-100);
+  --color-surface-note: var(--haru-paper-100);
+
+  /* ===== Border / Divider ================================================ */
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  --color-border-subtle: var(--haru-ink-600-a18);
+  --color-divider: var(--haru-ink-600-a12);
+
+  /* ===== Action ========================================================== */
+  /* accepted deviation: D-01 (white label on teal = 2.07:1, approvals §3) */
+  --color-action-primary-bg: var(--haru-palette-teal);
+  /* hover / pressed 는 색이 같고 그림자만 바뀐다 (Figma `17:14` / `17:16`) */
+  --color-action-primary-bg-hover: var(--haru-palette-teal);
+  --color-action-primary-bg-pressed: var(--haru-palette-teal);
+  --color-action-primary-bg-disabled: color-mix(
+    in srgb,
+    var(--haru-palette-teal) calc(var(--opacity-disabled) * 100%),
+    transparent
+  );
+  /* provisional: P-11 (docs/decisions/stage-0-approvals.md §4) */
+  --color-action-secondary-bg: var(--color-surface-glass);
+  /* provisional: P-11 (docs/decisions/stage-0-approvals.md §4) */
+  --color-action-secondary-fg: var(--haru-ink-600);
+
+  /* ===== Selection ======================================================= */
+  --color-selected-bg: var(--color-action-primary-bg);
+  --color-selected-fg: var(--haru-white);
+
+  /* ===== Indicator ======================================================= */
+  --color-indicator-active: var(--haru-ink-600);
+  --color-indicator-inactive: var(--haru-ink-600-a30);
+
+  /* ===== Progress ======================================================== */
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  --color-progress-fill: var(--haru-palette-teal);
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  --color-progress-track: var(--haru-ink-600-a12);
+
+  /* ===== Rating (Stage 5) ================================================ */
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  --color-rating-filled: var(--haru-palette-yellow);
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  --color-rating-empty: var(--haru-ink-600-a18);
+
+  /* ===== Scrim =========================================================== */
+  /* provisional: P-05 (docs/decisions/stage-0-approvals.md §4) */
+  --color-scrim: #29293a3b;
+
+  /* ===== Focus =========================================================== */
+  /* provisional: P-03 (docs/decisions/stage-0-approvals.md §4) */
+  --color-focus-ring: var(--haru-ink-700);
+
+  /* ===== Status (info / success / warning / error × bg/fg/border/icon) ==== */
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-info-bg: var(--haru-status-info-bg);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-info-fg: var(--haru-status-info-fg);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-info-border: var(--haru-palette-blue);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-info-icon: var(--haru-status-info-fg);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-success-bg: var(--haru-status-success-bg);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-success-fg: var(--haru-status-success-fg);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-success-border: var(--haru-palette-green);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-success-icon: var(--haru-status-success-fg);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-warning-bg: var(--haru-status-warning-bg);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-warning-fg: var(--haru-status-warning-fg);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-warning-border: var(--haru-palette-yellow);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-warning-icon: var(--haru-status-warning-fg);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-error-bg: var(--haru-status-error-bg);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-error-fg: var(--haru-status-error-fg);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-error-border: var(--haru-palette-red);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-status-error-icon: var(--haru-status-error-fg);
+
+  /* ===== Field error (status-error 종속) ================================= */
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-field-border-error: var(--color-status-error-border);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  --color-field-fg-error: var(--color-status-error-fg);
+
+  /* ===== Capability (Stage 0 #19 — contracts 코드 키 기준) =============== */
+  --color-capability-agency-bg: var(--haru-palette-green);
+  --color-capability-emotion-bg: var(--haru-palette-pink);
+  --color-capability-flexibility-bg: var(--haru-palette-cyan);
+  --color-capability-motivation-bg: var(--haru-palette-purple);
+  --color-capability-agency-chart: var(--color-capability-agency-bg);
+  --color-capability-emotion-chart: var(--color-capability-emotion-bg);
+  --color-capability-flexibility-chart: var(--color-capability-flexibility-bg);
+  --color-capability-motivation-chart: var(--color-capability-motivation-bg);
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  --color-capability-agency-fg: var(--haru-white);
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  --color-capability-emotion-fg: var(--haru-white);
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  --color-capability-flexibility-fg: var(--haru-white);
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  --color-capability-motivation-fg: var(--haru-white);
+}
+
+:root {
+  /* Tailwind v4 에 gradient 네임스페이스가 없다 → `@utility bg-app` 로 노출한다 (§3.4). */
+  /* provisional: P-14 (docs/decisions/stage-0-approvals.md §4) */
+  --gradient-app: linear-gradient(
+    180deg,
+    var(--color-bg-app-start) 0%,
+    var(--color-bg-app-mid) 46%,
+    var(--color-bg-app-end) 100%
+  );
+}

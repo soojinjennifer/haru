@@ -1,0 +1,94 @@
+/*
+ * HARU Design Tokens — Tier 3 Component (`packages/ui` 내부 전용)
+ * 기준: Stage 1 Design Spec §3.3 정의표
+ *
+ * ┌ 경계 규칙 ───────────────────────────────────────────────────────────────┐
+ * │ 이 파일은 `@haru/design-tokens/component.css` 로만 export 되며             │
+ * │ `@haru/design-tokens`(= index.css) 에 **포함되지 않는다**.                 │
+ * │ import 할 수 있는 곳은 `packages/ui` 뿐이다. apps/web 화면 코드와          │
+ * │ 다른 패키지는 이 토큰을 참조하지 않는다 (Design Spec §3.3).                │
+ * └──────────────────────────────────────────────────────────────────────────┘
+ *
+ * 네이밍: `--{component}-{part}-{state}`
+ * 의존 방향: Component → Semantic 만 참조한다. Tier 1 Primitive(`--haru-*`) 직접 참조 금지.
+ *            Semantic 으로 표현되지 않는 값은 Figma 컴포넌트 실측 치수만 쓴다 (§3.3).
+ * `@theme` 에 넣지 않는다 (§3.4, AC-1-11).
+ */
+
+:root {
+  /* ===== Button — Figma `17:20` ========================================== */
+  --button-height-md: var(--size-button-md); /* 45 — Figma `17:4` */
+  --button-height-lg: var(--size-button-lg); /* 56 — P-15 (semantic/space.css) */
+  --button-padding-x: var(--space-6); /* Figma 26 → 24 흡수 (§3.5) */
+  --button-padding-y-md: var(--space-3-5); /* Figma `17:4` py14 */
+  --button-gap: var(--space-2); /* icon + label */
+  --button-radius: var(--radius-pill);
+  --button-label-size: var(--text-headline); /* Figma `17:5` 17/590 */
+
+  /* ===== IconButton — Figma `78:158` ===================================== */
+  --icon-button-size: 38px; /* Figma `78:157` 38×38 */
+  --icon-button-icon-size: var(--size-icon-md); /* Figma 18 · 19 → 20 흡수 */
+  --icon-button-hit-size: var(--size-touch-min); /* 접근성 확장 (§9.3) */
+
+  /* ===== TopBar — Figma `139:2734` ======================================= */
+  --topbar-height: 40px; /* Figma `78:286` h40 */
+  --topbar-gap: var(--space-5); /* Figma gap18 → 20 흡수 (§3.5) */
+  --topbar-pill-height: 40px; /* Figma `78:273` */
+  --topbar-pill-padding-x: var(--space-4); /* Figma px15 → 16 흡수 (§3.5) */
+
+  /* ===== BottomTabBar — Figma `25:87` · `140:2971` ======================= */
+  --tabbar-height: var(--layout-tabbar-height); /* 70 */
+  /* 아이콘 크기 3단계(16/20/24) 예외 — Figma `25:35` 21×21 (§13.2 ②) */
+  /* 사용자 승인 2026-09-20 (Design Spec §13.3 S1-D3) */
+  --tabbar-icon-size: 21px;
+  --tabbar-label-size: var(--text-caption-2); /* Figma `25:38` 11 */
+  --tabbar-center-size: 64px; /* Figma `140:2971` */
+  --tabbar-item-gap: var(--space-1); /* Figma `25:34` gap4 */
+
+  /* ===== Tag — Figma `76:440` ============================================ */
+  --tag-height-sm: 26px; /* Figma `76:439` */
+  --tag-height-xs: 19px; /* Figma `140:3149` */
+  --tag-padding-x: var(--space-3); /* Figma px13 → 12 흡수 (§3.5) */
+
+  /* ===== Chip — Figma `90:626` =========================================== */
+  --chip-height: 31px; /* Figma `90:625` (content-box) */
+  --chip-padding-x: var(--space-3);
+  --chip-padding-y: var(--space-2);
+  --chip-label-size: var(--text-caption-1); /* Figma 12.5 → 12 흡수 (§3.5) */
+
+  /* ===== TextField — Figma `76:417` ====================================== */
+  --field-row-height: 42px; /* Figma `76:364` */
+  --field-padding-x: var(--space-5); /* Figma px18 → 20 흡수 (§3.5) */
+  --field-padding-y: var(--space-1-5); /* Figma `76:416` py6 */
+  --field-radius: var(--radius-surface); /* 22 — P-12 */
+  --field-label-size: var(--text-caption-2); /* Figma 11.5 → 11 흡수 (§3.5) */
+  --field-value-size: var(--text-callout); /* Figma `76:361` 16 */
+
+  /* ===== SpeechBubble — Figma `88:721` =================================== */
+  --bubble-radius: var(--radius-surface); /* Figma `88:758` 22 */
+  --bubble-padding-x: var(--space-4);
+  --bubble-padding-y: var(--space-3-5);
+  --bubble-tail-size: 16px; /* Figma `88:762` 16×16 */
+
+  /* ===== PageIndicator — Figma `88:789` ================================== */
+  --indicator-dot-size: 7px; /* Figma `88:786` */
+  --indicator-active-width: 20px; /* Figma `88:785` */
+  --indicator-gap: var(--space-1-5); /* Figma `88:789` gap6 */
+
+  /* ===== ProgressBar — Figma `179:1779` · `163:2613` ===================== */
+  --progress-height-sm: 6px;
+  --progress-height-md: 8px;
+
+  /* ===== Checkbox — Figma `179:1742` ===================================== */
+  --checkbox-size: 22px;
+
+  /* ===== RadioGroup — Figma `179:1788` =================================== */
+  --radio-dot-size: 15px; /* Figma `179:1790` */
+  --radio-row-height: var(--size-touch-min); /* Figma 43 → 44 확장 (§9.3) */
+
+  /* ===== Sheet / Dialog / Toast / Skeleton (Figma 없음 → 명세, §13.1) ==== */
+  --sheet-radius-top: var(--radius-card);
+  --dialog-radius: var(--radius-card);
+  --toast-radius: var(--radius-surface);
+  --skeleton-radius: var(--radius-control);
+}

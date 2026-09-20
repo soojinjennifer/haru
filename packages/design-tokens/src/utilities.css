@@ -1,0 +1,187 @@
+/*
+ * HARU Design Tokens — Tailwind v4 `@utility` 노출
+ * 기준: Stage 1 Design Spec §3.4 (하단 11 그룹) · Plan §5.5
+ *
+ * z-index · motion duration · material · layout · safe-area · gradient · touch · focus ·
+ * disabled · icon size 는 Tailwind v4 theme 네임스페이스가 없다. 화면 코드의
+ * `style={{ zIndex: 'var(--z-dialog)' }}` inline 사용과 arbitrary value 를 막기 위해
+ * 유틸리티로 노출한다 (AC-1-10).
+ *
+ * 값은 전부 Tier 2 Semantic 토큰을 참조한다. 리터럴 수치를 쓰지 않는다.
+ */
+
+/* ===== z-index (§3.2.5) =================================================== */
+@utility z-base {
+  z-index: var(--z-base);
+}
+@utility z-sticky {
+  z-index: var(--z-sticky);
+}
+@utility z-tabbar {
+  z-index: var(--z-tabbar);
+}
+@utility z-sheet {
+  z-index: var(--z-sheet);
+}
+@utility z-dialog {
+  z-index: var(--z-dialog);
+}
+@utility z-toast {
+  z-index: var(--z-toast);
+}
+
+/* ===== motion duration (§9.1) ============================================= */
+@utility duration-instant {
+  transition-duration: var(--motion-duration-instant);
+}
+@utility duration-fast {
+  transition-duration: var(--motion-duration-fast);
+}
+@utility duration-base {
+  transition-duration: var(--motion-duration-base);
+}
+@utility duration-slow {
+  transition-duration: var(--motion-duration-slow);
+}
+
+/* ===== HARU Material 합성 (fill + blur + shadow + highlight) — §3.2.4 ===== */
+/* DESIGN_SYSTEM §6-3: backdrop-filter 미지원 · prefers-reduced-transparency 에서는
+   `--material-glass-fill-fallback` 불투명 대체 + blur 제거. */
+@utility material-glass-rest {
+  background-color: var(--material-glass-fill);
+  backdrop-filter: blur(var(--material-blur-lg));
+  box-shadow: var(--shadow-glass-rest);
+
+  @supports not (backdrop-filter: blur(1px)) {
+    background-color: var(--material-glass-fill-fallback);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+@utility material-glass-raised {
+  background-color: var(--material-glass-fill);
+  backdrop-filter: blur(var(--material-blur-md));
+  box-shadow: var(--shadow-glass-raised);
+
+  @supports not (backdrop-filter: blur(1px)) {
+    background-color: var(--material-glass-fill-fallback);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+@utility material-glass-pressed {
+  background-color: var(--material-glass-fill);
+  backdrop-filter: blur(var(--material-blur-lg));
+  box-shadow: var(--shadow-glass-pressed);
+
+  @supports not (backdrop-filter: blur(1px)) {
+    background-color: var(--material-glass-fill-fallback);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+@utility material-glass-strong {
+  background-color: var(--material-glass-fill-strong);
+  backdrop-filter: blur(var(--material-blur-lg));
+  box-shadow: var(--shadow-glass-rest);
+
+  @supports not (backdrop-filter: blur(1px)) {
+    background-color: var(--material-glass-fill-fallback);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+/* ===== Layout (§2.4 AppColumn · §7.1) ==================================== */
+@utility app-column {
+  width: 100%;
+  min-width: var(--layout-min-width);
+  max-width: var(--layout-app-max-width);
+  margin-inline: auto;
+  padding-inline: var(--layout-gutter);
+}
+@utility px-gutter {
+  padding-inline: var(--layout-gutter);
+}
+@utility max-w-app {
+  max-width: var(--layout-app-max-width);
+}
+@utility min-w-app {
+  min-width: var(--layout-min-width);
+}
+@utility h-tabbar {
+  height: var(--layout-tabbar-height);
+}
+
+/* ===== Safe area (§7.3) =================================================== */
+@utility pt-safe {
+  padding-top: var(--layout-safe-top);
+}
+@utility pb-safe {
+  padding-bottom: var(--layout-safe-bottom);
+}
+@utility pl-safe {
+  padding-left: var(--layout-safe-left);
+}
+@utility pr-safe {
+  padding-right: var(--layout-safe-right);
+}
+@utility mb-safe {
+  margin-bottom: var(--layout-safe-bottom);
+}
+
+/* ===== 배경 gradient (§3.2.1) ============================================= */
+@utility bg-app {
+  background-image: var(--gradient-app);
+}
+
+/* ===== 터치 타깃 (§9.3, AC-1-21) ========================================== */
+@utility min-touch {
+  min-inline-size: var(--size-touch-min);
+  min-block-size: var(--size-touch-min);
+}
+
+/* ===== Focus ring (§9.3) ================================================== */
+/* `:focus-visible` 만 트리거한다. box-shadow 가 아니라 outline 을 쓴다
+   (둥근 모서리 자동 추종 + Windows 고대비 모드 대응). */
+@utility focus-ring {
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
+/* ===== Disabled (§3.2.3) ================================================== */
+@utility opacity-disabled {
+  opacity: var(--opacity-disabled);
+}
+
+/* ===== Icon size 3단계 (§8.4) ============================================= */
+/* 탭바 아이콘 21px 은 이 3단계의 예외이며 Tier 3 `--tabbar-icon-size` 가 담당한다 (§13.2 ②). */
+@utility size-icon-sm {
+  inline-size: var(--size-icon-sm);
+  block-size: var(--size-icon-sm);
+}
+@utility size-icon-md {
+  inline-size: var(--size-icon-md);
+  block-size: var(--size-icon-md);
+}
+@utility size-icon-lg {
+  inline-size: var(--size-icon-lg);
+  block-size: var(--size-icon-lg);
+}
