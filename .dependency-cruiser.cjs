@@ -14,6 +14,26 @@
  * 규칙은 지금 전부 정의해 두고, 대상 코드가 추가되는 Stage 1-B 부터 동일 설정으로 검사된다.
  */
 
+/**
+ * `packages/contracts` 에서 **런타임 코드가 아닌** 파일.
+ * 규칙 ③ (`zod` 외 런타임 의존 금지)·`contracts-no-workspace-deps` 는 배포되는 런타임 코드에만 적용된다.
+ * 테스트와 툴체인 설정(`vitest.config.ts` 등)은 `vitest`·`@haru/config` 를 import 하는 것이 정상이며,
+ * `package.json` 의 `exports`(`./src/index.ts`)·`files`(`src`) 에도 포함되지 않는다.
+ * (Stage 1-C 발견 — Stage 1-A 규칙은 테스트 파일만 제외하고 있어 패키지 자체 설정 파일에서 오탐이 났다.)
+ */
+const CONTRACTS_NON_RUNTIME =
+  '(\\.(test|spec)\\.tsx?$)|(^packages/contracts/[^/]+\\.(config|setup)\\.(ts|js|cjs|mjs)$)';
+
+/**
+ * `packages/ui` 에서 **배포되는 런타임 코드가 아닌** 파일 (테스트 · 패키지 자체 툴체인 설정).
+ * `ui-only-design-tokens`(workspace 의존 제한)만 여기에서 제외한다. 이 파일들은 `exports`
+ * 로 노출되지 않으며 `vitest.config.ts` 가 `@haru/config` 를 쓰는 것은 정상이다
+ * (Stage 1-C 에서 contracts 에 적용한 것과 같은 보정 — 규칙의 의도·적용 대상은 그대로다).
+ * 도메인 경계 규칙인 `no-ui-to-contracts` 는 **제외하지 않는다** (테스트에서도 금지).
+ */
+const UI_NON_RUNTIME =
+  '(\\.(test|spec)\\.tsx?$)|(^packages/ui/[^/]+\\.(config|setup)\\.(ts|js|cjs|mjs)$)|(^packages/ui/src/test/)';
+
 /** apps/web 레이어 순서 (상위 → 하위). 상위만 하위를 import 할 수 있다. */
 const WEB_LAYERS = ['app', 'pages', 'features', 'entities', 'shared'];
 
@@ -59,7 +79,7 @@ module.exports = {
       comment:
         'packages/ui 는 packages/design-tokens 외의 workspace 패키지를 import 할 수 없다 (rules/architecture.md §2).',
       severity: 'error',
-      from: { path: '^packages/ui/' },
+      from: { path: '^packages/ui/', pathNot: UI_NON_RUNTIME },
       to: {
         path: '^packages/(?!ui/|design-tokens/)',
       },
@@ -70,7 +90,7 @@ module.exports = {
       name: 'contracts-runtime-deps-zod-only',
       comment: 'packages/contracts 의 유일한 런타임 의존은 zod 다 (rules/architecture.md §2, §5).',
       severity: 'error',
-      from: { path: '^packages/contracts/', pathNot: '\\.(test|spec)\\.tsx?$' },
+      from: { path: '^packages/contracts/', pathNot: CONTRACTS_NON_RUNTIME },
       to: {
         dependencyTypes: ['npm', 'npm-dev', 'npm-optional', 'npm-peer', 'npm-bundled'],
         pathNot: 'node_modules/zod/',
@@ -80,7 +100,7 @@ module.exports = {
       name: 'contracts-no-workspace-deps',
       comment: 'packages/contracts 는 다른 workspace 패키지를 import 하지 않는다.',
       severity: 'error',
-      from: { path: '^packages/contracts/' },
+      from: { path: '^packages/contracts/', pathNot: CONTRACTS_NON_RUNTIME },
       to: { path: '^(apps/|packages/(?!contracts/))' },
     },
 

@@ -40,6 +40,12 @@ Author: plan-agent (2026-09-14)
 
 ### 1.2 Error Code Catalogue (RECOMMENDED)
 
+> **구현 반영 (Stage 1-C, development-agent)**: 아래 표(`TRIAL_ACCOUNT_RESTRICTED` 제외) **28 종**이
+> `packages/contracts/src/common/error-codes.ts` 의 `ERROR_CODES` / `ErrorCodeSchema` 로 구현되었고,
+> "HTTP" 열은 같은 파일의 `ERROR_CODE_HTTP_STATUS` / `httpStatusForErrorCode()` 로 구현되었다.
+> Error Envelope 은 `common/error-envelope.ts` (`ErrorEnvelopeSchema` · `isErrorEnvelope` · `HaruApiError`).
+> 표와 코드가 달라지면 둘을 함께 갱신한다 (rules/architecture.md §5).
+
 | Code | HTTP | 의미 | PRD |
 |---|---|---|---|
 | `VALIDATION_FAILED` | 400 | contracts schema 검증 실패 (`details.issues`) | — |
@@ -90,6 +96,12 @@ Author: plan-agent (2026-09-14)
 - 이전 표기 비교(Figma 혼재, 구 CLAUDE.md 표기, 책장 "Confidence")는 PLANNING §6 M-13 — 해소됨.
 
 ### 2.2 목록
+
+> **구현 반영 (Stage 1-C)**: §2.1 Capability + 아래 22 종 = **enum 23 종**이 `packages/contracts/src/enums/*.ts`
+> (파일 20 개 — `consent.ts`·`report.ts`·`deletion.ts` 가 2 종씩 포함) 로 구현되었고,
+> 값과 순서는 `src/__tests__/enums.test.ts` 의 스냅샷 테스트가 이 표와의 일치를 보증한다.
+> `SurveyAnswerValue` 는 enum 이 아니라 `z.union([z.literal(1..5), z.literal('not_observed')])` 로 인코딩했다 (§2.2 "인코딩 RECOMMENDED").
+> `Gender` 는 `GenderSchema`(3 값) + `GenderFieldSchema = GenderSchema.nullable()`(미응답 `null`) 로 나누어 구현했다 (C-7).
 
 | Enum | 값 | 근거 |
 |---|---|---|
@@ -153,9 +165,20 @@ export const SESSION_TRANSITIONS: ReadonlyArray<{
 export const canTransition = (from: SessionStatus, to: SessionStatus, actor: Actor, mode: z.infer<typeof SessionModeSchema>) =>
   SESSION_TRANSITIONS.some(t => t.from === from && t.to === to && t.actor === actor && t.modes.includes(mode));
 
+// ⚠ 아래 두 상수의 실제 정의 위치는 packages/contracts/src/rules/recording-limits.ts 다 (아래 "구현 반영" 참조).
 export const MAX_RECORDED_SECONDS = 30 * 60;   // FR-09 — 실제 녹음 시간 기준, 일시정지 제외 (CONFIRMED #17)
 export const READY_ABANDON_SECONDS = 10 * 60;  // §13
 ```
+
+> **구현 반영 (Stage 1-C)** — 위 스케치와 구현의 차이:
+> - `MAX_RECORDED_SECONDS` · `READY_ABANDON_SECONDS` 의 정본 위치는 `rules/session-transitions.ts` 가 아니라
+>   **`packages/contracts/src/rules/recording-limits.ts`** 다. `PLANNING.md` §5 Stage 1 · `docs/ARCHITECTURE.md` §1.2 의
+>   파일 목록과 맞추기 위한 배치이며, Stage 1 Plan §7.1 · §18-① 에서 확정되었다.
+>   `rules/index.ts` 가 세 rules 파일을 함께 re-export 하므로 소비자 코드의 import 경로는 동일하다.
+> - `type Actor` 는 `SessionTransitionActorSchema` (`z.enum(['caregiver','server','worker'])`) + `SessionTransitionActor` 타입으로 구현했다.
+>   전이 표의 행 타입은 `SessionTransition` 인터페이스다.
+> - `SESSION_TRANSITIONS` **12 행**(modes 전개 시 14 조합)과 `canTransition` 은 스케치와 동일하며,
+>   `src/__tests__/session-transitions.test.ts` 가 8×8×3×2 = 384 조합 전수 검사로 "표에 없는 전이는 전부 false" 를 보증한다.
 
 ### 3.2 CreateSessionRequest / Transition
 
@@ -363,6 +386,12 @@ export const isReportEligible = (p: { recordedSeconds: number; recordedSessions:
 // 미결 (Stage 7 Plan): 대화 전용 세션이 주기 시작일(첫 세션 완료일)에 포함되는지, 시간대 경계, cycle_in_progress 판정 시점
 ```
 
+> **구현 반영 (Stage 1-C)**: `packages/contracts/src/rules/report-eligibility.ts` 에 상수 3 종 + 순수 함수
+> `isReportEligible(input: ReportEligibilityInput): ReportEligibility` 로 구현했다.
+> 이 함수는 위 스케치와 마찬가지로 **`cycle_in_progress` 를 반환하지 않는다** — 주기 경과 판정은 날짜 계산이 필요하고
+> 판정 시점 규칙이 위 "미결" 항목이므로, 호출부(Stage 7)가 이 결과와 결합한다.
+> 경계 케이스(3599/3600초 × 2/3세션)는 `src/__tests__/report-eligibility.test.ts` 가 보증한다.
+
 ---
 
 ## 4. Endpoint Groups by Stage
@@ -376,6 +405,24 @@ export const isReportEligible = (p: { recordedSeconds: number; recordedSessions:
 | GET | `/v1/health` | — | `Health` | — | 기술 요구사항 |
 
 Stage 1에서 contracts에 확정할 것: `common/*`(ErrorEnvelope, ErrorCode, Pagination), 모든 §2 enum, `rules/session-transitions`, `rules/report-eligibility` (§3.5, #17), `rules/recording-limits`. (`rules/capability-score` 와 onboarding schema §3.4는 Stage 2)
+
+> **구현 반영 (Stage 1-C, 2026-09-20)** — 위 범위가 `packages/contracts` 로 구현 완료되었다.
+>
+> | 항목 | 구현 위치 |
+> |---|---|
+> | ID · 시간(`occurredAt`) · Pagination | `src/common/id.ts` · `datetime.ts` · `pagination.ts` |
+> | Error Code 28 종 + HTTP status 매핑 | `src/common/error-codes.ts` |
+> | Error Envelope · `HaruApiError` | `src/common/error-envelope.ts` |
+> | enum 23 종 | `src/enums/*.ts` (20 파일) |
+> | 전이 표 12 행 · `canTransition` | `src/rules/session-transitions.ts` |
+> | 녹음 상한 상수 | `src/rules/recording-limits.ts` |
+> | 리포트 발행 기준 · `isReportEligible` | `src/rules/report-eligibility.ts` |
+> | `Health` | `src/health/health.ts` — `HealthResponseSchema` = `{ status: 'ok', version: string, serverTime: IsoDateTime }` |
+>
+> - `GET /v1/health` 는 **공개 endpoint** 이며 Idempotency-Key·동의 가드가 필요 없다. Key errors = `INTERNAL_ERROR`, `RATE_LIMITED`.
+> - contracts 의 런타임 의존은 `zod@4.6.5` **하나뿐**이며 `pnpm lint:boundaries`(dependency-cruiser
+>   `contracts-runtime-deps-zod-only` · `contracts-no-workspace-deps`)로 강제된다.
+> - `healthApi` interface · `MockHealthApi` · `HttpHealthApi` · Mock scenario 는 **Stage 1-D1** 범위다 (아직 없음).
 
 ### Stage 2 — Auth · Consent · Onboarding · Child Profile
 

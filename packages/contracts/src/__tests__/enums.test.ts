@@ -1,0 +1,228 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  ActivityOptionKindSchema,
+  AnalysisJobStatusSchema,
+  AnalysisOutcomeSchema,
+  BookOwnershipSchema,
+  CapabilitySchema,
+  CaregiverRelationshipSchema,
+  CompletedReasonSchema,
+  ConsentActionSchema,
+  ConsentTypeSchema,
+  DeletionRequestStatusSchema,
+  DeletionScopeSchema,
+  GenderFieldSchema,
+  GenderSchema,
+  GiftRequestStatusSchema,
+  NotificationKindSchema,
+  OnboardingStepSchema,
+  ParentVerificationStatusSchema,
+  ReadingContextSchema,
+  ReportEligibilitySchema,
+  ReportStatusSchema,
+  SURVEY_ANSWER_VALUES,
+  SessionModeSchema,
+  SessionStatusSchema,
+  SurveyAnswerValueSchema,
+  UploadStatusSchema,
+} from '../enums/index.js';
+
+/**
+ * enum 값 스냅샷 — `docs/API_CONTRACTS.md` §2.1 · §2.2 표와 **정확히** 일치해야 한다
+ * (Stage 1 Plan §11.6 AC-1-31, §12 "enum 값 스냅샷 23종").
+ * 값·순서를 바꾸려면 문서를 함께 갱신한다.
+ */
+interface EnumSnapshot {
+  name: string;
+  options: readonly (string | number)[];
+  expected: readonly (string | number)[];
+}
+
+const ENUM_SNAPSHOTS: readonly EnumSnapshot[] = [
+  // §2.1 Capability (#13)
+  {
+    name: 'Capability',
+    options: CapabilitySchema.options,
+    expected: [
+      'emotion_regulation',
+      'self_directed_agency',
+      'cognitive_flexibility',
+      'intrinsic_motivation',
+    ],
+  },
+  // §2.2
+  {
+    name: 'SessionStatus',
+    options: SessionStatusSchema.options,
+    expected: [
+      'ready',
+      'recording',
+      'paused',
+      'completed',
+      'analyzing',
+      'analyzed',
+      'failed',
+      'abandoned',
+    ],
+  },
+  {
+    name: 'SessionMode',
+    options: SessionModeSchema.options,
+    expected: ['recorded', 'conversation_only'],
+  },
+  {
+    name: 'CompletedReason',
+    options: CompletedReasonSchema.options,
+    expected: ['user_done', 'auto_timeout', 'recovered_after_crash'],
+  },
+  {
+    name: 'AnalysisOutcome',
+    options: AnalysisOutcomeSchema.options,
+    expected: ['full', 'excluded_low_quality'],
+  },
+  {
+    name: 'UploadStatus',
+    options: UploadStatusSchema.options,
+    expected: ['pending', 'uploaded', 'failed', 'deleted', 'expired'],
+  },
+  {
+    name: 'ReadingContext',
+    options: ReadingContextSchema.options,
+    expected: ['now', 'bedtime', 'after_pickup', 'weekend_morning', 'in_the_car', 'custom_time'],
+  },
+  {
+    name: 'ConsentType',
+    options: ConsentTypeSchema.options,
+    expected: [
+      'terms_of_service',
+      'privacy_policy',
+      'child_voice_data',
+      'marketing',
+      'pilot_participation',
+    ],
+  },
+  { name: 'ConsentAction', options: ConsentActionSchema.options, expected: ['granted'] },
+  { name: 'Gender', options: GenderSchema.options, expected: ['girl', 'boy', 'prefer_not_to_say'] },
+  {
+    name: 'SurveyAnswerValue',
+    options: SURVEY_ANSWER_VALUES,
+    expected: [1, 2, 3, 4, 5, 'not_observed'],
+  },
+  {
+    name: 'ParentVerificationStatus',
+    options: ParentVerificationStatusSchema.options,
+    expected: ['not_required', 'pending', 'verified', 'failed'],
+  },
+  {
+    name: 'AnalysisJobStatus',
+    options: AnalysisJobStatusSchema.options,
+    expected: ['queued', 'running', 'succeeded', 'failed', 'cancelled'],
+  },
+  {
+    name: 'ReportEligibility',
+    options: ReportEligibilitySchema.options,
+    expected: [
+      'eligible',
+      'insufficient_recorded_minutes',
+      'insufficient_recorded_sessions',
+      'insufficient_both',
+      'cycle_in_progress',
+    ],
+  },
+  {
+    name: 'ReportStatus',
+    options: ReportStatusSchema.options,
+    expected: ['in_progress', 'generating', 'published', 'deferred', 'delayed'],
+  },
+  {
+    name: 'ActivityOptionKind',
+    options: ActivityOptionKindSchema.options,
+    expected: ['book', 'reread_book', 'conversation_only'],
+  },
+  {
+    name: 'BookOwnership',
+    options: BookOwnershipSchema.options,
+    expected: ['owned', 'gifted', 'gift_pending', 'favorite_only'],
+  },
+  {
+    name: 'GiftRequestStatus',
+    options: GiftRequestStatusSchema.options,
+    expected: ['requested', 'approved', 'shipped', 'delivered', 'cancelled', 'rejected'],
+  },
+  {
+    name: 'CaregiverRelationship',
+    options: CaregiverRelationshipSchema.options,
+    expected: ['mother', 'father', 'grandparent', 'babysitter', 'tutor', 'therapist', 'other'],
+  },
+  {
+    name: 'OnboardingStep',
+    options: OnboardingStepSchema.options,
+    expected: ['child_info', 'temperament', 'books', 'goals', 'capability_items'],
+  },
+  {
+    name: 'DeletionScope',
+    options: DeletionScopeSchema.options,
+    expected: ['session_recording', 'all_data'],
+  },
+  {
+    name: 'DeletionRequestStatus',
+    options: DeletionRequestStatusSchema.options,
+    expected: ['received', 'processing', 'completed', 'failed'],
+  },
+  {
+    name: 'NotificationKind',
+    options: NotificationKindSchema.options,
+    expected: [
+      'session_invite',
+      'short_feedback_ready',
+      'report_published',
+      'report_deferred_encourage',
+      'upload_failed_48h',
+      'report_delayed',
+    ],
+  },
+];
+
+describe('enums — API_CONTRACTS §2 값 스냅샷', () => {
+  it('Stage 1 이 확정하는 enum 은 23 종이다', () => {
+    expect(ENUM_SNAPSHOTS).toHaveLength(23);
+  });
+
+  it.each(ENUM_SNAPSHOTS)('$name 의 값과 순서가 문서와 일치한다', ({ options, expected }) => {
+    expect(options).toEqual(expected);
+  });
+});
+
+describe('enums — 결정으로 제외된 값이 존재하지 않는다', () => {
+  it('ConsentAction 에 revoked 가 없다 (C-4 — 동의 철회 MVP 제외)', () => {
+    expect(ConsentActionSchema.safeParse('revoked').success).toBe(false);
+  });
+
+  it('AnalysisOutcome 에 skipped_* 값이 없다 (#16, C-4)', () => {
+    expect(AnalysisOutcomeSchema.safeParse('skipped_audio_deleted').success).toBe(false);
+    expect(AnalysisOutcomeSchema.safeParse('skipped_consent_revoked').success).toBe(false);
+  });
+
+  it('SessionStatus 에 retry 가 없다 (retry 는 상태가 아니라 행위)', () => {
+    expect(SessionStatusSchema.safeParse('retry').success).toBe(false);
+  });
+});
+
+describe('enums — 필드 수준 규약', () => {
+  it('Gender 필드는 nullable 이고 미응답은 null 이다 (C-7)', () => {
+    expect(GenderFieldSchema.parse(null)).toBeNull();
+    expect(GenderFieldSchema.parse('prefer_not_to_say')).toBe('prefer_not_to_say');
+    expect(GenderSchema.safeParse(null).success).toBe(false);
+  });
+
+  it('SurveyAnswerValue 는 1–5 숫자 또는 not_observed 만 받는다 (C-8)', () => {
+    for (const value of [1, 2, 3, 4, 5, 'not_observed'] as const) {
+      expect(SurveyAnswerValueSchema.parse(value)).toBe(value);
+    }
+    expect(SurveyAnswerValueSchema.safeParse(0).success).toBe(false);
+    expect(SurveyAnswerValueSchema.safeParse(6).success).toBe(false);
+    expect(SurveyAnswerValueSchema.safeParse('1').success).toBe(false);
+    expect(SurveyAnswerValueSchema.safeParse(null).success).toBe(false);
+  });
+});
