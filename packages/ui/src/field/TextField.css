@@ -1,0 +1,140 @@
+/*
+ * TextField — Design Spec §4.13 (Figma `76:417`)
+ */
+
+.haru-text-field__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  min-block-size: var(--field-row-height);
+  padding-block: var(--space-1);
+}
+
+.haru-text-field__main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-inline-size: 0;
+}
+
+.haru-text-field__label {
+  font-family: var(--font-sans);
+  font-size: var(--field-label-size);
+  line-height: var(--text-caption-2--line-height);
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}
+
+.haru-text-field__required {
+  margin-inline-start: var(--space-0-5);
+}
+
+.haru-text-field__input {
+  inline-size: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--field-value-size);
+  line-height: var(--text-callout--line-height);
+  color: var(--color-fg-strong);
+}
+
+.haru-text-field__input::placeholder {
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}
+
+/* focus 는 행 전체에 링을 그린다 (§4.13). 라벨 색은 바뀌지 않는다. */
+.haru-text-field__input:focus {
+  outline: none;
+}
+
+.haru-text-field__row:has(.haru-text-field__input:focus-visible) {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ===== trailing =========================================================== */
+.haru-text-field__accessory {
+  display: inline-flex;
+  align-items: center;
+}
+
+.haru-text-field__error-icon {
+  display: inline-flex;
+  inline-size: var(--size-icon-sm);
+  block-size: var(--size-icon-sm);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-status-error-icon);
+}
+
+.haru-text-field__error-icon > svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* 텍스트 버튼 — 시각은 13px 텍스트, hit area 는 44 (§9.3). */
+.haru-text-field__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: var(--size-touch-min);
+  min-block-size: var(--size-touch-min);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-footnote);
+  line-height: var(--text-footnote--line-height);
+  color: var(--color-fg-link);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.haru-text-field__action:disabled {
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+}
+
+/* ===== helper / error ===================================================== */
+.haru-text-field__helper,
+.haru-text-field__message {
+  margin-block: var(--space-0-5) 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+}
+
+.haru-text-field__helper {
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}
+
+.haru-text-field__message {
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-field-fg-error);
+}
+
+/* ===== error — 행 하단 경계 + 라벨 색 (§4.13) ============================= */
+.haru-text-field--error .haru-text-field__row {
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  border-block-end: 1px solid var(--color-field-border-error);
+}
+
+.haru-text-field--error .haru-text-field__label {
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-field-fg-error);
+}
+
+/* ===== disabled =========================================================== */
+.haru-text-field--disabled {
+  opacity: var(--opacity-disabled);
+}
+
+.haru-text-field--disabled .haru-text-field__input {
+  color: var(--color-fg-disabled);
+}

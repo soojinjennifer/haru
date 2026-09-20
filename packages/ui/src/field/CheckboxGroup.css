@@ -1,0 +1,33 @@
+/*
+ * CheckboxGroup — Design Spec §4.14
+ */
+
+.haru-checkbox-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.haru-checkbox-group__legend {
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-subheadline);
+  line-height: var(--text-subheadline--line-height);
+  color: var(--color-fg-primary);
+}
+
+.haru-checkbox-group__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+.haru-checkbox-group__message {
+  margin-block: var(--space-1-5) 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-field-fg-error);
+}

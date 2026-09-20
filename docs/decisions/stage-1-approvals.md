@@ -63,3 +63,69 @@ S1A-1 · S1A-2 의 결정이 구현으로 확정된 내용. 상세는 `docs/qa/s
 - `docs/plans/stage-1-plan.md` 머리말 Status 줄: 이 문서 참조가 실제 파일을 가리키며 §2 추가 결정(S1A-1~S1A-4)이 여기에 기록되었음을 명시 (2026-09-19)
 - S1A-1 preinstall 가드 스크립트: **구현 완료** (`scripts/check-node-version.mjs` — §2.1). 로컬 Node 24.21.0 업그레이드는 **Stage 1-B 선결 조건**이며 사용자가 직접 수행
 - S1A-2 `eslint-plugin-jsx-a11y` 고정 버전: **확정 `^6.10.2`** (§2.1, 출처 `docs/qa/stage-1a-handoff.md` §11)
+
+## 4. 2026-09-20 추가 결정 (Stage 1-B 구현 착수 시점)
+
+사용자 결정 일자: **2026-09-20, user**. Stage 1 Design Spec §13.3-c 의 승인 대기 항목에 대한 확정이다.
+§1 · §2 의 승인 내용을 뒤집지 않는다.
+
+| ID | 항목 | 결정 | 출처 |
+|---|---|---|---|
+| **S1-D3** | 신규 토큰 3종 도입 | **O 승인**. ① `--material-glass-fill-fallback` = `--haru-white-a90` (**알파 유지** — 불투명 합성 `#f9f9fb` 아님) ② `--tabbar-icon-size` = **21** 고정 (아이콘 3단계 16/20/24 의 예외) ③ `--layout-tabbar-center-overhang` = **35** | Design Spec §13.3-c S1-D3 · §3.2.4 · §3.3 · §3.2.3 |
+| **S1-D2 (일부)** | 가값 채택값 확정 | `--radius-surface` = **22** (Stage 1 대상 기준) · `--layout-gutter` = **24** · `--gradient-app` 중간 stop = **46%** · primary button height(`--size-button-lg`) = **56** · medallion = **136 / 188 / 232** + ring-offset **8** | Design Spec §12.2 |
+
+> 위 값이 확정되었다고 해서 해당 항목의 **가값(provisional) 상태가 해제되는 것은 아니다.**
+> P-12 · P-13 · P-14 · P-15 · P-16 은 여전히 디자이너 승인 대기이며 토큰 정의의 `provisional` 주석을 유지한다.
+> `--size-medallion-ring-offset`(8) 은 Design Spec §3.6 provisional 위치표에 없으므로 주석 대상이 아니다.
+
+### 4.1 Stage 1-B 구현으로 확정된 사실
+
+| 대상 | 확정 사실 |
+|---|---|
+| 패키지 | `@haru/design-tokens` 생성. 소스 `packages/design-tokens/src/**`, 산출물 `packages/design-tokens/dist/**` (`.gitignore` 대상, `pnpm build` 로 재생성) |
+| 3-tier 위치 | Tier 1 `src/primitive/*.css` · Tier 2 `src/semantic/*.css` + `src/theme.css` · Tier 3 `src/component/index.css` |
+| Tier 3 경계 | Tier 3 는 진입점 `index.css` 에 **포함하지 않고** `@haru/design-tokens/component.css` 로만 export 한다. `packages/ui` 전용 (Design Spec §3.3) |
+| `@theme` 구성 | 네임스페이스 초기화(11종)는 `src/theme.css`, 개별 semantic 선언은 각 `semantic/*.css` 의 `@theme static` 블록. Design Spec §3.6 의 "토큰 ↔ 파일" 매핑을 지키기 위한 배치다. `static` 은 `packages/ui` 가 utility 가 아닌 `var()` 로도 참조하므로 미사용 tree-shaking 을 막기 위함 |
+| Inter self-host | `@fontsource-variable/inter` **5.3.0** (`~5.3.0`, `packages/design-tokens` dependency). `files/inter-latin-wght-normal.woff2` (48,256 bytes, latin · wght · normal) 1개만 `scripts/sync-fonts.mjs` 가 `dist/assets/` 로 복사하고 `Inter-LICENSE.txt`(SIL OFL)를 동봉한다. `@font-face` 단일 선언 지점 = `src/fonts.css`, `font-display: swap`, family 이름 `Inter` |
+| Inter preload | `apps/web/index.html` 의 woff2 `<link rel="preload">` 는 `apps/web` 이 없으므로 **Stage 1-C 로 유예** |
+| eslint 범위 | `packages/config/eslint/base.js` 의 `haru/tooling-files` glob 을 `scripts/**` → `**/scripts/**` 로 확장 (패키지 빌드 스크립트가 Node 전역을 쓰도록). Stage 1-A 설정의 범위 보완이며 규칙 내용 변경은 없다 |
+| root script 문구 | `build` / `dev` / `test:e2e` 의 pending 메시지에서 "Stage 1-B" → "Stage 1-C" 로 정정 (apps/web 은 Stage 1-C). 동작 변경 없음 |
+
+## 5. Stage 1-C 구현으로 확정된 사실 (2026-09-20, development-agent)
+
+Stage 1-C = `packages/contracts` 구현. **새 결정이 아니라 승인된 값의 구현 확정 기록**이며,
+§1 · §2 · §4 의 승인 내용을 뒤집지 않는다. 상세는 `docs/qa/stage-1c-handoff.md`.
+
+| 대상 | 확정 사실 |
+|---|---|
+| 패키지 | `@haru/contracts` 생성. 진입점 `exports: { ".": "./src/index.ts" }` (빌드 산출물 없음 — 소비자가 번들/컴파일한다). deep import 금지 |
+| 런타임 의존 | **`zod` 하나뿐** — `^4.6.5` (설치 `4.6.5`). Plan §16.1 D-10 승인값과 일치하며 registry latest 와도 동일(2026-09-20 재확인, 공통 원칙 5) |
+| 범위 | common 5 파일 · enum 23 종(20 파일) · rules 3 파일 · health 1 파일 + `src/index.ts`. Stage 2~8 도메인 schema 는 **생성하지 않았다** (D-8) |
+| 상수 배치 | `MAX_RECORDED_SECONDS`(1800) · `READY_ABANDON_SECONDS`(600) = `src/rules/recording-limits.ts` (Plan §7.1 · §18-①). `rules/index.ts` 가 3 파일을 함께 re-export |
+| 리포트 기준 | `MIN_REPORT_RECORDED_SESSIONS`=**3** · `MIN_REPORT_RECORDED_SECONDS`=**3600** · `REPORT_CYCLE_DAYS`=**28** (결정 #17). `isReportEligible` 은 `cycle_in_progress` 를 반환하지 않는다 (주기 판정은 Stage 7 호출부) |
+| 상대 import 표기 | `packages/contracts` 내부 상대 import 는 **확장자 `.js` 를 명시**한다 (`'./error-codes.js'`). Plan §7.3 "브라우저·Node 양쪽에서 동작" 을 만족시키기 위함 — 확장자가 없으면 tsc 로 컴파일한 산출물이 Node ESM 에서 로드되지 않는다. 검증: `--module nodenext` 컴파일 산출물을 Node 24 에서 import 성공 |
+| 경계 규칙 보정 | `.dependency-cruiser.cjs` 의 `contracts-runtime-deps-zod-only` · `contracts-no-workspace-deps` 의 `from.pathNot` 에 **패키지 자체 툴체인 설정 파일**(`vitest.config.ts` 등)을 추가했다. 두 규칙은 배포되는 런타임 코드(`src/**`)에만 적용되며, 규칙의 **의도·적용 대상은 변경되지 않았다** (Stage 1-A 설정의 오탐 보정) |
+
+## 6. Stage 1-D1 구현으로 확정된 사실 (2026-09-20, development-agent)
+
+Stage 1-D1 = `packages/ui` 최초 생성 + Shared UI 8종. 상세는 `docs/qa/stage-1d1-handoff.md`.
+§1 · §2 · §4 · §5 의 승인 내용을 뒤집지 않는다.
+
+| 대상 | 확정 사실 |
+|---|---|
+| 범위 확정 (사용자, 2026-09-20) | Stage 1-D1 구현 대상은 **8종**: Button + ButtonGroup(§4.4) · IconButton(§4.5) · TextField + FieldGroup(§4.13) · Checkbox + CheckboxGroup(§4.14) · RadioGroup(§4.17) · Chip(§4.16) · Tag(§4.15) · ProgressBar(§4.18) |
+| 범위 제외 (사용자, 2026-09-20) | **Textarea · Select · Avatar 3종은 Stage 1 범위 밖**으로 확정. 근거: Textarea = Stage 5, SelectTrigger = Stage 2(COMPONENT_MAP), Avatar 는 Figma·Design Spec 어디에도 없음 |
+| Chip ↔ Tag 역할 | Chip = 선택·인터랙션(`<button aria-pressed>`), Tag = 상태·정보 표시(비인터랙티브 `<span>`). 하나로 합치지 않는다 |
+| 패키지 | `@haru/ui` 생성. 진입점 `exports: { ".": "./src/index.ts", "./styles.css": "./src/styles.css" }`. dependency = `@haru/design-tokens` 하나, react·react-dom 은 peer + dev |
+| 설치 버전 | react 19.3.0 · react-dom 19.3.0 · @testing-library/react 16.3.3 (전부 Plan §16.1 승인값과 일치). §16.1 표에 없던 신규 devDependency: `@types/react` 19.3.0 · `@types/react-dom` 19.3.0 · `@testing-library/dom` 10.4.2 (RTL 16 의 필수 peer) |
+| 미설치 | `lucide-react` · `sharp` · `tailwindcss` — 이번 범위에 불필요하여 설치하지 않았다 |
+| **스타일링 방식 (되돌리기 어려운 결정)** | `packages/ui` 는 **Tailwind 유틸리티가 아니라 컴포넌트 CSS + `var(--token)`** 으로 구현한다. 근거: ① Tier 3 component 토큰은 `@theme` 에 없어 유틸리티가 생성되지 않는다 (Design Spec §3.3·§3.4·§11-2) ② Stage 1-B 가 `@theme static` 을 택한 이유가 "packages/ui 의 `var()` 참조" 다 ③ Tailwind 없이도 독립 빌드·테스트가 가능하다. 소비 순서 = `@haru/design-tokens` → `@haru/ui/styles.css`. 클래스 네이밍 `haru-<component>[__part][--modifier]`, 외부 `className`·`style` 주입 불가 |
+| eslint react 연결 | Stage 1-A/1-B 가 유예했던 `@haru/config/eslint/react` 를 루트 `eslint.config.js` 에 연결 (glob `packages/ui/**/*.{ts,tsx}` · `apps/web/**/*.{ts,tsx}`). react-hooks · jsx-a11y 발화를 음성 테스트로 확인 |
+| 경계 규칙 보정 | `.dependency-cruiser.cjs` 의 `ui-only-design-tokens` 에 `UI_NON_RUNTIME`(테스트 · 패키지 루트 config/setup · `src/test/`) `pathNot` 추가. Stage 1-C 의 contracts 보정과 동일한 패턴이며 규칙의 의도·적용 대상은 불변. `no-ui-to-contracts` 는 제외 없이 전면 적용 |
+
+### 6.1 후속 결정 대기 (development-agent 발견)
+
+| ID | 항목 | 내용 |
+|---|---|---|
+| **S1-D1-1** | Tag `neutral` tone 배경 토큰 | Design Spec §4.15 가 Tier 1 `--haru-dusk-200` 을 직접 지정한다. 대응 semantic 토큰이 없어 `packages/ui` 가 참조하는 유일한 Tier 1 토큰이 되었다. ① semantic 토큰 신설 ② 현행 유지 중 결정 필요 (신규 토큰 요청은 design-agent 소관 — rules/frontend.md §6) |
+| **S1-D1-2** | `IconButton.size` prop | Design Spec §4.5 props 목록에 있으나 치수 표에 단계 값이 없다. 추측 구현을 하지 않고 prop 을 두지 않았다. 필요 시 Design Spec 에 값 추가 후 구현 |

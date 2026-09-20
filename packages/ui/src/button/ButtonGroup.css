@@ -1,0 +1,30 @@
+/*
+ * ButtonGroup — Design Spec §4.4 (Figma `86:372`)
+ * 배치 전용. 색·그림자·radius 를 직접 정의하지 않는다.
+ */
+
+.haru-button-group {
+  /* 자동 stack 판정을 뷰포트가 아니라 그룹 폭 기준으로 한다. */
+  container-type: inline-size;
+}
+
+.haru-button-group__row {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.haru-button-group__row--inline > * {
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+
+.haru-button-group__row--stacked {
+  flex-direction: column;
+}
+
+/* Design Spec §4.4 — 가로 폭 360px 미만이면 자동 stacked. */
+@container (width < 360px) {
+  .haru-button-group__row--inline {
+    flex-direction: column;
+  }
+}

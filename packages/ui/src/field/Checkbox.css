@@ -1,0 +1,127 @@
+/*
+ * Checkbox — Design Spec §4.14 (Figma `179:1742`)
+ */
+
+.haru-checkbox__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  box-sizing: border-box;
+  /* 라벨 포함 행 전체가 클릭 영역, 최소 높이 44 (§9.3). */
+  min-block-size: var(--size-touch-min);
+  cursor: pointer;
+}
+
+.haru-checkbox__control {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--checkbox-size);
+  block-size: var(--checkbox-size);
+}
+
+.haru-checkbox__input {
+  appearance: none;
+  margin: 0;
+  inline-size: var(--checkbox-size);
+  block-size: var(--checkbox-size);
+  border-radius: var(--radius-control);
+  background-color: var(--color-surface-solid);
+  /* provisional: P-02 — unchecked 경계 (docs/decisions/stage-0-approvals.md §4) */
+  border: 1.5px solid var(--color-border-subtle);
+  cursor: pointer;
+}
+
+.haru-checkbox__input:checked,
+.haru-checkbox__input:indeterminate {
+  background-color: var(--color-action-primary-bg);
+  border-color: var(--color-action-primary-bg);
+}
+
+/* 체크 표시 — 색 외에 형태로도 상태를 전달한다 (§4 공통 규칙 7). */
+.haru-checkbox__mark,
+.haru-checkbox__dash {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--size-icon-sm);
+  block-size: var(--size-icon-sm);
+  color: var(--color-fg-on-accent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.haru-checkbox__mark > svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.haru-checkbox__dash::before {
+  content: '';
+  inline-size: 60%;
+  block-size: 2px;
+  border-radius: var(--radius-indicator);
+  background-color: currentcolor;
+}
+
+.haru-checkbox__input:checked ~ .haru-checkbox__mark {
+  opacity: 1;
+}
+
+.haru-checkbox__input:indeterminate ~ .haru-checkbox__mark {
+  opacity: 0;
+}
+
+.haru-checkbox__input:indeterminate ~ .haru-checkbox__dash {
+  opacity: 1;
+}
+
+/* ===== text =============================================================== */
+.haru-checkbox__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+}
+
+.haru-checkbox__label {
+  font-family: var(--font-sans);
+  font-size: var(--text-footnote);
+  line-height: var(--text-footnote--line-height);
+  color: var(--color-fg-primary);
+}
+
+.haru-checkbox__description {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}
+
+/* ===== error ============================================================== */
+.haru-checkbox--error .haru-checkbox__input {
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  border-color: var(--color-field-border-error);
+}
+
+.haru-checkbox__message {
+  margin-block: var(--space-0-5) 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-field-fg-error);
+}
+
+/* ===== disabled =========================================================== */
+.haru-checkbox__row--disabled {
+  opacity: var(--opacity-disabled);
+  cursor: default;
+}
+
+.haru-checkbox__input:disabled {
+  cursor: default;
+}

@@ -1,0 +1,78 @@
+/*
+ * ProgressBar — Design Spec §4.18 (Figma `179:1779/1780`)
+ * fill ↔ track 대비는 `가값 (P-02)`.
+ */
+
+.haru-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+}
+
+.haru-progress__track {
+  position: relative;
+  flex: 1 1 auto;
+  overflow: hidden;
+  block-size: var(--progress-height-sm);
+  border-radius: var(--radius-pill);
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  background-color: var(--color-progress-track);
+}
+
+.haru-progress--md .haru-progress__track {
+  block-size: var(--progress-height-md);
+}
+
+.haru-progress__fill {
+  block-size: 100%;
+  inline-size: var(--haru-progress-fill-size, 0%);
+  border-radius: var(--radius-pill);
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  background-color: var(--color-progress-fill);
+  transition-property: inline-size;
+  transition-duration: var(--motion-duration-base);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+.haru-progress--neutral .haru-progress__fill {
+  background-color: var(--color-indicator-active);
+}
+
+.haru-progress__value {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== indeterminate — 좌→우 40% 폭 슬라이드 (§4.18) ====================== */
+.haru-progress__track--indeterminate .haru-progress__fill {
+  inline-size: 40%;
+  animation: haru-progress-indeterminate var(--motion-duration-pulse) var(--motion-ease-standard)
+    infinite;
+}
+
+@keyframes haru-progress-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(250%);
+  }
+}
+
+/* ===== reduced motion — 정지 (§9.2) ======================================= */
+@media (prefers-reduced-motion: reduce) {
+  .haru-progress__track--indeterminate .haru-progress__fill {
+    animation: none;
+    transform: none;
+  }
+
+  .haru-progress__fill {
+    transition-duration: var(--motion-duration-instant);
+  }
+}

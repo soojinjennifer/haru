@@ -1,0 +1,121 @@
+/*
+ * Chip — Design Spec §4.16 (Figma `90:626` · `40:316`)
+ */
+
+.haru-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  box-sizing: content-box;
+  block-size: var(--chip-height);
+  padding-inline: var(--chip-padding-x);
+  border: 0;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  /* Figma 12.5 → --text-caption-1 (12) 흡수 (§3.5). */
+  font-size: var(--chip-label-size);
+  line-height: var(--text-caption-1--line-height);
+  white-space: nowrap;
+  cursor: pointer;
+  transition-property: background-color, box-shadow, transform;
+  transition-duration: var(--motion-duration-fast);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+/*
+ * 터치 타깃 (§9.3): 시각 높이 31 을 유지하고 세로 hit slop 으로 44 를 만든다.
+ * inset-block = (31 - 44) / 2 = -6.5px — 토큰에서 계산한다.
+ */
+.haru-chip::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block: calc((var(--chip-height) - var(--size-touch-min)) / 2);
+}
+
+.haru-chip__check,
+.haru-chip__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 선택 표시 아이콘 12px — Design Spec §4.16 (--size-icon-sm 16 보다 작은 전용 값) */
+  inline-size: 12px;
+  block-size: 12px;
+}
+
+.haru-chip__check > svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* ===== variant ============================================================ */
+.haru-chip--outline {
+  background-color: transparent;
+  /* provisional: P-02 — 미선택 칩 경계 (docs/decisions/stage-0-approvals.md §4) */
+  box-shadow: inset 0 0 0 1px var(--color-border-subtle);
+  /* provisional: P-11 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-action-secondary-fg);
+}
+
+.haru-chip--filled {
+  background-color: var(--color-selected-bg);
+  /* accepted deviation: D-01 (white label on teal = 2.07:1, approvals §3) */
+  color: var(--color-selected-fg);
+}
+
+.haru-chip--glass {
+  background-color: var(--color-surface-glass);
+  box-shadow: var(--shadow-rest);
+  backdrop-filter: blur(var(--material-blur-md));
+  /* provisional: P-11 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-action-secondary-fg);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .haru-chip--glass {
+    background-color: var(--material-glass-fill-fallback);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .haru-chip--glass {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+/* ===== selected — 색 + check 아이콘 이중 표시 ============================= */
+.haru-chip--selected {
+  background-color: var(--color-selected-bg);
+  box-shadow: none;
+  /* accepted deviation: D-01 (white label on teal = 2.07:1, approvals §3) */
+  color: var(--color-selected-fg);
+}
+
+/* ===== hover / pressed ==================================================== */
+@media (hover: hover) and (pointer: fine) {
+  .haru-chip:hover:not(:disabled) {
+    box-shadow: var(--shadow-glass-raised);
+  }
+}
+
+.haru-chip:active:not(:disabled) {
+  /* Design Spec §9.1 — press scale .97 (모션 규격값, 대응 토큰 없음) */
+  transform: scale(0.97);
+  transition-duration: var(--motion-duration-instant);
+}
+
+/* ===== disabled =========================================================== */
+.haru-chip:disabled {
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+  cursor: default;
+}
+
+/* ===== reduced motion (§9.2) ============================================== */
+@media (prefers-reduced-motion: reduce) {
+  .haru-chip:active:not(:disabled) {
+    transform: none;
+  }
+}

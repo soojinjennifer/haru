@@ -1,0 +1,34 @@
+/*
+ * FieldGroup — Design Spec §4.13 (Figma `76:417`)
+ */
+
+.haru-field-group__rows {
+  box-sizing: border-box;
+  padding-inline: var(--field-padding-x);
+  padding-block: var(--field-padding-y);
+  border-radius: var(--field-radius);
+  background-color: var(--color-surface-solid);
+  box-shadow: var(--shadow-glass-rest), var(--inset-shadow-highlight);
+}
+
+/* 행 구분선 — 행 사이에만 (첫 행 제외). */
+.haru-field-group__rows > * + * {
+  border-block-start: 1px solid var(--color-divider);
+}
+
+.haru-field-group__error {
+  margin-block: var(--space-1-5) 0;
+  padding-inline: var(--field-padding-x);
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-field-fg-error);
+}
+
+.haru-field-group--error .haru-field-group__rows {
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  box-shadow:
+    0 0 0 1px var(--color-field-border-error),
+    var(--shadow-glass-rest);
+}

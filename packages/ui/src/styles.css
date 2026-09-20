@@ -1,0 +1,27 @@
+/*
+ * HARU Shared UI — 스타일 진입점 (`@haru/ui/styles.css`)
+ *
+ * `packages/ui` 는 Tailwind 유틸리티가 아니라 컴포넌트 CSS + `var(--token)` 으로 구현한다
+ * (Stage 1-D1 결정, `docs/decisions/stage-1-approvals.md` §6):
+ *   - Tier 3 component 토큰은 `@theme` 에 없으므로 Tailwind 유틸리티로 만들 수 없다 (Design Spec §3.3·§3.4).
+ *   - 그래야 `packages/ui` 가 Tailwind 없이도 독립적으로 빌드·테스트된다.
+ *
+ * 소비자(apps/web)는 `@haru/design-tokens`(Tier 1·2 + `@theme`/`@utility`)를 먼저 import 하고
+ * 이 파일을 import 한다. Tier 3 토큰은 아래에서 직접 가져오므로 소비자가 따로 import 하지 않는다.
+ */
+
+@import '@haru/design-tokens/component.css';
+
+@import './styles/base.css';
+
+@import './button/Button.css';
+@import './button/ButtonGroup.css';
+@import './button/IconButton.css';
+@import './field/FieldGroup.css';
+@import './field/TextField.css';
+@import './field/Checkbox.css';
+@import './field/CheckboxGroup.css';
+@import './field/RadioGroup.css';
+@import './tag/Tag.css';
+@import './chip/Chip.css';
+@import './progress/ProgressBar.css';

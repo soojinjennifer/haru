@@ -1,0 +1,67 @@
+/*
+ * Tag — Design Spec §4.15 (Figma `76:440`)
+ * 표시 전용. hover/pressed/focus 상태가 없다.
+ */
+
+.haru-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  box-sizing: border-box;
+  block-size: var(--tag-height-sm);
+  padding-inline: var(--tag-padding-x);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  /* Figma xs 9px 폐기 — 최소 11px 유지 (§4.15, 결정 #10-②). */
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  white-space: nowrap;
+}
+
+.haru-tag--xs {
+  block-size: var(--tag-height-xs);
+  font-size: var(--text-caption-2);
+  line-height: var(--text-caption-2--line-height);
+}
+
+.haru-tag__icon {
+  display: inline-flex;
+  inline-size: var(--size-icon-sm);
+  block-size: var(--size-icon-sm);
+}
+
+/* ===== tone ===============================================================
+ * 글자색은 `가값 (P-02)` — docs/decisions/stage-0-approvals.md §4.
+ */
+.haru-tag--agency {
+  background-color: var(--color-capability-agency-bg);
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-capability-agency-fg);
+}
+
+.haru-tag--emotion {
+  background-color: var(--color-capability-emotion-bg);
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-capability-emotion-fg);
+}
+
+.haru-tag--flexibility {
+  background-color: var(--color-capability-flexibility-bg);
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-capability-flexibility-fg);
+}
+
+.haru-tag--motivation {
+  background-color: var(--color-capability-motivation-bg);
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-capability-motivation-fg);
+}
+
+/*
+ * neutral — Design Spec §4.15 는 배경을 Tier 1 `--haru-dusk-200` 으로 지정한다.
+ * 대응 semantic 토큰이 없어 (handoff §7 NEEDS_DECISION S1-D1-1) 명세 값을 그대로 쓴다.
+ */
+.haru-tag--neutral {
+  background-color: var(--haru-dusk-200);
+  color: var(--color-fg-primary);
+}

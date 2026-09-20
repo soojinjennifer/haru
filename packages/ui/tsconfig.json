@@ -1,0 +1,4 @@
+{
+  "extends": "@haru/config/tsconfig/react.json",
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vitest.config.ts"]
+}

@@ -1,0 +1,133 @@
+/*
+ * Button — Design Spec §4.4 (Figma `17:20` · `86:245`)
+ * 치수·색·그림자·모션은 전부 design-tokens 토큰을 참조한다.
+ */
+
+.haru-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  block-size: var(--button-height-md);
+  padding-inline: var(--button-padding-x);
+  border: 0;
+  border-radius: var(--button-radius);
+  font-family: var(--font-sans);
+  font-size: var(--button-label-size);
+  line-height: var(--text-headline--line-height);
+  font-weight: var(--text-headline--font-weight);
+  letter-spacing: var(--text-headline--letter-spacing);
+  text-align: center;
+  cursor: pointer;
+  backdrop-filter: blur(var(--material-blur-md));
+  box-shadow: var(--shadow-glass-rest);
+  transition-property: box-shadow, transform;
+  transition-duration: var(--motion-duration-fast);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+.haru-button__content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--button-gap);
+}
+
+.haru-button__icon {
+  display: inline-flex;
+  inline-size: var(--size-icon-md);
+  block-size: var(--size-icon-md);
+}
+
+.haru-button--lg {
+  block-size: var(--button-height-lg);
+}
+
+.haru-button--full {
+  display: flex;
+  inline-size: 100%;
+}
+
+/* ===== variant ============================================================ */
+.haru-button--accent {
+  background-color: var(--color-action-primary-bg);
+  /* accepted deviation: D-01 (white label on teal = 2.07:1, approvals §3) */
+  color: var(--color-fg-on-accent);
+}
+
+.haru-button--glass {
+  background-color: var(--color-action-secondary-bg);
+  /* provisional: P-11 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-action-secondary-fg);
+}
+
+/* backdrop-filter 미지원 · 투명도 축소 환경에서는 불투명 fill 로 대체한다 (§4.3-③). */
+@supports not (backdrop-filter: blur(1px)) {
+  .haru-button--glass {
+    background-color: var(--material-glass-fill-fallback);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .haru-button--glass {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+/* ===== hover — 포인터 기기에서만 (§4 공통 규칙 2) ========================= */
+@media (hover: hover) and (pointer: fine) {
+  .haru-button:hover:not(:disabled) {
+    box-shadow: var(--shadow-glass-raised);
+    /* Design Spec §9.1 — hover offset -1px (모션 규격값, 대응 토큰 없음) */
+    transform: translateY(-1px);
+  }
+}
+
+/* ===== pressed — 색 변화 없이 그림자 + transform (§4 공통 규칙 3) ========= */
+.haru-button:active:not(:disabled) {
+  box-shadow: var(--shadow-glass-pressed);
+  /* Design Spec §9.1 — pressed offset 1px + scale .97 (모션 규격값, 대응 토큰 없음) */
+  transform: translateY(1px) scale(0.97);
+  transition-duration: var(--motion-duration-instant);
+}
+
+/* ===== disabled =========================================================== */
+.haru-button:disabled {
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+  cursor: default;
+  box-shadow: var(--shadow-glass-rest);
+}
+
+/* ===== loading — 라벨 폭 유지 + 중앙 인디케이터 (§4.4) ==================== */
+.haru-button--loading {
+  cursor: progress;
+}
+
+.haru-button--loading .haru-button__content {
+  opacity: 0;
+}
+
+/*
+ * Stage 1-D1 한정: 공유 `Spinner`(Design Spec §4.9)는 Stage 1-D2 범위다.
+ * 그때 이 내부 인디케이터를 Spinner 로 교체한다 (handoff §7).
+ */
+.haru-button__indicator {
+  position: absolute;
+  inline-size: var(--size-icon-md);
+  block-size: var(--size-icon-md);
+  border-radius: var(--radius-pill);
+  border: 2px solid currentcolor;
+  border-block-start-color: transparent;
+  animation: var(--animate-spinner);
+}
+
+/* ===== reduced motion — transform 제거, 그림자 전환은 유지 (§9.2) ========= */
+@media (prefers-reduced-motion: reduce) {
+  .haru-button:active:not(:disabled),
+  .haru-button:hover:not(:disabled) {
+    transform: none;
+  }
+}

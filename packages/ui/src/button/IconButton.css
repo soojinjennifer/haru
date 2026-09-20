@@ -1,0 +1,108 @@
+/*
+ * IconButton — Design Spec §4.5 (Figma `78:158`)
+ * 시각 38 / 터치 타깃 44 분리 — §9.3.
+ */
+
+.haru-icon-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  inline-size: var(--icon-button-size);
+  block-size: var(--icon-button-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  color: var(--color-fg-primary);
+  cursor: pointer;
+  transition-property: box-shadow, transform;
+  transition-duration: var(--motion-duration-fast);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+/*
+ * 터치 타깃 확장 (§9.3): 시각 크기는 그대로 두고 hit area 만 44 로 넓힌다.
+ * inset = (38 - 44) / 2 = -3px — 토큰에서 계산하므로 리터럴을 쓰지 않는다.
+ */
+.haru-icon-button::before {
+  content: '';
+  position: absolute;
+  inset: calc((var(--icon-button-size) - var(--icon-button-hit-size)) / 2);
+  border-radius: var(--radius-pill);
+}
+
+.haru-icon-button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--icon-button-icon-size);
+  block-size: var(--icon-button-icon-size);
+}
+
+/* ===== variant ============================================================ */
+.haru-icon-button--glass {
+  background-color: var(--color-surface-glass);
+  box-shadow: var(--shadow-rest);
+  backdrop-filter: blur(var(--material-blur-md));
+}
+
+.haru-icon-button--plain {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .haru-icon-button--glass {
+    background-color: var(--material-glass-fill-fallback);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .haru-icon-button--glass {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+/* ===== hover / pressed ==================================================== */
+@media (hover: hover) and (pointer: fine) {
+  .haru-icon-button--glass:hover:not(:disabled) {
+    box-shadow: var(--shadow-glass-raised);
+  }
+}
+
+.haru-icon-button:active:not(:disabled) {
+  /* Design Spec §9.1 — press scale .97 (모션 규격값, 대응 토큰 없음) */
+  transform: scale(0.97);
+  transition-duration: var(--motion-duration-instant);
+}
+
+/* ===== disabled =========================================================== */
+.haru-icon-button:disabled {
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+  cursor: default;
+}
+
+/* ===== loading — Stage 1-D2 의 Spinner 로 교체 예정 (handoff §7) ========== */
+.haru-icon-button--loading .haru-icon-button__icon {
+  opacity: 0;
+}
+
+.haru-icon-button__indicator {
+  position: absolute;
+  inline-size: var(--size-icon-md);
+  block-size: var(--size-icon-md);
+  border-radius: var(--radius-pill);
+  border: 2px solid currentcolor;
+  border-block-start-color: transparent;
+  animation: var(--animate-spinner);
+}
+
+/* ===== reduced motion (§9.2) ============================================== */
+@media (prefers-reduced-motion: reduce) {
+  .haru-icon-button:active:not(:disabled) {
+    transform: none;
+  }
+}
