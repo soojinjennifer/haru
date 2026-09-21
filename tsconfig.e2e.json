@@ -1,0 +1,10 @@
+{
+  "extends": "@haru/config/tsconfig/base.json",
+  "compilerOptions": {
+    // `page.evaluate` 의 콜백은 **브라우저 안**에서 실행되므로 DOM 타입이 필요하다.
+    // Playwright 설정 자체는 Node 에서 돌아가므로 node 타입도 함께 쓴다.
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"]
+  },
+  "include": ["playwright.config.ts", "e2e/**/*.ts"]
+}
