@@ -1,0 +1,45 @@
+/*
+ * ErrorState / EmptyState 공통 레이아웃 — Design Spec §4.10 · §5.2 · §5.3
+ * 두 컴포넌트가 같은 카드 규격(Surface fill=strong radius=card padding=--space-6)을 쓴다.
+ */
+
+.haru-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+}
+
+/* 아이콘 배지 — `--size-icon-lg`(24)의 2배 = 48 (§4.10) */
+.haru-state__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: calc(var(--size-icon-lg) * 2);
+  block-size: calc(var(--size-icon-lg) * 2);
+  border-radius: var(--radius-pill);
+}
+
+.haru-state--error .haru-state__badge {
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-fg);
+}
+
+.haru-state--offline .haru-state__badge {
+  background-color: var(--color-surface-note);
+  color: var(--color-fg-primary);
+}
+
+.haru-state--empty .haru-state__badge {
+  background-color: var(--color-surface-subtle);
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}
+
+/* 재시도·액션 버튼은 카드 내부 하단에 둔다 (§5.3). */
+.haru-state__action {
+  inline-size: 100%;
+  margin-block-start: var(--space-2);
+}

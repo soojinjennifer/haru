@@ -26,7 +26,7 @@
 
 .haru-progress__fill {
   block-size: 100%;
-  inline-size: var(--haru-progress-fill-size, 0%);
+  inline-size: var(--progress-fill-size, 0%);
   border-radius: var(--radius-pill);
   /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
   background-color: var(--color-progress-fill);

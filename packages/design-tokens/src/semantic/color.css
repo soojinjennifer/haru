@@ -149,6 +149,15 @@
   --color-capability-flexibility-fg: var(--haru-white);
   /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
   --color-capability-motivation-fg: var(--haru-white);
+
+  /* ===== Tag neutral (S1-D1-1, 사용자 결정 2026-09-20) ===================
+   * Design Spec §4.15 는 Tag `neutral` 배경을 Tier 1 `--haru-dusk-200` 으로 적고 있으나
+   * `packages/ui` 는 Tier 1 을 직접 참조하지 않는다 (Component → Semantic → Primitive).
+   * 색 값은 그대로 두고 참조 경로만 semantic 을 거치게 한다
+   * (`docs/decisions/stage-1-approvals.md` §7).
+   * 의미가 다른 `--color-bg-app-end`(배경 gradient 끝)를 재사용하지 않는다.
+   */
+  --color-tag-neutral-bg: var(--haru-dusk-200);
 }
 
 :root {

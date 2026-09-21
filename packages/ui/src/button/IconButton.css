@@ -85,19 +85,26 @@
   cursor: default;
 }
 
-/* ===== loading — Stage 1-D2 의 Spinner 로 교체 예정 (handoff §7) ========== */
+/* ===== loading — 공유 Spinner (§4.9) ==================================== */
 .haru-icon-button--loading .haru-icon-button__icon {
   opacity: 0;
 }
 
 .haru-icon-button__indicator {
   position: absolute;
-  inline-size: var(--size-icon-md);
-  block-size: var(--size-icon-md);
-  border-radius: var(--radius-pill);
-  border: 2px solid currentcolor;
-  border-block-start-color: transparent;
-  animation: var(--animate-spinner);
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/*
+ * size — Design Spec §4.5 의 치수 표에는 38×38 한 값만 있다 (S1-D1-2).
+ * 기본 규칙(.haru-icon-button)이 곧 md 이므로 값을 다시 쓰지 않는다.
+ */
+.haru-icon-button--md {
+  inline-size: var(--icon-button-size);
+  block-size: var(--icon-button-size);
 }
 
 /* ===== reduced motion (§9.2) ============================================== */

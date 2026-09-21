@@ -14,12 +14,12 @@
  * @property {string} file        패키지 기준 상대 경로 (`src/semantic/color.css`)
  * @property {'@theme' | ':root' | string} block  선언이 들어 있는 블록 셀렉터/at-rule
  * @property {string | null} provisional          `P-xx` (바로 위 주석) 또는 null
- * @property {string | null} acceptedDeviation    `D-xx` (바로 위 주석) 또는 null
+ * @property {string | null} acceptedDeviation    `D-xx` · `S1-G-2` 등 수용 예외 ID (바로 위 주석) 또는 null
  * @property {string[]} references                값이 참조하는 `var(--…)` 이름 목록
  */
 
 const PROVISIONAL_RE = /provisional:\s*(P-\d{2})/;
-const ACCEPTED_RE = /accepted deviation:\s*(D-\d{2})/;
+const ACCEPTED_RE = /accepted deviation:\s*(D-\d{2}|S\d+-[A-Z0-9]+-\d+)/;
 
 /** @param {string} value @returns {string[]} */
 export function extractVarReferences(value) {

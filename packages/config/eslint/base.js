@@ -103,7 +103,11 @@ export const haruBaseConfig = tseslint.config(
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
       ],
       eqeqeq: ['error', 'always', { null: 'ignore' }],
-      'no-console': ['error', { allow: ['warn', 'error'] }],
+      // `console.*` 는 **전부** 차단한다 (`warn`/`error` 도 예외가 아니다 — QA-1-001).
+      // PII(아이 이름 · transcript · 오디오 경로)가 가장 쉽게 새는 경로이므로,
+      // 허용은 아래 `haru/tooling-files` 와 루트 eslint.config.js 의 **경로 단위 명시 예외**로만 둔다.
+      // (rules/architecture.md §9 · AC-1-45)
+      'no-console': 'error',
       'no-debugger': 'error',
     },
   },

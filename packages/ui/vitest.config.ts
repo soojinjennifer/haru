@@ -10,6 +10,7 @@ export default defineConfig({
     name: 'ui',
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/__tests__/**/*.test.tsx'],
+    // 컴포넌트(.tsx) 외에 lib 모듈(.ts) 테스트도 포함한다 (QA-1-001 — lib/devWarn).
+    include: ['src/**/__tests__/**/*.test.{ts,tsx}'],
   }),
 });

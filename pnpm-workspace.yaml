@@ -13,3 +13,8 @@ linkWorkspacePackages: deep
 # 승인된 버전(Plan §16.1 D-10)을 그대로 설치하기 위해 필요하다.
 minimumReleaseAgeExclude:
   - prettier@3.9.8
+
+# Lucide 글리프 drift 방지 — Stage 1 Plan §16 D-2 (정확 버전 고정 + 중복 설치 방지).
+# pnpm 12 는 package.json 의 `pnpm.overrides` 를 읽지 않으므로 여기에 둔다.
+overrides:
+  lucide-react: "1.47.0"

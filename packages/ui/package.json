@@ -21,7 +21,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@haru/design-tokens": "workspace:*"
+    "@haru/design-tokens": "workspace:*",
+    "lucide-react": "1.47.0"
   },
   "peerDependencies": {
     "react": "^19.3.0",

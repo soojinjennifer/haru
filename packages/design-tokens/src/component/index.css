@@ -57,6 +57,7 @@
   --chip-label-size: var(--text-caption-1); /* Figma 12.5 → 12 흡수 (§3.5) */
 
   /* ===== TextField — Figma `76:417` ====================================== */
+  /* accepted deviation: S1-G-2 (field row 42 < touch 44, approvals §8) */
   --field-row-height: 42px; /* Figma `76:364` */
   --field-padding-x: var(--space-5); /* Figma px18 → 20 흡수 (§3.5) */
   --field-padding-y: var(--space-1-5); /* Figma `76:416` py6 */

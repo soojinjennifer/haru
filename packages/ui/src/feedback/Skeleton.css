@@ -1,0 +1,61 @@
+/*
+ * Skeleton — Design Spec §4.9 (Figma 없음 → 명세, 가값 P-10)
+ * fill 은 glass, 모션은 `--animate-skeleton`(opacity .5↔1, 1200ms) 뿐이다. shimmer 금지.
+ */
+
+.haru-skeleton {
+  display: block;
+  background-color: var(--color-surface-glass);
+  animation: var(--animate-skeleton);
+}
+
+/* ===== text — 줄 높이는 현재 타이포 토큰의 line-height 를 따른다 ========= */
+.haru-skeleton--text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background-color: transparent;
+  animation: none;
+}
+
+.haru-skeleton__line {
+  display: block;
+  inline-size: 100%;
+  block-size: 1lh;
+  border-radius: var(--radius-indicator);
+  background-color: var(--color-surface-glass);
+  animation: var(--animate-skeleton);
+}
+
+.haru-skeleton__line--last {
+  inline-size: 60%;
+}
+
+/* ===== rect / card / circle — 크기는 감싸는 레이아웃이 정한다 (§4.9) ==== */
+.haru-skeleton--rect {
+  inline-size: 100%;
+  block-size: 100%;
+  min-block-size: var(--space-8);
+  border-radius: var(--skeleton-radius);
+}
+
+.haru-skeleton--card {
+  inline-size: 100%;
+  block-size: 100%;
+  min-block-size: var(--space-8);
+  border-radius: var(--radius-card);
+}
+
+.haru-skeleton--circle {
+  inline-size: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-pill);
+}
+
+/* ===== reduced motion — 애니메이션 제거, 정적 fill 유지 (§9.2) ========== */
+@media (prefers-reduced-motion: reduce) {
+  .haru-skeleton,
+  .haru-skeleton__line {
+    animation: none;
+  }
+}

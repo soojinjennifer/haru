@@ -1,0 +1,57 @@
+/*
+ * Icon — Design Spec §4.2 · §8.4
+ * 크기는 3단계 토큰(16 / 20 / 24)만 쓴다. 탭바 21 은 BottomTabBar 가 Tier 3 토큰으로 예외 처리한다.
+ */
+
+.haru-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  inline-size: var(--size-icon-md);
+  block-size: var(--size-icon-md);
+  color: inherit;
+}
+
+.haru-icon > svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* ===== size — 가값 P-09 ================================================== */
+/* provisional: P-09 (docs/decisions/stage-0-approvals.md §4) */
+.haru-icon--sm {
+  inline-size: var(--size-icon-sm);
+  block-size: var(--size-icon-sm);
+}
+
+/* provisional: P-09 (docs/decisions/stage-0-approvals.md §4) */
+.haru-icon--md {
+  inline-size: var(--size-icon-md);
+  block-size: var(--size-icon-md);
+}
+
+/* provisional: P-09 (docs/decisions/stage-0-approvals.md §4) */
+.haru-icon--lg {
+  inline-size: var(--size-icon-lg);
+  block-size: var(--size-icon-lg);
+}
+
+/* ===== tone — 기본은 부모 색 상속 ======================================== */
+.haru-icon--tone-inherit {
+  color: inherit;
+}
+
+.haru-icon--tone-primary {
+  color: var(--color-fg-primary);
+}
+
+.haru-icon--tone-secondary {
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}
+
+.haru-icon--tone-on-accent {
+  /* accepted deviation: D-01 (white on teal, approvals §3) */
+  color: var(--color-fg-on-accent);
+}

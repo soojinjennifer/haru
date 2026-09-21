@@ -1,0 +1,39 @@
+/*
+ * PageIndicator — Design Spec §4.19 (Figma `88:789`)
+ * dot 7×7, active 20×7, radius 4, gap 6. 표시 전용이다 (결정 `S1-G-1`).
+ */
+
+.haru-page-indicator {
+  display: inline-flex;
+  align-items: center;
+}
+
+.haru-page-indicator__dots {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--indicator-gap);
+}
+
+.haru-page-indicator__dot {
+  display: inline-block;
+  inline-size: var(--indicator-dot-size);
+  block-size: var(--indicator-dot-size);
+  border: 0;
+  padding: 0;
+  border-radius: var(--radius-indicator);
+  background-color: var(--color-indicator-inactive);
+  transition-property: inline-size, background-color;
+  transition-duration: var(--motion-duration-fast);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+.haru-page-indicator__dot--active {
+  inline-size: var(--indicator-active-width);
+  background-color: var(--color-indicator-active);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .haru-page-indicator__dot {
+    transition-duration: var(--motion-duration-instant);
+  }
+}

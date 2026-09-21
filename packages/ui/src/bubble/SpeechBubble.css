@@ -1,0 +1,51 @@
+/*
+ * SpeechBubble — Design Spec §4.20 (Figma `88:721`)
+ * padding 16/14, radius 22, tail 16×16 을 -45° 회전해 12 만큼 겹친다.
+ */
+
+.haru-bubble {
+  position: relative;
+  display: inline-block;
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  padding-inline: var(--bubble-padding-x);
+  padding-block: var(--bubble-padding-y);
+  border-radius: var(--bubble-radius);
+  background-color: var(--color-surface-strong);
+  box-shadow: var(--shadow-rest);
+  color: var(--color-fg-primary);
+}
+
+.haru-bubble__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.haru-bubble--align-center {
+  text-align: center;
+}
+
+/* ===== tail ==============================================================
+ * 본체와 같은 배경의 정사각형을 회전해 붙인다. 겹침 = tail 크기의 3/4 (Figma 12/16).
+ */
+.haru-bubble__tail {
+  position: absolute;
+  inline-size: var(--bubble-tail-size);
+  block-size: var(--bubble-tail-size);
+  background-color: var(--color-surface-strong);
+  /* Figma `88:762` — tail radius 3 (hairline 규격값, 대응 토큰 없음) */
+  border-radius: 3px;
+  transform: rotate(-45deg);
+}
+
+.haru-bubble--tail-bottom-right .haru-bubble__tail {
+  inset-block-end: calc(var(--bubble-tail-size) / -4);
+  inset-inline-end: var(--bubble-padding-x);
+}
+
+.haru-bubble--tail-top-center .haru-bubble__tail {
+  inset-block-start: calc(var(--bubble-tail-size) / -4);
+  inset-inline-start: 50%;
+  margin-inline-start: calc(var(--bubble-tail-size) / -2);
+}

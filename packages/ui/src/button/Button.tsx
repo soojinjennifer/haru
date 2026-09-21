@@ -1,5 +1,6 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react';
 
+import { Spinner } from '../feedback/Spinner';
 import { cx } from '../lib/cx';
 
 /** Design Spec §4.4 — Figma `17:20` (Glass / Accent). */
@@ -27,6 +28,11 @@ export interface ButtonProps extends NativeButtonProps {
   type?: 'button' | 'submit' | 'reset';
   /** 누름 핸들러. Design Spec §4.4 prop 이름을 따른다 (`onClick` 은 노출하지 않는다). */
   onPress?: () => void;
+  /**
+   * 버튼 요소 참조. Dialog 초기 포커스(§4.22)처럼 **포커스 이동이 필요한 곳**에서만 쓴다.
+   * React 19 에서 ref 는 일반 prop 이다.
+   */
+  ref?: Ref<HTMLButtonElement>;
   /** 라벨. 아이콘만 쓰는 용도는 금지 — IconButton 을 쓴다 (§4.4). */
   children: ReactNode;
 }
@@ -47,12 +53,14 @@ export function Button({
   disabled = false,
   type = 'button',
   onPress,
+  ref,
   children,
   ...rest
 }: ButtonProps) {
   return (
     <button
       {...rest}
+      ref={ref}
       type={type}
       className={cx(
         'haru-button',
@@ -83,7 +91,12 @@ export function Button({
           </span>
         ) : null}
       </span>
-      {loading ? <span className="haru-button__indicator" aria-hidden="true" /> : null}
+      {loading ? (
+        <span className="haru-button__indicator">
+          {/* 버튼이 `aria-busy` 를 갖고 있으므로 Spinner 는 장식이다 (§4.9). */}
+          <Spinner size="sm" tone="inherit" decorative />
+        </span>
+      ) : null}
     </button>
   );
 }

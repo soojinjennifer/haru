@@ -1,0 +1,125 @@
+/*
+ * Toast — Design Spec §4.12 (Figma 없음 → 명세)
+ * 앱 컬럼 폭 − 2×gutter, 하단 safe-area + 16 (탭바가 있으면 + 탭바 높이).
+ */
+
+.haru-toast-viewport {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: calc(var(--layout-safe-bottom) + var(--space-4));
+  display: flex;
+  justify-content: center;
+  padding-inline: var(--layout-gutter);
+  z-index: var(--z-toast);
+  pointer-events: none;
+}
+
+.haru-toast-viewport--tabbar {
+  inset-block-end: calc(var(--layout-safe-bottom) + var(--space-4) + var(--layout-tabbar-height));
+}
+
+.haru-toast {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+  max-inline-size: calc(var(--layout-app-max-width) - 2 * var(--layout-gutter));
+  padding: var(--space-4);
+  border-radius: var(--toast-radius);
+  background-color: var(--color-surface-strong);
+  box-shadow: var(--shadow-glass-rest);
+  backdrop-filter: blur(var(--material-blur-md));
+  pointer-events: auto;
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .haru-toast {
+    background-color: var(--material-glass-fill-fallback);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .haru-toast {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+/* ===== tone — 색 단독 전달 금지이므로 경계선으로만 구분한다 ============== */
+.haru-toast--success {
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  border-inline-start: var(--space-0-5) solid var(--color-status-success-border);
+}
+
+.haru-toast--error {
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  border-inline-start: var(--space-0-5) solid var(--color-status-error-border);
+}
+
+.haru-toast__action {
+  flex: none;
+  min-block-size: var(--size-touch-min);
+  margin-inline-start: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ===== 모션 (§9.1) =======================================================
+ * enter: translateY(12) → 0 + fade (240ms) / exit: fade only (180ms).
+ */
+@keyframes haru-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-3));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes haru-toast-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.haru-toast--open {
+  opacity: 1;
+  transform: translateY(0);
+  animation: haru-toast-in var(--motion-duration-base) var(--motion-ease-standard);
+}
+
+.haru-toast--closing {
+  opacity: 0;
+  animation: haru-toast-out var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+/* ===== reduced motion — translate 제거, opacity 만 (§9.2) ================ */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes haru-toast-in {
+    from {
+      opacity: 0;
+      transform: none;
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .haru-toast--open {
+    transform: none;
+  }
+}

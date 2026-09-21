@@ -1,0 +1,40 @@
+/*
+ * AppBackground — Design Spec §4.3 · DESIGN_SYSTEM §11.2
+ * 배경 gradient 는 뷰포트 전체에 깔고, 앱 컬럼만 가운데 정렬한다.
+ */
+
+.haru-app-background {
+  position: fixed;
+  inset: 0;
+  /*
+   * z-index 를 올리지 않는다. 뒤따르는 콘텐츠가 DOM 순서상 나중에 그려지므로
+   * 배경 위에 표시된다 (§3.2.5 z 단계는 overlay 전용).
+   */
+  z-index: var(--z-base);
+  pointer-events: none;
+}
+
+/* provisional: P-14 (docs/decisions/stage-0-approvals.md §4) — gradient stop 46% */
+.haru-app-background--gradient {
+  background-image: var(--gradient-app);
+}
+
+.haru-app-background--flat {
+  background-color: var(--color-bg-app-start);
+}
+
+/* 투명도 축소 · 인쇄에서는 단색으로 대체한다 (§4.3). */
+@media (prefers-reduced-transparency: reduce) {
+  .haru-app-background--gradient {
+    background-image: none;
+    background-color: var(--color-bg-app-start);
+  }
+}
+
+@media print {
+  .haru-app-background--gradient,
+  .haru-app-background--flat {
+    background-image: none;
+    background-color: transparent;
+  }
+}

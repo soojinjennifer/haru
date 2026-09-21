@@ -49,9 +49,15 @@ describe('Tier 1 — Primitive (Design Spec §3.1)', () => {
 });
 
 describe('Tier 2 — Semantic (Design Spec §3.2)', () => {
-  it('semantic color 가 64개다 (--gradient-app 제외)', () => {
+  it('semantic color 가 65개다 — §3.2.1 표 64개 + S1-D1-1 (--gradient-app 제외)', () => {
     const colors = semantics.filter((d) => d.name.startsWith('--color-'));
-    expect(colors).toHaveLength(64);
+    expect(colors).toHaveLength(65);
+  });
+
+  it('Tag neutral 배경이 semantic 을 거친다 (S1-D1-1, approvals §7)', () => {
+    // 색 값은 바꾸지 않고 참조 경로만 semantic 을 거친다.
+    expect(byName.get('--color-tag-neutral-bg')?.value).toBe('var(--haru-dusk-200)');
+    expect(byName.get('--haru-dusk-200')?.value).toBe('#c7c9d7');
   });
 
   it('Semantic 은 Primitive 또는 같은 Tier 만 참조한다 (component 참조 0건)', () => {

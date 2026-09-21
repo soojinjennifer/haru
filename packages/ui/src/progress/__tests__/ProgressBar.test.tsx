@@ -38,6 +38,6 @@ describe('ProgressBar', () => {
     const { container } = render(<ProgressBar value={5} max={10} label="Survey progress" />);
 
     const fill = container.querySelector('.haru-progress__fill');
-    expect(fill?.getAttribute('style')).toContain('--haru-progress-fill-size: 50%');
+    expect(fill?.getAttribute('style')).toContain('--progress-fill-size: 50%');
   });
 });

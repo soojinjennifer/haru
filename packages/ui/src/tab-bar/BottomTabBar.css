@@ -1,0 +1,144 @@
+/*
+ * BottomTabBar — Design Spec §6.2 (Figma `25:87` · `140:2971`)
+ * 바 345×70 (= 앱 컬럼 − 2×gutter), radius 100, glass 74% + blur 12 + shadow + inset highlight.
+ */
+
+.haru-tab-bar {
+  position: relative;
+  box-sizing: border-box;
+  inline-size: 100%;
+  block-size: var(--tabbar-height);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-glass);
+  box-shadow: var(--shadow-glass-rest);
+  backdrop-filter: blur(var(--material-blur-md));
+  z-index: var(--z-tabbar);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .haru-tab-bar {
+    background-color: var(--material-glass-fill-fallback);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .haru-tab-bar {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+.haru-tab-bar__list {
+  display: flex;
+  align-items: stretch;
+  block-size: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.haru-tab-bar__item {
+  display: flex;
+  flex: 1 1 0;
+  justify-content: center;
+}
+
+.haru-tab-bar__link {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  inline-size: 100%;
+  gap: var(--tabbar-item-gap);
+  /* Figma `25:34` — 항목 상단 offset 16 */
+  padding-block-start: var(--space-4);
+  padding-inline: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: var(--radius-pill);
+  transition-property: transform;
+  transition-duration: var(--motion-duration-instant);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+/* Figma `25:35` 21×21 — 아이콘 3단계(16/20/24)의 예외 (§13.2 ②). */
+.haru-tab-bar__icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--tabbar-icon-size);
+  block-size: var(--tabbar-icon-size);
+}
+
+.haru-tab-bar__icon .haru-icon {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* 라벨 색: 선택 --color-fg-primary / 미선택 --color-fg-secondary (Text tone 이 적용한다). */
+.haru-tab-bar__item--active .haru-tab-bar__icon {
+  color: var(--color-fg-primary);
+}
+
+.haru-tab-bar__item:not(.haru-tab-bar__item--active) .haru-tab-bar__icon {
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}
+
+/* ===== 중앙 강조 항목 (Figma `140:2971` 64×64, 바 위로 35 돌출) ========== */
+.haru-tab-bar__item--center .haru-tab-bar__link {
+  /* 라벨 위치(바 내부 top 41)를 다른 항목과 맞춘다: 16 + 아이콘 21 + gap 4 */
+  padding-block-start: calc(var(--space-4) + var(--tabbar-icon-size) + var(--tabbar-item-gap));
+}
+
+.haru-tab-bar__item--center .haru-tab-bar__icon {
+  position: absolute;
+  inset-block-start: calc(-1 * var(--layout-tabbar-center-overhang));
+  inline-size: var(--tabbar-center-size);
+  block-size: var(--tabbar-center-size);
+  border-radius: var(--radius-pill);
+  /* Figma 의 아이콘 내부 drop shadow 는 명명된 Effect Style 로 통일한다 (§3.2.4 · §10.3). */
+  box-shadow: var(--shadow-rest);
+  color: inherit;
+}
+
+/* ===== badge — Stage 1 은 렌더만 지원 (§6.2) ============================= */
+.haru-tab-bar__badge {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: var(--space-4);
+  block-size: var(--space-4);
+  padding-inline: var(--space-1);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-fg);
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-2);
+  line-height: var(--text-caption-2--line-height);
+}
+
+.haru-tab-bar__badge--dot {
+  min-inline-size: var(--space-2);
+  block-size: var(--space-2);
+  padding-inline: 0;
+}
+
+/* ===== state ============================================================= */
+.haru-tab-bar__link:active {
+  /* Design Spec §6.2 — pressed scale .96 */
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .haru-tab-bar__link:active {
+    transform: none;
+  }
+}

@@ -1,0 +1,118 @@
+/*
+ * TopBar — Design Spec §6.1 (Figma `139:2734` 외 화면 헤더 4종)
+ * 좌우 gutter 와 safe-area 는 AppColumn 이 담당하고, 여기서는 높이·정렬·배경만 다룬다.
+ */
+
+.haru-top-bar {
+  box-sizing: border-box;
+  display: grid;
+  align-items: center;
+  column-gap: var(--topbar-gap);
+  min-block-size: var(--topbar-height);
+  /* leading / trailing 폭(터치 타깃 44)을 좌우에 확보해 중앙 제목을 대칭으로 둔다 (§6.1). */
+  grid-template-columns: var(--size-touch-min) minmax(0, 1fr) var(--size-touch-min);
+  transition-property: background-color, box-shadow;
+  transition-duration: var(--motion-duration-fast);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+.haru-top-bar--sticky {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-sticky);
+}
+
+.haru-top-bar__leading,
+.haru-top-bar__trailing {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.haru-top-bar__trailing {
+  justify-content: flex-end;
+}
+
+.haru-top-bar__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-0-5);
+  min-inline-size: 0;
+}
+
+/* ===== variant ===========================================================
+ * large = 좌측 대형 제목 + trailing (Figma `30:89` · `31:117`).
+ */
+.haru-top-bar--large {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.haru-top-bar--large .haru-top-bar__center {
+  align-items: flex-start;
+}
+
+.haru-top-bar--large .haru-top-bar__leading:empty,
+.haru-top-bar--large .haru-top-bar__trailing:empty {
+  display: none;
+}
+
+/* pill = leading 없이 중앙 pill 만 (Figma `139:2735`). */
+.haru-top-bar--pill .haru-top-bar__leading {
+  visibility: hidden;
+}
+
+/* ===== 중앙 pill (Figma `78:273`) ======================================== */
+.haru-top-bar__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  block-size: var(--topbar-pill-height);
+  padding-inline: var(--topbar-pill-padding-x);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-glass);
+  box-shadow: var(--shadow-rest);
+  backdrop-filter: blur(var(--material-blur-md));
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .haru-top-bar__pill {
+    background-color: var(--material-glass-fill-fallback);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .haru-top-bar__pill {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+/* ===== 스크롤 시 배경 (§6.1, Figma 없음 → 명세) ========================== */
+.haru-top-bar--scrolled {
+  background-color: var(--color-surface-glass);
+  box-shadow: var(--shadow-rest);
+  backdrop-filter: blur(var(--material-blur-md));
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .haru-top-bar--scrolled {
+    background-color: var(--material-glass-fill-fallback);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .haru-top-bar--scrolled {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .haru-top-bar {
+    transition-duration: var(--motion-duration-instant);
+  }
+}

@@ -85,3 +85,29 @@ describe('ButtonGroup', () => {
     expect(screen.getAllByRole('button')).toHaveLength(1);
   });
 });
+
+describe('Button / IconButton loading indicator (S1-D1-3)', () => {
+  it('uses the shared Spinner, and the Spinner stays silent under aria-busy (§4.9)', () => {
+    const { container } = render(
+      <Button loading onPress={() => {}}>
+        Save
+      </Button>,
+    );
+
+    const spinner = container.querySelector('.haru-spinner');
+    expect(spinner).toBeTruthy();
+    expect(spinner?.getAttribute('aria-hidden')).toBe('true');
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Save' }).getAttribute('aria-busy')).toBe('true');
+  });
+
+  it('keeps the label rendered so the button width does not jump', () => {
+    render(
+      <Button loading onPress={() => {}}>
+        Save
+      </Button>,
+    );
+
+    expect(screen.getByText('Save')).toBeTruthy();
+  });
+});

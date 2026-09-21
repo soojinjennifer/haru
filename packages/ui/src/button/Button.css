@@ -110,18 +110,13 @@
   opacity: 0;
 }
 
-/*
- * Stage 1-D1 한정: 공유 `Spinner`(Design Spec §4.9)는 Stage 1-D2 범위다.
- * 그때 이 내부 인디케이터를 Spinner 로 교체한다 (handoff §7).
- */
+/* 공유 Spinner(§4.9)를 버튼 중앙에 둔다. 라벨은 투명도 0 으로 폭을 유지한다. */
 .haru-button__indicator {
   position: absolute;
-  inline-size: var(--size-icon-md);
-  block-size: var(--size-icon-md);
-  border-radius: var(--radius-pill);
-  border: 2px solid currentcolor;
-  border-block-start-color: transparent;
-  animation: var(--animate-spinner);
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ===== reduced motion — transform 제거, 그림자 전환은 유지 (§9.2) ========= */

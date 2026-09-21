@@ -1,0 +1,101 @@
+/*
+ * Spinner — Design Spec §4.9 (Figma 없음 → 명세, 가값 P-10)
+ * 회전 애니메이션은 토큰 `--animate-spinner`(800ms linear 무한)를 쓴다 (§9.1).
+ */
+
+.haru-spinner {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 기본 md = 24 (`--size-icon-lg` 와 같은 값 — §4.9) */
+  inline-size: var(--size-icon-lg);
+  block-size: var(--size-icon-lg);
+}
+
+.haru-spinner__arc {
+  inline-size: 100%;
+  block-size: 100%;
+  animation: var(--animate-spinner);
+}
+
+.haru-spinner--sm {
+  inline-size: var(--size-icon-sm);
+  block-size: var(--size-icon-sm);
+}
+
+.haru-spinner--md {
+  inline-size: var(--size-icon-lg);
+  block-size: var(--size-icon-lg);
+}
+
+/* lg 32 — 아이콘 3단계에 없는 Spinner 전용 크기 (§4.9) */
+.haru-spinner--lg {
+  inline-size: 32px;
+  block-size: 32px;
+}
+
+/* ===== tone ============================================================== */
+.haru-spinner--tone-default {
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}
+
+.haru-spinner--tone-on-accent {
+  /* accepted deviation: D-01 (white on teal, approvals §3) */
+  color: var(--color-fg-on-accent);
+}
+
+.haru-spinner--tone-inherit {
+  color: inherit;
+}
+
+/* 기본은 스크린리더 전용 텍스트다. */
+.haru-spinner__label {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ===== reduced motion — 회전 정지 + 라벨 노출 (§9.2) ===================== */
+@media (prefers-reduced-motion: reduce) {
+  .haru-spinner {
+    inline-size: auto;
+    gap: var(--space-2);
+  }
+
+  .haru-spinner__arc {
+    /* 회전 정지 — §9.2 표의 "Spinner 회전 → 정지 + 라벨 노출". */
+    animation: none;
+    flex: none;
+    inline-size: var(--size-icon-lg);
+    block-size: var(--size-icon-lg);
+  }
+
+  .haru-spinner--sm .haru-spinner__arc {
+    inline-size: var(--size-icon-sm);
+    block-size: var(--size-icon-sm);
+  }
+
+  .haru-spinner--lg .haru-spinner__arc {
+    inline-size: 32px;
+    block-size: 32px;
+  }
+
+  .haru-spinner__label {
+    position: static;
+    inline-size: auto;
+    block-size: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    font-family: var(--font-sans);
+    font-size: var(--text-footnote);
+    line-height: var(--text-footnote--line-height);
+  }
+}

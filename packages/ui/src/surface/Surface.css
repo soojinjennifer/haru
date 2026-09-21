@@ -1,0 +1,182 @@
+/*
+ * Surface — Design Spec §4.3 (Figma `17:332` · `16:24` · `17:33`)
+ * HARU Material: fill + blur + shadow + inset highlight. saturate 는 쓰지 않는다 (#10-①).
+ */
+
+.haru-surface {
+  box-sizing: border-box;
+  display: block;
+  border: 0;
+  color: inherit;
+  font-family: var(--font-sans);
+  border-radius: var(--radius-surface);
+}
+
+/* ===== radius =========================================================== */
+.haru-surface--radius-indicator {
+  border-radius: var(--radius-indicator);
+}
+
+.haru-surface--radius-control {
+  border-radius: var(--radius-control);
+}
+
+.haru-surface--radius-field {
+  border-radius: var(--radius-field);
+}
+
+.haru-surface--radius-surface {
+  border-radius: var(--radius-surface);
+}
+
+.haru-surface--radius-card {
+  border-radius: var(--radius-card);
+}
+
+.haru-surface--radius-pill {
+  border-radius: var(--radius-pill);
+}
+
+/* ===== padding — space scale (§3.2.3) ==================================== */
+.haru-surface--padding-0-5 {
+  padding: var(--space-0-5);
+}
+
+.haru-surface--padding-1 {
+  padding: var(--space-1);
+}
+
+.haru-surface--padding-1-5 {
+  padding: var(--space-1-5);
+}
+
+.haru-surface--padding-2 {
+  padding: var(--space-2);
+}
+
+.haru-surface--padding-2-5 {
+  padding: var(--space-2-5);
+}
+
+.haru-surface--padding-3 {
+  padding: var(--space-3);
+}
+
+.haru-surface--padding-3-5 {
+  padding: var(--space-3-5);
+}
+
+.haru-surface--padding-4 {
+  padding: var(--space-4);
+}
+
+.haru-surface--padding-5 {
+  padding: var(--space-5);
+}
+
+.haru-surface--padding-6 {
+  padding: var(--space-6);
+}
+
+.haru-surface--padding-8 {
+  padding: var(--space-8);
+}
+
+/* ===== fill ==============================================================
+ * glass 는 gradient 배경 위 1단계만 쓴다. Glass 위 Glass 중첩 금지 (§4.3-①).
+ */
+.haru-surface--fill-glass {
+  background-color: var(--color-surface-glass);
+  backdrop-filter: blur(var(--material-blur-md));
+}
+
+.haru-surface--fill-strong {
+  background-color: var(--color-surface-strong);
+  backdrop-filter: blur(var(--material-blur-md));
+}
+
+.haru-surface--fill-solid {
+  background-color: var(--color-surface-solid);
+}
+
+.haru-surface--fill-subtle {
+  background-color: var(--color-surface-subtle);
+}
+
+.haru-surface--fill-tinted {
+  background-color: var(--color-surface-tinted);
+}
+
+.haru-surface--fill-note {
+  background-color: var(--color-surface-note);
+}
+
+.haru-surface--fill-none {
+  background-color: transparent;
+}
+
+/* 투명도 축소 · backdrop-filter 미지원 → 불투명 fallback (§4.3-③). */
+@supports not (backdrop-filter: blur(1px)) {
+  .haru-surface--fill-glass,
+  .haru-surface--fill-strong {
+    background-color: var(--material-glass-fill-fallback);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .haru-surface--fill-glass,
+  .haru-surface--fill-strong {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+/* ===== material (그림자 단계) ============================================ */
+.haru-surface--material-rest {
+  box-shadow: var(--shadow-glass-rest);
+}
+
+.haru-surface--material-raised {
+  box-shadow: var(--shadow-glass-raised);
+}
+
+.haru-surface--material-pressed {
+  box-shadow: var(--shadow-glass-pressed);
+}
+
+.haru-surface--material-none {
+  box-shadow: none;
+}
+
+/* ===== interactive — rest → hover(raised) → pressed (§4.3) =============== */
+.haru-surface--interactive {
+  cursor: pointer;
+  text-align: start;
+  inline-size: 100%;
+  transition-property: box-shadow, transform;
+  transition-duration: var(--motion-duration-fast);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .haru-surface--interactive:hover {
+    box-shadow: var(--shadow-glass-raised);
+    /* Design Spec §9.1 — hover offset -1px (모션 규격값, 대응 토큰 없음) */
+    transform: translateY(-1px);
+  }
+}
+
+.haru-surface--interactive:active {
+  box-shadow: var(--shadow-glass-pressed);
+  /* Design Spec §9.1 — pressed offset 1px + scale .97 */
+  transform: translateY(1px) scale(0.97);
+  transition-duration: var(--motion-duration-instant);
+}
+
+/* ===== reduced motion (§9.2) ============================================= */
+@media (prefers-reduced-motion: reduce) {
+  .haru-surface--interactive:hover,
+  .haru-surface--interactive:active {
+    transform: none;
+  }
+}

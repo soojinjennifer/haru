@@ -1,0 +1,111 @@
+/*
+ * Sheet — Design Spec §4.21 (Figma 부분 근거 `88:960` grabber)
+ * 앱 컬럼 폭, 상단 radius 28, padding 24, 최대 높이 100dvh − 32.
+ */
+
+.haru-sheet {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: var(--z-sheet);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  inline-size: 100%;
+  max-inline-size: var(--layout-app-max-width);
+  margin-inline: auto;
+  max-block-size: calc(100dvh - var(--space-8));
+  padding: var(--space-6);
+  padding-block-end: calc(var(--space-6) + var(--layout-safe-bottom));
+  border-start-start-radius: var(--sheet-radius-top);
+  border-start-end-radius: var(--sheet-radius-top);
+  background-color: var(--color-surface-strong);
+  box-shadow: var(--shadow-glass-rest);
+  transform: translateY(0);
+  animation: haru-sheet-in var(--motion-duration-base) var(--motion-ease-standard);
+}
+
+.haru-sheet--full {
+  max-block-size: 100dvh;
+  block-size: 100dvh;
+}
+
+.haru-sheet__grabber {
+  /* Figma `88:960` — 36×4 (grabber 전용 규격값) */
+  inline-size: 36px;
+  block-size: 4px;
+  margin-inline: auto;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-indicator-inactive);
+}
+
+.haru-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.haru-sheet__content {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* ===== 모션 (§9.1) — enter translateY(100%) → 0, exit 반대 ============== */
+@keyframes haru-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes haru-sheet-out {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(100%);
+  }
+}
+
+.haru-sheet--closing {
+  transform: translateY(100%);
+  animation: haru-sheet-out var(--motion-duration-base) var(--motion-ease-standard);
+}
+
+/* ===== reduced motion — fade only (§9.2) ================================= */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes haru-sheet-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes haru-sheet-out {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
+  }
+
+  .haru-sheet {
+    transform: none;
+  }
+
+  .haru-sheet--closing {
+    transform: none;
+    opacity: 0;
+  }
+}

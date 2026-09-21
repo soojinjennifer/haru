@@ -1,0 +1,192 @@
+/*
+ * Text — Design Spec §4.1 (Figma `17:298`)
+ * 11 스타일 × tone × weight override. 고정 높이·임의 크기를 만들지 않는다.
+ */
+
+.haru-text {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: inherit;
+}
+
+/* ===== variant — 스타일 토큰 4종(size / line-height / weight / letter-spacing) ===== */
+.haru-text--large-title {
+  font-size: var(--text-large-title);
+  line-height: var(--text-large-title--line-height);
+  font-weight: var(--text-large-title--font-weight);
+  letter-spacing: var(--text-large-title--letter-spacing);
+}
+
+.haru-text--title-1 {
+  font-size: var(--text-title-1);
+  line-height: var(--text-title-1--line-height);
+  font-weight: var(--text-title-1--font-weight);
+  letter-spacing: var(--text-title-1--letter-spacing);
+}
+
+.haru-text--title-2 {
+  font-size: var(--text-title-2);
+  line-height: var(--text-title-2--line-height);
+  font-weight: var(--text-title-2--font-weight);
+  letter-spacing: var(--text-title-2--letter-spacing);
+}
+
+.haru-text--title-3 {
+  font-size: var(--text-title-3);
+  line-height: var(--text-title-3--line-height);
+  font-weight: var(--text-title-3--font-weight);
+  letter-spacing: var(--text-title-3--letter-spacing);
+}
+
+.haru-text--headline {
+  font-size: var(--text-headline);
+  line-height: var(--text-headline--line-height);
+  font-weight: var(--text-headline--font-weight);
+  letter-spacing: var(--text-headline--letter-spacing);
+}
+
+.haru-text--body {
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  font-weight: var(--text-body--font-weight);
+  letter-spacing: var(--text-body--letter-spacing);
+}
+
+.haru-text--callout {
+  font-size: var(--text-callout);
+  line-height: var(--text-callout--line-height);
+  font-weight: var(--text-callout--font-weight);
+  letter-spacing: var(--text-callout--letter-spacing);
+}
+
+.haru-text--subheadline {
+  font-size: var(--text-subheadline);
+  line-height: var(--text-subheadline--line-height);
+  font-weight: var(--text-subheadline--font-weight);
+  letter-spacing: var(--text-subheadline--letter-spacing);
+}
+
+.haru-text--footnote {
+  font-size: var(--text-footnote);
+  line-height: var(--text-footnote--line-height);
+  font-weight: var(--text-footnote--font-weight);
+  letter-spacing: var(--text-footnote--letter-spacing);
+}
+
+.haru-text--caption-1 {
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  font-weight: var(--text-caption-1--font-weight);
+  letter-spacing: var(--text-caption-1--letter-spacing);
+}
+
+.haru-text--caption-2 {
+  font-size: var(--text-caption-2);
+  line-height: var(--text-caption-2--line-height);
+  font-weight: var(--text-caption-2--font-weight);
+  letter-spacing: var(--text-caption-2--letter-spacing);
+}
+
+/* ===== tone ============================================================== */
+.haru-text--tone-primary {
+  color: var(--color-fg-primary);
+}
+
+.haru-text--tone-strong {
+  color: var(--color-fg-strong);
+}
+
+.haru-text--tone-secondary {
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}
+
+.haru-text--tone-tertiary {
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-tertiary);
+}
+
+.haru-text--tone-on-accent {
+  /* accepted deviation: D-01 (white label on teal = 2.07:1, approvals §3) */
+  color: var(--color-fg-on-accent);
+}
+
+.haru-text--tone-disabled {
+  color: var(--color-fg-disabled);
+}
+
+/* link 은 색 단독으로 구분하지 않는다 — Figma `179:1721` 이 underline 을 쓴다 (§3.2.1). */
+.haru-text--tone-link {
+  color: var(--color-fg-link);
+  text-decoration: underline;
+}
+
+.haru-text--tone-inherit {
+  color: inherit;
+}
+
+/* ===== weight override =================================================== */
+.haru-text--weight-regular {
+  font-weight: var(--font-weight-regular);
+}
+
+.haru-text--weight-medium {
+  font-weight: var(--font-weight-medium);
+}
+
+.haru-text--weight-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+
+.haru-text--weight-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+.haru-text--weight-heavy {
+  font-weight: var(--font-weight-heavy);
+}
+
+/* ===== align ============================================================= */
+.haru-text--align-start {
+  text-align: start;
+}
+
+.haru-text--align-center {
+  text-align: center;
+}
+
+.haru-text--align-end {
+  text-align: end;
+}
+
+/* ===== truncate ==========================================================
+ * 1 줄은 ellipsis, 2·3 줄은 line-clamp. 높이를 고정하지 않으므로 텍스트 200%
+ * 확대에서도 reflow 가 깨지지 않는다 (§4.1 금지 항목).
+ */
+.haru-text--truncate-1 {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.haru-text--truncate-2,
+.haru-text--truncate-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.haru-text--truncate-2 {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.haru-text--truncate-3 {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+/* ===== numeric =========================================================== */
+.haru-text--numeric {
+  font-variant-numeric: tabular-nums;
+}

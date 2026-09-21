@@ -1,0 +1,126 @@
+/*
+ * InlineAlert / Banner — Design Spec §4.11 · §5.4 (Figma 없음 → 명세)
+ * 색 + 아이콘 + 문구 3중 표시. offline 만 status 색을 쓰지 않는다 (TOKEN_MAP §4).
+ */
+
+.haru-alert {
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  inline-size: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-surface);
+  /* Design Spec §4.11 — border 1px (hairline 토큰 없음) */
+  border: 1px solid transparent;
+}
+
+.haru-alert__icon {
+  display: inline-flex;
+  flex: none;
+  inline-size: var(--size-icon-md);
+  block-size: var(--size-icon-md);
+}
+
+.haru-alert__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  flex: 1 1 auto;
+}
+
+.haru-alert__action {
+  align-self: flex-start;
+  min-block-size: var(--size-touch-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.haru-alert__dismiss {
+  flex: none;
+}
+
+/* ===== tone ============================================================== */
+.haru-alert--info {
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  background-color: var(--color-status-info-bg);
+  color: var(--color-status-info-fg);
+  border-color: var(--color-status-info-border);
+}
+
+.haru-alert--info .haru-alert__icon {
+  color: var(--color-status-info-icon);
+}
+
+.haru-alert--success {
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-fg);
+  border-color: var(--color-status-success-border);
+}
+
+.haru-alert--success .haru-alert__icon {
+  color: var(--color-status-success-icon);
+}
+
+.haru-alert--warning {
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  background-color: var(--color-status-warning-bg);
+  color: var(--color-status-warning-fg);
+  border-color: var(--color-status-warning-border);
+}
+
+.haru-alert--warning .haru-alert__icon {
+  color: var(--color-status-warning-icon);
+}
+
+.haru-alert--error {
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-fg);
+  border-color: var(--color-status-error-border);
+}
+
+.haru-alert--error .haru-alert__icon {
+  color: var(--color-status-error-icon);
+}
+
+/* offline — status 색을 쓰지 않는다 (§4.11). */
+.haru-alert--offline {
+  background-color: var(--color-surface-note);
+  color: var(--color-fg-primary);
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  border-color: var(--color-border-subtle);
+}
+
+/* ===== placement =========================================================
+ * banner 는 TopBar 바로 아래 sticky (§5.4). 앱 컬럼 폭을 그대로 쓴다.
+ */
+.haru-alert--banner {
+  position: sticky;
+  inset-block-start: var(--topbar-height);
+  z-index: var(--z-sticky);
+  animation: haru-alert-in var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+@keyframes haru-alert-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===== reduced motion — 즉시 표시 (§9.2) ================================= */
+@media (prefers-reduced-motion: reduce) {
+  .haru-alert--banner {
+    animation: none;
+  }
+}

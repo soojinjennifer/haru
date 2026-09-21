@@ -1,9 +1,18 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
+import { Spinner } from '../feedback/Spinner';
 import { cx } from '../lib/cx';
 
 /** Design Spec §4.5 — `plain` 은 TopBar 밀집 배치용(배경·그림자 없음). */
 export type IconButtonVariant = 'glass' | 'plain';
+
+/**
+ * Design Spec §4.5 — 치수 표에는 38×38 한 값만 있다.
+ * 사용자 결정 S1-D1-2 (`docs/decisions/stage-1-approvals.md` §7): prop 은 유지하되
+ * Spec 에 없는 크기를 만들지 않는다. 다른 크기가 필요한 화면이 나오는 Stage 에서
+ * Figma 치수를 받아 값을 늘린다(optional prop 에 값 추가이므로 비파괴적).
+ */
+export type IconButtonSize = 'md';
 
 type NativeButtonProps = Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
@@ -19,6 +28,8 @@ export interface IconButtonProps extends NativeButtonProps {
   /** 접근성 이름 — 필수 (§4.5). */
   label: string;
   variant?: IconButtonVariant;
+  /** 시각 38×38 · 아이콘 20 · hit area 44 (§4.5). 현재 값은 `md` 하나다. */
+  size?: IconButtonSize;
   loading?: boolean;
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
@@ -35,6 +46,7 @@ export function IconButton({
   icon,
   label,
   variant = 'glass',
+  size = 'md',
   loading = false,
   disabled = false,
   type = 'button',
@@ -49,6 +61,7 @@ export function IconButton({
         'haru-icon-button',
         'haru-focus-ring',
         `haru-icon-button--${variant}`,
+        `haru-icon-button--${size}`,
         loading && 'haru-icon-button--loading',
       )}
       aria-label={label}
@@ -63,7 +76,12 @@ export function IconButton({
       <span className="haru-icon-button__icon" aria-hidden="true">
         {icon}
       </span>
-      {loading ? <span className="haru-icon-button__indicator" aria-hidden="true" /> : null}
+      {loading ? (
+        <span className="haru-icon-button__indicator">
+          {/* 버튼이 `aria-busy` 를 갖고 있으므로 Spinner 는 장식이다 (§4.9). */}
+          <Spinner size="sm" tone="inherit" decorative />
+        </span>
+      ) : null}
     </button>
   );
 }

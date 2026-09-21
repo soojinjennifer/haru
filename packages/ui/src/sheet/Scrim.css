@@ -1,0 +1,45 @@
+/*
+ * Scrim — Design Spec §4.21 (`--color-scrim`, 가값 P-05)
+ */
+
+.haru-scrim {
+  position: fixed;
+  inset: 0;
+  /* provisional: P-05 (docs/decisions/stage-0-approvals.md §4) */
+  background-color: var(--color-scrim);
+  opacity: 1;
+  animation: haru-scrim-in var(--motion-duration-base) var(--motion-ease-standard);
+}
+
+@keyframes haru-scrim-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes haru-scrim-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.haru-scrim--sheet {
+  z-index: var(--z-sheet);
+}
+
+.haru-scrim--dialog {
+  z-index: var(--z-dialog);
+}
+
+.haru-scrim--closing {
+  opacity: 0;
+  animation: haru-scrim-out var(--motion-duration-base) var(--motion-ease-standard);
+}

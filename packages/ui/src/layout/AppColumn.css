@@ -1,0 +1,29 @@
+/*
+ * AppColumn — Design Spec §2.4 · §7 (Stage 0 #12)
+ * 320 min / 480 max / gutter 24 / safe-area. 다단 레이아웃 없음.
+ */
+
+.haru-app-column {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: var(--layout-min-width);
+  max-inline-size: var(--layout-app-max-width);
+  margin-inline: auto;
+  /* provisional: P-08 (docs/decisions/stage-0-approvals.md §4) — safe-area */
+  padding-block-start: var(--layout-safe-top);
+  padding-block-end: var(--layout-safe-bottom);
+  padding-inline-start: var(--layout-safe-left);
+  padding-inline-end: var(--layout-safe-right);
+}
+
+/* provisional: P-13 (docs/decisions/stage-0-approvals.md §4) — gutter 24 */
+.haru-app-column--padded {
+  padding-inline-start: calc(var(--layout-safe-left) + var(--layout-gutter));
+  padding-inline-end: calc(var(--layout-safe-right) + var(--layout-gutter));
+}
+
+/* 가로 캐러셀이 화면 끝까지 닿아야 하는 경우에만 쓴다 (§2.4). */
+.haru-app-column--edge-to-edge {
+  padding-inline-start: 0;
+  padding-inline-end: 0;
+}

@@ -45,7 +45,7 @@ export function ProgressBar({
   const current = indeterminate ? 0 : clamp(value, safeMax);
   const percent = indeterminate ? 0 : (current / safeMax) * 100;
 
-  const fillStyle = { '--haru-progress-fill-size': `${percent}%` } as CSSProperties;
+  const fillStyle = { '--progress-fill-size': `${percent}%` } as CSSProperties;
 
   return (
     <div className={cx('haru-progress', `haru-progress--${size}`, `haru-progress--${tone}`)}>
