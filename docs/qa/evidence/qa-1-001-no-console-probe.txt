@@ -1,0 +1,14 @@
+QA-1-001 re-verification probe — 5 console calls per virtual file (never written to repo)
+Mon Sep 21 08:52:08 KST 2026
+apps/web/src/features/probe.ts -> no-console errors: 5 / 5
+apps/web/src/pages/probe.tsx -> no-console errors: 5 / 5
+apps/web/src/app/probe.ts -> no-console errors: 5 / 5
+apps/web/src/entities/probe.ts -> no-console errors: 5 / 5
+apps/web/src/mocks/probe.ts -> no-console errors: 5 / 5
+apps/web/src/shared/lib/other.ts -> no-console errors: 5 / 5
+packages/ui/src/probe.ts -> no-console errors: 5 / 5
+packages/ui/src/lib/other.ts -> no-console errors: 5 / 5
+packages/ui/src/icon/Icon2.tsx -> no-console errors: 5 / 5
+packages/contracts/src/probe.ts -> no-console errors: 5 / 5
+apps/web/src/shared/lib/logger.ts -> no-console errors: 0 / 5
+packages/ui/src/lib/devWarn.ts -> no-console errors: 0 / 5

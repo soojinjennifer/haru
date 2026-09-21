@@ -129,3 +129,29 @@ Stage 1-D1 = `packages/ui` 최초 생성 + Shared UI 8종. 상세는 `docs/qa/st
 |---|---|---|
 | **S1-D1-1** | Tag `neutral` tone 배경 토큰 | Design Spec §4.15 가 Tier 1 `--haru-dusk-200` 을 직접 지정한다. 대응 semantic 토큰이 없어 `packages/ui` 가 참조하는 유일한 Tier 1 토큰이 되었다. ① semantic 토큰 신설 ② 현행 유지 중 결정 필요 (신규 토큰 요청은 design-agent 소관 — rules/frontend.md §6) |
 | **S1-D1-2** | `IconButton.size` prop | Design Spec §4.5 props 목록에 있으나 치수 표에 단계 값이 없다. 추측 구현을 하지 않고 prop 을 두지 않았다. 필요 시 Design Spec 에 값 추가 후 구현 |
+
+---
+
+## 7. 2026-09-20 사용자 결정 — §6.1 후속 항목 해소
+
+| ID | 결정 | 내용 | 반영 시점 |
+|---|---|---|---|
+| **S1-D1-1** | **semantic 토큰 신설** | `packages/design-tokens` 의 Tier 2 에 **`--color-tag-neutral-bg: var(--haru-dusk-200)`** 를 추가하고, `packages/ui` 의 Tag `neutral` 은 이 semantic 토큰만 참조한다. **색 값(`#c7c9d7`)은 변경하지 않으며 참조 경로만 바뀐다.** 이로써 `packages/ui` → Tier 1 직접 참조가 **0건**이 되어 Primitive → Semantic → Component 규율이 예외 없이 유지된다. 이름은 Tag 전용 범위를 그대로 드러내는 `--color-tag-neutral-bg` 로 하며, `--color-capability-*-bg` 계열에 넣지 않는다 (neutral 은 역량이 아니다) | **Stage 1-D2** |
+| **S1-D1-2** | **`size` prop 유지 · `md`(38) 한 값만** | Design Spec §4.5 의 props 목록을 지키되 Spec 에 없는 치수를 만들지 않는다. 타입은 `size?: 'md'`, 치수는 시각 38×38 · 아이콘 `--size-icon-md`(20) · hit area 44×44 로 §4.5 표 그대로다. **다른 크기가 실제로 필요한 화면이 나오는 Stage 에서** Figma 치수를 받아 단계를 늘린다(optional prop 에 값 추가이므로 비파괴적 변경). 아이콘 토큰 3단계(16/20/24)에서 버튼 크기를 파생하지 않는다 — 결정 #10 "값은 Figma 만 기준" 과 충돌하기 때문 | **Stage 1-D2** |
+
+두 항목 모두 **Stage 1-D2 의 선행 조건이었으며 해소되었다.** `docs/workflow/WORKFLOW_STATE.md` §3 과 `docs/workflow/stage-1/stage-1-D2.md` 에 반영되어 있다.
+
+> 참고 — `--color-bg-app-end` 가 이미 `--haru-dusk-200` 을 참조하지만, 그 토큰의 의미는 "앱 배경 그라디언트 끝"이므로 Tag 배경으로 재사용하지 않는다. 값이 같다는 이유로 의미가 다른 토큰을 공유하면 한쪽 값을 바꿀 때 다른 쪽이 따라 바뀐다.
+
+---
+
+## 8. 2026-09-21 사용자 결정 — Stage 1-G 종료 시점 4건
+
+| ID | 결정 | 내용 | 반영 |
+|---|---|---|---|
+| **S1-G-1** | **`interactive` variant 폐기** | `PageIndicator` 를 **표시 전용**으로 확정하고 dot 클릭 기능을 제거한다. Design Spec 내부 충돌(§9.3 터치 44 요구 ↔ §4.19 dot 7 + gap 6)은 **§4.19 기하를 유지하고 인터랙션을 없애는 방향**으로 해소한다. Figma 근거가 있는 것은 표시용 dot 뿐이고, 캐러셀 페이지 이동은 스와이프·버튼이 담당한다. Stage 1 제품 화면에 미마운트 상태라 회귀 위험 없음. 필요해지면 Stage 3 캐러셀 설계 시 디자이너 입력을 받아 재도입한다 | 코드 |
+| **S1-G-2** | **42px 유지 + 수용 예외** | `--field-row-height: 42px`(Figma `76:364`) 를 **그대로 둔다.** 터치 타깃 44 기준에 2px 미달이나 ① 라벨·헬퍼를 포함한 세로 영역이 넓고 ② 인접 타깃과 겹치지 않아 오조작 위험이 낮으며 ③ Visual Source of Truth 를 흔들지 않는 편이 낫다. **QA 는 이 항목을 `PASS (accepted: S1-G-2)` 로 기록한다.** Design Spec §9.3 터치 표에 TextField 행을 추가하는 것은 design-agent 소관 | 문서 |
+| **S1-D2-5** | **`book` + `chart-no-axes-column-increasing`** | 탭 아이콘 Lucide 글리프를 확정한다. 1-G 가 Figma `25:87` 을 16배 확대해 대조한 결과 기존 후보 4종이 모두 불일치했고, lucide-react 1.47.0 의 path 대조로 이 둘이 Figma 형태와 1:1 대응함을 확인했다 — `book` = 사각형 + 책등 + 선반선, `chart-no-axes-column-increasing` = 축 없는 좌→우 증가 막대 3개. 함께 검토할 것: Figma 막대가 21px 기준 두꺼워 **탭 아이콘 한정 `LUCIDE_STROKE_WIDTH` 상향**이 필요한지 (구현이 판단해 보고) | 코드 + baseline 재생성 |
+| **S1-D2-6** | **`maxDiffPixelRatio: 0.002` + `maxDiffPixels: 200`** | 시각 비교 임계값을 확정한다. 잠정값 0.02 는 가장 작은 baseline 에서도 23×23 블록, `frame-1024` 에서는 125×125 변화를 통과시켜 **아이콘 하나가 통째로 바뀌어도 탐지하지 못한다.** 실측 diff 가 0 픽셀이므로 0.2% 로 낮춰도 여유가 충분하고, 절대 픽셀 상한을 병기해 큰 화면에서 허용량이 비례 증가하는 문제를 막는다. `provisional` 주석을 제거한다. 플랫폼별 baseline 분리(`{platform}`)는 이미 적용됨 | 코드 |
+
+> `S1-G-1` 과 `S1-D2-5` 는 Design Spec 갱신이 뒤따라야 한다(§4.19 interactive 삭제, §8.1 아이콘 대응표). **문서 갱신은 design-agent 소관**이며 Stage 1 QA 이후 별도로 처리한다.

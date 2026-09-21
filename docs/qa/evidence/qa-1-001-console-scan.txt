@@ -1,0 +1,6 @@
+# QA-1-001 재검증 — 제품 소스 console 직접 접근 스캔 (Mon Sep 21 09:11:28 KST 2026)
+# grep -rnE 'console[[:space:]]*\.' apps packages (테스트·scripts·d.ts 제외)
+apps/web/src/shared/lib/logger.ts:76:      console.warn(`[haru] ${safeEvent}`, safeContext);
+apps/web/src/shared/lib/logger.ts:79:      console.error(`[haru] ${safeEvent}`, safeContext);
+apps/web/src/shared/lib/logger.ts:82:      console.log(`[haru:${level}] ${safeEvent}`, safeContext);
+packages/ui/src/lib/devWarn.ts:46:  console.warn(`[haru/ui] ${sanitizeToken(component)}${target} ${DEV_WARN_MESSAGE[issue]}`);
