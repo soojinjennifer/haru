@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <!--
+      Inter woff2 preload 는 `haru:inter-preload` 플러그인(vite.config.ts)이 주입한다.
+      CSS 의 `@font-face` 가 실제로 받는 URL 과 **같은 URL** 이어야 중복 다운로드가 없으므로
+      dev(`/@fs/…`) / build(`/assets/fonts/…`) 를 플러그인이 각각 계산한다 (이월 S1-B-2).
+      외부 CDN / Google Fonts 요청은 0 건이다 (AC-1-14).
+    -->
+    <title>HARU</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

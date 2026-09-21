@@ -1,0 +1,32 @@
+/*
+ * Tailwind v4 컴파일 검증용 probe — 이월 항목 `S1-B-1` (Stage 1-B 미검증분).
+ * 앱 번들에 포함되지 않는다. `scripts/verify-tailwind.mjs` 만 이 파일을 빌드한다.
+ *
+ * - `source(none)` : 파일 스캔을 끄고 아래 `@source inline(...)` 후보만 검사한다 (결정적).
+ * - 앞쪽은 **생성되어야 하는** HARU semantic 유틸리티,
+ *   뒤쪽은 **생성되면 안 되는** Tailwind 기본 팔레트 · sm / xl / 2xl variant 다.
+ */
+
+@import 'tailwindcss' source(none);
+@import '@haru/design-tokens';
+
+@source inline(
+  "text-fg-primary bg-surface-glass border-border-subtle bg-capability-emotion-bg text-fg-on-accent"
+);
+@source inline("font-sans text-body text-caption-2 font-semibold");
+@source inline("rounded-card rounded-pill shadow-glass-rest inset-shadow-highlight");
+@source inline("backdrop-blur-material-md ease-standard animate-skeleton p-4 gap-2");
+@source inline("md:p-4 lg:p-4");
+@source inline(
+  "z-base z-sticky z-tabbar z-sheet z-dialog z-toast duration-instant duration-fast duration-base duration-slow"
+);
+@source inline(
+  "material-glass-rest material-glass-raised material-glass-pressed material-glass-strong"
+);
+@source inline("app-column px-gutter max-w-app min-w-app h-tabbar");
+@source inline("pt-safe pb-safe pl-safe pr-safe mb-safe bg-app min-touch focus-ring");
+@source inline("opacity-disabled size-icon-sm size-icon-md size-icon-lg");
+
+/* 생성되면 안 되는 후보 (AC-1-11 · Design Spec §7.1) */
+@source inline("bg-blue-500 text-red-600 border-gray-200 bg-slate-50");
+@source inline("sm:p-4 xl:p-4 2xl:p-4");

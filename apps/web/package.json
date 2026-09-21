@@ -1,0 +1,43 @@
+{
+  "name": "@haru/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "HARU Caregiver Web App — React + Vite 앱 셸 (Stage 1 Plan §9.5)",
+  "license": "UNLICENSED",
+  "scripts": {
+    "predev": "pnpm --filter @haru/design-tokens run build",
+    "dev": "vite",
+    "prebuild": "pnpm --filter @haru/design-tokens run build",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
+    "test": "vitest run",
+    "verify:tailwind": "node scripts/verify-tailwind.mjs"
+  },
+  "dependencies": {
+    "@haru/contracts": "workspace:*",
+    "@haru/design-tokens": "workspace:*",
+    "@haru/ui": "workspace:*",
+    "@tanstack/react-query": "^5.103.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router": "~8.4.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@haru/config": "workspace:*",
+    "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^24.13.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "jsdom": "^30.1.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.0",
+    "vitest": "~4.1.11"
+  }
+}

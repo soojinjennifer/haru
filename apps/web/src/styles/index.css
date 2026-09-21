@@ -1,0 +1,42 @@
+/*
+ * HARU apps/web — 스타일 진입점
+ *
+ * 소비 순서 (Stage 1-B/1-D1 결정, `docs/decisions/stage-1-approvals.md` §4.1 · §6)
+ *   1. `tailwindcss`            — theme / preflight / utilities 레이어 선언
+ *   2. `@haru/design-tokens`    — Tailwind 기본 네임스페이스 **초기화** + HARU Tier1·Tier2 토큰
+ *                                 + `@theme` 노출 + `@utility` (z · motion · material · layout …)
+ *   3. `@haru/ui/styles.css`    — Shared UI 22종의 컴포넌트 CSS (Tier3 토큰 포함)
+ *
+ * 2 가 1 보다 **뒤에** 와야 `--color-*: initial` 등 초기화가 Tailwind 기본 팔레트를 지운다.
+ * 3 은 레이어 밖(unlayered) CSS 라 preflight(`@layer base`)보다 우선한다 — 의도된 순서다.
+ */
+
+@import 'tailwindcss';
+@import '@haru/design-tokens';
+@import '@haru/ui/styles.css';
+
+/*
+ * 앱 셸 기본값. 값은 전부 semantic token 이며 리터럴 수치를 쓰지 않는다.
+ * (여기는 화면 코드가 아니라 스타일 진입점이지만 동일 규칙을 지킨다 — rules/frontend.md §6)
+ */
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    /* 모바일 가로 회전 시 글자 크기 자동 확대 방지 */
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    color: var(--color-fg-primary);
+    background-color: var(--color-bg-app-start);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+
+  /* 고정 높이 컨테이너를 만들지 않는다 (텍스트 200% 확대 reflow — Design Spec §7.2). */
+  #root {
+    isolation: isolate;
+  }
+}

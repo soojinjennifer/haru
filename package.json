@@ -11,14 +11,16 @@
   },
   "scripts": {
     "preinstall": "node scripts/check-node-version.mjs",
-    "typecheck": "tsc --noEmit -p tsconfig.json && pnpm -r --if-present run typecheck",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.e2e.json && pnpm -r --if-present run typecheck",
     "lint": "eslint .",
     "lint:boundaries": "node scripts/lint-boundaries.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "node scripts/pending-script.mjs test:e2e \"Playwright E2E / visual comparison — deferred to Stage 1-C (no app to serve yet; Plan D-10 @playwright/test ~1.63.0)\"",
-    "build": "node scripts/pending-script.mjs build \"apps/web production build — Stage 1-C. packages/* 빌드는 아래 -r 실행이 담당한다 (Stage 1-B: @haru/design-tokens)\" && pnpm -r --if-present run build",
-    "dev": "node scripts/pending-script.mjs dev \"apps/web dev server — Stage 1-C\" && pnpm -r --if-present run dev",
+    "test:e2e": "playwright test",
+    "test:e2e:update": "playwright test --update-snapshots",
+    "test:e2e:report": "playwright show-report",
+    "build": "pnpm -r --if-present run build",
+    "dev": "pnpm --filter @haru/web run dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "assert:no-mocks": "node scripts/assert-no-mocks.mjs"
@@ -26,6 +28,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@haru/config": "workspace:*",
+    "@playwright/test": "~1.63.0",
     "@types/node": "^24.13.5",
     "@vitest/coverage-v8": "~4.1.11",
     "dependency-cruiser": "^18.3.1",
