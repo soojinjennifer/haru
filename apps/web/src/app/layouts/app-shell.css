@@ -1,0 +1,26 @@
+/*
+ * AppShell 고정 영역 — Design Spec §2.2 (TopBar sticky · BottomTabBar 상시 노출)
+ *
+ * 스크롤/클리핑 컨테이너는 앱 컬럼 **바깥**(뷰포트 전 폭)에 있고 TopBar · BottomTabBar 는 앱
+ * 컬럼 **안쪽**에 있다. 두 영역이 스크롤과 함께 사라지지 않도록 `position: sticky` 로 고정한다.
+ * (`position: fixed` 를 쓰면 컬럼 폭·gutter·safe-area 정렬을 여기서 다시 계산해야 한다 — §2.2
+ * "BottomTabBar 도 앱 컬럼 폭 안에 정렬한다".)
+ *
+ * sticky 기준선은 0 이 아니라 safe-area 다. 앱 컬럼이 상·하 `env(safe-area-inset-*)` 만큼
+ * padding 을 갖고 있으므로, 같은 값을 sticky offset 으로 써야 고정 영역이 노치·홈 인디케이터
+ * 영역으로 밀려 올라가지 않는다.
+ *
+ * 값은 전부 semantic token 이며 리터럴 수치를 쓰지 않는다 (rules/frontend.md §6).
+ */
+
+.haru-app-shell__bar-top {
+  position: sticky;
+  inset-block-start: var(--layout-safe-top);
+  z-index: var(--z-sticky);
+}
+
+.haru-app-shell__bar-bottom {
+  position: sticky;
+  inset-block-end: var(--layout-safe-bottom);
+  z-index: var(--z-tabbar);
+}

@@ -231,11 +231,22 @@
   block-size: 100dvh;
 }
 
+/*
+ * 스크롤 컨테이너는 앱 컬럼 **바깥**(뷰포트 전 폭)이다 — `AppShell.tsx` 와 같은 구조다.
+ * 컬럼 안쪽에서 스크롤하면 `overflow-x` 가 `visible` 로 남지 못해 카드 그림자가
+ * 컬럼 폭에 맞춰 직사각형으로 잘린다.
+ */
+.haru-dev-screen__viewport {
+  display: grid;
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .haru-dev-screen__inner {
   display: flex;
   flex-direction: column;
   block-size: 100%;
-  min-block-size: 0;
 }
 
 .haru-dev-screen__content {
@@ -243,13 +254,20 @@
   flex: 1 1 auto;
   flex-direction: column;
   gap: var(--space-4);
-  min-block-size: 0;
   padding-block: var(--space-6);
-  overflow-y: auto;
-  overscroll-behavior: contain;
+}
+
+/* TopBar · BottomTabBar 는 스크롤 컨테이너 안에서 sticky 로 고정한다 (app-shell.css 와 동일). */
+.haru-dev-screen__top {
+  position: sticky;
+  inset-block-start: var(--layout-safe-top);
+  z-index: var(--z-sticky);
+  flex-shrink: 0;
 }
 
 .haru-dev-screen__tabs {
+  position: sticky;
+  inset-block-end: var(--layout-safe-bottom);
   z-index: var(--z-tabbar);
   flex-shrink: 0;
   padding-block-start: var(--space-3);

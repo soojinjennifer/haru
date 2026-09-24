@@ -9,7 +9,7 @@ import { AppShell } from './AppShell';
 export interface StackLayoutProps {
   /** TopBar 슬롯 — `variant=inline | centered` 를 쓰는 화면에서 주입한다 (§2.3). */
   topBar?: ReactNode;
-  /** 하단 고정 CTA. 키보드 가림을 피하려고 **스크롤 컨테이너 내부** 마지막 블록이다 (§2.2). */
+  /** 하단 CTA. 키보드 가림을 피하려고 **스크롤 컨테이너 내부** 마지막 블록이다 (§2.2 — 고정하지 않는다). */
   footer?: ReactNode;
   /** 주지 않으면 router `Outlet` 을 렌더한다. */
   children?: ReactNode;
@@ -24,11 +24,10 @@ export interface StackLayoutProps {
 export function StackLayout({ topBar, footer, children }: StackLayoutProps) {
   return (
     <AppShell>
-      {topBar === undefined ? null : <div className="shrink-0">{topBar}</div>}
-      <main
-        className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
-        aria-label={appCopy.landmarks.mainContent}
-      >
+      {topBar === undefined ? null : (
+        <div className="haru-app-shell__bar-top shrink-0">{topBar}</div>
+      )}
+      <main className="flex flex-1 flex-col" aria-label={appCopy.landmarks.mainContent}>
         <div className="grow">
           <RouteErrorBoundary>{children ?? <Outlet />}</RouteErrorBoundary>
         </div>

@@ -19,15 +19,17 @@ export interface FullscreenLayoutProps {
  *
  * 스크롤 없이 고정 배치하는 몰입 화면용 (Stage 4 `/session/:id`).
  * 콘텐츠가 넘치면 스크롤 대신 잘린다 — 각 화면이 내부에서 높이를 배분한다.
+ *
+ * 잘라내는 지점(`overflow: hidden`)은 앱 컬럼 **바깥**의 AppShell 뷰포트다. 컬럼 안쪽에서
+ * 자르면 카드 그림자가 컬럼 폭에 맞춰 직사각형으로 잘린다 (AppShell 주석 참조).
  */
 export function FullscreenLayout({ topBar, footer, children }: FullscreenLayoutProps) {
   return (
-    <AppShell>
-      {topBar === undefined ? null : <div className="shrink-0">{topBar}</div>}
-      <main
-        className="flex min-h-0 flex-1 flex-col overflow-hidden"
-        aria-label={appCopy.landmarks.mainContent}
-      >
+    <AppShell scroll="none">
+      {topBar === undefined ? null : (
+        <div className="haru-app-shell__bar-top shrink-0">{topBar}</div>
+      )}
+      <main className="flex min-h-0 flex-1 flex-col" aria-label={appCopy.landmarks.mainContent}>
         <RouteErrorBoundary>{children ?? <Outlet />}</RouteErrorBoundary>
       </main>
       {footer === undefined ? null : <div className="shrink-0 pt-4">{footer}</div>}

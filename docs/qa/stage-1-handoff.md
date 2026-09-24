@@ -699,3 +699,173 @@ $ printf 'export function leak(childName: string) {\n  console.error("child", ch
 - **Blocking**: 없음
 - **Non-blocking**: `packages/ui/vitest.config.ts` 의 include 가 `.tsx` 전용이라 `packages/ui` 의 `.ts` 모듈 테스트가 **조용히 실행되지 않고 있었다**(기존 `lib/cx.ts` · `lib/motion.ts` 는 테스트 자체가 없어 드러나지 않음). include 를 `{ts,tsx}` 로 넓혀 해결했다.
 - **NEEDS_DECISION**: 없음
+
+---
+
+## 18. Stage Verdict 이후 발견된 레이아웃 결함 수정 — `QA-1-L1` 카드 그림자 클리핑 (2026-09-22)
+
+사용자가 실기기(모바일)에서 발견했고, 데스크톱 1024px `/` 에서도 재현되었다.
+**증상**: 카드·Sheet·Dialog 의 그림자가 배경으로 번지지 않고 **직사각형으로 잘린다.**
+
+### 18.1 원인
+
+`AppShell` 의 조립 순서. 스크롤 컨테이너가 앱 컬럼 **안쪽**에 있었다.
+
+```
+AppShell → AppColumn(max 480 · gutter 24) → main(overflow-y:auto)   ← main 이 클리핑 박스
+```
+
+CSS 규격상 `overflow-y` 가 `visible` 이 아니면 `overflow-x` 도 `visible` 로 남을 수 없어 `auto` 가
+된다. 그래서 `main` 이 **가로 클리핑 박스**가 되고, 그 폭이 카드 폭과 같아
+(`--shadow-glass-rest` 의 `0 12px 28px` · `0 28px 56px` = 가로로 약 28px 번짐) 그림자가 카드
+바로 옆에서 잘렸다.
+
+Playwright 로 `/` 의 조상 체인을 조회한 결과 가로를 자르는 요소는 정확히 하나였다:
+`<main class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">` (345px @393).
+
+### 18.2 수정 — 스크롤 컨테이너와 앱 컬럼의 순서를 뒤집었다
+
+| | 수정 전 | 수정 후 |
+|---|---|---|
+| 구조 | `AppShell → AppColumn → main(overflow-y:auto) → 콘텐츠` | `AppShell → 뷰포트 div(overflow-y:auto, 전 폭) → AppColumn → main → 콘텐츠` |
+| 클리핑 지점 | 콘텐츠 폭 (272 / 345 / 432 / 432) | 뷰포트 폭 (320 / 393 / 600 / 1024) |
+| TopBar | `main` 바깥 flex 행 (고정) | 스크롤 컨테이너 안 `position: sticky` (고정 유지) |
+| BottomTabBar | `main` 바깥 flex 행 (`S1-E-3`) | 스크롤 컨테이너 안 `position: sticky` (스크롤되지 않음) |
+| `FullscreenLayout` | `main` 에 `overflow-hidden` | 뷰포트 div 에 `overflow-hidden` (같은 결함이 있어 함께 수정) |
+
+- **AppColumn 규칙은 그대로다** (Design Spec §2.2 · §2.4): min 320 / max 480 가운데 정렬 ·
+  gutter 24 · safe-area. `AppColumn` 컴포넌트와 CSS 는 **건드리지 않았다**.
+- **그림자 토큰을 바꾸지 않았다** (`--shadow-glass-*` 는 Figma Effect Style 근거값 AD-3).
+  `packages/design-tokens` · `packages/ui` 변경 0건.
+
+#### BottomTabBar 를 `fixed` 가 아니라 `sticky` 로 둔 근거
+
+`S1-E-3`(flex 행) 를 **sticky 행으로 바꿨다**. 세 가지 대안을 비교했다.
+
+| 대안 | 판단 |
+|---|---|
+| ① flex 행 유지 (스크롤 컨테이너 바깥) | 탭 바·TopBar 가 각각 자기 `AppColumn` 을 가져야 컬럼 폭에 정렬된다. 그러면 `AppColumn` 이 화면당 3개가 되고 `padding-block-start/end: env(safe-area-inset-*)` 가 **3중 적용**된다 (iPhone 기준 탭 바 위에 59px 빈 공간). `AppColumn` 에 safe-area 제어 prop 을 새로 열어야 하는데 이는 Design Spec §2.4 의 props 표를 바꾸는 일이라 design-agent 소관이다 |
+| ② `position: fixed` (Design Spec §2.2 문자 그대로) | 컬럼 폭·gutter·safe-area 정렬을 레이아웃에서 다시 계산해야 한다 (§2.2 "BottomTabBar 도 앱 컬럼 폭 안에 정렬") |
+| ③ **`position: sticky` (채택)** | 앱 컬럼 **안**에 남으므로 폭·gutter·safe-area 가 AppColumn 규칙을 그대로 따른다. 스크롤 중에는 뷰포트 하단에 고정되고(=스크롤되지 않음), 스크롤 끝에서는 흐름 위치에 놓여 마지막 콘텐츠를 영구히 가리지 않는다. `AppColumn` API 변경 0, `packages/ui` 변경 0 |
+
+TopBar 도 같은 이유로 `sticky` 다. 수정 전에는 스크롤 컨테이너 **바깥**이라 `TopBar` 의 `sticky`
+prop 이 실질적으로 무의미했는데, 이제 Design Spec §2.2("TopBar sticky, z = `--z-sticky`")대로
+동작한다. sticky 기준선은 `0` 이 아니라 `var(--layout-safe-top)` / `var(--layout-safe-bottom)` 이라
+고정 영역이 노치·홈 인디케이터 영역으로 올라가지 않는다.
+
+### 18.3 수정 파일
+
+| 파일 | 변경 |
+|---|---|
+| `apps/web/src/app/layouts/AppShell.tsx` | 뷰포트(스크롤·클리핑) div 를 `AppColumn` **바깥**에 추가, `scroll?: 'auto' \| 'none'` prop |
+| `apps/web/src/app/layouts/app-shell.css` | **신규** — `.haru-app-shell__bar-top` · `.haru-app-shell__bar-bottom` (sticky + safe-area offset). 값은 전부 semantic token |
+| `apps/web/src/app/layouts/TabLayout.tsx` | `main` 에서 overflow 제거, TopBar·TabBar 를 sticky 래퍼로 |
+| `apps/web/src/app/layouts/StackLayout.tsx` | 동일 (footer 는 스크롤 컨테이너 내부 유지 — 키보드 가림 방지 §2.2) |
+| `apps/web/src/app/layouts/FullscreenLayout.tsx` | `AppShell scroll="none"`, `main` 의 `overflow-hidden` 제거 |
+| `apps/web/src/styles/index.css` | `app-shell.css` import (스타일 진입점 4번 항목) |
+| `apps/web/src/dev/ui-gallery/FramePage.tsx` · `apps/web/src/dev/dev.css` | dev 레이아웃 프레임에도 **같은 결함**이 있어 같은 구조로 수정 (`/__dev/ui/frame` 은 레이아웃 규칙 데모이자 반응형 e2e 측정 대상) |
+| `apps/web/src/app/layouts/__tests__/layouts.test.tsx` | 구조 불변식 테스트 추가 (6 → 15건) |
+| `apps/web/__tests__/app-shell-css.test.ts` | **신규** — sticky·safe-area 선언과 토큰 사용 검사 (3건) |
+| `e2e/shadow.spec.ts` | **신규** — 4개 폭 × 2화면 실제 렌더 검증 (8건) |
+
+`packages/**` 변경 없음. `apps/api/` · `supabase/` 미생성 (아래 §18.6).
+
+### 18.4 남긴 회귀 방지 테스트
+
+**① 구조 불변식 — `apps/web/src/app/layouts/__tests__/layouts.test.tsx` (Layout 3종 각각)**
+
+- 스크롤/클리핑 컨테이너(`[data-app-shell-viewport]`)가 `.haru-app-column` 을 **감싼다** (순서가
+  뒤집히면 실패)
+- `.haru-app-column` **안쪽에 `overflow-` 클래스를 가진 요소가 하나도 없다**
+- BottomTabBar 는 `main` 바깥의 `haru-app-shell__bar-bottom` 형제다
+- TopBar 영역은 `haru-app-shell__bar-top` 이며 `main` 의 직전 형제다
+
+**② CSS 선언 — `apps/web/__tests__/app-shell-css.test.ts`**
+클래스만 검사하면 CSS 규칙이 사라져도 통과하므로 `position: sticky` + `inset-block-*:
+var(--layout-safe-*)` + `z-index: var(--z-*)` 선언과 "리터럴 수치 0" 을 소스로 확인한다.
+
+**③ 실제 렌더 — `e2e/shadow.spec.ts` (`/` 와 `/__dev/ui/frame` × 320 / 393 / 600 / 1024)**
+
+- 카드의 조상 중 가로를 자르는 요소는 **뷰포트 폭 이상**이어야 한다
+- 카드 좌우 바깥 6px 지점의 픽셀을 `box-shadow: none` 을 적용한 같은 지점과 비교해 그림자가
+  실제로 그려졌는지 본다 (배경 gradient 와 무관한 자기참조 비교, 임계값 RGB 합 8)
+
+**변이(mutation) 검증**: `AppShell.tsx` · `StackLayout.tsx` 를 수정 전 상태로 되돌린 뒤
+`e2e/shadow.spec.ts` 의 `/` 케이스 **4건이 모두 실패**함을 확인했다 (테스트가 헛돌지 않음).
+이후 원상 복구.
+
+### 18.5 4개 폭 실측 — 그림자가 번지는지
+
+`/` 와 `/__dev/ui/frame` 을 각 폭에서 렌더하고 ⓐ 클리핑 조상 ⓑ 카드 왼쪽 바깥 8px 픽셀과
+같은 y 의 배경 픽셀 차이(RGB 합)를 측정했다. **잘리면 0 에 가깝고, 번지면 커진다.**
+
+| 폭 | 수정 전 클리핑 조상 | 수정 전 Δ | 수정 후 클리핑 조상 | 수정 후 Δ |
+|---|---|---|---|---|
+| 320 | `main` 272px | 1 / 0 | 뷰포트 div 320px | **18 / 20** |
+| 393 | `main` 345px | 0 / 1 | 뷰포트 div 393px | **19 / 20** |
+| 600 | `main` 432px | 2 / 0 | 뷰포트 div 600px | **29 / 28** |
+| 1024 | `main` 432px | 0 / 0 | 뷰포트 div 1024px | **31 / 28** |
+
+(각 칸의 두 값 = `/` · `/__dev/ui/frame`)
+캡처 비교: `docs/qa/evidence/` 에 두지 않고 수정 전/후 스크린샷을 세션에서 직접 대조했다 —
+수정 전 1024px `/` 에서 카드 아래 그림자가 카드 좌우 폭에서 **직각으로 끊기는 직사각형**이
+보이고, 수정 후 같은 지점이 gutter 와 컬럼 바깥 배경으로 연속적으로 사라진다.
+
+추가 실측 (회귀 없음 확인):
+
+- 긴 콘텐츠(2000px) 주입 시 뷰포트 div 가 정상 스크롤(`scrollHeight` 2234 / `clientHeight` 600),
+  document 자체 스크롤 0, 가로 스크롤 0, 앱 컬럼 폭 320 / 393 / 480 유지
+- 320px + 텍스트 220% 확대에서 스크롤해도 BottomTabBar 하단이 뷰포트 하단(568)에 고정,
+  TopBar 상단 0 유지, 가로 스크롤 0
+
+### 18.6 검증 명령 결과
+
+| 명령 | Exit | 결과 | 기준선 대비 |
+|---|---|---|---|
+| `pnpm typecheck` | 0 | root + e2e + 전 패키지 통과 | 동일 |
+| `pnpm lint` | 0 | 오류 0 · warning 0 | 동일 |
+| `pnpm lint:boundaries` | 0 | `no dependency violations found (242 modules, 604 dependencies cruised)` | 240→242 (신규 파일 2) |
+| `pnpm test` | 0 | **Test Files 62 passed / Tests 469 passed** | 61/458 → **62/469 (+1 파일 / +11건)** |
+| `pnpm build` | 0 | `index` 390.70 kB · css 75.19 kB | 동일 수준 |
+| `pnpm format:check` | 0 | All matched files use Prettier code style | 동일 |
+| `pnpm test:e2e` | 0 | **58 passed (56.6s)** | 50 → **58 (+8, `shadow.spec.ts`)** |
+| baseline png | — | **27건 (개수 변화 없음)** · 5건 재생성 | §18.7 |
+| `apps/api/` · `supabase/` | — | 미생성 (`git status` · `ls` 확인) | 동일 |
+
+감소한 항목 없음.
+
+### 18.7 재생성한 baseline 5건과 사유
+
+임계값을 **0 (`maxDiffPixelRatio: 0`, `maxDiffPixels: 0`)** 으로 낮춘 임시 설정으로 baseline
+27건을 전수 재비교했다. **차이가 난 것은 아래 5건뿐**이며, 요소 단위 baseline 22건
+(`v1`…`v9`)은 **바이트 동일**이라 손대지 않았다.
+
+| 파일 | diff | 사유 |
+|---|---|---|
+| `visual.spec.ts/frame-320.png` | 1682px | `/__dev/ui/frame` 구조 수정 (그림자가 gutter 로 번짐 + TopBar 가 sticky 가 되며 Chromium 이 합성 레이어를 만들어 제목 텍스트 안티앨리어싱이 subpixel → grayscale 로 바뀜) |
+| `visual.spec.ts/frame-393.png` | 442px | 동일 |
+| `visual.spec.ts/frame-600.png` | 427px | 동일 |
+| `visual.spec.ts/frame-1024.png` | 431px | 동일 |
+| `responsive.spec.ts/frame-320-text-200.png` | 1682px | 동일 (200% 확대 프레임) |
+
+diff 이미지 확인 결과 **레이아웃 이동은 없다** — 붉게 표시된 영역은 TopBar 제목 글자뿐이고,
+카드·버튼·탭 바의 위치와 크기는 동일하다. 앱 컬럼 폭 실측 e2e(272 / 345 / 432 / 432, 좌우
+대칭 ±1px, 가로 스크롤 0)는 재생성 없이 그대로 통과했다.
+
+### 18.8 보고
+
+- **Blocking**: 없음
+- **Non-blocking**:
+  1. `TopBar` 가 sticky 가 되면서 Chromium 이 합성 레이어를 만들어 제목 텍스트가 grayscale
+     안티앨리어싱으로 그려진다. 레이아웃·색·크기 변화는 없고 sticky 헤더에서는 일반적인 동작이라
+     그대로 둔다 (baseline 5건 재생성 사유의 일부).
+  2. `useScrolledPast` 는 `window` scroll 을 구독하는데 스크롤 주체는 AppShell 뷰포트 div 다.
+     따라서 `TopBar` 의 "스크롤 8px 이상에서 glass 배경" (§6.1 RECOMMENDED) 은 **수정 전에도
+     지금도 동작하지 않는다**. Stage 1 `/` 에는 TopBar 가 없어 사용자 영향이 없고, 이번 결함
+     범위 밖이라 건드리지 않았다. **Stage 2 에서 TopBar 를 실제로 쓸 때 처리 필요**.
+- **NEEDS_DECISION** (design-agent / 사용자):
+  1. `S1-E-3` 갱신 — Design Spec §2.2 는 BottomTabBar 를 `fixed` 로 적고 있으나 구현은
+     `sticky` 다 (근거 §18.2). 문서 표기를 `sticky` 로 맞출지 결정 필요.
+  2. Design Spec §2.2 의 화면 골격 다이어그램이 `AppColumn` 안에 스크롤 영역을 두고 있다.
+     그림자 클리핑 때문에 순서를 뒤집었으므로 다이어그램 갱신이 필요하다 (development-agent 는
+     Design Spec 을 수정하지 않는다).

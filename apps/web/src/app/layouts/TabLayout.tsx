@@ -22,18 +22,21 @@ export interface TabLayoutProps {
  *
  * BottomTabBar 는 앱 컬럼 **안쪽** 마지막 flex 행이다. `position: fixed` 를 쓰지 않으므로
  * 컬럼 폭·gutter·safe-area 정렬이 AppColumn 규칙을 그대로 따른다 (§2.2 "컬럼 폭 안에 정렬").
+ * 스크롤 컨테이너가 앱 컬럼 바깥으로 옮겨졌으므로(AppShell 주석) 탭 바와 TopBar 는
+ * `position: sticky` 로 고정한다 — 스크롤과 함께 사라지지 않는다 (`app-shell.css`).
  */
 export function TabLayout({ topBar, tabBar, children }: TabLayoutProps) {
   return (
     <AppShell>
-      {topBar === undefined ? null : <div className="shrink-0">{topBar}</div>}
-      <main
-        className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
-        aria-label={appCopy.landmarks.mainContent}
-      >
+      {topBar === undefined ? null : (
+        <div className="haru-app-shell__bar-top shrink-0">{topBar}</div>
+      )}
+      <main className="flex flex-1 flex-col" aria-label={appCopy.landmarks.mainContent}>
         <RouteErrorBoundary>{children ?? <Outlet />}</RouteErrorBoundary>
       </main>
-      {tabBar === undefined ? null : <div className="z-tabbar shrink-0 pt-3">{tabBar}</div>}
+      {tabBar === undefined ? null : (
+        <div className="haru-app-shell__bar-bottom shrink-0 pt-3">{tabBar}</div>
+      )}
     </AppShell>
   );
 }

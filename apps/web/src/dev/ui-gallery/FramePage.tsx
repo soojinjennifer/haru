@@ -66,69 +66,73 @@ export function FramePage() {
   return (
     <div className="haru-dev-screen">
       <AppBackground />
-      <AppColumn as="div" id="frame-app-column">
-        <div className="haru-dev-screen__inner">
-          <TopBar
-            variant="centered"
-            title={galleryCopy.states.screenTitle}
-            sticky={false}
-            leading={
-              <IconButton
-                icon={<Icon name="chevron-left" size="md" decorative />}
-                label={galleryCopy.components.iconButtonBack}
+      <div className="haru-dev-screen__viewport">
+        <AppColumn as="div" id="frame-app-column">
+          <div className="haru-dev-screen__inner">
+            <div className="haru-dev-screen__top">
+              <TopBar
+                variant="centered"
+                title={galleryCopy.states.screenTitle}
+                sticky={false}
+                leading={
+                  <IconButton
+                    icon={<Icon name="chevron-left" size="md" decorative />}
+                    label={galleryCopy.components.iconButtonBack}
+                  />
+                }
+                trailing={
+                  <IconButton
+                    icon={<Icon name="settings" size="md" decorative />}
+                    label={galleryCopy.components.iconButtonSettings}
+                  />
+                }
               />
-            }
-            trailing={
-              <IconButton
-                icon={<Icon name="settings" size="md" decorative />}
-                label={galleryCopy.components.iconButtonSettings}
+            </div>
+
+            <main className="haru-dev-screen__content">
+              <Surface material="rest" fill="strong" radius="card" padding="6">
+                <Text variant="headline" as="h1">
+                  {galleryCopy.states.screenTitle}
+                </Text>
+                <Text variant="subheadline" tone="secondary">
+                  The app column keeps the same mobile layout at every width. Above 600px it is
+                  capped at 480px and centred.
+                </Text>
+              </Surface>
+
+              <Surface material="rest" fill="glass" radius="card" padding="6">
+                <Text variant="body">
+                  Long paragraphs reflow instead of scrolling sideways, so 320px at 200% text zoom
+                  stays readable.
+                </Text>
+              </Surface>
+
+              <p
+                className="haru-dev-readout"
+                data-viewport={measurement?.viewport ?? ''}
+                data-column-width={measurement?.column ?? ''}
+                data-content-width={measurement?.content ?? ''}
+              >
+                viewport {measurement?.viewport ?? '—'} · column {measurement?.column ?? '—'} ·
+                content {measurement?.content ?? '—'}
+              </p>
+
+              <Button fullWidth size="lg">
+                {galleryCopy.components.buttonLabel}
+              </Button>
+            </main>
+
+            <div className="haru-dev-screen__tabs">
+              <BottomTabBar
+                items={[...TAB_ITEMS]}
+                activeKey="home"
+                onSelect={() => undefined}
+                label={galleryCopy.components.tabsLabel}
               />
-            }
-          />
-
-          <main className="haru-dev-screen__content">
-            <Surface material="rest" fill="strong" radius="card" padding="6">
-              <Text variant="headline" as="h1">
-                {galleryCopy.states.screenTitle}
-              </Text>
-              <Text variant="subheadline" tone="secondary">
-                The app column keeps the same mobile layout at every width. Above 600px it is capped
-                at 480px and centred.
-              </Text>
-            </Surface>
-
-            <Surface material="rest" fill="glass" radius="card" padding="6">
-              <Text variant="body">
-                Long paragraphs reflow instead of scrolling sideways, so 320px at 200% text zoom
-                stays readable.
-              </Text>
-            </Surface>
-
-            <p
-              className="haru-dev-readout"
-              data-viewport={measurement?.viewport ?? ''}
-              data-column-width={measurement?.column ?? ''}
-              data-content-width={measurement?.content ?? ''}
-            >
-              viewport {measurement?.viewport ?? '—'} · column {measurement?.column ?? '—'} ·
-              content {measurement?.content ?? '—'}
-            </p>
-
-            <Button fullWidth size="lg">
-              {galleryCopy.components.buttonLabel}
-            </Button>
-          </main>
-
-          <div className="haru-dev-screen__tabs">
-            <BottomTabBar
-              items={[...TAB_ITEMS]}
-              activeKey="home"
-              onSelect={() => undefined}
-              label={galleryCopy.components.tabsLabel}
-            />
+            </div>
           </div>
-        </div>
-      </AppColumn>
+        </AppColumn>
+      </div>
     </div>
   );
 }
