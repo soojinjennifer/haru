@@ -155,3 +155,56 @@ Stage 1-D1 = `packages/ui` 최초 생성 + Shared UI 8종. 상세는 `docs/qa/st
 | **S1-D2-6** | **`maxDiffPixelRatio: 0.002` + `maxDiffPixels: 200`** | 시각 비교 임계값을 확정한다. 잠정값 0.02 는 가장 작은 baseline 에서도 23×23 블록, `frame-1024` 에서는 125×125 변화를 통과시켜 **아이콘 하나가 통째로 바뀌어도 탐지하지 못한다.** 실측 diff 가 0 픽셀이므로 0.2% 로 낮춰도 여유가 충분하고, 절대 픽셀 상한을 병기해 큰 화면에서 허용량이 비례 증가하는 문제를 막는다. `provisional` 주석을 제거한다. 플랫폼별 baseline 분리(`{platform}`)는 이미 적용됨 | 코드 |
 
 > `S1-G-1` 과 `S1-D2-5` 는 Design Spec 갱신이 뒤따라야 한다(§4.19 interactive 삭제, §8.1 아이콘 대응표). **문서 갱신은 design-agent 소관**이며 Stage 1 QA 이후 별도로 처리한다.
+
+---
+
+## 9. 2026-09-22 가값(P-01~P-16) 승인 절차 결과
+
+Stage 0 결정 #10-④ · Stage 1 Plan §17 에 따라 Stage 1 QA 완료 후 · Stage 2 착수 전에 16항목을 하나씩 제시하고 받은 결정이다.
+
+### 9.0 일반 원칙 (P-02 답변에서 사용자가 제시 — 이후 동종 충돌에 적용)
+
+> **접근성 기준에 미달하는 값은 Figma 를 우선해 그대로 두되, `provisional` 표시를 유지해 나중에 "접근성을 맞춰라"는 지시가 오면 토큰만 교체할 수 있게 한다.**
+
+- 적용 대상: Figma 값과 WCAG 기준이 충돌하는 모든 항목. Visual Source of Truth 를 임의로 흔들지 않으면서 교체 경로를 열어둔다.
+- 이 원칙에 따라 **P-01 · P-02 는 값 변경 없이 `provisional` 유지**한다.
+- `QA-1-002`(TextField `trailingAction` 밑줄 — Figma 에는 없고 WCAG 1.4.1 관점에서는 개선) 도 같은 원칙으로 판단한다.
+
+### 9.1 확정 10건 — `provisional` 주석 제거 대상
+
+| P | 항목 | 확정값 | 확정 근거 |
+|---|---|---|---|
+| **P-03** | focus ring | `--haru-ink-700` · width 2px · offset 2px | QA 실측 3.28~6.81:1 로 세 배경 모두 WCAG 3:1 충족. Figma 에 focus 상태가 없어(M-34) 대기해도 비교 기준이 생기지 않는다 |
+| **P-06** | z-index | base 0 · sticky 10 · tabbar 20 · sheet 40 · dialog 50 · toast 60 | 디자인 도구에 z-index 개념이 없어 디자이너가 정할 수 있는 값이 아니다. 10 단위 간격은 레이어 삽입 여지를 두는 표준 관례 |
+| **P-07** | motion duration / easing | instant 100 · fast 180 · base 240 · slow 400 · pulse 1200ms / standard `cubic-bezier(.32,.72,.28,1)` · spring · linear | 단계 구조만 제공하므로 화면별 튜닝은 Stage 2~4 에서 단계 선택으로 처리 가능 |
+| **P-08** | safe-area inset | `env(safe-area-inset-*, 0px)` 4종 | 값을 정하는 항목이 아니라 OS 제공값을 읽는 플랫폼 API 연결이다 |
+| **P-09** | 아이콘 크기 | sm 16 · md 20 · lg 24px | 4px 그리드·Lucide 기본 그리드와 일치. 예외(탭바 21 = `--tabbar-icon-size`)는 이미 별도 토큰으로 승인됨 |
+| **P-11** | glass·tinted 표면 위 라벨 | `--haru-ink-600` (Figma `#5e7370`) | QA 실측 4.47~4.81:1 로 Design Spec 기재값(4.18~4.48)보다 양호. 하단 4.47 구간은 수용 |
+| **P-12** | `--radius-surface` | **22px** | Figma 혼재(22/24/26) 중 Stage 1-B 채택값. 육안 구분이 어렵고 baseline 27건에 이미 반영됨 |
+| **P-13** | `--layout-gutter` | **24px** (= `--space-6`) | 4px 그리드와 정확히 일치(26 은 그리드 밖). e2e 가 4개 폭에서 좌우 대칭 ±1px 로 검증 중 |
+| **P-14** | `--gradient-app` 중간 stop | **46%** | Figma 혼재(46/52) 중 Stage 1-B 채택값. 시각 인상 차이가 작고 변경 시 토큰 한 줄 |
+| **P-15** | `--size-button-lg` | **56px** | 4px 그리드와 일치(58 은 그리드 밖), 터치 타깃 44 를 여유 있게 상회. Button baseline 8종에 반영됨 |
+
+### 9.2 디자이너 대기 유지 5건 — `provisional` 주석 유지
+
+| P | 항목 | 현재 가값 | 대기 사유 |
+|---|---|---|---|
+| **P-01** | `--color-fg-secondary` / `-tertiary` | `--haru-ink-500` (실측 2.91~3.13:1) | WCAG AA 4.5:1 미달이 확인됨. §9.0 원칙에 따라 Figma 값 유지 + 교체 가능 상태로 둔다 |
+| **P-02** | 비텍스트 요소 색 (진행 바·별점·칩 경계·배지 글자 4종) | Figma 값 | 일부 3:1 미달(배지 흰 글자 1.56~1.86:1). §9.0 원칙 적용. 실제 사용 화면이 Stage 2~5 에 나오므로 그때 맥락과 함께 판단 |
+| **P-04** | status 색 info/success/warning/error (8 primitive + 18 semantic) | DESIGN_TOKEN_MAP 제안값 | Figma 에 status 팔레트 자체가 없다. 오류·경고는 양육자가 불안을 만나는 지점이라 톤 결정이 서비스 성격과 직결된다 |
+| **P-05** | `--color-scrim` | `#29293a3b` (약 23%) | 일반적인 40~50% 보다 연해 분리감 판단에 실제 Sheet 내용이 필요하다. 첫 실사용처는 Stage 2 동의·선택 Sheet |
+| **P-16** | medallion sm/md/lg + ring-offset | 136 / 188 / 232 + 8 | **sm 136 · md 188 은 2026-09-18 Figma 재조회 범위 밖**이라 실측 근거가 없다(lg 232 만 확인됨). CharacterMedallion 컴포넌트가 Stage 2 이므로 그때 design-agent 실측 후 확정 |
+
+### 9.3 검토 중 1건
+
+| P | 항목 | 상태 |
+|---|---|---|
+| **P-10** | 공통 상태 화면·컴포넌트 상태 디자인 (Loading · Empty · Error+Retry · Offline Banner · Toast · Dialog + focus·error·loading) | **확정 (2026-09-23, user)** — 실기기(모바일)와 `/__dev/ui/states` 에서 직접 확인 후 승인. design-agent 명세가 그대로 Stage 2~8 의 공통 상태 기준이 된다. 토큰이 아니라 화면이므로 `provisional` 주석 대상이 아니다 |
+
+**P-10 확인 중 발견·수정된 결함 (2026-09-23)**: 카드·Sheet·Dialog 그림자가 직사각형으로 잘리던 문제. 원인은 스크롤 컨테이너(`main`)가 `AppColumn` 안쪽에 있어 클리핑 박스가 콘텐츠 폭이 된 것이었다(`overflow-y: auto` → `overflow-x` 가 `visible` 로 남을 수 없음). **Figma 값 문제가 아니라 레이아웃 조립 문제**였으므로 `--shadow-glass-*` 토큰을 바꾸지 않고 `AppShell` 구조를 뒤집어 해결했다(스크롤 컨테이너를 앱 컬럼 바깥으로). BottomTabBar·TopBar 는 `sticky` 로 전환. 상세는 `docs/qa/stage-1-handoff.md` §18.
+
+### 9.4 후속 작업
+
+1. **development-agent** — §9.1 의 10건에서 `/* provisional: P-xx */` 주석 제거. §9.2 의 5건은 **그대로 유지**한다. 토큰 **값은 변경하지 않는다**(확정 = 현재 값 그대로)
+2. **design-agent** — `docs/DESIGN_TOKEN_MAP.md` §4.1 과 `docs/decisions/stage-0-approvals.md` §4 표의 상태 열 갱신
+3. 남은 가값은 **`P-01 · P-02 · P-04 · P-05 · P-16` 5건**이다. `P-10` 은 2026-09-23 확정되었다. 남은 5건은 Stage 2 이후 해당 화면이 나올 때 재제시한다

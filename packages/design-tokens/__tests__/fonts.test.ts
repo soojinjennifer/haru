@@ -131,6 +131,14 @@ describe('빌드 산출물 — CSS Variable export (AC-1-11)', () => {
       provisionalByItem: Record<string, string[]>;
     };
     expect(manifest.counts['component']).toBe(48);
-    expect(Object.keys(manifest.provisionalByItem)).toHaveLength(15);
+    // 2026-09-22 가값 승인 (stage-1-approvals §9) 후 남은 항목 = P-01 · P-02 · P-04 · P-05 · P-16.
+    expect(Object.keys(manifest.provisionalByItem).sort()).toEqual([
+      'P-01',
+      'P-02',
+      'P-04',
+      'P-05',
+      'P-16',
+    ]);
+    expect(manifest.counts['provisional']).toBe(41);
   });
 });

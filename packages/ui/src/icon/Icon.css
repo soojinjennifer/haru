@@ -19,19 +19,16 @@
 }
 
 /* ===== size — 가값 P-09 ================================================== */
-/* provisional: P-09 (docs/decisions/stage-0-approvals.md §4) */
 .haru-icon--sm {
   inline-size: var(--size-icon-sm);
   block-size: var(--size-icon-sm);
 }
 
-/* provisional: P-09 (docs/decisions/stage-0-approvals.md §4) */
 .haru-icon--md {
   inline-size: var(--size-icon-md);
   block-size: var(--size-icon-md);
 }
 
-/* provisional: P-09 (docs/decisions/stage-0-approvals.md §4) */
 .haru-icon--lg {
   inline-size: var(--size-icon-lg);
   block-size: var(--size-icon-lg);

@@ -7,16 +7,10 @@
  */
 
 :root {
-  /* provisional: P-06 (docs/decisions/stage-0-approvals.md §4) */
   --z-base: 0;
-  /* provisional: P-06 (docs/decisions/stage-0-approvals.md §4) */
   --z-sticky: 10;
-  /* provisional: P-06 (docs/decisions/stage-0-approvals.md §4) */
   --z-tabbar: 20;
-  /* provisional: P-06 (docs/decisions/stage-0-approvals.md §4) */
   --z-sheet: 40;
-  /* provisional: P-06 (docs/decisions/stage-0-approvals.md §4) */
   --z-dialog: 50;
-  /* provisional: P-06 (docs/decisions/stage-0-approvals.md §4) */
   --z-toast: 60;
 }

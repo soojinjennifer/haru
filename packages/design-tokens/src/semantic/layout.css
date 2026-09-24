@@ -17,13 +17,9 @@
   /* 사용자 승인 2026-09-20 (Design Spec §13.3 S1-D3) */
   --layout-tabbar-center-overhang: 35px;
 
-  /* provisional: P-08 (docs/decisions/stage-0-approvals.md §4) */
   --layout-safe-top: env(safe-area-inset-top, 0px);
-  /* provisional: P-08 (docs/decisions/stage-0-approvals.md §4) */
   --layout-safe-bottom: env(safe-area-inset-bottom, 0px);
-  /* provisional: P-08 (docs/decisions/stage-0-approvals.md §4) */
   --layout-safe-left: env(safe-area-inset-left, 0px);
-  /* provisional: P-08 (docs/decisions/stage-0-approvals.md §4) */
   --layout-safe-right: env(safe-area-inset-right, 0px);
 
   /*

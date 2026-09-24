@@ -54,7 +54,6 @@
   background-color: transparent;
   /* provisional: P-02 — 미선택 칩 경계 (docs/decisions/stage-0-approvals.md §4) */
   box-shadow: inset 0 0 0 1px var(--color-border-subtle);
-  /* provisional: P-11 (docs/decisions/stage-0-approvals.md §4) */
   color: var(--color-action-secondary-fg);
 }
 
@@ -68,7 +67,6 @@
   background-color: var(--color-surface-glass);
   box-shadow: var(--shadow-rest);
   backdrop-filter: blur(var(--material-blur-md));
-  /* provisional: P-11 (docs/decisions/stage-0-approvals.md §4) */
   color: var(--color-action-secondary-fg);
 }
 

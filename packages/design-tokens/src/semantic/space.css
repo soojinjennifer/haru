@@ -29,23 +29,18 @@
   --space-8: calc(var(--spacing) * 8); /* 32 */
 
   /* --- Layout gutter (Figma 26 혼재 → 24 채택, §12.2 P-13) ---------------- */
-  /* provisional: P-13 (docs/decisions/stage-0-approvals.md §4) */
   --layout-gutter: var(--space-6);
 
   /* --- Touch target (rules/frontend.md §9) -------------------------------- */
   --size-touch-min: 44px;
 
   /* --- Icon size 3단계 (탭바 21px 은 Tier 3 `--tabbar-icon-size` 예외) ----- */
-  /* provisional: P-09 (docs/decisions/stage-0-approvals.md §4) */
   --size-icon-sm: 16px;
-  /* provisional: P-09 (docs/decisions/stage-0-approvals.md §4) */
   --size-icon-md: 20px;
-  /* provisional: P-09 (docs/decisions/stage-0-approvals.md §4) */
   --size-icon-lg: 24px;
 
   /* --- Component size (Tier 3 가 참조하는 Semantic 원천) ------------------- */
   --size-button-md: 45px; /* Figma `17:4` */
-  /* provisional: P-15 (docs/decisions/stage-0-approvals.md §4) */
   --size-button-lg: 56px;
 
   /* --- Medallion (Stage 1 은 토큰만 정의, 컴포넌트는 Stage 2 — §12.2 P-16) - */
@@ -62,8 +57,6 @@
   --opacity-disabled: 0.5; /* Figma Button Disabled `17:10` / `17:18` */
 
   /* --- Focus ring 규격 (§9.3) --------------------------------------------- */
-  /* provisional: P-03 (docs/decisions/stage-0-approvals.md §4) */
   --focus-ring-width: 2px;
-  /* provisional: P-03 (docs/decisions/stage-0-approvals.md §4) */
   --focus-ring-offset: 2px;
 }

@@ -271,27 +271,28 @@ HARU 화면에서 **사용 확인된 것은 `backgrounds/primary`(= white), `bac
 
 ### 4.1 가값 요약 (승인 로그 §4 P-01–P-16)
 
-development-agent 는 아래 토큰 정의에 `provisional` 주석을 남긴다.
-**Stage 1-B 구현 완료 (2026-09-20)**: 주석 위치는 `docs/design/stage-1-design-spec.md` §3.6 표와 1:1로 일치하며, 15개 항목 / 토큰 71개에 적용되었다 (P-10 은 토큰이 아니라 화면 명세이므로 제외). 기계 판독 가능한 목록은 빌드 산출물 `packages/design-tokens/dist/tokens-manifest.json` 의 `provisionalByItem` 이다. Stage 1 구현 완료 후 Orchestrator 가 하나씩 `유지(확정)` / `수정(새 값)` / `디자이너 대기 유지` 승인을 받고, 결정 값은 이 문서에 반영한 뒤 주석을 제거한다 (FRONTEND_IMPLEMENTATION_PLAN §1.7).
+development-agent 는 아래 토큰 중 **가값으로 남은** 항목의 정의에만 `provisional` 주석을 남긴다.
+**Stage 1-B 구현 완료 (2026-09-20)**: 주석 위치는 `docs/design/stage-1-design-spec.md` §3.6 표와 1:1로 일치하며, 15개 항목 / 토큰 71개에 적용되었다 (P-10 은 토큰이 아니라 화면 명세이므로 제외).
+**가값 승인 절차 완료 (2026-09-22, `docs/decisions/stage-1-approvals.md` §9)**: P-03 · P-06 · P-07 · P-08 · P-09 · P-11 · P-12 · P-13 · P-14 · P-15 **10 항목이 현재 값 그대로 확정**되어 `provisional` 주석을 제거했다 (**토큰 값 변경 없음**). 남은 가값은 P-01 · P-02 · P-04 · P-05 · P-16 **5 항목 / 토큰 41개** 이며, P-10 은 사용자가 `/__dev/ui/states` 에서 확인 중이다. 기계 판독 가능한 목록은 빌드 산출물 `packages/design-tokens/dist/tokens-manifest.json` 의 `provisionalByItem` 이고, `packages/design-tokens/__tests__/provisional.test.ts` 가 주석 집합과 남은 5 항목을 양방향으로 대조한다 (확정 10건이 되돌아오면 실패). 남은 항목은 해당 화면이 나오는 Stage 에서 다시 제시하고, 결정 값은 이 문서에 반영한 뒤 주석을 제거한다 (FRONTEND_IMPLEMENTATION_PLAN §1.7).
 
-| # | 토큰 | 가값 | 출처 |
-|---|---|---|---|
-| P-01 | `--color-fg-secondary` (+ `--color-fg-tertiary` 동일) | `--haru-ink-500` `#7d9291` | 현재 Figma `text-secondary` (#18-②) |
-| P-02 | `--color-progress-fill/track`, `--color-rating-filled/empty`, `--color-border-subtle`(칩·체크박스 경계), `--color-capability-*-fg` | 현재 Figma 값 (teal/ink-a12, yellow/ink-a18, ink-a18, 흰색) | 현재 Figma (#18-③) |
-| P-03 | `--color-focus-ring`, `--focus-ring-width`, `--focus-ring-offset` | `--haru-ink-700`, 2px, 2px | design-agent 제안 (#18-④) |
-| P-04 | `--color-status-*` (+ field error) | §4 Status 행 | design-agent 제안 |
-| P-05 | `--color-scrim` | `#29293a3b` | Figma iOS kit `misc/alert-overlay` |
-| P-06 | `--z-*` | 0 / 10 / 20 / 40 / 50 / 60 | design-agent 제안 |
-| P-07 | `--motion-duration-*`, `--motion-ease-*` | §4 Motion 행 | design-agent 제안 (프로토타입 관찰 참고) |
-| P-08 | `--layout-safe-*` | `env(safe-area-inset-*, 0px)` | design-agent 제안 |
-| P-09 | `--size-icon-sm/md/lg` | 16 / 20 / 24 | design-agent 제안 |
-| P-10 | 공통 상태 화면·컴포넌트 상태 (토큰 아님) | Stage 1 design spec | #22 |
-| P-11 | glass·tinted 표면 위 `text-button` 라벨 (`--color-action-secondary-bg` 위 Glass 버튼 라벨, PromptPill, "Question 1 of 10") | 현재 Figma `--haru-ink-600` `#5e7370` (4.18–4.48:1, D-01 범위 밖) | 현재 Figma |
-| P-12 | `--radius-surface` | 22px (Figma 24px 혼재) | Figma 화면 값 혼재 |
-| P-13 | `--layout-gutter` | 24px = `--space-6` (Figma 26px 혼재) | Figma 화면 값 혼재 |
-| P-14 | `--gradient-app` 중간 stop 위치 | 46% (Figma 52% 혼재) | Figma 화면 값 혼재 |
-| P-15 | `--size-button-lg` | 56px (Figma 58px 혼재) | Figma 화면 값 혼재 |
-| P-16 | `--size-medallion-sm/md/lg` | 136 / 188 / 232px (Figma 174·200px 혼재) | Figma 화면 값 혼재 |
+| # | 토큰 | 가값 | 출처 | 상태 |
+|---|---|---|---|---|
+| P-01 | `--color-fg-secondary` (+ `--color-fg-tertiary` 동일) | `--haru-ink-500` `#7d9291` | 현재 Figma `text-secondary` (#18-②) | 디자이너 대기 |
+| P-02 | `--color-progress-fill/track`, `--color-rating-filled/empty`, `--color-border-subtle`(칩·체크박스 경계), `--color-capability-*-fg` | 현재 Figma 값 (teal/ink-a12, yellow/ink-a18, ink-a18, 흰색) | 현재 Figma (#18-③) | 디자이너 대기 |
+| P-03 | `--color-focus-ring`, `--focus-ring-width`, `--focus-ring-offset` | `--haru-ink-700`, 2px, 2px | design-agent 제안 (#18-④) | 확정 (2026-09-22) |
+| P-04 | `--color-status-*` (+ field error) | §4 Status 행 | design-agent 제안 | 디자이너 대기 |
+| P-05 | `--color-scrim` | `#29293a3b` | Figma iOS kit `misc/alert-overlay` | 디자이너 대기 |
+| P-06 | `--z-*` | 0 / 10 / 20 / 40 / 50 / 60 | design-agent 제안 | 확정 (2026-09-22) |
+| P-07 | `--motion-duration-*`, `--motion-ease-*` | §4 Motion 행 | design-agent 제안 (프로토타입 관찰 참고) | 확정 (2026-09-22) |
+| P-08 | `--layout-safe-*` | `env(safe-area-inset-*, 0px)` | design-agent 제안 | 확정 (2026-09-22) |
+| P-09 | `--size-icon-sm/md/lg` | 16 / 20 / 24 | design-agent 제안 | 확정 (2026-09-22) |
+| P-10 | 공통 상태 화면·컴포넌트 상태 (토큰 아님) | Stage 1 design spec | #22 | 사용자 확인 중 |
+| P-11 | glass·tinted 표면 위 `text-button` 라벨 (`--color-action-secondary-bg` 위 Glass 버튼 라벨, PromptPill, "Question 1 of 10") | 현재 Figma `--haru-ink-600` `#5e7370` (4.18–4.48:1, D-01 범위 밖) | 현재 Figma | 확정 (2026-09-22) |
+| P-12 | `--radius-surface` | 22px (Figma 24px 혼재) | Figma 화면 값 혼재 | 확정 (2026-09-22) |
+| P-13 | `--layout-gutter` | 24px = `--space-6` (Figma 26px 혼재) | Figma 화면 값 혼재 | 확정 (2026-09-22) |
+| P-14 | `--gradient-app` 중간 stop 위치 | 46% (Figma 52% 혼재) | Figma 화면 값 혼재 | 확정 (2026-09-22) |
+| P-15 | `--size-button-lg` | 56px (Figma 58px 혼재) | Figma 화면 값 혼재 | 확정 (2026-09-22) |
+| P-16 | `--size-medallion-sm/md/lg` | 136 / 188 / 232px (Figma 174·200px 혼재) | Figma 화면 값 혼재 | 디자이너 대기 |
 
 ---
 

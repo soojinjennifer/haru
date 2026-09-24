@@ -59,9 +59,7 @@
     var(--haru-palette-teal) calc(var(--opacity-disabled) * 100%),
     transparent
   );
-  /* provisional: P-11 (docs/decisions/stage-0-approvals.md §4) */
   --color-action-secondary-bg: var(--color-surface-glass);
-  /* provisional: P-11 (docs/decisions/stage-0-approvals.md §4) */
   --color-action-secondary-fg: var(--haru-ink-600);
 
   /* ===== Selection ======================================================= */
@@ -89,7 +87,6 @@
   --color-scrim: #29293a3b;
 
   /* ===== Focus =========================================================== */
-  /* provisional: P-03 (docs/decisions/stage-0-approvals.md §4) */
   --color-focus-ring: var(--haru-ink-700);
 
   /* ===== Status (info / success / warning / error × bg/fg/border/icon) ==== */
@@ -162,7 +159,6 @@
 
 :root {
   /* Tailwind v4 에 gradient 네임스페이스가 없다 → `@utility bg-app` 로 노출한다 (§3.4). */
-  /* provisional: P-14 (docs/decisions/stage-0-approvals.md §4) */
   --gradient-app: linear-gradient(
     180deg,
     var(--color-bg-app-start) 0%,

@@ -58,7 +58,6 @@
 
 .haru-button--glass {
   background-color: var(--color-action-secondary-bg);
-  /* provisional: P-11 (docs/decisions/stage-0-approvals.md §4) */
   color: var(--color-action-secondary-fg);
 }
 

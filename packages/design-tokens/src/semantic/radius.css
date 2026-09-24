@@ -13,7 +13,6 @@
   --radius-indicator: 4px; /* Figma `88:785` */
   --radius-control: 8px;
   --radius-field: 16px; /* Figma `corner radius/16` */
-  /* provisional: P-12 (docs/decisions/stage-0-approvals.md §4) */
   --radius-surface: 22px;
   --radius-card: 28px; /* Figma `17:33` --radius-card */
   --radius-pill: 9999px; /* Figma radius-pill 100 */

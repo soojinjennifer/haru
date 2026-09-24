@@ -101,19 +101,19 @@ PRD 요구사항과 다르게 가기로 사용자가 명시적으로 결정한 �
 |---|---|---|---|
 | P-01 | 보조 텍스트 색 `--color-fg-secondary` (#18-2) | 현재 Figma `text-secondary` `#7d9291` | 디자이너 대기 |
 | P-02 | 비텍스트 요소: 진행 바·별점·칩 경계·배지 글자 (#18-3) | 현재 Figma 값 | 디자이너 대기 |
-| P-03 | focus ring `--color-focus-ring` (#18-4) | design-agent 제안 (`--haru-ink-700`) | 디자이너 대기 |
+| P-03 | focus ring `--color-focus-ring` (#18-4) | design-agent 제안 (`--haru-ink-700`) | 확정 (2026-09-22) |
 | P-04 | status 색 (info/success/warning/error) | DESIGN_TOKEN_MAP §4 제안 | 디자이너 대기 |
 | P-05 | scrim | DESIGN_TOKEN_MAP §4 제안 | 디자이너 대기 |
-| P-06 | z-index 스케일 | DESIGN_TOKEN_MAP §4 제안 | 디자이너 대기 |
-| P-07 | motion duration / easing | DESIGN_TOKEN_MAP §4 제안 | 디자이너 대기 |
-| P-08 | safe-area inset 토큰 | DESIGN_TOKEN_MAP §4 제안 (breakpoint 600/1024 · 앱 컬럼 480은 #12에서 확정) | 디자이너 대기 |
-| P-09 | 아이콘 크기 단계 `--size-icon-sm/md/lg` | DESIGN_SYSTEM §7 · TOKEN_MAP §4 제안 | 디자이너 대기 |
-| P-10 | 공통 상태 화면·컴포넌트 상태 디자인 (#22) | design-agent 명세 (DESIGN_SYSTEM · FRONTEND_IMPLEMENTATION_PLAN Stage 1) | Stage 1 구현 후 승인 요청 |
-| P-11 | glass·tinted 표면 위 `text-button`(`#5e7370`) 라벨 대비 4.18–4.48:1 — Glass 버튼 라벨, PromptPill, 설문 "Question 1 of 10" 등 (D-01 범위 밖) | 현재 Figma 값 | 디자이너 대기 |
-| P-12 | `--radius-surface` 22px vs 24px | Figma 화면 값 혼재 (DESIGN_TOKEN_MAP) | 디자이너 대기 |
-| P-13 | 화면 좌우 gutter 24px vs 26px | Figma 화면 값 혼재 | 디자이너 대기 |
-| P-14 | 배경 gradient stop 위치 46% vs 52% | Figma 화면 값 혼재 | 디자이너 대기 |
-| P-15 | 버튼 높이 (56px / 58px 혼재) | Figma 화면 값 혼재 | 디자이너 대기 |
+| P-06 | z-index 스케일 | DESIGN_TOKEN_MAP §4 제안 | 확정 (2026-09-22) |
+| P-07 | motion duration / easing | DESIGN_TOKEN_MAP §4 제안 | 확정 (2026-09-22) |
+| P-08 | safe-area inset 토큰 | DESIGN_TOKEN_MAP §4 제안 (breakpoint 600/1024 · 앱 컬럼 480은 #12에서 확정) | 확정 (2026-09-22) |
+| P-09 | 아이콘 크기 단계 `--size-icon-sm/md/lg` | DESIGN_SYSTEM §7 · TOKEN_MAP §4 제안 | 확정 (2026-09-22) |
+| P-10 | 공통 상태 화면·컴포넌트 상태 디자인 (#22) | design-agent 명세 (DESIGN_SYSTEM · FRONTEND_IMPLEMENTATION_PLAN Stage 1) | 사용자 확인 중 |
+| P-11 | glass·tinted 표면 위 `text-button`(`#5e7370`) 라벨 대비 4.18–4.48:1 — Glass 버튼 라벨, PromptPill, 설문 "Question 1 of 10" 등 (D-01 범위 밖) | 현재 Figma 값 | 확정 (2026-09-22) |
+| P-12 | `--radius-surface` 22px vs 24px | Figma 화면 값 혼재 (DESIGN_TOKEN_MAP) | 확정 (2026-09-22) |
+| P-13 | 화면 좌우 gutter 24px vs 26px | Figma 화면 값 혼재 | 확정 (2026-09-22) |
+| P-14 | 배경 gradient stop 위치 46% vs 52% | Figma 화면 값 혼재 | 확정 (2026-09-22) |
+| P-15 | 버튼 높이 (56px / 58px 혼재) | Figma 화면 값 혼재 | 확정 (2026-09-22) |
 | P-16 | 캐릭터 medallion 크기 (188 / 200 / 232px 등 혼재) | Figma 화면 값 혼재 | 디자이너 대기 |
 
 디자이너 확인이 필요한 값이 새로 발견되면 같은 규칙(#10-4)으로 P-xx를 추가한다 (2026-09-14 critic 검토에서 P-11~P-16 추가).

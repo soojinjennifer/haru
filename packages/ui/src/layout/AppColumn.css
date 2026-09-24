@@ -9,14 +9,12 @@
   min-inline-size: var(--layout-min-width);
   max-inline-size: var(--layout-app-max-width);
   margin-inline: auto;
-  /* provisional: P-08 (docs/decisions/stage-0-approvals.md §4) — safe-area */
   padding-block-start: var(--layout-safe-top);
   padding-block-end: var(--layout-safe-bottom);
   padding-inline-start: var(--layout-safe-left);
   padding-inline-end: var(--layout-safe-right);
 }
 
-/* provisional: P-13 (docs/decisions/stage-0-approvals.md §4) — gutter 24 */
 .haru-app-column--padded {
   padding-inline-start: calc(var(--layout-safe-left) + var(--layout-gutter));
   padding-inline-end: calc(var(--layout-safe-right) + var(--layout-gutter));
