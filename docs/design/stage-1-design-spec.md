@@ -11,6 +11,18 @@ Based on:
 
 Author: design-agent
 
+**2026-09-23 갱신 (design-agent)** — Stage 1 구현으로 확정된 사실을 반영했다. **새 요구사항·새 디자인 결정은 만들지 않았다.** 갱신 절과 근거:
+
+| 절 | 반영한 확정 사실 | 근거 |
+|---|---|---|
+| §2.2 | 스크롤 컨테이너가 `AppColumn` **바깥**, BottomTabBar·TopBar 는 `fixed` 가 아니라 **`sticky`** | `docs/qa/stage-1-handoff.md` §18 (`QA-1-L1`, 2026-09-22) · approvals §9.3 |
+| §3.6 | `provisional` 잔여 **5항목 / 41토큰** (`P-01·P-02·P-04·P-05·P-16`), 10건 확정 | `docs/decisions/stage-1-approvals.md` §9.1·§9.2·§9.4 (2026-09-22) |
+| §4.19 | PageIndicator `interactive` variant **폐기**, 표시 전용 | approvals §8 `S1-G-1` (2026-09-21, user) |
+| §8.1 | 탭 아이콘 **`book`** / **`chart-no-axes-column-increasing`** 확정, Lucide stroke **1.5 유지** | approvals §8 `S1-D2-5` · handoff §10.1 |
+| §9.3 | PageIndicator dot 행 제거, TextField 행 42px + 수용 예외 | approvals §8 `S1-G-1`·`S1-G-2` |
+| §10.3 | 시각 비교 임계값 `maxDiffPixelRatio 0.002` + `maxDiffPixels 200` + 한계 | approvals §8 `S1-D2-6` (정본 ID) · handoff §11 |
+| §14 | 요약 수치 정정 (Semantic 193 · Tier3 48 · provisional 71→41) | handoff §2·§3.3 |
+
 ---
 
 ## 0. 이 문서를 읽는 법
@@ -87,20 +99,30 @@ Stage 1에는 **사용자에게 보이는 제품 화면이 없다** (Plan §1 No
 
 ### 2.2 화면 골격 (모든 Layout 공통)
 
+> **2026-09-22 구현 확정으로 갱신** — 근거: `docs/qa/stage-1-handoff.md` §18 (`QA-1-L1` 카드 그림자 클리핑 수정) · `docs/decisions/stage-1-approvals.md` §9.3 말미. 갱신 전 골격은 ① 스크롤 컨테이너를 `AppColumn` **안**에 두고 ② BottomTabBar 를 `fixed` 로 적었으나, 둘 다 실제 구현과 다르다.
+
 ```
 <AppBackground>                         ← 뷰포트 전체, --gradient-app, fixed
-  └ <AppColumn>                         ← min 320 / max 480, 가운데 정렬, px = --layout-gutter
-      ├ [safe-top 영역]                 ← padding-top: --layout-safe-top
-      ├ TopBar 영역        (선택)        ← sticky, z = --z-sticky
-      ├ 콘텐츠 영역         (스크롤)      ← flex:1, overflow-y:auto, overscroll-behavior:contain
-      ├ 하단 고정 CTA 영역  (선택)        ← 스크롤 컨테이너 **내부** (키보드 가림 방지)
-      └ BottomTabBar 영역  (선택)        ← fixed, z = --z-tabbar, bottom = --layout-safe-bottom
+  └ [뷰포트 스크롤 컨테이너]              ← 앱 컬럼 **바깥**, 뷰포트 전 폭
+      │                                   overflow-y:auto(FullscreenLayout은 hidden),
+      │                                   overscroll-behavior:contain
+      └ <AppColumn>                     ← min 320 / max 480, 가운데 정렬, px = --layout-gutter
+          ├ [safe-top 영역]             ← padding-top: --layout-safe-top
+          ├ TopBar 영역        (선택)    ← sticky, z = --z-sticky,
+          │                               inset-block-start = --layout-safe-top
+          ├ main 콘텐츠 영역             ← flex:1, **overflow 선언 없음**
+          ├ 하단 고정 CTA 영역  (선택)   ← 스크롤 컨테이너 **내부** (키보드 가림 방지)
+          └ BottomTabBar 영역  (선택)    ← sticky, z = --z-tabbar,
+                                          inset-block-end = --layout-safe-bottom
 ```
 
 - 배경 gradient는 **뷰포트 전체**에 깔고 앱 컬럼만 가운데 정렬한다 (DESIGN_SYSTEM §11.2).
+- **스크롤·클리핑 컨테이너는 `AppColumn` 바깥(뷰포트 전 폭)에 둔다.** CSS 규격상 `overflow-y` 가 `visible` 이 아니면 `overflow-x` 도 `visible` 로 남을 수 없다. 스크롤 컨테이너가 앱 컬럼 안에 있으면 그 폭(272–432px)이 가로 클리핑 박스가 되어 카드·Sheet·Dialog 의 `--shadow-glass-*`(가로 약 28px 번짐)가 직사각형으로 잘린다. `AppColumn` 안쪽 요소에는 `overflow-*` 를 선언하지 않는다 (handoff §18.1–18.2, 회귀 테스트 §18.4).
+- **BottomTabBar 와 TopBar 는 `fixed` 가 아니라 `position: sticky`** 다. 앱 컬럼 **안**에 남아야 폭·gutter·safe-area 가 `AppColumn` 규칙(§2.4)을 그대로 따르기 때문이다. sticky 기준선은 `0` 이 아니라 `--layout-safe-top` / `--layout-safe-bottom` 이라 고정 영역이 노치·홈 인디케이터 영역으로 올라가지 않는다. `fixed` 대안은 컬럼 폭·gutter·safe-area 정렬을 레이아웃에서 다시 계산해야 해 기각했다 (handoff §18.2 대안 비교표, `S1-E-3` 대체).
 - BottomTabBar·Sheet·Toast·Dialog도 **앱 컬럼 폭 안에** 정렬한다 (좌우 `--layout-gutter`).
-- 콘텐츠 하단 padding = `--layout-tabbar-height` + `--layout-safe-bottom` (Tab Bar가 있는 Layout).
 - 고정 높이 컨테이너 금지 (텍스트 200% 확대 reflow — DESIGN_SYSTEM §11.2).
+
+> **확인 필요 (design-agent 보고, 결정 아님)**: BottomTabBar 가 sticky = 흐름 안에 남으므로 스크롤 끝에서 마지막 콘텐츠를 가리지 않는다. 구현(`TabLayout.tsx`)은 그래서 `main` 에 `--layout-tabbar-height` 하단 padding 을 적용하지 않는다. 이 문서의 §5.2 · §4.12(Toast) · §6.2 는 아직 "콘텐츠 하단 padding = `--layout-tabbar-height` + `--layout-safe-bottom`" 기술을 유지하고 있다. **`fixed` 전제의 기술이므로 Stage 3 실제 탭 마운트 시 재확인이 필요하다.** 이번 갱신에서는 임의로 고치지 않았다.
 
 ### 2.3 Layout별 영역 구성
 
@@ -410,26 +432,32 @@ border는 각각 `--haru-palette-red / -yellow / -green / -blue` (Figma 파스�
 
 ### 3.6 `provisional` 주석 위치표 — development-agent용 (AC-1-12)
 
-`packages/design-tokens` 의 **아래 정확한 토큰 정의 바로 위**에 `/* provisional: P-xx (docs/decisions/stage-0-approvals.md §4) */` 를 남긴다. P-10은 토큰이 아니라 화면 명세이므로 주석 대상이 아니다.
+> **2026-09-22 가값 승인 절차로 갱신** — 근거: `docs/decisions/stage-1-approvals.md` §9.1(확정 10건) · §9.2(대기 유지 5건) · §9.3(P-10 확정 2026-09-23) · §9.4-3.
+> **`provisional` 주석이 남는 항목은 `P-01 · P-02 · P-04 · P-05 · P-16` 5건 / 토큰 41개** 다. 아래 표에서 **굵게** 표시한 5행만 주석 대상이고, ~~취소선~~ 행 10건은 2026-09-22 확정되어 **주석 제거 대상**이다 (토큰 **값은 변경하지 않는다** — 확정 = 현재 값 그대로, §9.4-1). P-10 은 토큰이 아니라 화면 명세이므로 애초에 주석 대상이 아니며 2026-09-23 확정되었다.
+> 남은 5건은 Stage 2 이후 해당 화면이 나올 때 재제시한다. §9.0 일반 원칙: **접근성 기준 미달 값은 Figma 를 우선해 그대로 두되 `provisional` 표시를 유지해 교체 경로를 열어둔다.**
+>
+> **이 표가 가값 상태의 정본이다.** 이 문서 다른 절의 제목·본문에 남아 있는 `가값 (P-xx)` 표기(§3.1.2 · §4.9 · §8.4 · §9.1 · §9.3 · §9.4 (B)(C)(D) 등)는 **2026-09-22 이전 시점 표기**다. 충돌하면 이 표와 `docs/decisions/stage-1-approvals.md` §9 를 따른다. 개별 표기 일괄 정리는 이번 갱신 범위 밖이다.
 
-| P | 파일 | 토큰 이름 (전부) |
-|---|---|---|
-| **P-01** | `semantic/color.css` | `--color-fg-secondary`, `--color-fg-tertiary` |
-| **P-02** | `semantic/color.css` | `--color-border-subtle`, `--color-progress-fill`, `--color-progress-track`, `--color-rating-filled`, `--color-rating-empty`, `--color-capability-agency-fg`, `--color-capability-emotion-fg`, `--color-capability-flexibility-fg`, `--color-capability-motivation-fg` |
-| **P-03** | `semantic/color.css` + `semantic/space.css` | `--color-focus-ring`, `--focus-ring-width`, `--focus-ring-offset` |
-| **P-04** | `primitive/color.css` + `semantic/color.css` | `--haru-status-{error,warning,success,info}-{fg,bg}` (8), `--color-status-{info,success,warning,error}-{bg,fg,border,icon}` (16), `--color-field-border-error`, `--color-field-fg-error` |
-| **P-05** | `semantic/color.css` | `--color-scrim` |
-| **P-06** | `semantic/z-index.css` | `--z-base`, `--z-sticky`, `--z-tabbar`, `--z-sheet`, `--z-dialog`, `--z-toast` |
-| **P-07** | `semantic/motion.css` | `--motion-duration-{instant,fast,base,slow,pulse}` (5), `--motion-ease-{standard,spring,linear}` (3) |
-| **P-08** | `semantic/layout.css` | `--layout-safe-top`, `--layout-safe-bottom`, `--layout-safe-left`, `--layout-safe-right` |
-| **P-09** | `semantic/space.css` | `--size-icon-sm`, `--size-icon-md`, `--size-icon-lg` |
-| P-10 | — | **주석 없음** (이 문서 §5 + dev gallery `/__dev/ui/states` 화면으로 승인) |
-| **P-11** | `semantic/color.css` | `--color-action-secondary-bg`, `--color-action-secondary-fg` |
-| **P-12** | `semantic/radius.css` | `--radius-surface` |
-| **P-13** | `semantic/space.css` | `--layout-gutter` |
-| **P-14** | `semantic/color.css` | `--gradient-app` (중간 stop 위치에만 해당) |
-| **P-15** | `semantic/space.css` 또는 `ui` Tier3 | `--size-button-lg` (= `--button-height-lg`) |
-| **P-16** | `semantic/space.css` | `--size-medallion-sm`, `--size-medallion-md`, `--size-medallion-lg` — **Stage 1에서는 토큰만 정의하고 컴포넌트는 Stage 2** |
+`packages/design-tokens` 의 **아래 정확한 토큰 정의 바로 위**에 `/* provisional: P-xx (docs/decisions/stage-0-approvals.md §4) */` 를 남긴다.
+
+| P | 상태 (2026-09-22) | 파일 | 토큰 이름 (전부) |
+|---|---|---|---|
+| **P-01** | **주석 유지** (WCAG 4.5:1 미달 확인, §9.0 원칙) | `semantic/color.css` | `--color-fg-secondary`, `--color-fg-tertiary` |
+| **P-02** | **주석 유지** (일부 3:1 미달, 실사용 화면 Stage 2~5) | `semantic/color.css` | `--color-border-subtle`, `--color-progress-fill`, `--color-progress-track`, `--color-rating-filled`, `--color-rating-empty`, `--color-capability-agency-fg`, `--color-capability-emotion-fg`, `--color-capability-flexibility-fg`, `--color-capability-motivation-fg` |
+| ~~P-03~~ | **확정** — `--haru-ink-700` · 2px · offset 2px (실측 3.28~6.81:1) → 주석 제거 | `semantic/color.css` + `semantic/space.css` | `--color-focus-ring`, `--focus-ring-width`, `--focus-ring-offset` |
+| **P-04** | **주석 유지** (Figma 에 status 팔레트 없음) | `primitive/color.css` + `semantic/color.css` | `--haru-status-{error,warning,success,info}-{fg,bg}` (8), `--color-status-{info,success,warning,error}-{bg,fg,border,icon}` (16), `--color-field-border-error`, `--color-field-fg-error` |
+| **P-05** | **주석 유지** (첫 실사용처 = Stage 2 Sheet) | `semantic/color.css` | `--color-scrim` |
+| ~~P-06~~ | **확정** — base 0 · sticky 10 · tabbar 20 · sheet 40 · dialog 50 · toast 60 → 주석 제거 | `semantic/z-index.css` | `--z-base`, `--z-sticky`, `--z-tabbar`, `--z-sheet`, `--z-dialog`, `--z-toast` |
+| ~~P-07~~ | **확정** — 100/180/240/400/1200ms + easing 3종 → 주석 제거 | `semantic/motion.css` | `--motion-duration-{instant,fast,base,slow,pulse}` (5), `--motion-ease-{standard,spring,linear}` (3) |
+| ~~P-08~~ | **확정** — `env(safe-area-inset-*, 0px)` (OS 제공값) → 주석 제거 | `semantic/layout.css` | `--layout-safe-top`, `--layout-safe-bottom`, `--layout-safe-left`, `--layout-safe-right` |
+| ~~P-09~~ | **확정** — sm 16 · md 20 · lg 24 → 주석 제거 | `semantic/space.css` | `--size-icon-sm`, `--size-icon-md`, `--size-icon-lg` |
+| P-10 | **확정 (2026-09-23, user)** — 실기기 + `/__dev/ui/states` 확인 후 승인. 토큰이 아니므로 주석 대상 아님 | — | **주석 없음** (이 문서 §5 + dev gallery `/__dev/ui/states` 화면으로 승인) |
+| ~~P-11~~ | **확정** — `--haru-ink-600` (실측 4.47~4.81:1) → 주석 제거 | `semantic/color.css` | `--color-action-secondary-bg`, `--color-action-secondary-fg` |
+| ~~P-12~~ | **확정** — 22px → 주석 제거 | `semantic/radius.css` | `--radius-surface` |
+| ~~P-13~~ | **확정** — 24px (= `--space-6`) → 주석 제거 | `semantic/space.css` | `--layout-gutter` |
+| ~~P-14~~ | **확정** — 중간 stop 46% → 주석 제거 | `semantic/color.css` | `--gradient-app` (중간 stop 위치에만 해당) |
+| ~~P-15~~ | **확정** — 56px → 주석 제거 | `semantic/space.css` 또는 `ui` Tier3 | `--size-button-lg` (= `--button-height-lg`) |
+| **P-16** | **주석 유지** (sm 136 · md 188 실측 근거 없음, CharacterMedallion = Stage 2) | `semantic/space.css` | `--size-medallion-sm`, `--size-medallion-md`, `--size-medallion-lg` — **Stage 1에서는 토큰만 정의하고 컴포넌트는 Stage 2** |
 
 추가로 **D-01 수용 예외 주석** (AC-1-17): `--color-action-primary-bg` 와 `--color-fg-on-accent` 정의 위에 `/* accepted deviation: D-01 (white label on teal = 2.07:1, approvals §3) */`.
 
@@ -712,14 +740,18 @@ border는 각각 `--haru-palette-red / -yellow / -green / -blue` (Figma 파스�
 
 ### 4.19 PageIndicator — Figma `88:789` (Pagenation)
 
+> **2026-09-21 결정 `S1-G-1` 로 갱신** — 근거: `docs/decisions/stage-1-approvals.md` §8. **`interactive` variant 폐기, 표시 전용 확정.**
+> 사유: 이 문서 내부 충돌(§9.3 의 터치 타깃 44 요구 ↔ 아래 dot 7 + gap 6 기하)이 양립 불가였고, **§4.19 기하를 유지하고 인터랙션을 없애는 방향**으로 해소했다. Figma 근거가 있는 것은 표시용 dot 뿐이며, 캐러셀 페이지 이동은 스와이프·버튼이 담당한다. Stage 1 제품 화면에 미마운트 상태라 회귀 위험 없음. 필요해지면 **Stage 3 캐러셀 설계 시 디자이너 입력을 받아 재도입**한다.
+> 구현 반영: `interactive` variant 테스트 2건 삭제 + "인터랙티브 컨트롤이 렌더되지 않는다" 테스트 1건 추가 (handoff §2).
+
 | 항목 | 내용 |
 |---|---|
-| variant | `dots`(기본) · `interactive`(누를 수 있음) |
-| state | active / inactive (+ interactive일 때 focus·hover) |
+| variant | `dots` **단일 (표시 전용)** — ~~`interactive`~~ 폐기 (`S1-G-1`) |
+| state | active / inactive (인터랙티브 상태 없음 → focus·hover 없음) |
 | 치수 | dot 7×7, active 20×7, radius `--radius-indicator`(4), gap `--space-1-5`(6) |
 | 색 | `--color-indicator-active` / `--color-indicator-inactive` |
-| props | `count`, `index`, `onSelect`, `label` |
-| 접근성 | 기본은 **장식** (`aria-hidden`) + 별도 텍스트("2 of 3")로 상태 전달. `interactive` 면 `role="tablist"` 유사 구조 + 각 dot hit area 44 |
+| props | `count`, `index`, `label` — ~~`onSelect`~~ 제거 (`S1-G-1`) |
+| 접근성 | **장식** (`aria-hidden`) + 별도 텍스트("2 of 3")로 상태 전달. 인터랙티브 컨트롤(`button` / `role="tab"`)을 렌더하지 않으므로 44 hit area 요구 대상이 아니다 (§9.3 표에서 해당 행 제거) |
 | Figma 정리 | `26:21` 에 `Pagenation 88:903` 과 `Deck Dots 27:85` 가 **중복 배치**되어 있다 → PageIndicator 1종으로 통합, Figma 중복 제거 요청 (§13.3) |
 
 ### 4.20 SpeechBubble — Figma `88:721` (Type2 / sessopn / Type3)
@@ -784,7 +816,7 @@ border는 각각 `--haru-palette-red / -yellow / -green / -blue` (Figma 파스�
 | 16 | Chip | §4.16 | `90:626`·`40:316` | focus·disabled·check 아이콘 |
 | 17 | RadioGroup | §4.17 | `179:1788` | focus·error·disabled·muted 옵션 |
 | 18 | ProgressBar | §4.18 | `179:1779/1780` | indeterminate·라벨 |
-| 19 | PageIndicator | §4.19 | `88:789` | interactive·a11y |
+| 19 | PageIndicator | §4.19 | `88:789` | a11y (표시 전용 — `interactive` 폐기, `S1-G-1`) |
 | 20 | SpeechBubble | §4.20 | `88:721` | — |
 | 21 | Sheet + Scrim | §4.21 | 부분(`88:960`) | 헤더·grabber·모션·focus trap |
 | 22 | Dialog + ConfirmDialog | §4.22 | **없음** | 전체 |
@@ -931,9 +963,9 @@ Figma 근거: 컴포넌트 `139:2734` (`Titla type=Three | two`) + 화면 헤더
 
 | 순서 | key | 표시 라벨 | route | 아이콘 | Figma variant 이름 |
 |---|---|---|---|---|---|
-| 1 | `library` | **Library** | `/library` | Lucide `book-open` (§8.1) | `Active=Library` |
+| 1 | `library` | **Library** | `/library` | Lucide **`book`** — 확정 `S1-D2-5` (§8.1) | `Active=Library` |
 | 2 | `home` (center) | **Home** | `/` | HARU SVG `haru:tab-center-home` (`140:2971`) | `Active=Home` |
-| 3 | `progress` | **Progress** | `/progress` | Lucide `chart-column` (§8.1) | `Active=Report` |
+| 3 | `progress` | **Progress** | `/progress` | Lucide **`chart-no-axes-column-increasing`** — 확정 `S1-D2-5` (§8.1) | `Active=Report` |
 
 > **Figma variant명 `Report` ↔ 표시 라벨 `Progress` 처리**: 2026-09-18 `25:87` 재조회 결과 **세 variant 모두 라벨 텍스트가 이미 "Progress"** 로 되어 있다(`node-25_86` / `node-25_68` / `node-25_50`). 즉 차이는 **variant property 값 이름(`Active=Report`)뿐**이며 시각 산출물은 동일하다. 구현 key는 `progress`, 라벨은 copy 모듈의 `Progress` 를 쓰고, Figma variant 이름 `Report → Progress` rename은 디자이너 요청 항목이다(§13.3). QA 시각 비교에서 이름 차이는 **차이 아님**.
 
@@ -1058,8 +1090,8 @@ Figma 화면 다수가 `absolute left/top` 배치다(DESIGN_SYSTEM §11.1). 구�
 | 메일 | `179:1716` | `mail` | — | 2 |
 | 목록 | `179:1765` | `list` | — | 2 |
 | 시계 | `179:1760`, `50:152` clock_default | `clock` | HARU `haru:clock` | 2 |
-| **탭 Library** | `25:35`/`25:53` (21px SVG) | `book-open` | `library-big` | 1 |
-| **탭 Progress** | `25:46`/`25:82` (21px SVG) | `chart-column` | `trending-up` | 1 |
+| **탭 Library** | `25:35`/`25:53` (21px SVG) | **`book`** — 확정 (`S1-D2-5`) | ~~`book-open`~~ · ~~`library-big`~~ 기각 | 1 |
+| **탭 Progress** | `25:46`/`25:82` (21px SVG) | **`chart-no-axes-column-increasing`** — 확정 (`S1-D2-5`) | ~~`chart-column`~~ · ~~`trending-up`~~ 기각 | 1 |
 | **탭 Home(중앙)** | `140:2971` (64px 합성) | — (HARU SVG, §8.2) | — | 1 |
 | 경고/에러 | 없음 | `triangle-alert` / `octagon-alert` | — | 1 |
 | 정보 | 없음 | `info` | — | 1 |
@@ -1075,7 +1107,11 @@ Figma 화면 다수가 `absolute left/top` 배치다(DESIGN_SYSTEM §11.1). 구�
 | 검색 | 없음 | `search` | — | 3 |
 | 다운로드 | `110:854` | `download` | — | 7 |
 
-> **탭 아이콘 글리프 확정은 §10.2 시각 비교에서 한다.** Figma의 탭 아이콘은 이름 없는 21px SVG(`Frame`)이므로 이름으로 대응을 확정할 수 없다. `book-open` / `chart-column` 은 design-agent 권장안이며, gallery 렌더와 `25:87` 스크린샷을 나란히 비교해 `library-big` / `trending-up` 중 하나로 바꿀 수 있다 (RECOMMENDED, 시각 비교 후 확정).
+> **탭 아이콘 글리프 — CONFIRMED `S1-D2-5` (2026-09-21, user).** 근거: `docs/decisions/stage-1-approvals.md` §8 · `docs/qa/stage-1-handoff.md` §10.
+> Figma 의 탭 아이콘은 이름 없는 21px SVG(`Frame`)라 이름으로 대응을 확정할 수 없어 **`25:87` 을 16배 확대해 path 를 대조**했다. 기존 후보 4종(`book-open` · `library-big` · `chart-column` · `trending-up`)이 모두 불일치했고, lucide-react 1.47.0 의 path 대조로 **`book`**(사각형 + 책등 + 선반선) · **`chart-no-axes-column-increasing`**(축 없는 좌→우 증가 막대 3개)이 Figma 형태와 1:1 대응함을 확인했다. 구현 반영: `packages/ui/src/icon/registry.ts` (구 2종 등록 해제) + baseline 7건 재생성 (handoff §10.2).
+>
+> **`LUCIDE_STROKE_WIDTH` 는 1.5 를 유지한다 — 탭 전용 상향 없음** (handoff §10.1 실측 근거). 21px 박스 실측에서 Figma 두 글리프의 선 굵기가 **서로 다르다**: Library 외곽선 ≈2.0px vs Progress 막대 ≈3.2px. Library 에 맞추려면 ≈2.3, Progress 에 맞추려면 ≈3.7 이 필요해 **단일 stroke 로 수렴 불가**하고, Figma 의 Progress 는 stroke 가 아니라 **채워진 막대**이며 막대 간격도 더 좁다(5.5 vs Lucide 6.1) — 굵기만 올려도 형태가 맞지 않는다. 1.5→2 의 실제 시각 변화도 탭바 전체에서 0.51 %(글리프당 ≈105px 안티에일리어싱)에 그친다. 반대로 탭 전용 예외를 두면 같은 화면 TopBar 아이콘(20px · 1.5)과 굵기가 어긋나고 §4.2 · §8.3 의 **Lucide stroke 1.5 단일 규격**이 깨진다.
+> → 남은 격차는 **글리프 기하** 차이이며 stroke 로 좁혀지지 않는다. Figma 수준 굵기가 필요하다면 올바른 해법은 stroke 예외가 아니라 두 글리프를 **HARU 전용 SVG**(§8.2 `haru:*` 방식)로 export 하는 것이다 — **디자이너 요청 후보**이며 Stage 1 에서는 채택하지 않았다 (§10.3 허용 차이에 기록).
 
 ### 8.2 HARU 전용 SVG export 목록 (`Icon 50:157` = 15 symbol, 2026-09-18 재확인)
 
@@ -1195,10 +1231,15 @@ Figma 화면 다수가 `absolute left/top` 배치다(DESIGN_SYSTEM §11.1). 구�
 | Checkbox | 22×22 (`179:1742`) | 라벨 포함 행 전체가 클릭 영역, 행 최소 높이 44 |
 | RadioGroup 행 | 43 (`179:1789`) | 행 최소 높이 44 |
 | Tag (xs 19 / sm 26) | — | 인터랙티브 아님 → 확장 불필요 |
-| PageIndicator dot | 7 | 기본은 장식(`aria-hidden`). `interactive` 면 44 |
+| **TextField 입력 행** | **42** (`--field-row-height`, Figma `76:364`) | **42 유지 — 수용 예외 `S1-G-2`** (아래) |
 | TextField trailingAction ("Show") | 텍스트 13px | padding으로 44×44 |
 | BottomTabBar 항목 | 약 115×70 | ✓ |
 | Button md/lg | 45 / 56 | ✓ |
+
+> **행 제거 — `PageIndicator dot`** (근거: `docs/decisions/stage-1-approvals.md` §8 `S1-G-1`, 2026-09-21 user). `interactive` variant 폐기로 PageIndicator 가 표시 전용이 되어 인터랙티브 컨트롤을 렌더하지 않는다. 터치 타깃 요구 대상이 아니므로 이 표에서 제외한다. 상세는 §4.19.
+>
+> **수용 예외 `S1-G-2` — TextField 입력 행 42px** (근거: 같은 문서 §8, 2026-09-21 user). `--field-row-height: 42px` 는 Figma `76:364` 값이며 44 기준에 **2px 미달**이다. 그럼에도 ① 라벨·헬퍼를 포함한 세로 영역이 넓고 ② 인접 타깃과 겹치지 않아 오조작 위험이 낮으며 ③ Visual Source of Truth 를 흔들지 않는 편이 낫다는 판단으로 **42 를 그대로 둔다.**
+> **QA 는 이 항목을 `PASS (accepted: S1-G-2)` 로 기록한다** (`.claude/rules/qa.md` §2 사전 수용 예외 처리와 동일). 실측값은 `docs/qa/stage-1-handoff.md` §7.1 참조.
 
 ### 9.4 대비 측정표 — D-01 수용 범위 vs 가값 범위
 
@@ -1336,7 +1377,24 @@ viewport **393×852**, `prefers-reduced-motion: reduce`, 애니메이션 정지 
 | **AD-9** | **Figma placeholder 데이터** — 더미 문구·표지 불일치(M-36) | Figma 목업 데이터 | 문구 비교 제외 (구조·스타일만 비교) |
 | **AD-10** | **gutter 24 통일** — Figma는 24(버튼·탭바)와 26(입력·섹션 라벨) 혼재 | `가값 (P-13)` | 26 사용 요소의 좌우 ±2px, 폭 ±4px 차이 허용 |
 
-측정 도구 기준 (RECOMMENDED): Playwright `toHaveScreenshot({ maxDiffPixelRatio: 0.02 })` 를 기본으로 하되, **AD 항목이 적용되는 비교는 픽셀 비교 대신 구조·토큰 단위 assertion**(계산된 스타일 값 비교)을 병행한다. 정확한 임계값은 Stage 1 구현 후 baseline을 만들어 확정한다 (NEEDS DECISION → development-agent가 QA handoff에 기록).
+측정 도구 기준: Playwright `toHaveScreenshot()` 을 기본으로 하되, **AD 항목이 적용되는 비교는 픽셀 비교 대신 구조·토큰 단위 assertion**(계산된 스타일 값 비교)을 병행한다.
+
+**시각 비교 임계값 — CONFIRMED `S1-D2-6` (2026-09-21, user).** 근거: `docs/decisions/stage-1-approvals.md` §8 (결정 ID **정본 = `S1-D2-6`**) · `docs/qa/stage-1-handoff.md` §11. 갱신 전 잠정값 `maxDiffPixelRatio: 0.02` 를 대체한다.
+
+| 항목 | 확정값 |
+|---|---|
+| `maxDiffPixelRatio` | **0.002** (0.2 %) |
+| `maxDiffPixels` | **200** (절대 상한 병기) |
+| 적용 지점 | `playwright.config.ts` 의 `VISUAL_MAX_DIFF_PIXEL_RATIO` · `VISUAL_MAX_DIFF_PIXELS` 상수. Playwright 는 두 값 중 **엄격한 쪽**을 적용한다 |
+| 플랫폼 분리 | `snapshotPathTemplate` 의 `{platform}` — macOS / CI Linux baseline 이 섞이지 않는다 |
+
+확정 근거: 동일 환경 2회 연속 실행 diff 가 **0 픽셀**이고 재생성 baseline 27건의 SHA-256 이 전부 동일해 렌더가 비트 단위로 재현된다. 반면 0.02 는 최소 baseline(`v9-icon-button` 25,992px)에서도 519px(≈23×23 블록), `frame-1024`(786,432px)에서는 15,728px(≈125×125 블록)을 통과시켜 **아이콘 하나가 통째로 바뀌어도 탐지하지 못한다.** 절대 상한 200 을 병기해 큰 화면에서 허용량이 비례 증가하는 문제를 막는다.
+
+**이 임계값의 한계 (알려진 사항 — `S1-G-6`, handoff §11)**
+
+- 요소 단위 baseline 에서는 비율(0.002)이 먼저 걸린다 → 아이콘 2종 교체(346px)를 **정상 탐지**했다(`v9-icon`).
+- 그러나 **전체 프레임 baseline 에서는 절대 상한 200 이 binding** 이라 같은 21px 아이콘 교체(실측 110–178px)가 **통과한다.**
+- → **프레임 회귀 탐지는 요소 단위 baseline(§10.2 V-1~V-9)이 담당한다**는 전제로 확정값을 적용했다. 아이콘·소형 요소 변경은 전체 프레임 baseline 만으로 검증하지 않는다.
 
 ### 10.4 이번 Stage에서 재조회하지 못한 node
 
@@ -1355,7 +1413,7 @@ viewport **393×852**, `prefers-reduced-motion: reduce`, 애니메이션 정지 
 7. **Figma 값을 코드에 직접 쓰지 않는다.** 이 문서가 "Figma 관측값"으로 적은 수치(26, 18, 13, 11.5 …)는 §3.5 흡수표를 거쳐 토큰으로만 들어간다 (AC-1-10).
 8. **BottomTabBar를 `/` 에 마운트하지 않는다** (Stage 3). gallery에서만 렌더 (Plan §3.1).
 9. Button hover의 Figma blur 6 → 12 통일, 그림자는 명명된 Effect Style 사용 — §10.3 AD-3·AD-4를 QA handoff에 그대로 옮겨 적는다.
-10. 탭 아이콘 Lucide 글리프(`book-open` / `chart-column`)는 **시각 비교 후 확정**한다 (§8.1). 확정 결과를 `docs/qa/stage-1-handoff.md` 에 기록하면 design-agent가 이 문서와 COMPONENT_MAP을 갱신한다.
+10. ~~탭 아이콘 Lucide 글리프(`book-open` / `chart-column`)는 시각 비교 후 확정한다~~ → **해소됨 (2026-09-21 `S1-D2-5`)**: `book` / `chart-no-axes-column-increasing` 확정, stroke 1.5 유지. 이 문서 §8.1 · §6.2 와 `docs/COMPONENT_MAP.md` 에 2026-09-23 반영 완료.
 
 ---
 
@@ -1479,8 +1537,8 @@ viewport **393×852**, `prefers-reduced-motion: reduce`, 애니메이션 정지 
 | S1-D5 | destructive Dialog를 **채움이 아닌 강조 테두리**로 (파스텔 red 대비 부족) | 채택 | RECOMMENDED |
 | S1-D6 | TopBar 스크롤 시 glass 배경 전환 (Figma 없음) | 채택 | RECOMMENDED |
 | S1-D7 | Loading 지연 150ms / 최소 표시 300ms | 채택 | RECOMMENDED |
-| S1-D8 | Playwright 픽셀 비교 임계값 | Stage 1 baseline 생성 후 확정 | **NEEDS DECISION** (development-agent가 handoff에 기록) |
-| S1-D9 | 탭 아이콘 Lucide 글리프 (`book-open` / `chart-column`) | 시각 비교 후 확정 | **NEEDS DECISION** |
+| S1-D8 | Playwright 픽셀 비교 임계값 | Stage 1 baseline 생성 후 확정 | **해소됨** — `maxDiffPixelRatio 0.002` + `maxDiffPixels 200` 확정 (2026-09-21 user). **결정 ID 정본 = `S1-D2-6`** (approvals §8); `S1-D8` 은 이 문서의 질의 번호다. §10.3 반영 |
+| S1-D9 | 탭 아이콘 Lucide 글리프 (~~`book-open` / `chart-column`~~) | 시각 비교 후 확정 | **해소됨** — **`book` / `chart-no-axes-column-increasing`** 확정 (2026-09-21 user). **결정 ID 정본 = `S1-D2-5`** (approvals §8); `S1-D9` 는 이 문서의 질의 번호다. stroke 는 1.5 유지 (handoff §10.1). §8.1 · §6.2 반영 |
 | S1-D10 | HARU 워드마크 "HARU" 를 텍스트 대신 **로고 에셋**으로 분리 | 분리 권장 (폰트가 Inter로 바뀌면 브랜드 표기가 달라짐) | **NEEDS DECISION** (Stage 2 착수 전) |
 
 ### 13.4 에셋 · 라이선스 확인 결과
@@ -1499,16 +1557,18 @@ viewport **393×852**, `prefers-reduced-motion: reduce`, 애니메이션 정지 
 
 ## 14. 요약
 
+> **2026-09-23 갱신** — 아래 토큰·가값 수치 3건은 설계 시점 추정치가 구현 확정치와 달라 정정했다. 근거: `docs/qa/stage-1-handoff.md` §2 검증 명령 결과 · §3.3 `AC-1-11`(`primitive 65 · semantic 193 · component 48`) · `AC-1-12` · `docs/decisions/stage-1-approvals.md` §9. 재현: `node packages/design-tokens/scripts/build-tokens.mjs` 가 `primitive … · semantic … · component …` 과 `provisional N 개 토큰 / M 항목` 을 출력한다 (2026-09-23 실행: `primitive 65 · semantic 193 · component 48` · `provisional 41 개 토큰 / 5 항목 · accepted deviation 3`).
+
 | 항목 | 수치 |
 |---|---|
-| Tier 1 Primitive | 색 30 + status 8 + 타이포 11 style(size·line) + weight 5 = **54** |
-| Tier 2 Semantic | 색 64 + 타이포 (11×4 + 5 + font-sans) = 50 + spacing/size/radius 25 + shadow/material 11 + motion/z 14 = **164** |
-| Tier 3 Component | **36** (packages/ui 내부 전용) |
+| Tier 1 Primitive | 색 30 + status 8 + 타이포 11 style(size·line) + weight 5 = **54** (설계 시점 계산) · 빌드 확정치 **65** — **확인 필요**: 이번 갱신 범위 밖이라 정정하지 않았다 |
+| Tier 2 Semantic | **193** — 구현 확정치. 설계 시점 추정 ~~164~~ 는 오류였다 |
+| Tier 3 Component | **48** (packages/ui 내부 전용) — 설계 시점 추정 ~~36~~ 는 오류였다 |
 | `@theme` 노출 | 13 네임스페이스 (color·font·text·font-weight·radius·shadow·inset-shadow·blur·ease·breakpoint·spacing·animate) |
 | `@utility` 노출 | 11 그룹 (z·duration·material·layout·safe-area·gradient·touch·focus·disabled·icon-size) |
 | Shared UI | **22종** (부속 포함 30 파일) |
 | 공통 상태 패턴 | **6종** (Loading/Skeleton · Empty · Error+Retry · Offline Banner · Toast · Dialog) |
-| 가값 적용 토큰 | P-01~P-09·P-11~P-16 = **15건 / 토큰 48개** (P-10은 화면 명세) |
+| 가값(provisional) 토큰 | **Stage 1-B 시점 15항목 / 71토큰** (설계 시점 기재 ~~48개~~ 는 오류) → **2026-09-22 가값 승인으로 10항목 확정 → 남은 5항목 / 41토큰** (`P-01 · P-02 · P-04 · P-05 · P-16`). P-10 은 토큰이 아닌 화면 명세이며 2026-09-23 확정 |
 | Figma 시각 비교 baseline | **9건** (V-1 ~ V-9) |
 | 허용 차이 | **10건** (AD-1 ~ AD-10) |
 | 승인 필요 항목 | **10건** (S1-D1 ~ S1-D10) |

@@ -8,12 +8,24 @@
 
 | 항목 | 값 |
 |---|---|
-| Major Stage | **Stage 1** — Frontend Foundation + Shared UI + Router + Layout + Design Tokens + Mock Infrastructure |
-| Stage Status | **`COMPLETE`** — Verdict `PASS (accepted: D-01, S1-G-2)` |
-| Next Step | **없음 — STOP.** Stage 2 진입은 사용자 승인 후 |
-| Queue 파일 | `docs/workflow/stage-1/QUEUE.md` |
-| QA Fix Loop 횟수 | 1 / 3 (1회차에 해소) |
-| 마지막 갱신 | 2026-09-21 (Stage 1 COMPLETE — Verdict PASS) |
+| Major Stage | **Stage 2** — Auth · Consent · Onboarding · Child Profile · Home 골격 |
+| Stage Status | `IN_PROGRESS` — 사용자 승인으로 착수 (2026-09-23) |
+| Next Step | **승인 체크포인트 — STOP.** Plan + Design Spec 승인 후 development-agent |
+| Queue 파일 | `docs/workflow/stage-2/QUEUE.md` (승인 후 생성) |
+| QA Fix Loop 횟수 | 0 / 3 |
+| 마지막 갱신 | 2026-09-24 (D-1~D-17 전부 결정 · Plan/Design Spec 승인 대기) |
+
+## 2-0. Step 진행 기록 (Stage 2)
+
+| Step | Agent | 상태 | 비고 |
+|---|---|---|---|
+| `2-PLAN` | plan-agent | `COMPLETE` | `docs/plans/stage-2-plan.md` (875줄) · AC-2-01~68 · D-1~D-17 · PENDING 11건 예상 |
+| `2-DESIGN` | design-agent | `COMPLETE` | `docs/design/stage-2-design-spec.md`(1090줄, 16화면) + `stage-2-designer-request.md`(C13-09·10) |
+| **승인 체크포인트** | 사용자 | **결정 완료 · 최종 승인 대기** | D-1~D-17 전부 승인(D-9·D-15 는 design-agent 이견 채택) · Layout=StackLayout · route 14 · 디자이너 요청 3건 전달 · P-17 등록 — `docs/decisions/stage-2-approvals.md` §4~§6 |
+| `2-IMPL` | development-agent | `PENDING` | 승인 후 |
+| `2-QA` | stage-qa-agent | `PENDING` | |
+
+**Stage 2-B (디자이너 Figma 대기)**: `C13-09` 프로필 결과 · `C13-10` 발전 역량 + Route Guard 프로필 결과 단계 + Plan `D-2`·`D-6`. 요청서 = `docs/design/stage-2-designer-request.md`
 
 ## 2. Step 진행 기록 (Stage 1)
 
@@ -56,6 +68,8 @@
 | `S1-G-6` | React StrictMode 이중 마운트가 `retry` scenario 1회차를 소비 | 1-G | ✅ **해소** — `consumeAttempt()` rollback + `retryOnMount: false` |
 | `S1-E-2` | 320/393/600/1024 반응형 실측 | 1-G | ✅ **해소** — 앱 컬럼 272/345/480/480, 가로 스크롤 0 |
 | `QA-1-001` | `no-console` 전면 차단 + 예외 경로 2개로 축소, `devWarn` 신설 | Fix Loop 1 | ✅ **해소** (QA 재현으로 확인) |
+| **`L-02` 약관·개인정보방침 본문** | **외부 링크로만 연결(D-4). 실제 문서 본문·URL 이 없다.** 실제 사용자가 동의 화면을 만나기 전 반드시 준비돼야 하며, Mock 은 가짜 URL 을 쓴다. 걸어둔 곳: 이 표 · Stage 8 `BACKEND_HANDOFF.md` 출시 전 차단 항목 · Mock fixture + QA 확인 항목 | **출시 전 (법무 L-02)** | **추적 중** |
+| `S2-COPY-1` | Figma `179:1763`/`179:1767` 문구가 5단계 소개 화면인데 Step 5 만 설명 — 교체 문구는 **기획 결정 필요**. copy 모듈에 빈 슬롯으로 둔다 | Stage 2 구현 중 | **결정 필요** |
 | `QA-1-004` | `devWarn` 주석의 살균 문자 집합 표기 부정확 · "PII 불가" 표현이 실제 보장보다 강함 · `import.meta.env.DEV` 게이트 없어 production 번들 포함 (1회차 `Icon.tsx` 와 동일 동작이라 회귀 아님) | Stage 2 착수 전 | 정보 (AC 는 PASS) |
 | `QA-1-002` | TextField `trailingAction` 밑줄 — Figma `76:417` 에는 없음. WCAG 1.4.1 관점에서는 개선일 수 있어 QA 가 단독 판정하지 않음 | 사용자 판단 | **결정 필요** (AC 는 PASS) |
 | `QA-1-003` | 일부 baseline 에 gallery nav pill·FAB 가 demo 블록 위에 겹쳐 캡처됨 — 가려진 영역 회귀 미탐지 | 1-QA 이후 | 정보 (AC 는 PASS) |
@@ -70,8 +84,8 @@
 | Stage | 범위 | 상태 |
 |---|---|---|
 | 0 | Architecture · Figma Mapping · Design System · API Contract Planning | `COMPLETE` (승인 2026-09-14) |
-| 1 | Frontend Foundation | **`COMPLETE`** (Verdict PASS, 2026-09-21) — 커밋·Stage 2 진입은 사용자 승인 후 |
-| 2 | Auth · Consent · Onboarding · Child Profile · Home 골격 | `NOT_STARTED` |
+| 1 | Frontend Foundation | **`COMPLETE`** (Verdict PASS, 2026-09-21). 이후 P-10 확정 + 그림자 클리핑 결함 수정 (2026-09-23, 미커밋) |
+| 2 | Auth · Consent · Onboarding · Child Profile · Home 골격 | **`IN_PROGRESS`** (착수 2026-09-23) |
 | 3 | Home · Activity Card · Library · Recommendation | `NOT_STARTED` |
 | 4 | Storytime Session · Recording Client · Upload UX | `NOT_STARTED` |
 | 5 | Reflection · Async Analysis · Short Feedback | `NOT_STARTED` |
