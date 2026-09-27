@@ -9,6 +9,7 @@ import {
   CaregiverRelationshipSchema,
   CompletedReasonSchema,
   ConsentActionSchema,
+  ConsentSourceSchema,
   ConsentTypeSchema,
   DeletionRequestStatusSchema,
   DeletionScopeSchema,
@@ -16,8 +17,10 @@ import {
   GenderSchema,
   GiftRequestStatusSchema,
   NotificationKindSchema,
+  OnboardingStatusSchema,
   OnboardingStepSchema,
   ParentVerificationStatusSchema,
+  PlanSchema,
   ReadingContextSchema,
   ReportEligibilitySchema,
   ReportStatusSchema,
@@ -30,7 +33,7 @@ import {
 
 /**
  * enum 값 스냅샷 — `docs/API_CONTRACTS.md` §2.1 · §2.2 표와 **정확히** 일치해야 한다
- * (Stage 1 Plan §11.6 AC-1-31, §12 "enum 값 스냅샷 23종").
+ * (Stage 1 Plan §11.6 AC-1-31 "enum 값 스냅샷 23종" → Stage 2 Plan §11.8 AC-2-47 로 **26종**).
  * 값·순서를 바꾸려면 문서를 함께 갱신한다.
  */
 interface EnumSnapshot {
@@ -103,6 +106,12 @@ const ENUM_SNAPSHOTS: readonly EnumSnapshot[] = [
     ],
   },
   { name: 'ConsentAction', options: ConsentActionSchema.options, expected: ['granted'] },
+  // Stage 2 추가 (Plan §7.1 · §18-④) — Stage 1 §2.2 표에 없던 3 종
+  {
+    name: 'ConsentSource',
+    options: ConsentSourceSchema.options,
+    expected: ['signup_email', 'signup_oauth', 'settings', 'reconsent'],
+  },
   { name: 'Gender', options: GenderSchema.options, expected: ['girl', 'boy', 'prefer_not_to_say'] },
   {
     name: 'SurveyAnswerValue',
@@ -161,6 +170,12 @@ const ENUM_SNAPSHOTS: readonly EnumSnapshot[] = [
     expected: ['child_info', 'temperament', 'books', 'goals', 'capability_items'],
   },
   {
+    name: 'OnboardingStatus',
+    options: OnboardingStatusSchema.options,
+    expected: ['not_started', 'in_progress', 'completed'],
+  },
+  { name: 'Plan', options: PlanSchema.options, expected: ['free'] },
+  {
     name: 'DeletionScope',
     options: DeletionScopeSchema.options,
     expected: ['session_recording', 'all_data'],
@@ -186,7 +201,7 @@ const ENUM_SNAPSHOTS: readonly EnumSnapshot[] = [
 
 describe('enums — API_CONTRACTS §2 값 스냅샷', () => {
   it('Stage 1 이 확정하는 enum 은 23 종이다', () => {
-    expect(ENUM_SNAPSHOTS).toHaveLength(23);
+    expect(ENUM_SNAPSHOTS).toHaveLength(26);
   });
 
   it.each(ENUM_SNAPSHOTS)('$name 의 값과 순서가 문서와 일치한다', ({ options, expected }) => {

@@ -9,10 +9,18 @@
  *   (`docs/ARCHITECTURE.md` §1.2).
  *
  * Stage 1 범위: `common` · `enums`(23종) · `rules`(3종) · `health`.
- * 도메인 schema(auth · consent · onboarding · children · sessions · recordings · analysis ·
- * reports · data-management · notifications)는 해당 Stage 에서 추가한다.
+ * Stage 2 범위: `enums` 26종(+`ConsentSource`·`OnboardingStatus`·`Plan`) ·
+ * `auth` · `me` · `consent` · `onboarding` · `children` · `books` · `rules/capability-score`.
+ * 나머지 도메인 schema(sessions · recordings · analysis · reports · data-management ·
+ * notifications)는 해당 Stage 에서 추가한다.
  */
+export * from './auth/index.js';
+export * from './books/index.js';
+export * from './children/index.js';
 export * from './common/index.js';
+export * from './consent/index.js';
 export * from './enums/index.js';
 export * from './health/index.js';
+export * from './me/index.js';
+export * from './onboarding/index.js';
 export * from './rules/index.js';
