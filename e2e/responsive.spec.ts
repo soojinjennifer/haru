@@ -6,6 +6,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 
+import { FRAME_SNAPSHOT } from '../playwright.config';
 import { GALLERY, gotoStable, settle } from './support/gallery';
 
 /** Design Spec §7.2 표. content = column − 2 × gutter(24). */
@@ -74,7 +75,8 @@ test.describe('텍스트 200% 확대 reflow (AC-1-22)', () => {
     );
     expect(overflow).toBeLessThanOrEqual(0);
 
-    await expect(page).toHaveScreenshot('frame-320-text-200.png');
+    // 전체 프레임 baseline — 레이아웃 회귀 전용 임계값 (결정 D-12).
+    await expect(page).toHaveScreenshot('frame-320-text-200.png', FRAME_SNAPSHOT);
   });
 });
 

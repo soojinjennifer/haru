@@ -27,7 +27,10 @@ const VIEWPORTS = [
 
 /** 앱 Layout(`/`) 과 dev 레이아웃 프레임(`/__dev/ui/frame`) 둘 다 같은 규칙을 따라야 한다. */
 const SCREENS = [
-  { name: 'app `/` (StackLayout)', path: '/' },
+  // Stage 2-AUTH 부터 `/` 는 Route Guard 가 미인증 사용자를 `/auth/welcome` 로 보낸다.
+  // Welcome 에는 Surface 카드가 없으므로, StackLayout 안에 카드가 있는 화면을 쓴다
+  // (`/auth/reset-password` 는 토큰이 없으면 ErrorState 카드를 렌더한다).
+  { name: 'app `/auth/reset-password` (StackLayout)', path: '/auth/reset-password' },
   { name: 'dev frame (TabLayout 구조)', path: '/__dev/ui/frame' },
 ] as const;
 

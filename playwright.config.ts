@@ -17,14 +17,32 @@ const PORT = 4319;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
 /**
- * 시각 비교 임계값 — **확정 (`S1-D2-6`, approvals §8)**.
+ * 시각 비교 임계값 — `S1-D2-6`(approvals §8) 확정값을 **결정 `D-12` 로 2종으로 나눈다**
+ * (stage-2-approvals §4).
  *
- * 비율 0.2% 와 절대 픽셀 상한 200 을 **함께** 적용한다(둘 다 만족해야 통과).
- * 실측 diff 가 0 이므로 0.2% 로도 여유가 충분하고, 절대 상한이 큰 baseline 에서
- * 허용량이 폭으로 비례 증가하는 것을 막는다(0.02 는 `frame-1024` 에서 125×125 변화를 통과시켰다).
+ * 비율은 두 종류 모두 0.2% 이고, **절대 픽셀 상한만 용도에 따라 다르다**(둘 다 만족해야 통과).
+ *   - 영역 클립(`REGION`) — Figma 대조용. 블록이 작으므로 상한 **20**.
+ *     `S1-D2-6` 의 한계(작은 블록에서도 200px 변화를 통과시킴)를 여기서 해소한다.
+ *   - 전체 프레임(`FRAME`) — 레이아웃 회귀 전용. 폰트 힌팅·안티에일리어싱 누적 차이를
+ *     흡수해야 하므로 상한 **200** 을 유지한다.
  */
 export const VISUAL_MAX_DIFF_PIXEL_RATIO = 0.002;
+/** 전체 프레임 baseline 의 절대 픽셀 상한 (기본값). */
 export const VISUAL_MAX_DIFF_PIXELS = 200;
+/** 영역 클립 baseline 의 절대 픽셀 상한 (D-12). */
+export const VISUAL_MAX_DIFF_PIXELS_REGION = 20;
+
+/** 영역 클립 baseline 비교 옵션 — `expect(locator).toHaveScreenshot(name, REGION_SNAPSHOT)`. */
+export const REGION_SNAPSHOT = {
+  maxDiffPixelRatio: VISUAL_MAX_DIFF_PIXEL_RATIO,
+  maxDiffPixels: VISUAL_MAX_DIFF_PIXELS_REGION,
+} as const;
+
+/** 전체 프레임 baseline 비교 옵션. */
+export const FRAME_SNAPSHOT = {
+  maxDiffPixelRatio: VISUAL_MAX_DIFF_PIXEL_RATIO,
+  maxDiffPixels: VISUAL_MAX_DIFF_PIXELS,
+} as const;
 
 export default defineConfig({
   testDir: './e2e',

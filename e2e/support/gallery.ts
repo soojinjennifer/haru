@@ -40,6 +40,18 @@ export async function settle(page: Page): Promise<void> {
   });
 }
 
+/**
+ * **앱 화면**(dev gallery 가 아닌 실제 route)을 연다.
+ *
+ * gallery 는 `.haru-dev-root` 를 기다리지만 앱 화면에는 그 요소가 없다.
+ * `main` 랜드마크가 붙어야 React 가 그린 것이다.
+ */
+export async function gotoApp(page: Page, path: string): Promise<void> {
+  await page.goto(path, { waitUntil: 'domcontentloaded' });
+  await page.locator('main').waitFor({ state: 'attached' });
+  await settle(page);
+}
+
 /** `?scenario=` 로 Mock scenario 를 지정해 연다 (URL 이 1순위 — Plan §16 D-5). */
 export async function gotoScenario(page: Page, path: string, scenario: string): Promise<void> {
   await gotoStable(page, `${path}?scenario=${encodeURIComponent(scenario)}`);
