@@ -15,7 +15,7 @@
 }
 
 :root {
-  /* --- Spacing scale (2 · 4 · 6 · 8 · 10 · 12 · 14 · 16 · 20 · 24 · 32) ---- */
+  /* --- Spacing scale (2 · 4 · 6 · 8 · 10 · 12 · 14 · 16 · 20 · 24 · 28 · 32 · 40) - */
   --space-0-5: calc(var(--spacing) * 0.5); /* 2 */
   --space-1: calc(var(--spacing) * 1); /* 4 */
   --space-1-5: calc(var(--spacing) * 1.5); /* 6 */
@@ -26,7 +26,11 @@
   --space-4: calc(var(--spacing) * 4); /* 16 */
   --space-5: calc(var(--spacing) * 5); /* 20 */
   --space-6: calc(var(--spacing) * 6); /* 24 */
+  /* 7 · 10 단계는 Stage 2 Design Spec §6.1 (2026-09-27 `S2-TOKEN-1`) 로 추가되었다.
+   * Tailwind 4px 스케일의 기존 단계라 `gap-7`/`pt-10`/`gap-10` 과 값이 같고 렌더는 변하지 않는다. */
+  --space-7: calc(var(--spacing) * 7); /* 28 */
   --space-8: calc(var(--spacing) * 8); /* 32 */
+  --space-10: calc(var(--spacing) * 10); /* 40 */
 
   /* --- Layout gutter (Figma 26 혼재 → 24 채택, §12.2 P-13) ---------------- */
   --layout-gutter: var(--space-6);

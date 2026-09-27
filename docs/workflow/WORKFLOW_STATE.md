@@ -96,6 +96,13 @@
 | `QA-1-002` | TextField `trailingAction` 밑줄 — Figma `76:417` 에는 없음. WCAG 1.4.1 관점에서는 개선일 수 있어 QA 가 단독 판정하지 않음 | 사용자 판단 | **결정 필요** (AC 는 PASS) |
 | `QA-1-003` | 일부 baseline 에 gallery nav pill·FAB 가 demo 블록 위에 겹쳐 캡처됨 — 가려진 영역 회귀 미탐지 | 1-QA 이후 | 정보 (AC 는 PASS) |
 | `S1-G-6` | 확정 임계값 `maxDiffPixels: 200` 이 전체 프레임 baseline 에서 21px 아이콘 교체를 놓친다 (실측 diff 110–178px). 요소 단위 baseline 은 비율 0.002 로 정상 탐지(`v9-icon` 346px) | 사용자 판단 | 정보 · 조정 가능 |
+| ~~`S2-TOKEN-1`~~ | `--space-7`(28) · `--space-10`(40) 이 토큰에 미정의인데 Design Spec 이 8곳에서 참조 | design-agent | ✅ **문서 해소** (2026-09-27) — **신규 토큰 2건 제안**, 추가는 development-agent |
+| ~~`QA-2-005`~~ | Figma `179:1813`(27/33) · `179:1831`(30) 에 `--text-title-2`(22/28) 배정 — 흡수표 `AD-6`(27→28) 밖 | design-agent | ✅ **문서 해소** — `title-1` 로 정정 + `AD-S2-17` 등록. **구현 변경 필요** |
+| ~~`QA-2-006`~~ | §2.11 축소 순서 ②(일러스트 비율 축소)가 실제로 발동하지 않음 | design-agent | ✅ **문서 해소** — 실제 동작으로 재작성 |
+| ~~`QA-2-007`~~ | §2.11 이 `asset=hello-heart` 로 적고 검산 전제(제목 66)가 토큰(56)과 자기모순 | design-agent | ✅ **문서 해소** — `hello-heart-full` 정정 + 제목 68 기준 재계산 |
+| **`S2-FOLLOW-1`** | **위 문서 개정에 따른 구현 반영 3건** — ① `--space-7`·`--space-10` 토큰 추가(렌더 변화 0) ② `OnboardingSaved` 제목 `title-2`→`title-1` ③ `LogInPage` 제목 `title-1` + 부제→소셜 간격 24→40. baseline `s2-onboarding-saved`·`s2-login` 재생성 | **development-agent** | **진행 중** |
+| `S2-CARD-1` | 설문 카드 내부 간격 환산 정확도 — eyebrow→question 명세 4 ↔ Figma 7, question→옵션 명세 24 ↔ Figma 45. 질문 박스 높이가 실제 행수에 따라 달라져 baseline 과 함께 판단 필요 | 사용자 판단 | 정보 |
+| `S2-WELCOME-1` | welcome 상단 여백 Figma 94 ↔ 명세 40 — Figma 에 없는 Apple 버튼(`AD-S2-2`)이 회수분을 쓰므로 복원하려면 화면 세로 재설계 필요 | 사용자 판단 | 정보 |
 | `S1-G-7` | source map(`dist/**/*.js.map`)에 소스 주석이 포함된다. 배포 JS/CSS/HTML 에는 dev 문자열 0건이나, map 을 함께 배포하면 소스 텍스트가 공개된다 | Stage 8 (C-18 프리뷰 배포) | 정보 |
 
 **`NEEDS_DECISION` 항목이 다음 Step의 필수 입력이면 Runner는 실행하지 않고 STOP 한다.**

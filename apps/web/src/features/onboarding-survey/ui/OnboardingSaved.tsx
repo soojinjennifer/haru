@@ -24,7 +24,7 @@ export function OnboardingSaved() {
       <CharacterIllustration asset="hello-heart-full" />
 
       <div className="haru-saved__title">
-        <Text variant="title-2" weight="heavy" tone="primary" align="center" as="h1">
+        <Text variant="title-1" weight="heavy" tone="primary" align="center" as="h1">
           {copy.title}
         </Text>
       </div>

@@ -42,10 +42,16 @@
  * 텍스트 200% 확대 시 세로 공간을 잠그면 다른 콘텐츠가 잘린다 (AC-2-59).
  * 307 은 Figma 원본 폭이며 `--size-illustration-max` 토큰이 값을 소유한다.
  *
- * **세로 공간이 모자라면 비율을 유지한 채 줄어든다** (Design Spec §2.11 "축소 순서" ②).
- * `flex-shrink: 1` + `min-block-size: 0` 으로 세로 flex 컨테이너 안에서 줄어들 수 있게 하고,
- * 이미지는 `max-block-size: 100%` + `object-fit: contain` 으로 왜곡 없이 그 안에 들어간다.
- * 줄어들 대상은 일러스트뿐이며 제목·CTA 는 어느 단계에서도 줄지 않는다.
+ * **일러스트가 작아지는 경로는 가로 폭 제약 하나뿐이다** — `min(100%, --size-illustration-max)`
+ * + 세로비 유지 (320px 에서 272×368). 개정된 Design Spec §2.11 "공간 부족 시 실제 동작"(`QA-2-006`)
+ * 대로 세로 공간이 모자랄 때의 단계는 ① spacer 최소값(24 / 32)까지 축소 → ② 앱 컬럼 스크롤이며,
+ * **세로 높이에 따른 일러스트 비율 축소 단계는 발동하지 않는다**: `AppColumn` 은 콘텐츠 높이만큼
+ * 자라는 grid 여서 세로 음수 여유가 생기지 않고 래퍼 높이가 콘텐츠 높이라 `max-block-size: 100%` 가
+ * 제약으로 작동하지 않는다.
+ *
+ * 아래 `flex: 0 1 auto` + `min-block-size: 0` + `max-block-size: 100%` + `object-fit: contain` 은
+ * 그 상황에서도 **왜곡·잘림을 만들지 않기 위한 방어**로 남겨 둔다 (제목·CTA 는 `flex: none` 이라
+ * 어느 단계에서도 줄지 않는다).
  */
 .haru-character-illustration {
   display: block;
