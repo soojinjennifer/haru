@@ -45,6 +45,16 @@ const appSources = walk(WEB_SRC)
  */
 const isDevSource = (file: string): boolean => relative(WEB_SRC, file).startsWith(`dev${'/'}`);
 
+/**
+ * 테스트 지원 코드(`src/test/**`)인지.
+ *
+ * `__tests__` 밖에 있지만 **테스트에서만** 쓰이는 조립 헬퍼다 (`ApiClientProvider` 의
+ * `clients` · `authGateway` 주입 경로 — Plan §5.2). 앱 코드가 이 파일을 import 하면
+ * Mock 이 Production 경로로 새므로, 아래에서 **역방향 import 를 따로 금지**한다.
+ */
+const isTestSupportSource = (file: string): boolean =>
+  relative(WEB_SRC, file).startsWith(`test${'/'}`);
+
 describe('Mock 결정성 — 시간·난수 직접 호출 금지 (Plan §8.3, AC-1-39)', () => {
   it('Mock 소스가 하나 이상 존재한다 (검사가 헛돌지 않도록)', () => {
     expect(mockSources.length).toBeGreaterThan(0);
@@ -81,12 +91,22 @@ describe('Adapter 선택 지점 1곳 (AC-1-12)', () => {
     ]);
   });
 
-  it('`src/mocks` 를 import 하는 앱 코드는 Adapter 선택 지점뿐이다', () => {
-    const offenders = appSources.filter((file) => /['"][^'"]*\/mocks['"]/.test(codeOf(file)));
+  it('`src/mocks` 를 import 하는 앱 코드는 Adapter 선택 지점과 테스트 지원 코드뿐이다', () => {
+    const offenders = appSources
+      .filter((file) => !isTestSupportSource(file))
+      .filter((file) => /['"][^'"]*\/mocks['"]/.test(codeOf(file)));
 
     expect(offenders.map((file) => relative(WEB_SRC, file))).toStrictEqual([
       'app/providers/apiClients.ts',
     ]);
+  });
+
+  it('앱 코드(dev · 테스트 지원 제외)는 `src/test/**` 를 import 하지 않는다', () => {
+    const offenders = appSources
+      .filter((file) => !isTestSupportSource(file) && !isDevSource(file))
+      .filter((file) => /['"][^'"]*\/test\//.test(codeOf(file)));
+
+    expect(offenders.map((file) => relative(WEB_SRC, file))).toStrictEqual([]);
   });
 
   /**
@@ -95,9 +115,12 @@ describe('Adapter 선택 지점 1곳 (AC-1-12)', () => {
    * 실제 동작이 갈라지지 않는다. 대신 dev 모듈은 `import.meta.env.DEV` 가드 + 동적 import
    * 로만 진입하므로 Production 산출물에는 남지 않는다 (AC-1-42).
    */
-  it('`src/mocks/**` 하위를 import 하는 곳은 Adapter 선택 지점과 src/dev 뿐이다', () => {
+  it('`src/mocks/**` 하위를 import 하는 곳은 Adapter 선택 지점 · src/dev · 테스트 지원뿐이다', () => {
     const offenders = appSources.filter(
-      (file) => /['"][^'"]*\/mocks\//.test(codeOf(file)) && !isDevSource(file),
+      (file) =>
+        /['"][^'"]*\/mocks\//.test(codeOf(file)) &&
+        !isDevSource(file) &&
+        !isTestSupportSource(file),
     );
 
     expect(offenders.map((file) => relative(WEB_SRC, file))).toStrictEqual([]);

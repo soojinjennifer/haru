@@ -54,10 +54,24 @@ describe('contrastRatio (WCAG 2.x 상대 휘도)', () => {
 });
 
 describe('가값 승인 자료 목록 (Plan §17-3)', () => {
-  it('P-01 … P-16 을 빠짐없이 제시한다', () => {
+  it('P-01 … P-17 을 빠짐없이 제시한다 (P-17 = Stage 2 신규, 결정 D-14)', () => {
     expect(PROVISIONAL_ITEMS.map((item) => item.id)).toStrictEqual(
-      Array.from({ length: 16 }, (_, index) => `P-${String(index + 1).padStart(2, '0')}`),
+      Array.from({ length: 17 }, (_, index) => `P-${String(index + 1).padStart(2, '0')}`),
     );
+  });
+
+  it('확정 11건 / 디자이너 대기 6건으로 사용자 결정이 반영되어 있다', () => {
+    const waiting = PROVISIONAL_ITEMS.filter((item) => item.status === 'waiting').map(
+      (item) => item.id,
+    );
+    expect(waiting).toStrictEqual(['P-01', 'P-02', 'P-04', 'P-05', 'P-16', 'P-17']);
+    expect(PROVISIONAL_ITEMS.filter((item) => item.status === 'confirmed')).toHaveLength(11);
+  });
+
+  it('각 항목이 결정 근거 문장을 갖는다', () => {
+    for (const item of PROVISIONAL_ITEMS) {
+      expect(item.decision.length).toBeGreaterThan(0);
+    }
   });
 
   it('각 항목이 확인 화면을 가리킨다', () => {

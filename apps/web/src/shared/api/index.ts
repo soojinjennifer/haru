@@ -12,6 +12,11 @@ export { ApiClientsProvider, useApiClients } from './context';
 export type { ApiClientsProviderProps } from './context';
 export type { ApiClients } from './types';
 export type { ApiRequestOptions, HealthApi } from './health-api';
+export type { ApiMutationOptions } from './options';
+export type { MeApi } from './me-api';
+export type { ConsentApi } from './consent-api';
+export type { OnboardingApi } from './onboarding-api';
+export type { BooksApi } from './books-api';
 export {
   isHaruApiError,
   isNetworkError,

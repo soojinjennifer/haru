@@ -34,13 +34,6 @@ export const appCopy = {
     loadingLabel: 'Loading',
   },
 
-  /** Stage 2 에서 Home 화면 골격으로 교체되는 임시 화면 (Plan §3.1) */
-  placeholder: {
-    title: 'HARU',
-    description: 'The app shell is ready. Screens arrive in the next stages.',
-    note: 'Stage 1 — Frontend Foundation',
-  },
-
   /** 스킵 링크 · 랜드마크 이름 */
   landmarks: {
     mainContent: 'Main content',

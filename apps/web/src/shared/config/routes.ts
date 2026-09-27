@@ -1,8 +1,16 @@
 /**
- * Route 경로 상수 — Plan §5.4.
+ * Route 경로 상수 — Plan §9.1 (Stage 2 = 14 route, approvals §5).
  *
- * Stage 1 route 는 `/`(임시 placeholder) 와 `*`(NotFound) 뿐이다.
- * 실제 화면 route 는 Stage 2 이후에 추가한다.
+ * **경로 문자열의 단일 출처**다. Route Guard(`resolveGuardDecision`)가 판정 결과로
+ * 돌려주는 경로도 여기에서 온다. 화면·테스트에 문자열을 흩어 쓰지 않는다.
+ *
+ * Stage 2-AUTH 시점에 router 에 실제로 등록된 화면은 `/auth/*` 5건 + `/` + `*` 이다.
+ * `/auth/consent` · `/auth/verify-parent` · `/onboarding/*` · `/settings` 는 **경로만** 있고
+ * 화면은 각각 `2-CONSENT` · `2-ONBOARDING` · `2-HOME` Step 이 등록한다 — Guard 가 그 경로로
+ * 리다이렉트 판정을 내려야 하므로 상수는 먼저 존재해야 한다.
+ *
+ * Stage 2-B(`/onboarding/profile` · `/onboarding/growth-capability`)는 **여기에도 없다**
+ * (approvals §3).
  *
  * dev UI gallery(`/__dev/ui/*`)의 경로는 **여기에 두지 않는다.** 이 객체는 Production 번들에
  * 그대로 남으므로, 경로 문자열도 dev 에서만 존재하도록 `app/router.tsx` 의 가드 안에 인라인한다
@@ -10,7 +18,45 @@
  */
 export const ROUTES = {
   home: '/',
+
+  auth: {
+    welcome: '/auth/welcome',
+    signUp: '/auth/sign-up',
+    logIn: '/auth/log-in',
+    forgotPassword: '/auth/forgot-password',
+    resetPassword: '/auth/reset-password',
+    /** `2-CONSENT` 가 화면을 등록한다. */
+    consent: '/auth/consent',
+    /** VPC 슬롯 — `2-CONSENT`. */
+    verifyParent: '/auth/verify-parent',
+  },
+
+  onboarding: {
+    /** 소개 화면 — `2-ONBOARDING`. */
+    intro: '/onboarding',
+    /** 위저드 — `2-ONBOARDING`. `:step` = `child-info` · `temperament` · `books` · `goals` · `capability-items`. */
+    step: '/onboarding/:step',
+    saved: '/onboarding/saved',
+  },
+
+  /** `2-HOME` 가 화면을 등록한다. */
+  settings: '/settings',
+
   notFound: '*',
 } as const;
 
-export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];
+/** 온보딩 위저드 step slug — PLANNING §9.2 확정 (`2-ONBOARDING` 이 화면을 만든다). */
+export const ONBOARDING_STEP_SLUGS = [
+  'child-info',
+  'temperament',
+  'books',
+  'goals',
+  'capability-items',
+] as const;
+
+export type OnboardingStepSlug = (typeof ONBOARDING_STEP_SLUGS)[number];
+
+/** `/onboarding/child-info` 형태의 경로를 만든다. */
+export function onboardingStepPath(slug: OnboardingStepSlug): string {
+  return `${ROUTES.onboarding.intro}/${slug}`;
+}

@@ -28,7 +28,14 @@ export function StackLayout({ topBar, footer, children }: StackLayoutProps) {
         <div className="haru-app-shell__bar-top shrink-0">{topBar}</div>
       )}
       <main className="flex flex-1 flex-col" aria-label={appCopy.landmarks.mainContent}>
-        <div className="grow">
+        {/*
+         * 세로 flex 컬럼이어야 한다. 화면 root 는 Design Spec 의 `(flex spacer)` 를
+         * `flex flex-1 flex-col` + `mt-auto` 로 구현하는데, 이 래퍼가 평범한 block 이면
+         * `flex-1` 이 적용될 부모가 없어 화면 높이가 콘텐츠 높이로 줄고 하단 블록이
+         * 화면 중간에 뜬다 (`QA-2-002` — `/onboarding/saved`).
+         * `grow` 는 유지한다 — `footer` 슬롯이 계속 맨 아래에 있어야 한다.
+         */}
+        <div className="flex grow flex-col">
           <RouteErrorBoundary>{children ?? <Outlet />}</RouteErrorBoundary>
         </div>
         {footer === undefined ? null : <div className="shrink-0 pt-6 pb-6">{footer}</div>}

@@ -1,0 +1,19 @@
+/*
+ * `features/auth` 전용 레이아웃 규칙 — Tailwind 유틸리티로 표현할 수 없는 것만 둔다.
+ * 값은 전부 semantic token 이다 (임의 수치 금지 — AC-2-58).
+ */
+
+/* Welcome 의 법적 고지 한 줄. 문장 안에 링크가 섞이므로 inline 흐름을 유지한다. */
+.haru-auth-legal {
+  text-align: center;
+  text-wrap: pretty;
+}
+
+/* "Already have an account? Log in" 처럼 텍스트 + 링크가 한 줄에 오는 묶음. */
+.haru-auth-inline-prompt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  column-gap: var(--space-1-5);
+}

@@ -41,6 +41,7 @@ import {
 import { useState } from 'react';
 
 import { galleryCopy } from './gallery-copy';
+import { Stage2Section } from './Stage2Section';
 import { Row, Section, Stack, Stage, SubHead } from './primitives';
 import { TabBarDemo } from './TabBarDemo';
 
@@ -783,8 +784,9 @@ export function ComponentsPage() {
   return (
     <>
       <p className="haru-dev-lede">
-        Design Spec §4.23 의 22종을 variant · state 별로 렌더한다. Figma 시각 비교 대상은
-        `data-demo` 속성으로 §10.2 의 V-번호를 가진다.
+        Stage 1 Design Spec §4.23 의 22종 + Stage 2 Design Spec §4 의 신규 6종을 variant · state
+        별로 렌더한다. 시각 비교 대상은 `data-demo` 속성으로 §10.2 의 V-번호와 Stage 2 §11.2 의
+        `s2-*` id 를 가진다.
       </p>
       <TextSection />
       <IconSection />
@@ -812,6 +814,7 @@ export function ComponentsPage() {
       <ProgressSection />
       <BubbleSection />
       <OverlaySection />
+      <Stage2Section />
     </>
   );
 }

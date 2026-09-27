@@ -1,4 +1,6 @@
+import { useScrollContainerRef } from '@haru/ui';
 import { render, screen } from '@testing-library/react';
+import { useEffect, type RefObject } from 'react';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
@@ -167,6 +169,68 @@ describe('클리핑 박스는 앱 컬럼 바깥에만 있다 (카드 그림자 �
     expect(wrapper?.className).toContain('haru-app-shell__bar-bottom');
     // main 다음 형제여야 콘텐츠 아래에 붙는다.
     expect(main?.nextElementSibling).toBe(wrapper);
+  });
+
+  /**
+   * 결정 `D-13` — 스크롤 주체는 window 가 아니라 AppShell 뷰포트다.
+   * `packages/ui` 의 `useScrolledPast`(TopBar) 가 그 요소를 구독할 수 있어야 한다.
+   */
+  it('AppShell 이 스크롤 컨테이너 ref 를 context 로 내려준다 (D-13)', () => {
+    const captured: { ref: RefObject<HTMLElement | null> | null } = { ref: null };
+
+    function Probe() {
+      const containerRef = useScrollContainerRef();
+      useEffect(() => {
+        captured.ref = containerRef;
+      }, [containerRef]);
+      return <p>probe</p>;
+    }
+
+    const { container } = renderInRouter(
+      <StackLayout>
+        <Probe />
+      </StackLayout>,
+    );
+
+    const viewport = container.querySelector('[data-app-shell-viewport]');
+    expect(viewport).not.toBeNull();
+    // ref 는 window 가 아니라 앱 컬럼 바깥의 스크롤 뷰포트를 가리킨다.
+    expect(captured.ref?.current).toBe(viewport);
+  });
+
+  /**
+   * 회귀 방지 — 배경이 콘텐츠를 덮는 문제.
+   *
+   * `AppBackground` 는 `position: fixed` + `z-index: 0` 이라 **위치 지정 요소 단계**에서
+   * 그려진다. 그 단계는 일반 흐름 콘텐츠보다 뒤이므로, 스크롤 뷰포트가 위치 지정 요소가
+   * 아니면 그 안의 평범한 텍스트·이미지가 배경에 덮여 **보이지 않는다**
+   * (DOM 순서와 무관하다). Stage 1 화면은 모든 콘텐츠가 `backdrop-filter` 를 쓰는 Surface
+   * 안에 있어 증상이 드러나지 않았고, Stage 2 Welcome 화면에서 처음 관찰되었다.
+   */
+  it.each([
+    [
+      'StackLayout',
+      <StackLayout key="stack">
+        <p>content</p>
+      </StackLayout>,
+    ],
+    [
+      'TabLayout',
+      <TabLayout key="tab">
+        <p>content</p>
+      </TabLayout>,
+    ],
+    [
+      'FullscreenLayout',
+      <FullscreenLayout key="full">
+        <p>content</p>
+      </FullscreenLayout>,
+    ],
+  ])('%s — 스크롤 뷰포트가 위치 지정 요소다 (배경이 콘텐츠를 덮지 않도록)', (_name, node) => {
+    const { container } = renderInRouter(node);
+    const viewport = container.querySelector('[data-app-shell-viewport]');
+
+    expect(viewport?.className).toContain('relative');
   });
 
   it('TopBar 영역은 sticky 로 고정된다 (스크롤해도 사라지지 않는다)', () => {

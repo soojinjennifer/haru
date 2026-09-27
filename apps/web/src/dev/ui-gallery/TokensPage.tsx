@@ -268,7 +268,7 @@ export function TokensPage() {
       <Section
         id="v9-provisional"
         title="가값 (provisional) 승인 자료"
-        note="Plan §17 · Design Spec §12.3 — 확정은 사용자 절차다. gallery 는 자료만 제시한다."
+        note="Plan §17 · Design Spec §12.3 — 확정 11건 / 디자이너 대기 6건 (P-17 = Stage 2 신규, 결정 D-14)."
       >
         <Stage plain>
           <table className="haru-dev-table">
@@ -278,6 +278,7 @@ export function TokensPage() {
                 <th>항목</th>
                 <th>Stage 1 채택값</th>
                 <th>확인 화면</th>
+                <th>상태</th>
               </tr>
             </thead>
             <tbody>
@@ -287,6 +288,9 @@ export function TokensPage() {
                   <td>{item.title}</td>
                   <td>{item.adopted}</td>
                   <td>{item.where}</td>
+                  <td>
+                    {item.status === 'confirmed' ? '확정' : '디자이너 대기'} — {item.decision}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -17,6 +17,22 @@ const stubClients: ApiClients = {
         serverTime: '2026-01-01T00:00:00.000Z',
       }),
   },
+  me: {
+    get: () => Promise.reject(new Error('not used in this test')),
+    update: () => Promise.reject(new Error('not used in this test')),
+  },
+  consents: {
+    getCurrentDocuments: () => Promise.reject(new Error('not used in this test')),
+    record: () => Promise.reject(new Error('not used in this test')),
+  },
+  onboarding: {
+    getState: () => Promise.reject(new Error('not used in this test')),
+    saveStep: () => Promise.reject(new Error('not used in this test')),
+    submit: () => Promise.reject(new Error('not used in this test')),
+  },
+  books: {
+    search: () => Promise.reject(new Error('not used in this test')),
+  },
 };
 
 function Probe() {

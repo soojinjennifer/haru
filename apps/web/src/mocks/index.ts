@@ -14,7 +14,17 @@ import type { ApiClients } from '../shared/api/types';
 import { createFixedClock, type Clock } from '../shared/lib/clock';
 import { createSeededIdFactory, type IdFactory } from '../shared/lib/idFactory';
 
+import type { AuthGateway } from '../shared/auth';
+
+import { createMockAuthGateway } from './auth/MockAuthGateway';
+import { createMockBooksApi } from './books/MockBooksApi';
+import { createMockConsentApi } from './consent/MockConsentApi';
+import { createMockConsentState, type MockConsentState } from './consent/consentState';
 import { createMockHealthApi } from './health/MockHealthApi';
+import { createMockMeApi } from './me/MockMeApi';
+import { createMockOnboardingApi } from './onboarding/MockOnboardingApi';
+import { createMockOnboardingState, type MockOnboardingState } from './onboarding/onboardingState';
+import { createRequestLog, type RequestLog } from './request-log';
 import {
   createScenarioStoreFrom,
   readScenarioPanelValue,
@@ -41,11 +51,34 @@ export interface MockApiClientsOptions extends ScenarioStoreInput {
   idFactory?: IdFactory;
   /** 기본은 실제 지연(`createRealTimer`). 테스트는 `createImmediateTimer()` 를 넣는다. */
   timer?: Timer;
+  /**
+   * 요청 로그 수집기 (Privacy 불변식 AC-2-13 증거). 주지 않으면 새로 만든다.
+   * 번들에는 `mock` 빌드에서만 들어간다 (AC-2-55).
+   */
+  requestLog?: RequestLog;
+  /**
+   * `MockConsentApi`(쓰기)와 `MockMeApi`(읽기)가 공유하는 동의 상태.
+   * 주지 않으면 번들마다 새로 만든다 — 테스트 간 상태가 새지 않는다.
+   */
+  consentState?: MockConsentState;
+  /**
+   * `MockOnboardingApi`(쓰기)와 `MockMeApi`(읽기)가 공유하는 온보딩 상태.
+   * 주지 않으면 번들마다 새로 만든다 — 테스트 간 상태가 새지 않는다.
+   */
+  onboardingState?: MockOnboardingState;
 }
 
 export interface MockApiClientsBundle {
   clients: ApiClients;
   store: ScenarioStore;
+  /** `AuthGateway` 는 HTTP API 가 아니므로 `clients` 와 분리해 제공한다 (Plan §5.2). */
+  authGateway: AuthGateway;
+  /** 이 번들이 기록한 모든 요청 (AC-2-13 전수 검사용). */
+  requestLog: RequestLog;
+  /** 기록된 동의 (테스트가 "동의 전/후" 를 구분할 때 쓴다). */
+  consentState: MockConsentState;
+  /** 온보딩 진행·제출 상태 (테스트가 "제출 전/후" 를 구분할 때 쓴다). */
+  onboardingState: MockOnboardingState;
   /**
    * sentinel 을 **실제로 사용하는** 자리. 이 참조가 없으면 Rollup 이
    * `mock` 빌드에서도 상수를 tree-shaking 으로 지워 버려서
@@ -69,12 +102,24 @@ export function createMockApiClientsBundle(
   const clock = options.clock ?? createFixedClock(MOCK_EPOCH_MS);
   const idFactory = options.idFactory ?? createSeededIdFactory(MOCK_ID_SEED);
   const timer = options.timer ?? createRealTimer();
+  const requestLog = options.requestLog ?? createRequestLog();
+  const consentState = options.consentState ?? createMockConsentState();
+  const onboardingState = options.onboardingState ?? createMockOnboardingState();
+  const deps = { store, clock, idFactory, timer, requestLog };
 
   return {
     store,
+    requestLog,
+    consentState,
+    onboardingState,
     sentinel: __HARU_MOCK_SENTINEL__,
+    authGateway: createMockAuthGateway(deps),
     clients: {
       health: createMockHealthApi({ store, clock, idFactory, timer }),
+      me: createMockMeApi({ ...deps, consentState, onboardingState }),
+      consents: createMockConsentApi({ ...deps, consentState }),
+      onboarding: createMockOnboardingApi({ ...deps, consentState, onboardingState }),
+      books: createMockBooksApi(deps),
     },
   };
 }
@@ -92,6 +137,84 @@ export function createBrowserMockApiClients(envValue: string | undefined): MockA
   });
 }
 
+export {
+  createMockAuthGateway,
+  authScenarioGroup,
+  AUTH_SCENARIO_KEYS,
+  AUTH_LOADING_DELAY_MS,
+} from './auth/MockAuthGateway';
+export type { AuthScenarioKey } from './auth/MockAuthGateway';
+export {
+  createMockMeApi,
+  meScenarioGroup,
+  ME_SCENARIO_KEYS,
+  ME_LOADING_DELAY_MS,
+} from './me/MockMeApi';
+export type { MeScenarioKey } from './me/MockMeApi';
+export {
+  createMockConsentApi,
+  consentScenarioGroup,
+  CONSENT_SCENARIO_KEYS,
+  CONSENT_LOADING_DELAY_MS,
+} from './consent/MockConsentApi';
+export type { ConsentScenarioKey } from './consent/MockConsentApi';
+export { createMockConsentState } from './consent/consentState';
+export type { MockConsentState } from './consent/consentState';
+export {
+  createMockOnboardingApi,
+  onboardingScenarioGroup,
+  ONBOARDING_SCENARIO_KEYS,
+  ONBOARDING_LOADING_DELAY_MS,
+} from './onboarding/MockOnboardingApi';
+export type { OnboardingScenarioKey } from './onboarding/MockOnboardingApi';
+export { createMockOnboardingState } from './onboarding/onboardingState';
+export type { MockOnboardingState } from './onboarding/onboardingState';
+export {
+  createMockBooksApi,
+  booksScenarioGroup,
+  BOOKS_SCENARIO_KEYS,
+  BOOKS_LOADING_DELAY_MS,
+} from './books/MockBooksApi';
+export type { BooksScenarioKey } from './books/MockBooksApi';
+export {
+  createOnboardingInstrumentFixture,
+  createOnboardingStateFixture,
+  createResumeDraftAnswers,
+  MOCK_BASELINE_VERSION,
+  MOCK_RESUME_STEP,
+} from './fixtures/onboarding';
+export type { OnboardingStateFixtureOptions } from './fixtures/onboarding';
+export { createProfileResultFixture } from './fixtures/profile-result';
+export type { ProfileResultFixtureOptions } from './fixtures/profile-result';
+export {
+  createBookSearchFixture,
+  createEmptyBookSearchFixture,
+  MOCK_BOOKS,
+} from './fixtures/books';
+export {
+  createConsentDocumentsFixture,
+  createConsentDocumentFixture,
+  MOCK_CONSENT_VERSION,
+  MOCK_CONSENT_VERSION_UPDATED,
+  MOCK_REQUIRED_CONSENT_TYPES,
+} from './fixtures/consent';
+export type { ConsentDocumentSetName } from './fixtures/consent';
+export {
+  createRequestLog,
+  findChildDataKeys,
+  redactSecrets,
+  CHILD_DATA_KEYS,
+  REDACTED,
+} from './request-log';
+export type { RequestLog, RequestLogEntry } from './request-log';
+export { createAuthSessionFixture, MOCK_SESSION_TTL_MS } from './fixtures/auth';
+export {
+  createMeResponseFixture,
+  MOCK_CAREGIVER_ID,
+  MOCK_CAREGIVER_DISPLAY_NAME,
+  MOCK_REQUIRED_CONSENTS,
+  MOCK_TIMEZONE,
+} from './fixtures/me';
 export {
   createMockHealthApi,
   healthScenarioGroup,

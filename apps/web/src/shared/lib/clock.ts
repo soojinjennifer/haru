@@ -48,3 +48,14 @@ export function createSteppedClock(startEpochMs: number, stepMs: number): Clock 
     nowIso: () => new Date(advance()).toISOString(),
   };
 }
+
+/**
+ * `Clock` 을 `Date` 로 바꾼다.
+ *
+ * contracts 의 clock 주입 팩토리(`createBirthYearMonthSchema(now)` · `isOnboardingDraftExpired`)
+ * 가 `Date` 를 받기 때문에 필요하다. Mock 소스에서 `new Date(` 를 직접 쓰면 결정성 검사
+ * (`__tests__/mock-source-rules.test.ts`)에 걸리므로 변환 지점을 여기 하나로 모은다.
+ */
+export function clockDate(clock: Clock): Date {
+  return new Date(clock.now());
+}

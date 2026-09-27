@@ -1,0 +1,72 @@
+/*
+ * CharacterMedallion — Design Spec §5.1.
+ *
+ * 지름은 semantic size 토큰만 쓴다 (임의 수치 금지 — AC-2-58).
+ * 이미지는 medallion 을 꽉 채우되 비율을 유지한다. 원형 클리핑은 `border-radius: 50%` 다.
+ */
+.haru-character-medallion {
+  display: block;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  /* 에셋이 로드되기 전에도 자리와 형태가 유지되도록 표면 색을 깐다. */
+  background-color: var(--color-surface-subtle);
+}
+
+.haru-character-medallion img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.haru-character-medallion--sm {
+  inline-size: var(--size-medallion-sm);
+  block-size: var(--size-medallion-sm);
+}
+
+.haru-character-medallion--md {
+  inline-size: var(--size-medallion-md);
+  block-size: var(--size-medallion-md);
+}
+
+.haru-character-medallion--lg {
+  inline-size: var(--size-medallion-lg);
+  block-size: var(--size-medallion-lg);
+}
+
+/*
+ * CharacterIllustration — Design Spec §5.2.
+ *
+ * 폭은 `min(100%, 307px)` 이고 높이는 비율로 따라간다. **고정 높이를 주지 않는다** —
+ * 텍스트 200% 확대 시 세로 공간을 잠그면 다른 콘텐츠가 잘린다 (AC-2-59).
+ * 307 은 Figma 원본 폭이며 `--size-illustration-max` 토큰이 값을 소유한다.
+ *
+ * **세로 공간이 모자라면 비율을 유지한 채 줄어든다** (Design Spec §2.11 "축소 순서" ②).
+ * `flex-shrink: 1` + `min-block-size: 0` 으로 세로 flex 컨테이너 안에서 줄어들 수 있게 하고,
+ * 이미지는 `max-block-size: 100%` + `object-fit: contain` 으로 왜곡 없이 그 안에 들어간다.
+ * 줄어들 대상은 일러스트뿐이며 제목·CTA 는 어느 단계에서도 줄지 않는다.
+ */
+.haru-character-illustration {
+  display: block;
+  flex: 0 1 auto;
+  min-block-size: 0;
+  inline-size: min(100%, var(--size-illustration-max));
+  margin-inline: auto;
+}
+
+.haru-character-illustration img {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  max-block-size: 100%;
+  object-fit: contain;
+}
+
+/*
+ * SurveyQuestionCard eyebrow — Design Spec §5.3 "대문자".
+ * 응답 값 문자열을 JS 로 가공하지 않고 CSS 로만 대문자화한다 (원문 보존 — rules/architecture §8).
+ */
+.haru-survey-eyebrow {
+  text-transform: uppercase;
+}

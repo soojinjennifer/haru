@@ -1,0 +1,63 @@
+/*
+ * `features/consent` 전용 레이아웃 규칙 — Tailwind 유틸리티로 표현할 수 없는 것만 둔다.
+ * 값은 전부 semantic token 이다 (임의 수치 금지 — AC-2-58).
+ */
+
+/*
+ * Design Spec §2.6 — 그룹 이름(`<legend>`)은 **스크린리더에만** 전달한다.
+ * 화면에는 TopBar 제목과 안내문이 이미 맥락을 주므로 시각적으로는 숨긴다.
+ * 규칙은 `packages/ui` 의 `.haru-visually-hidden`(styles/base.css)과 같다.
+ */
+.haru-consent-group .haru-checkbox-group__legend {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* legend 를 숨기면 items 위 여백도 필요 없다. */
+.haru-consent-group .haru-checkbox-group__items {
+  margin-block-start: 0;
+}
+
+/*
+ * 동의 항목 1행 — 체크박스 묶음(왼쪽)과 문서 열기 링크(오른쪽).
+ * 행 사이에만 구분선을 둔다 (마지막 행 아래에는 선이 없다 — Design Spec §2.6).
+ */
+.haru-consent-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+}
+
+.haru-consent-row + .haru-consent-row {
+  /* hairline 1px — `packages/ui` ListGroup(`List.css`)과 같은 규격이다 (전용 토큰 없음). */
+  border-block-start: 1px solid var(--color-divider);
+}
+
+/* 라벨이 길어지면 링크가 아니라 라벨이 줄바꿈되어야 한다. */
+.haru-consent-row__main {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+/* VPC 슬롯의 아이콘 배지 — 정보 상태 색 (`가값 (P-04)`). */
+.haru-vpc-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 48 = 아이콘 lg(24) × 2 — `packages/ui` State.css 의 badge 와 같은 규격이다. */
+  inline-size: calc(var(--size-icon-lg) * 2);
+  block-size: calc(var(--size-icon-lg) * 2);
+  border-radius: var(--radius-pill);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  background-color: var(--color-status-info-bg);
+  color: var(--color-status-info-fg);
+}
