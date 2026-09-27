@@ -1,0 +1,14 @@
+/*
+ * 브랜드 마크 배치 — 결정 `D-15`.
+ *
+ * 로고 **비율을 절대 왜곡하지 않는다**: 높이를 슬롯에 맞추고 폭은 `auto` 다.
+ * (`haru-button__icon` 슬롯은 20×20 정사각형이므로 `width: 100%` 를 주면
+ *  Apple 로고(814:1000)가 가로로 늘어난다.)
+ */
+.haru-brand-mark {
+  display: block;
+  block-size: 100%;
+  inline-size: auto;
+  max-inline-size: 100%;
+  margin-inline: auto;
+}

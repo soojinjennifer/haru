@@ -53,6 +53,9 @@
   /* ring 바깥 지름 − avatar 지름 = 좌우 8px (Figma `28:73` 190 − `28:74` 174) */
   --size-medallion-ring-offset: 8px;
 
+  /* --- Character illustration 최대 폭 (Design Spec §5.2, Figma `179:1819` 307) --- */
+  --size-illustration-max: 307px;
+
   /* --- Opacity ------------------------------------------------------------ */
   --opacity-disabled: 0.5; /* Figma Button Disabled `17:10` / `17:18` */
 

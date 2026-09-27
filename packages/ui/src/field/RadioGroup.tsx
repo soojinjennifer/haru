@@ -32,6 +32,11 @@ export interface RadioGroupProps {
   /** 그룹 단위 에러 메시지. */
   error?: string;
   disabled?: boolean;
+  /**
+   * 그룹 전체에 딸린 보조 설명 요소의 id (Stage 2 Design Spec §2.10 Step 5 —
+   * 비채점 옵션 caption 을 스크린리더에 연결한다). `error` 가 있으면 함께 전달된다.
+   */
+  describedBy?: string | undefined;
 }
 
 /**
@@ -49,16 +54,18 @@ export function RadioGroup({
   variant = 'card',
   error,
   disabled = false,
+  describedBy,
 }: RadioGroupProps) {
   const groupId = useId();
   const errorId = `${groupId}-error`;
+  const described = [describedBy, error ? errorId : undefined].filter(Boolean).join(' ');
 
   return (
     <fieldset
       className={cx('haru-radio-group', `haru-radio-group--${variant}`)}
       disabled={disabled}
       aria-invalid={error ? true : undefined}
-      aria-describedby={error ? errorId : undefined}
+      aria-describedby={described.length > 0 ? described : undefined}
     >
       <legend className="haru-radio-group__legend">{legend}</legend>
       <div className="haru-radio-group__options">

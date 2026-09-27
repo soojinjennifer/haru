@@ -42,6 +42,12 @@ export interface ButtonProps extends NativeButtonProps {
  *
  * state: rest · hover · pressed · disabled · focus · loading.
  * `loading` 중에는 포커스를 유지해야 하므로 native `disabled` 을 쓰지 않고 누름만 무시한다.
+ *
+ * **`aria-disabled` (blocked)** — 소비자가 `aria-disabled` 를 직접 주면 native `disabled` 없이
+ * "누를 수 없지만 **포커스는 가능한**" 상태가 된다. 비활성 이유를 스크린리더가 읽어야 하는
+ * 화면(동의 화면의 Continue — Stage 2 Design Spec §2.6)에서 쓴다. `aria-describedby` 로
+ * 이유 문구를 연결하는 것은 소비자 책임이다.
+ * native `disabled` 는 포커스를 받지 못해 이유가 전달되지 않으므로 이 용도에 쓰지 않는다.
  */
 export function Button({
   variant = 'accent',
@@ -57,6 +63,9 @@ export function Button({
   children,
   ...rest
 }: ButtonProps) {
+  // 소비자가 넘긴 `aria-disabled` — native `disabled` 없이 누름만 막는다.
+  const blocked = rest['aria-disabled'] === true || rest['aria-disabled'] === 'true';
+
   return (
     <button
       {...rest}
@@ -71,10 +80,10 @@ export function Button({
         loading && 'haru-button--loading',
       )}
       disabled={disabled}
-      aria-disabled={disabled || undefined}
+      aria-disabled={disabled || blocked || undefined}
       aria-busy={loading || undefined}
       onClick={() => {
-        if (loading) return;
+        if (loading || blocked) return;
         onPress?.();
       }}
     >

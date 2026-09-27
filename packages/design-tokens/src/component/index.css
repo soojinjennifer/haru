@@ -87,6 +87,16 @@
   --radio-dot-size: 15px; /* Figma `179:1790` */
   --radio-row-height: var(--size-touch-min); /* Figma 43 → 44 확장 (§9.3) */
 
+  /* ===== ListRow / ListGroup — Stage 2 Design Spec §4.3 (Figma `163:2145`) ===
+   * Figma 74 는 media 행 값이다. basic 행은 56 (터치 44 이상). */
+  --list-row-height-min: 56px;
+
+  /* ===== SwipeDeck — Stage 2 Design Spec §4.2 (Figma `179:1781–1783` 실측) ===
+   * 레벨마다 좌우 각 8 안쪽, 아래로 16 더 보인다. depth 는 Figma 카드 3장. */
+  --deck-inset-x: var(--space-2); /* Figma 345→329→313 = 레벨당 좌우 8 */
+  --deck-peek-y: var(--space-4); /* Figma 아래로 레벨당 16 */
+  --deck-depth: 3; /* Figma `179:1781–1783` 카드 3장 */
+
   /* ===== Sheet / Dialog / Toast / Skeleton (Figma 없음 → 명세, §13.1) ==== */
   --sheet-radius-top: var(--radius-card);
   --dialog-radius: var(--radius-card);

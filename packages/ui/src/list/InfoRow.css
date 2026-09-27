@@ -1,0 +1,44 @@
+/*
+ * InfoRow — Stage 2 Design Spec §4.4 (Figma `179:1759` · `179:1764` 실측)
+ * radius 20 → --radius-surface(22), fill .72 → --color-surface-glass(a74) 흡수 (AD-S2-8).
+ */
+
+.haru-info-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  box-sizing: border-box;
+  padding-block: var(--space-3-5);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-surface);
+  background-color: var(--color-surface-glass);
+  box-shadow: var(--shadow-glass-rest);
+  backdrop-filter: blur(var(--material-blur-md));
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .haru-info-row {
+    background-color: var(--material-glass-fill-fallback);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .haru-info-row {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+.haru-info-row__icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  color: var(--color-fg-primary);
+}
+
+.haru-info-row__text {
+  font-family: var(--font-sans);
+  font-size: var(--text-subheadline);
+  line-height: var(--text-subheadline--line-height);
+  color: var(--color-fg-primary);
+}

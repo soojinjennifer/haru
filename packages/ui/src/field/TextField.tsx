@@ -6,9 +6,20 @@ import { cx } from '../lib/cx';
 export type TextFieldType = 'text' | 'email' | 'password' | 'tel' | 'url' | 'search' | 'number';
 
 export interface TextFieldTrailingAction {
-  /** 예: "Show" (Figma `76:428`). */
+  /** 예: "Show" (Figma `76:428`). 토글이면 라벨 자체가 상태를 전달한다 (Show ↔ Hide). */
   label: string;
   onPress: () => void;
+  /**
+   * 토글 버튼일 때의 누름 상태 → `aria-pressed`.
+   * 결정 `D-14` 보완 ② — 밑줄 제거(`P-17`)로 줄어든 시각 단서를 접근성 상태로 보완한다.
+   */
+  pressed?: boolean;
+  /**
+   * 화면에 보이는 `label` 이 짧아 단독으로 뜻이 통하지 않을 때의 접근성 이름
+   * (예: 보이는 글자 "Show" ↔ 접근성 이름 "Show password" — Design Spec §10 비밀번호 토글).
+   * 주지 않으면 `label` 이 그대로 접근성 이름이다.
+   */
+  accessibleLabel?: string;
 }
 
 export interface TextFieldProps {
@@ -127,6 +138,8 @@ export function TextField({
             type="button"
             className="haru-text-field__action haru-focus-ring"
             disabled={disabled}
+            aria-pressed={trailingAction.pressed}
+            aria-label={trailingAction.accessibleLabel}
             onClick={trailingAction.onPress}
           >
             {trailingAction.label}

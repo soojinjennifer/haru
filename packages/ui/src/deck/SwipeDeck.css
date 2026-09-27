@@ -1,0 +1,159 @@
+/*
+ * SwipeDeck — Stage 2 Design Spec §4.2 (Figma `179:1781–1783` 실측)
+ *
+ * 결정 `D-9`: CSS `scroll-snap` 을 쓰지 않는다. **이 파일에는 `overflow` 선언이 없다** —
+ * `AppColumn` 안쪽에 클리핑 박스를 만들면 카드 그림자가 잘린다 (Stage 1 §2.2 · `QA-1-L1`).
+ * 카드 이동은 전부 `transform` 이다.
+ *
+ * 스택 기하: 뒤 카드는 레벨마다 좌우 각 `--deck-inset-x`(8) 안쪽으로 들어가고
+ * 아래로 `--deck-peek-y`(16) 만큼 더 보인다. 앞 카드는 일반 흐름에 있어 **높이를 고정하지
+ * 않는다**(텍스트 200% reflow — §10). 뒤 카드만 절대 배치한다.
+ */
+
+.haru-swipe-deck {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  /* 덱 안의 레벨 수(= depth - 1). depth modifier 가 덮어쓴다. */
+  --deck-levels: calc(var(--deck-depth) - 1);
+}
+
+.haru-swipe-deck--depth-1 {
+  --deck-levels: 0;
+}
+
+.haru-swipe-deck--depth-2 {
+  --deck-levels: 1;
+}
+
+.haru-swipe-deck--depth-3 {
+  --deck-levels: 2;
+}
+
+.haru-swipe-deck__stack {
+  position: relative;
+  /* 뒤 카드가 보일 자리. 카드 높이는 앞 카드 콘텐츠가 정한다. */
+  padding-block-end: calc(var(--deck-levels) * var(--deck-peek-y));
+  isolation: isolate;
+}
+
+/* ===== 카드 표면 — Figma fill .85 / radius 30 → 토큰 흡수 (AD-S2-7) ======= */
+.haru-swipe-deck__card {
+  box-sizing: border-box;
+  padding: var(--space-5);
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface-strong);
+  box-shadow: var(--shadow-glass-rest);
+  backdrop-filter: blur(var(--material-blur-md));
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .haru-swipe-deck__card {
+    background-color: var(--material-glass-fill-fallback);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .haru-swipe-deck__card {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+.haru-swipe-deck__card--front {
+  position: relative;
+  z-index: 1;
+  /* 세로 스크롤은 브라우저에, 가로 제스처는 Pointer Events 에 맡긴다. */
+  touch-action: pan-y;
+  transform: translate3d(var(--deck-drag-x, 0px), 0, 0);
+  transition-property: transform;
+  transition-duration: var(--motion-duration-fast);
+  transition-timing-function: var(--motion-ease-spring);
+  animation: haru-deck-enter var(--motion-duration-base) var(--motion-ease-standard);
+}
+
+/* 드래그 중에는 손가락을 그대로 따라간다 (transition 없음 — §4.2 `dragging`). */
+.haru-swipe-deck__card--dragging {
+  transition: none;
+  animation: none;
+}
+
+/* 뒤 카드: 위쪽은 앞 카드에 가려지고 아래·좌우만 보인다. */
+.haru-swipe-deck__card--behind {
+  position: absolute;
+  inset-block-start: 0;
+  z-index: 0;
+}
+
+.haru-swipe-deck__card--level-1 {
+  inset-inline: var(--deck-inset-x);
+  inset-block-end: calc((var(--deck-levels) - 1) * var(--deck-peek-y));
+}
+
+.haru-swipe-deck__card--level-2 {
+  inset-inline: calc(2 * var(--deck-inset-x));
+  inset-block-end: calc((var(--deck-levels) - 2) * var(--deck-peek-y));
+}
+
+/* ===== 진행 모션 — §9 매핑표 ============================================
+ * 값 60% 는 모션 규격값이다 (대응 토큰 없음 — Surface hover offset 과 같은 성격).
+ */
+@keyframes haru-deck-exit-next {
+  from {
+    transform: translate3d(var(--deck-drag-x, 0px), 0, 0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translate3d(-60%, 0, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes haru-deck-exit-prev {
+  from {
+    transform: translate3d(var(--deck-drag-x, 0px), 0, 0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translate3d(60%, 0, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes haru-deck-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--deck-peek-y), 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.haru-swipe-deck__card--exit-next {
+  animation: haru-deck-exit-next var(--motion-duration-base) var(--motion-ease-standard) forwards;
+}
+
+.haru-swipe-deck__card--exit-prev {
+  animation: haru-deck-exit-prev var(--motion-duration-base) var(--motion-ease-standard) forwards;
+}
+
+/* ===== 조작 =============================================================== */
+.haru-swipe-deck__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* ===== reduced motion (§9.2) — 즉시 교체 ================================== */
+@media (prefers-reduced-motion: reduce) {
+  .haru-swipe-deck__card--front {
+    transition: none;
+    animation: none;
+  }
+}

@@ -18,8 +18,12 @@ const UI_SRC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 
 /** 2026-09-22 확정 — 주석이 있으면 안 된다 (stage-1-approvals §9.1). */
 const CONFIRMED = ['P-03', 'P-06', 'P-07', 'P-08', 'P-09', 'P-11', 'P-12', 'P-13', 'P-14', 'P-15'];
 
-/** 디자이너 대기 유지 — 주석이 남아 있어도 되는 유일한 항목 (stage-1-approvals §9.2). */
-const REMAINING = ['P-01', 'P-02', 'P-04', 'P-05', 'P-16'];
+/**
+ * 디자이너 대기 유지 항목 (stage-1-approvals §9.2) + Stage 2 신규 `P-17`.
+ * `P-17` = TextField `trailingAction` 이 밑줄 없이 색만으로 구분되는 상태
+ * (결정 `D-14`, stage-2-approvals §4). 디자이너 결정 전까지 주석이 남아 있어야 한다.
+ */
+const REMAINING = ['P-01', 'P-02', 'P-04', 'P-05', 'P-16', 'P-17'];
 
 const MARKER_RE = /provisional:\s*(P-\d{2})/g;
 
@@ -51,7 +55,13 @@ describe('packages/ui CSS 의 provisional 주석 (approvals §9)', () => {
     expect(regressed).toEqual([]);
   });
 
-  it('남아 있는 항목은 디자이너 대기 5건 안에만 있다', () => {
+  it('Stage 2 신규 가값 P-17 이 TextField CSS 에 등록되어 있다 (결정 D-14)', () => {
+    expect(markers.filter((marker) => marker.item === 'P-17').map((marker) => marker.file)).toEqual(
+      ['field/TextField.css'],
+    );
+  });
+
+  it('남아 있는 항목은 디자이너 대기 6건 안에만 있다', () => {
     const items = [...new Set(markers.map((marker) => marker.item))].sort();
     expect(items.filter((item) => !REMAINING.includes(item))).toEqual([]);
   });

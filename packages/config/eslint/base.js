@@ -14,11 +14,18 @@ import tseslint from 'typescript-eslint';
 /**
  * 토큰 강제 규칙의 예외 경로.
  * rules/frontend.md §6 — "예외: packages/design-tokens 내부 정의, 일러스트/캐릭터 에셋".
+ *
+ * `packages/ui/src/icon/brand/**` 는 **공식 브랜드 에셋**이다 (결정 `D-15`,
+ * `docs/decisions/stage-2-approvals.md` §4). Google · Apple 브랜드 가이드라인이
+ * 색값·비율을 고정하므로 semantic token 으로 치환하면 **가이드라인 위반**이 된다.
+ * 에셋 파일에는 수정 금지 주석이 있고, 값 자체는
+ * `packages/ui/src/icon/brand/__tests__/brand-marks.test.tsx` 가 고정한다.
  */
 export const DESIGN_TOKEN_EXCEPTION_PATHS = [
   'packages/design-tokens/**',
   '**/assets/**',
   '**/*.assets.ts',
+  'packages/ui/src/icon/brand/**',
 ];
 
 const HEX_LITERAL =

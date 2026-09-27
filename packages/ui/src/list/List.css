@@ -1,0 +1,127 @@
+/*
+ * ListGroup / ListRow — Stage 2 Design Spec §4.3 (Figma `163:2145` 실측)
+ *
+ * 좌우 여백(16)은 그룹이 갖고 행은 세로 여백만 갖는다. 구분선은 행 사이에만 1px.
+ * 행 높이는 최소값만 정하고 고정하지 않는다 (텍스트 200% reflow — §10).
+ */
+
+.haru-list-group {
+  box-sizing: border-box;
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-surface);
+  background-color: var(--color-surface-strong);
+  box-shadow: var(--shadow-glass-rest);
+  backdrop-filter: blur(var(--material-blur-md));
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .haru-list-group {
+    background-color: var(--material-glass-fill-fallback);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .haru-list-group {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+.haru-list-group__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ===== 행 ================================================================ */
+.haru-list-row + .haru-list-row {
+  border-block-start: 1px solid var(--color-divider);
+}
+
+.haru-list-row__content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-block-size: var(--list-row-height-min);
+  padding-block: var(--space-3);
+  padding-inline: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+  font-family: var(--font-sans);
+  color: inherit;
+  text-align: start;
+}
+
+.haru-list-row__content--pressable {
+  cursor: pointer;
+  transition-property: background-color;
+  transition-duration: var(--motion-duration-fast);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+.haru-list-row__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-inline-size: 0;
+}
+
+.haru-list-row__title {
+  font-family: var(--font-sans);
+  font-size: var(--text-footnote);
+  line-height: var(--text-footnote--line-height);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-fg-primary);
+}
+
+.haru-list-row__subtitle {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}
+
+.haru-list-row__trailing {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}
+
+/* ===== hover / pressed =================================================== */
+@media (hover: hover) and (pointer: fine) {
+  .haru-list-row__content--pressable:hover:not(:disabled) {
+    background-color: var(--color-surface-subtle);
+  }
+}
+
+.haru-list-row__content--pressable:active:not(:disabled) {
+  background-color: var(--color-surface-subtle);
+  transition-duration: var(--motion-duration-instant);
+}
+
+/* ===== selected / disabled =============================================== */
+.haru-list-row--selected .haru-list-row__title {
+  color: var(--color-fg-strong);
+}
+
+.haru-list-row--disabled {
+  opacity: var(--opacity-disabled);
+}
+
+.haru-list-row--disabled .haru-list-row__content {
+  pointer-events: none;
+}
+
+/* ===== reduced motion (§9.2) ============================================= */
+@media (prefers-reduced-motion: reduce) {
+  .haru-list-row__content--pressable {
+    transition: none;
+  }
+}

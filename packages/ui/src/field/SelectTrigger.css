@@ -1,0 +1,107 @@
+/*
+ * SelectTrigger — Stage 2 Design Spec §4.1 (Figma `179:1740` · `31:118`)
+ *
+ * `FieldGroup` 안의 한 행이므로 TextField 와 같은 행 규격(`--field-row-height`)을 쓴다.
+ * 수용 예외 `S1-G-2` 가 그대로 적용된다 (행 42 < 터치 44, approvals §8).
+ */
+
+.haru-select-trigger__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-block-size: var(--field-row-height);
+  padding: var(--space-1) 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+  text-align: start;
+  cursor: pointer;
+}
+
+.haru-select-trigger__main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-inline-size: 0;
+}
+
+.haru-select-trigger__label {
+  font-family: var(--font-sans);
+  font-size: var(--field-label-size);
+  line-height: var(--text-caption-2--line-height);
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}
+
+.haru-select-trigger__required {
+  margin-inline-start: var(--space-0-5);
+}
+
+.haru-select-trigger__value {
+  font-family: var(--font-sans);
+  font-size: var(--field-value-size);
+  line-height: var(--text-callout--line-height);
+  color: var(--color-fg-strong);
+}
+
+/* 미선택은 색이 아니라 placeholder 텍스트가 알린다 (§4.1). */
+.haru-select-trigger__value--placeholder {
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}
+
+.haru-select-trigger__chevron {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}
+
+/* ===== hover / pressed =================================================== */
+@media (hover: hover) and (pointer: fine) {
+  .haru-select-trigger__row:hover:not(:disabled) .haru-select-trigger__value {
+    color: var(--color-fg-primary);
+  }
+}
+
+.haru-select-trigger__row:active:not(:disabled) {
+  background-color: var(--color-surface-subtle);
+}
+
+/* ===== error ============================================================= */
+.haru-select-trigger__message {
+  margin-block: var(--space-0-5) 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-field-fg-error);
+}
+
+.haru-select-trigger--error .haru-select-trigger__row {
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  border-block-end: 1px solid var(--color-field-border-error);
+}
+
+.haru-select-trigger--error .haru-select-trigger__label {
+  /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-field-fg-error);
+}
+
+/* ===== disabled ========================================================== */
+.haru-select-trigger--disabled {
+  opacity: var(--opacity-disabled);
+}
+
+.haru-select-trigger__row:disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.haru-select-trigger__row:disabled .haru-select-trigger__value {
+  color: var(--color-fg-disabled);
+}

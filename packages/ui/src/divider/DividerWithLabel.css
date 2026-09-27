@@ -1,0 +1,25 @@
+/*
+ * DividerWithLabel — Stage 2 Design Spec §4.5 (Figma `179:1839–1841` 실측)
+ * rule 1px × 2 + 가운데 라벨. Figma 좌우 여백 4 → --space-2 흡수.
+ */
+
+.haru-divider-with-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.haru-divider-with-label__rule {
+  flex: 1 1 0;
+  block-size: 1px;
+  background-color: var(--color-divider);
+}
+
+.haru-divider-with-label__label {
+  flex: 0 0 auto;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-secondary);
+}

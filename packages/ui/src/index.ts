@@ -1,7 +1,8 @@
 /*
  * HARU Shared UI — 공개 진입점 (Stage 1 Plan §9.3, Design Spec §4.23)
  *
- * Design Spec §4.23 의 22종을 모두 제공한다 (Stage 1-D1 8종 + Stage 1-D2 14종).
+ * Stage 1 Design Spec §4.23 의 22종 + Stage 2 Design Spec §4 의 신규 6종 = 28종을 제공한다
+ * (Stage 1-D1 8종 + Stage 1-D2 14종 + Stage 2-UI 6종 — 결정 D-8).
  * 스타일은 `@haru/ui/styles.css` 를 앱에서 한 번 import 한다.
  */
 
@@ -19,6 +20,9 @@ export type { FieldGroupProps } from './field/FieldGroup';
 
 export { TextField } from './field/TextField';
 export type { TextFieldProps, TextFieldTrailingAction, TextFieldType } from './field/TextField';
+
+export { SelectTrigger } from './field/SelectTrigger';
+export type { SelectTriggerOption, SelectTriggerProps } from './field/SelectTrigger';
 
 export { Checkbox } from './field/Checkbox';
 export type { CheckboxProps } from './field/Checkbox';
@@ -56,6 +60,10 @@ export type {
 
 export { Icon } from './icon/Icon';
 export type { IconName, IconProps, IconSize, IconTone } from './icon/Icon';
+
+/* 브랜드 마크 — 공식 에셋(수정 금지). 결정 `D-15`. 일반 아이콘과 분리되어 있다. */
+export { BrandMark, BRAND_MARKS, AppleMark, GoogleMark } from './icon/brand';
+export type { BrandMarkName, BrandMarkProps } from './icon/brand';
 
 export { Surface } from './surface/Surface';
 export type {
@@ -122,3 +130,27 @@ export type { DialogProps, DialogVariant } from './dialog/Dialog';
 
 export { ConfirmDialog } from './dialog/ConfirmDialog';
 export type { ConfirmDialogProps } from './dialog/ConfirmDialog';
+
+/* ===== Stage 2-UI 신규 6종 (Stage 2 Design Spec §4, 결정 D-8) ================ */
+
+export { SwipeDeck } from './deck/SwipeDeck';
+export type { SwipeDeckControls, SwipeDeckDepth, SwipeDeckProps } from './deck/SwipeDeck';
+
+export { ListGroup } from './list/ListGroup';
+export type { ListGroupProps } from './list/ListGroup';
+
+export { ListRow } from './list/ListRow';
+export type { ListRowProps } from './list/ListRow';
+
+export { InfoRow } from './list/InfoRow';
+export type { InfoRowProps } from './list/InfoRow';
+
+export { DividerWithLabel } from './divider/DividerWithLabel';
+export type { DividerWithLabelProps } from './divider/DividerWithLabel';
+
+export { TextLink } from './link/TextLink';
+export type { TextLinkProps, TextLinkTone } from './link/TextLink';
+
+/* 스크롤 컨테이너 context — 결정 D-13 (AppShell 이 ref 를 제공한다). */
+export { ScrollContainerProvider, useScrollContainerRef } from './layout/ScrollContainerContext';
+export type { ScrollContainerProviderProps } from './layout/ScrollContainerContext';

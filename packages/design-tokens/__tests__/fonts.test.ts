@@ -130,7 +130,8 @@ describe('빌드 산출물 — CSS Variable export (AC-1-11)', () => {
       counts: Record<string, number>;
       provisionalByItem: Record<string, string[]>;
     };
-    expect(manifest.counts['component']).toBe(48);
+    // Stage 2-UI 에서 Tier 3 4종 추가 (list-row · deck 3종) → 52 (stage-2 Design Spec §4.2 · §4.3).
+    expect(manifest.counts['component']).toBe(52);
     // 2026-09-22 가값 승인 (stage-1-approvals §9) 후 남은 항목 = P-01 · P-02 · P-04 · P-05 · P-16.
     expect(Object.keys(manifest.provisionalByItem).sort()).toEqual([
       'P-01',

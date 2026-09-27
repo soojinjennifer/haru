@@ -1,0 +1,50 @@
+/*
+ * TextLink — Stage 2 Design Spec §4.6 (Figma `179:1721` 밑줄 확인)
+ * 색 단독 구분이 아니다 — 밑줄을 항상 유지한다 (WCAG 1.4.1).
+ */
+
+.haru-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+  font-family: inherit;
+  /* 본문 안 링크는 주변 텍스트 스타일을 상속한다 (§4.6). */
+  font-size: inherit;
+  line-height: inherit;
+  color: var(--color-fg-link);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* 단독 줄 링크는 13/590 + 세로 padding 으로 터치 44 를 만든다 (§9.3). */
+.haru-text-link--standalone {
+  min-block-size: var(--size-touch-min);
+  padding-block: var(--space-3);
+  font-size: var(--text-footnote);
+  line-height: var(--text-footnote--line-height);
+  font-weight: var(--font-weight-semibold);
+}
+
+.haru-text-link__icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .haru-text-link:hover {
+    color: var(--color-fg-strong);
+  }
+}
+
+.haru-text-link:active {
+  color: var(--color-fg-strong);
+}
+
+.haru-text-link:disabled {
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+}

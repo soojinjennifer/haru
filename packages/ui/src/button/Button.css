@@ -77,7 +77,7 @@
 
 /* ===== hover — 포인터 기기에서만 (§4 공통 규칙 2) ========================= */
 @media (hover: hover) and (pointer: fine) {
-  .haru-button:hover:not(:disabled) {
+  .haru-button:hover:not(:disabled):not([aria-disabled='true']) {
     box-shadow: var(--shadow-glass-raised);
     /* Design Spec §9.1 — hover offset -1px (모션 규격값, 대응 토큰 없음) */
     transform: translateY(-1px);
@@ -85,7 +85,7 @@
 }
 
 /* ===== pressed — 색 변화 없이 그림자 + transform (§4 공통 규칙 3) ========= */
-.haru-button:active:not(:disabled) {
+.haru-button:active:not(:disabled):not([aria-disabled='true']) {
   box-shadow: var(--shadow-glass-pressed);
   /* Design Spec §9.1 — pressed offset 1px + scale .97 (모션 규격값, 대응 토큰 없음) */
   transform: translateY(1px) scale(0.97);
@@ -96,6 +96,17 @@
 .haru-button:disabled {
   opacity: var(--opacity-disabled);
   pointer-events: none;
+  cursor: default;
+  box-shadow: var(--shadow-glass-rest);
+}
+
+/*
+ * `aria-disabled` — 누를 수 없지만 **포커스는 가능한** 상태 (Stage 2 Design Spec §2.6).
+ * native `disabled` 와 달리 `pointer-events` 를 막지 않는다. 포커스를 받아야
+ * `aria-describedby` 로 연결된 비활성 이유가 스크린리더에 전달되기 때문이다.
+ */
+.haru-button[aria-disabled='true']:not(:disabled) {
+  opacity: var(--opacity-disabled);
   cursor: default;
   box-shadow: var(--shadow-glass-rest);
 }
@@ -121,7 +132,7 @@
 /* ===== reduced motion — transform 제거, 그림자 전환은 유지 (§9.2) ========= */
 @media (prefers-reduced-motion: reduce) {
   .haru-button:active:not(:disabled),
-  .haru-button:hover:not(:disabled) {
+  .haru-button:hover:not(:disabled):not([aria-disabled='true']) {
     transform: none;
   }
 }

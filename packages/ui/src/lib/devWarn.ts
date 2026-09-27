@@ -24,10 +24,12 @@
  */
 
 /** 출력 가능한 경고 종류. 새 경고는 여기에 문구를 추가해야만 쓸 수 있다. */
-export type DevWarnIssue = 'missing-accessible-name';
+export type DevWarnIssue = 'missing-accessible-name' | 'missing-external-hint';
 
 const DEV_WARN_MESSAGE: Readonly<Record<DevWarnIssue, string>> = {
   'missing-accessible-name': 'needs either a `label` or `decorative` (Design Spec §4.2).',
+  'missing-external-hint':
+    'needs an `externalHint` so the new tab is announced (Stage 2 Design Spec §4.6).',
 };
 
 /** 개발자 식별자만 남긴다 — 자유 입력·PII 형태의 문자열을 무력화한다. */

@@ -76,7 +76,14 @@
   block-size: 100%;
 }
 
-/* 텍스트 버튼 — 시각은 13px 텍스트, hit area 는 44 (§9.3). */
+/* 텍스트 버튼 — 시각은 13px 텍스트, hit area 는 44 (§9.3).
+ *
+ * 결정 `D-14` (2026-09-24 user): Figma `76:417`/`76:428` 에 맞춰 **밑줄을 제거**한다.
+ * 그 결과 "Show"/"Hide" 는 색만으로 주변 텍스트와 구분되어 WCAG 1.4.1 미달 상태가 된다.
+ * 보완은 컴포넌트가 이미 갖고 있다: 라벨 자체가 상태를 전달하고(Show ↔ Hide),
+ * 소비자가 `aria-pressed` 대신 라벨 교체로 상태를 읽히며, hit area 는 44 다.
+ */
+/* provisional: P-17 — trailingAction 색 단독 구분 (docs/decisions/stage-2-approvals.md §4 D-14) */
 .haru-text-field__action {
   display: inline-flex;
   align-items: center;
@@ -91,7 +98,6 @@
   font-size: var(--text-footnote);
   line-height: var(--text-footnote--line-height);
   color: var(--color-fg-link);
-  text-decoration: underline;
   cursor: pointer;
 }
 

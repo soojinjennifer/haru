@@ -141,7 +141,7 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
     expect([...new Set(components.map((d) => d.file))]).toEqual(['src/component/index.css']);
   });
 
-  it('Design Spec §3.3 표의 48개 토큰을 전부 정의한다', () => {
+  it('Design Spec §3.3 표 48개 + Stage 2 신규 4개 = 52개 토큰을 전부 정의한다', () => {
     expect(components.map((d) => d.name).sort()).toEqual(
       [
         '--button-height-md',
@@ -188,6 +188,11 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
         '--checkbox-size',
         '--radio-dot-size',
         '--radio-row-height',
+        // Stage 2 Design Spec §4.2 · §4.3 신규 (D-8)
+        '--list-row-height-min',
+        '--deck-inset-x',
+        '--deck-peek-y',
+        '--deck-depth',
         '--sheet-radius-top',
         '--dialog-radius',
         '--toast-radius',
