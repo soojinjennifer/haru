@@ -3,6 +3,7 @@
 Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (Rev: #33 · C-19 반영)
 Based on: Figma `YWWu3AFEJpRxvw0T5klq0k` `get_variable_defs` on `17:129` (Colors), `17:298` (Typography), `17:367` (HARU Components), screen frames `26:21`, `28:51`, `29:62`, `30:74`, `31:102`, `179:1724`, `179:1770` + `get_design_context` raw 값 (2026-09-14); `docs/decisions/stage-0-approvals.md` (기존 문서보다 우선); Scope: **Frontend-only — CONFIRMED (사용자, 2026-09-14)**, `.claude/rules/frontend.md` §6. 로컬 `_ds` CSS 는 **참조 금지** (CONFIRMED (사용자 결정 2026-09-14, #10)) — §6.4 는 차이 기록으로만 남긴다
 Author: design-agent (2026-09-14)
+개정 (2026-09-27, design-agent · Stage 2 QA 문서 항목 `S2-TOKEN-1`·`QA-2-005`): §3.3 에 화면 raw 27·30 흡수 행 추가, §5.1 에 raw 29·38 행과 spacing 스케일 2단계 제안(`--space-7` 28 · `--space-10` 40) 추가. **기존 토큰의 값은 바꾸지 않았다.**
 
 라벨: `CONFIRMED (사용자 결정 2026-09-14, #id)` = 사용자 결정 · `CONFIRMED` = Figma 값으로 확정 · `가값 (P-xx)` = 승인 로그 §4 가값 — 토큰 정의에 `provisional` 주석, Stage 1 구현 후 항목별 유지/수정 승인 · `D-xx` = 승인 로그 §3 수용 예외 · `RECOMMENDED` = design-agent 제안 (사용자 미결정 세부) · `NEEDS DECISION` = 미결정
 
@@ -239,6 +240,8 @@ HARU 화면에서 **사용 확인된 것은 `backgrounds/primary`(= white), `bac
 | 18.5 (설문 질문 `179:1787`) | `title-3` 20 | RECOMMENDED 배정 (가까운 값) |
 | 21 Heavy (워드마크 `26:39`) | 로고 에셋 | 텍스트 스타일 아님 |
 | 24 / 26 Heavy·Bold (StatTile `163:2546`, `163:2557`) | `title-2` 22 또는 `title-1` 28 (Stage 7 design spec 에서 택1) | 신규 `display-number` 는 만들지 않음 (#10-②) |
+| 27 Black 1000 (`/onboarding/saved` 제목 `179:1813`, 27 / line-height 33) | `title-1` 28 | Stage 1 `AD-6` 흡수표 항목(**27→28**). weight 는 Black 1000 → heavy 근사 (`AD-2`). 2026-09-27 확인 |
+| 30 Black 1000 (`/auth/log-in` 제목 `179:1831`, 박스 h=36) | `title-1` 28 | 이웃 스타일은 28(Δ−2)·`large-title` 34(Δ+4) 뿐이고 신규 스타일 금지 → 가까운 28. Stage 2 design spec `AD-S2-17` 로 등록 (2026-09-27) |
 | 28 Heavy 860 (`31:117`) | `title-1` 28 + weight heavy | Large Title 34 미사용 |
 
 ---
@@ -312,11 +315,16 @@ development-agent 는 아래 토큰 중 **가값으로 남은** 항목의 정의
 | `item spacing/14` | 14 | `--space-3-5` | `3.5` | |
 | (raw) 16, 18, 20 | 16 / 18 / 20 | `--space-4` / → 20 / `--space-5` | `4` / `5` | 카드 padding 16·18·20 혼재 → 16·20 |
 | (raw) 24, 26 | 24 / 26 | `--space-6` | `6` | 화면 좌우 gutter 24 (`30:87`) vs 26 (`179:1732`, 버튼 px 26) → `가값 (P-13)`, 가값 **24** |
+| (raw) 29 (`179:1756` · `179:1759`) | 29 | `--space-7` (신규 제안 **28**) | `7` | 소개 화면 medallion→카드 · 카드→InfoRow. 24 흡수 Δ−5 · 32 흡수 Δ+3 → **28 (Δ−1)**. Stage 2 spec §6.1 |
 | (raw) 32 | 32 | `--space-8` | `8` | |
+| (raw) 40 (`179:1784`→`179:1786`), 38 (`179:1832`→`179:1833`) | 40 / 38 | `--space-10` (신규 제안 **40**) | `10` | 설문 카드 counter→eyebrow 는 **정확히 40**. 32 흡수 시 Δ−8 → 스케일 단계 추가. Stage 2 spec §6.1 |
 | 신규 | — | `--layout-gutter` = `--space-6` | `px-gutter` | |
 | 신규 | — | `--size-touch-min` = 44 | `min-h-touch` | rules/frontend §9 |
 
 Tailwind 기본 spacing 스케일(4px 기준)을 그대로 쓰고, 7 · 13 · 18 · 26 같은 비스케일 값은 금지 (RECOMMENDED).
+
+- 금지 대상은 **4의 배수가 아닌 raw 값**(7·13·18·26)이다. **28**(단계 `7`)·**40**(단계 `10`)은 Tailwind 스케일의 기존 단계이므로 금지 대상이 아니며, Stage 2 실측 근거로 `--space-7`·`--space-10` **정의를 제안**한다 (Stage 2 design spec §6.1 — 구현은 이미 `gap-7`/`pt-10`/`gap-10` 로 같은 값을 쓰고 있어 **렌더 값 변화 없음**). 토큰 추가는 development-agent 소관이다.
+- 정의된 `--space-*` 스케일: 2 · 4 · 6 · 8 · 10 · 12 · 14 · 16 · 20 · 24 · 32 (+ 제안 **28** · **40**).
 
 ### 5.2 Radius
 

@@ -85,7 +85,7 @@ iOS 26 text styles 11종 (Large Title 34/41 700 … Caption 2 11/13 400), family
 ## 3. Spacing
 
 - Figma 변수 `item spacing/*` (2, 4, 6, 7, 8, 10, 12, 14) + 화면 raw 16/18/20/24/26/32 [DC]. 이름 체계가 named(xxxs/xxs/xs)와 numeric(6/7/10/12/14)으로 섞여 있다.
-- 규칙 (RECOMMENDED): `--space-*` 스케일만 사용 (TOKEN_MAP §5.1). 화면 좌우 = `--layout-gutter` (24 vs 26 = `가값 (P-13)`, 가값 24), 카드 내부 padding = `--space-4` 또는 `--space-5`, 세로 섹션 간격 = `--space-6` / `--space-8`, 칩 gap = `--space-2`.
+- 규칙 (RECOMMENDED): `--space-*` 스케일만 사용 (TOKEN_MAP §5.1). 정의된 단계는 2·4·6·8·10·12·14·16·20·24·32 이며, Stage 2 실측으로 **28**(단계 `7`)·**40**(단계 `10`) 2단계 추가가 제안되어 있다 (Stage 2 design spec §6.1 · 2026-09-27 — 4의 배수이므로 "비스케일 값 금지" 대상이 아니다). 화면 좌우 = `--layout-gutter` (24 vs 26 = `가값 (P-13)`, 가값 24), 카드 내부 padding = `--space-4` 또는 `--space-5`, 세로 섹션 간격 = `--space-6` / `--space-8`, 칩 gap = `--space-2`.
 - 모든 인터랙티브 요소 최소 `--size-touch-min` (RECOMMENDED, TOKEN_MAP §4) — 시각 크기가 작으면 hit area 로 확장.
 
 ## 4. Radius
