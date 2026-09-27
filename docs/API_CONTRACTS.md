@@ -100,6 +100,11 @@ Author: plan-agent (2026-09-14)
 > **구현 반영 (Stage 1-C)**: §2.1 Capability + 아래 22 종 = **enum 23 종**이 `packages/contracts/src/enums/*.ts`
 > (파일 20 개 — `consent.ts`·`report.ts`·`deletion.ts` 가 2 종씩 포함) 로 구현되었고,
 > 값과 순서는 `src/__tests__/enums.test.ts` 의 스냅샷 테스트가 이 표와의 일치를 보증한다.
+>
+> **구현 반영 (Stage 2-CONTRACTS)**: 아래 표 마지막 3 행(`ConsentSource`·`OnboardingStatus`·`Plan`)이
+> 추가되어 **enum 26 종**이 되었다 (Stage 2 Plan §18-④ 보고 결과 — 세 값 모두 Stage 1 §2.2 표에 없었다).
+> 파일은 `enums/consent-source.ts`·`onboarding-status.ts`·`plan.ts` 이고 스냅샷 테스트도 26 종으로 갱신했다.
+> 기존 23 종의 이름·값·순서는 바뀌지 않았다.
 > `SurveyAnswerValue` 는 enum 이 아니라 `z.union([z.literal(1..5), z.literal('not_observed')])` 로 인코딩했다 (§2.2 "인코딩 RECOMMENDED").
 > `Gender` 는 `GenderSchema`(3 값) + `GenderFieldSchema = GenderSchema.nullable()`(미응답 `null`) 로 나누어 구현했다 (C-7).
 
@@ -127,6 +132,9 @@ Author: plan-agent (2026-09-14)
 | `DeletionScope` | `session_recording, all_data` | FR-21, §7.8 |
 | `DeletionRequestStatus` | `received, processing, completed, failed` | FR-21 |
 | `NotificationKind` | `session_invite, short_feedback_ready, report_published, report_deferred_encourage, upload_failed_48h, report_delayed` | FR-08/13/16, §13 |
+| `ConsentSource` (Stage 2) | `signup_email, signup_oauth, settings, reconsent` | `docs/DATA_MODEL.md` §5 `consent_events.source` — **RECOMMENDED** (Stage 2 Plan §7.1 · §18-④) |
+| `OnboardingStatus` (Stage 2) | `not_started, in_progress, completed` | `docs/DATA_MODEL.md` §5 `caregiver_profiles.onboarding_status` — **RECOMMENDED**. 프로필 결과 확인 상태는 값으로 두지 않는다 (D-6) |
+| `Plan` (Stage 2) | `free` | PRD §7.1 "가입 완료 시 Free 플랜 자동 부여" — **RECOMMENDED**. 유료 플랜은 FR-26 (P2) |
 
 ---
 
@@ -366,6 +374,53 @@ export const scoreCapabilities = (items: SurveyItem[], answers: CapabilityItemAn
   }); // score=null(한 역량 전부 결측) 처리·표시 규칙은 Stage 2 Plan. 반올림 소수 1자리는 RECOMMENDED
 ```
 
+> **구현 반영 (Stage 2-CONTRACTS, development-agent)** — 위 스케치가 아래 파일로 구현되었다.
+> 스케치와 다른 부분은 **Stage 2 Plan §7.1 · §16 의 승인된 결정**이며, 그 근거를 함께 적는다.
+>
+> | 스케치 | 구현 위치 | 결정 반영 |
+> |---|---|---|
+> | `ConsentDocument` · `CurrentConsentDocuments` | `src/consent/documents.ts` | `url` 은 외부 링크로 연다 (D-4). `required` 는 서버 값 |
+> | `RecordConsents` · `ConsentStatus` | `src/consent/record.ts` | `ConsentItem` 분리, `source: ConsentSource`, `grantedAt` nullable, 순수 함수 `hasAllRequiredConsents(status)` |
+> | `SignUpWithEmailInput` | `src/auth/sign-up.ts` | `.strict()` 유지 (아이 필드 혼입 차단 — AC-2-05). 최소 길이는 `PASSWORD_MIN_LENGTH = 8` 상수 |
+> | — (신규) | `src/auth/sign-in.ts` · `session.ts` | `SignInWithEmailInput` · `RequestPasswordResetInput` · `UpdatePasswordInput` · `AuthProvider`(google\|apple) · `AuthSession` · `AuthResult` |
+> | `ChildInfoAnswers` | `src/onboarding/child-info.ts` | **`lastName` 은 선택** (D-1). `languageEnvironment[]` · `readingRoutine` 추가. 관계·타임존은 **넣지 않는다** (D-16 → `UpdateCaregiver`) |
+> | 생년월 범위 검증 | 같은 파일 `createBirthYearMonthSchema(now)` | **clock 주입 팩토리** (D-10). `childAgeInMonths(birthYearMonth, now)` 로 나이 Tag 도 파생. `ChildInfoAnswersSchema` 는 형식만, `createChildInfoAnswersSchema(now)` 가 범위까지 검증 |
+> | `SurveyItem` · `SurveyInstrument` · `CapabilityItemAnswer` · `CapabilityItemsAnswers` | `src/onboarding/survey.ts` | 제출용 `CompleteCapabilityItemsAnswers`(10 문항 필수) 추가. 상수 `BASELINE_INSTRUMENT_CODE` · `SURVEY_ITEM_COUNT` · `SURVEY_SCALE_LABEL_COUNT` |
+> | (Stage 2 Plan §7.1) Step 2·3·4 | `src/onboarding/temperament.ts` · `books.ts` · `goals.ts` · `options.ts` | PRD §7.2 의 축·항목만 구조화했다. **선택지 코드 목록은 RECOMMENDED** 이며 표시 문구는 `apps/web/src/shared/copy` 가 소유한다 |
+> | `OnboardingDraft` | `src/onboarding/draft.ts` | `schemaVersion: 1`, 보관 상한 상수 + 순수 함수 `isOnboardingDraftExpired(updatedAt, now)` (D-3, 30 일). **로컬 전용 — HTTP 아님**. localStorage 키는 contracts 가 아니라 `apps/web` 이 소유한다 |
+> | (신규) 단계 저장·제출·상태 | `src/onboarding/answers.ts` · `state.ts` · `save-step.ts` · `submit.ts` | `SaveOnboardingStepRequest` 는 `step` 기준 discriminated union(부분 저장 허용 — FR-03), `SubmitOnboardingRequest` 는 5 단계 전체 + 10 문항 전부. `createSubmitOnboardingRequestSchema(now)` 가 나이 범위까지 본다 |
+> | `scoreCapabilities` | `src/rules/capability-score.ts` | 산식 동일(소수 1 자리, `not_observed`·미응답 제외, 전부 결측이면 `score: null`). **D-2 반영 순수 함수 추가**: `selectStrengths` · `selectGrowingEdges` · `suggestGrowthCapability` · `capabilityHighlightCount` — `score: null` 역량을 강점·growing edge·발전 역량 후보에서 제외하고, 한 역량이 강점과 growing edge 에 동시에 들어가지 않게 한다. 동점은 역량 선언 순서로 **결정적으로** 깬다 |
+> | (신규) 프로필 | `src/children/child.ts` · `snapshot.ts` · `persona.ts` · `profile.ts` · `growth-capability.ts` | `CapabilityScore.score` nullable + `itemCount` · `missingCount`(D-2 ①). `ChildProfile.strengths` · `growingEdges` 는 `.max(2)` — 결측이 많으면 개수가 줄어든다 |
+> | (신규) Me | `src/me/me.ts` · `update-caregiver.ts` | `plan` 은 **최상위 1 곳**에만 둔다(§4 Stage 2 표 기준). Stage 2 Plan §7.1 이 `caregiver.plan` 과 최상위 `plan` 을 함께 적었으나 같은 값을 두 곳에 두지 않는다 |
+> | (신규) 책 검색 | `src/books/search.ts` | `BookSummary{id, title, author, coverUrl?}` + `SearchBooksRequest`(q + cursor) / `SearchBooksResponse` = `paginated(BookSummary)` (D-17 최소 범위) |
+>
+> - 시간이 필요한 검증은 전부 **clock 주입 팩토리·순수 함수**다. `Date.now()` · `new Date()` 직접 호출이 없다 (D-10).
+> - 런타임 의존은 여전히 `zod` 하나이며 `pnpm lint:boundaries` 가 강제한다.
+> - Mock Adapter · Query hook · 화면은 이 Step 범위가 아니다 (Stage 2 후속 Step).
+
+---
+
+> **구현 반영 (Stage 2-ONBOARDING, development-agent)** — 결정 **D-A · D-B · D-C**
+> (`docs/decisions/stage-2-approvals.md` §8) 에 따라 온보딩 문항·선택지가 확정되었다.
+> 근거 문서: `docs/source/HARU_Onboarding_Questionnaire_v1-1.docx.md` ("The Questionnaire" Q1~Q5).
+>
+> | 변경 | 구현 위치 | 내용 |
+> |---|---|---|
+> | **신규 `OnboardingInstrument`** | `src/onboarding/instrument.ts` | `{code, version, questions: ChoiceQuestion[], survey: SurveyInstrument}`. `GET /v1/onboarding` 이 내려주는 **문항 집합 전체**다. `ChoiceQuestion{questionId, step, order, selection(single\|multi), maxSelections?, required, prompt?, description?, options[{code, label?, exclusive?}]}` |
+> | **instrument 참조** | 같은 파일 `InstrumentRefSchema` | `SubmitOnboardingRequest.instrument` · `OnboardingDraft.instrument` 가 `{code, version}` 을 담는다. 문항이 바뀐 뒤 **과거 응답 해석은 Backend 책임**이다 (`P2-BIP-06`) |
+> | **저장 위치 매핑** | 같은 파일 | `readChoiceAnswer` · `applyChoiceAnswer` · `toggleChoiceSelection` · `pruneUnknownChoiceAnswers` — 전부 순수 함수. 선택지 코드는 문항별 schema 로 parse 되므로 instrument 가 모르는 값이 저장되지 않는다 |
+> | **Step 2 교체 (Q1·Q4)** | `src/onboarding/temperament.ts` | 4축(활동성·낯가림·집중·선호활동) → **관찰 가능한 2문항**: `storyComfort`(Q1 — `quiet_gentle`·`some_adventure`·`wild_ride`·`depends_on_the_day`) · `readAloudBehavior`(Q4 — 5값). 질문지가 "temperament profiling 은 온보딩에서 하지 않는다" 로 범위를 제한한 결과다. 둘 다 선택(D-C) |
+> | **Step 3 주제 교체 (Q3)** | `src/onboarding/options.ts` | `TOPIC_TAG_CODES` → `narrative`·`inquiry`·`artistic`·`social`·`not_sure_yet` (engine `interest_weight.<code>`). `not_sure_yet` 은 `exclusive`. 상한 `TOPIC_TAGS_MAX = 2` (Q3 "up to 2"). 필드명 `topicTags` 는 `DATA_MODEL` §5 와 맞춰 유지 |
+> | **Step 4 = 4대 역량 (D-B, Q2)** | 같은 파일 | `GrowthGoalSchema = CapabilitySchema`, `GROWTH_GOAL_CODES = CapabilitySchema.options`. 별도 enum 을 두지 않아 두 목록이 갈라질 수 없다. 상한 `GROWTH_GOALS_MAX = 2` |
+> | **Baseline 구조 상수** | `src/onboarding/survey.ts` | `BASELINE_ITEM_BLUEPRINT`(itemCode·capability·order, **문구 없음**) · `BASELINE_ITEM_CODES`. 문항 **문구**는 여전히 instrument 응답 값이다 (AC-2-24) |
+> | **draft 형식 변경** | `src/onboarding/draft.ts` | `instrumentCode: 'baseline_v1'` → `instrument: {code, version}`. 로컬 전용이라 HTTP 계약에 영향이 없다 |
+>
+> **표시 문구는 contracts 에 없다.** 선택지·문항 문구는 `apps/web/src/features/onboarding-survey/copy.ts` 가
+> 코드로 조회한다 (D-A 구조 제약 ①). 서버가 `label`·`prompt` 를 내려주면 그쪽이 우선한다 —
+> 클라이언트 릴리스 없이 선택지를 바꾸기 위한 경로이며, **새 코드를 추가할 때는 `label` 을 함께
+> 내려야 한다** (그렇지 않으면 화면이 그 선택지를 그리지 않는다 — 사용자에게 machine key 를
+> 노출하지 않기 위해서다).
+
 ### 3.5 Report Eligibility Rules (#17)
 
 ```ts
@@ -439,15 +494,38 @@ Auth 자체(가입·로그인·비밀번호 재설정·OAuth)는 HTTP API가 아
 | POST | `/v1/consents` (IK) | `RecordConsents` (items[{type, documentId, action: 'granted'}], source) — `revoked` 없음 (C-4) | `ConsentStatus` | CONSENT_VERSION_OUTDATED, VALIDATION_FAILED (필수 항목 누락) | FR-02, §7.1 |
 | GET | `/v1/consents` | — | `ConsentHistory` (Stage 8 동의 이력 보기 — 선택 기능 (C-19, 미구현 시 QA FAIL 아님)) | — | FR-02 |
 | — | VPC 단계 (C-3) | — | — | — | **Contract 미정의** — 방식 NEEDS DECISION (법무, L-01). Stage 2는 `Me.parentVerification.status` + Mock 슬롯(`vpc-pending`)만 |
-| GET | `/v1/onboarding` | — | `OnboardingState` (instrument: `SurveyInstrument` baseline_v1 (§3.4), steps[5], draftAnswers, currentStep) | CONSENT_REQUIRED | FR-03 |
+| GET | `/v1/onboarding` | — | `OnboardingState` (instrument: **`OnboardingInstrument`** = `{code, version, questions[], survey: SurveyInstrument}` (§3.4), steps[5], draftAnswers, currentStep) | CONSENT_REQUIRED | FR-03 |
 | PUT | `/v1/onboarding/steps/:step` | `SaveOnboardingStep` (step별 schema — `child_info` = `ChildInfoAnswers`, `capability_items` = `CapabilityItemsAnswers` 일부 허용, §3.4) | `OnboardingState` | CONSENT_REQUIRED, VALIDATION_FAILED | FR-03 중도 저장 |
-| POST | `/v1/onboarding/submit` (IK) | `SubmitOnboarding` (5단계 전체 — capability 10문항 모두 1–5 또는 `not_observed`; Trial 로컬 draft 제출도 동일, C-12) | `ProfileResult` (child, snapshot{scores[4]{capability, score (응답 평균, null 가능), itemCount, missingCount}}, persona, suggestedCapability) | CONSENT_REQUIRED (필수 동의 기록 전 제출 — ARCHITECTURE §7.3.1, §7.4), ONBOARDING_INCOMPLETE, CHILD_LIMIT_REACHED, PROVIDER_UNAVAILABLE(→ fallback persona로 200) | FR-03, FR-04, FR-05, FR-06, FR-24 |
+| POST | `/v1/onboarding/submit` (IK) | `SubmitOnboarding` (**`instrument{code,version}`** + 5단계 전체 — capability 10문항 모두 1–5 또는 `not_observed`; Trial 로컬 draft 제출도 동일, C-12) | `ProfileResult` (child, snapshot{scores[4]{capability, score (응답 평균, null 가능), itemCount, missingCount}}, persona, suggestedCapability) | CONSENT_REQUIRED (필수 동의 기록 전 제출 — ARCHITECTURE §7.3.1, §7.4), ONBOARDING_INCOMPLETE, CHILD_LIMIT_REACHED, PROVIDER_UNAVAILABLE(→ fallback persona로 200) | FR-03, FR-04, FR-05, FR-06, FR-24 |
 | GET | `/v1/books/search?q=` | — | `Paginated<BookSummary>` | — | §7.2 Step3 (좋아하는 책 검색) |
 | GET | `/v1/children/:childId/profile` | — | `ChildProfile` (child, latestSnapshot, strengths[2], growingEdges[2], persona, growthCapability) | CHILD_NOT_FOUND | FR-04, FR-05, FR-06, §7.3 |
 | PATCH | `/v1/children/:childId` | `UpdateChild` (firstName, lastName, birthYearMonth, gender — Stage 6 설정) | `ChildProfile` | VALIDATION_FAILED | §7.8 |
 | PUT | `/v1/children/:childId/growth-capability` | `SetGrowthCapability` (capability) | `ChildProfile` | — | FR-06, §7.3 |
 | GET | `/v1/children/:childId/capability-snapshots` | cursor | `Paginated<CapabilitySnapshot>` | — | FR-15, §7.7 (Stage 6/7에서 사용) |
 | GET | `/v1/children/:childId/personas` | cursor | `Paginated<Persona>` | — | FR-15, §7.7 |
+
+> **구현 반영 (Stage 2-CONTRACTS, 2026-09-25)** — 위 표 중 **Stage 2 In Scope** 인 endpoint 의
+> Request/Response schema 가 `packages/contracts` 에 구현되었다 (상세 매핑은 §3.4 구현 반영 표).
+>
+> | Endpoint | Request | Response |
+> |---|---|---|
+> | `GET /v1/me` | — | `MeResponseSchema` |
+> | `PATCH /v1/me` | `UpdateCaregiverRequestSchema` | `MeResponseSchema` |
+> | `GET /v1/consent-documents/current` | — | `CurrentConsentDocumentsSchema` |
+> | `POST /v1/consents` | `RecordConsentsRequestSchema` | `ConsentStatusSchema` |
+> | `GET /v1/onboarding` | — | `OnboardingStateSchema` |
+> | `PUT /v1/onboarding/steps/:step` | `SaveOnboardingStepRequestSchema` | `OnboardingStateSchema` |
+> | `POST /v1/onboarding/submit` | `SubmitOnboardingRequestSchema` | `ProfileResultSchema` |
+> | `GET /v1/books/search` | `SearchBooksRequestSchema` | `SearchBooksResponseSchema` |
+> | `GET /v1/children/:childId/profile` | — | `ChildProfileSchema` |
+> | `PUT /v1/children/:childId/growth-capability` | `SetGrowthCapabilityRequestSchema` | `ChildProfileSchema` |
+>
+> - **`Me` 의 `plan`**: 이 표대로 **최상위 필드 1 곳**이다. `caregiver` 안에는 두지 않는다.
+> - **VPC (C-3)**: contract 를 정의하지 않았고 `MeResponse.parentVerification.status` 슬롯만 있다.
+> - **AuthGateway** 는 HTTP 가 아니다 — 입력 schema 만 `src/auth/*` 에 있다 (`SignUpWithEmailInput` ·
+>   `SignInWithEmailInput` · `RequestPasswordResetInput` · `UpdatePasswordInput` · `AuthSession` · `AuthProvider`).
+> - **Error Code 신규 추가 0 건** — Stage 1 의 28 종을 그대로 쓴다 (AC-2-48).
+> - Mock Adapter · Http Adapter · 화면은 **이 Step 범위가 아니다**. 실제 서버 연동 검증은 `BACKEND_INTEGRATION_PENDING`.
 
 #### 설정 진입점 — CONFIRMED (사용자 결정 2026-09-14, C-16)
 

@@ -1,11 +1,13 @@
 # Stage 2 Design Spec — Auth · Consent · VPC 슬롯 · Onboarding 5단계 · Settings · Home skeleton
 
-**Status: DRAFT** (작성 2026-09-23, design-agent)
+**Status: APPROVED (2026-09-25, user)** (작성 2026-09-23, design-agent)
 **Based on**
 - Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` — page `16:2`, section `179:1700`(Signup & Baseline survey) · section `31:204`(`26:21` Home 헤더), page `8:2` 컴포넌트. **조회·실측 일자 2026-09-23** (`179:1701` · `179:1724` · `179:1740` · `179:1748` · `179:1759` · `179:1770` · `179:1782` · `179:1789` · `179:1809` · `179:1820` · `163:2145`)
 - `docs/plans/stage-2-plan.md` (Stage 2 Plan, 2026-09-23) — §2 In Scope · §5 · §7 · §8 · §9 · §11 · §15 Handoff · §16 D-1~D-17
 - `docs/decisions/stage-2-approvals.md` §2(C-13 11건 명세 / 2건 디자이너) · §3(Stage 2 / Stage 2-B 분리)
 - `docs/design/stage-1-design-spec.md` — 토큰·Shared UI 22종·공통 상태(P-10)·Layout·접근성의 **정본**. 이 문서는 그 위에 Stage 2 화면만 얹는다.
+
+**개정 (2026-09-27, design-agent)** — QA 2회차 지시 반영 **2건만**. ① `S2-DESIGN-2`: §2.11 `/onboarding/saved` 의 여백 분배 규칙을 Figma `179:1809` **재실측(2026-09-27)** 에 맞게 수정 (`(flex spacer)` 를 일러스트↔제목 사이에 두었던 오류 → 일러스트 위 A / 제목 아래 B 로 3 : 2 분배). ② `S2-DESIGN-1`: §11.3 에 `AD-S2-15` · `AD-S2-16` 등록. 새 요구사항·새 화면·새 허용 차이·신규 토큰은 추가하지 않았다. `Status: APPROVED` 는 2026-09-25 승인 상태 그대로이며, **이 2건의 승인 범위 포함 여부는 사용자 확인 사항**이다.
 
 ---
 
@@ -476,15 +478,48 @@ SwipeDeck  depth=3                                                       ← 179
 
 ```
 [safe-top]
+ (flex spacer A — grow 3, 최소 --space-6)
  CharacterIllustration  asset=hello-heart   ← 179:1819 (Figma 307×415, 세로비 유지)
- (flex spacer)
- Text  "Thank you — that's the starting point"  --text-title-2 / --font-weight-heavy / 가운데   ← 179:1813
  (gap --space-8)
+ Text  "Thank you — that's the starting point"  --text-title-2 / --font-weight-heavy / 가운데   ← 179:1813
+ (flex spacer B — grow 2, 최소 --space-8)
  Button variant=accent size=lg fullWidth trailingIcon=arrow-right  "Get started"   ← 179:1814/1815
+[safe-bottom]
 ```
+
+**여백 분배 규칙** (design-agent 재실측 2026-09-27 · `179:1809` 393×852. 이전 버전은 spacer 를 일러스트↔제목 **사이**에 두어 Figma와 반대였다 — `S2-DESIGN-2` 수정)
+
+| 구간 | Figma 실측 | 규칙 | 근거 |
+|---|---|---|---|
+| safe-top(56) ~ 일러스트 top(163) | **107** | **flex spacer A** — `flex: 3 1 0`, `min-height: --space-6`(24) | 여백은 일러스트 **위**에 있다. 고정값으로 박지 않는다 |
+| 일러스트 bottom(578) ~ 제목 top(615) | **37** | **고정** `--space-8`(32) | 37 은 비스케일 raw 값 → spacing 스케일로 흡수 (#10-② · `DESIGN_TOKEN_MAP` §5.1 "7·13·18·26 같은 비스케일 값 금지"). Δ −5 |
+| 제목 bottom(681) ~ CTA top(750) | **69** | **flex spacer B** — `flex: 2 1 0`, `min-height: --space-8`(32) | |
+| CTA bottom(808) ~ 프레임 bottom(852) | 44 | `[safe-bottom]` = `--layout-safe-bottom` | `AD-S2-16` (§11.3) |
+
+- **여백은 일러스트 위(A)와 제목 아래(B)에 3 : 2 로 분배한다.** Figma 잔여 여백 107 : 69 = 1.55 : 1 ≒ 3 : 2 다. `flex-grow` 는 **단위 없는 비율**이므로 spacing 토큰 대상이 아니며 "임의 px" 도 아니다. 고정 값은 `--space-8`(간격) · `--space-6`/`--space-8`(spacer 최소값) 만 쓴다 → **신규 토큰 0건**.
+- **393×852 검산**: usable = 852 − safe-top 56 − safe-bottom 44 = 752. 콘텐츠 = 일러스트 415 + 32 + 제목 66 + CTA 56(`AD-S2-12`) = 569. 잔여 183 → A ≈ 110 / B ≈ 73. 결과 위치는 일러스트 top ≈ 166(Figma 163) · 제목 top ≈ 613(615) · CTA top ≈ 752(750) → **오차 ≤ 4px**. 기존 `AD-S2-12`(±2) · `AD-S2-16`(하단 ±48) 범위 안에서 해소되므로 **신규 허용 차이를 만들지 않는다**.
+- **고정 높이·고정 여백으로 박지 않는다** (§5.2 · §9 "고정 높이 컨테이너 금지"). 107 · 69 를 px 로 적지 않는 이유가 이것이다.
+- **공간 부족 시 축소 순서**: ① spacer A·B 가 3 : 2 비율을 유지하며 각자 최소값(24 / 32)까지 줄어든다 → ② 일러스트가 `aspect-ratio`(307 / 415) + `object-fit: contain` + `min-height: 0` 으로 남은 높이에 맞춰 축소된다(비율 유지, 왜곡 없음) → ③ 그래도 부족하면 앱 컬럼이 스크롤되고 CTA 는 스크롤 컨테이너 내부에 남아 도달 가능하다 (§9-4 · Stage 1 §2.2). **제목·CTA 는 어느 단계에서도 잘리지 않는다.**
+- **320px**: 콘텐츠 폭 = 320 − gutter 48 = 272 → 일러스트 = `min(100%, --size-illustration-max)` = 272×368(비율 0.74)로 자동 축소되어 415 대비 47px 여유가 먼저 생긴다 (§9-3 · §5.2). 잘림 없음.
+- **텍스트 200%**: 제목이 다수 행으로 늘고 CTA 라벨이 커지면 잔여가 **spacer 에서 먼저 흡수**된다(비율 유지) → 최소값 도달 후 위 ②③ 으로 이어진다. 320px × 200% 에서는 ③ 스크롤로 귀착되는 것이 정상 동작이며, 고정 높이가 없으므로 겹침·잘림·버튼 밀림이 발생하지 않는다.
 
 - Figma의 `179:1813` weight는 Black(1000)이다 → Inter 최대치로 근사 (`AD-2`).
 - **Stage 2에서 "Get started" 의 목적지는 `/` (Home skeleton)** 이다. PRD §5.1 ③④(프로필 결과 → 발전 역량)는 **Stage 2-B** 에서 이 사이에 삽입된다 (§12.1).
+
+**같은 `(flex spacer)` 패턴을 쓰는 다른 화면 — 영향 점검 (2026-09-27)**
+
+| 화면 | spacer 위치 | 판정 |
+|---|---|---|
+| `/auth/welcome` §2.1 · `/auth/sign-up` §2.2 · `/auth/log-in` §2.3 · `/auth/forgot-password` §2.4 · `/auth/reset-password` §2.5 · `/auth/consent` §2.6 · `/auth/verify-parent` §2.7 · `/onboarding` §2.8 · `/onboarding/:step` §2.9 | 모두 **하단 앵커 요소(CTA·각주) 직전 1개** | **영향 없음** — Figma 도 같은 화면들에서 잔여 여백을 하단 블록 위에 둔다(예: `179:1701` 로그인 유도 행 bottom 729 → 각주 top 788 = 59, `179:1748` InfoRow bottom 666 → CTA top 724 = 58). `S2-DESIGN-2` 는 `/onboarding/saved` **단독 결함**이었다 |
+
+- 단, 실측 중 **상단 고정 여백 값**에서 별개 편차를 발견했다. 이번 수정 범위가 아니므로 값을 바꾸지 않고 기록만 한다 (처리 방침: **Stage 2 구현·시각 baseline 이 이미 통과한 상태이므로 재조정은 사용자/Orchestrator 결정 사항**):
+  | 화면 | 명세 값 | Figma 실측 | 비고 |
+  |---|---|---|---|
+  | §2.1 `/auth/welcome` safe-top → medallion | `--space-10` | **94** (`179:1703` y=150 − 56) | `--space-10`(40) 은 **토큰으로 정의되어 있지 않다** (`semantic/space.css` 스케일은 32 까지) |
+  | §2.2 `/auth/sign-up` spacer 최소값 | `--space-10` | — | 동일 — 미정의 토큰 참조 |
+  | §2.8 `/onboarding` safe-top → medallion | (명시 없음) | **54** (`179:1750` y=110 − 56) | 상단 고정 여백이 명세에 없다 |
+  | §2.8 medallion → 카드 | `--space-7` | 29 (`179:1756` y=339 − 310) | 값은 맞지만 `--space-7`(28) 도 **미정의 토큰**이다 |
+  | §2.8 카드 → InfoRow 1 | `--space-5`(20) | 29 (`179:1759` y=562 − 533) | Δ +9 |
 
 ### 2.12 `C13-11` Trial 가입 유도 · draft 유실/만료 안내 (`/onboarding/*` 내 상태)
 
@@ -923,6 +958,11 @@ Stage 2 고유 규칙:
 | **AD-S2-10** | 소개 화면 InfoRow 문구 변경 (10 cards → 5단계 기준) | Figma 문구가 Step 5만 설명 (§13.2 ②) | 문구 비교 제외 (`AD-9` 확장) |
 | **AD-S2-11** | Step 5 RadioGroup **6옵션**(Figma 5옵션) | `CONFIRMED (C-8 · D-04)` | 옵션 1개분 + 구분선·caption 차이 허용 |
 | **AD-S2-12** | Button 높이 58 → 56, 폭 341/345 → 컬럼 100%(gutter 24) | `가값 P-15 확정(56)` + `AD-10` gutter 통일 | 높이 ±2, 좌우 ±2 |
+| **AD-S2-15** | `/onboarding` 소개 화면(`179:1748`)의 **제목 `179:1757` · 본문 `179:1758` · CTA 라벨 `179:1768`** 문구가 Figma와 다름 | Figma 문구를 그대로 쓸 수 없다 — ① 제목이 아이 이름("Yuna")을 부르지만 이 화면은 **이름을 받기 전**이다 (이름은 Step 1 수집, C-6) ② "Ten short questions" · "Start the questions" 는 **Step 5(10문항)만** 설명하는데 실제 온보딩은 5단계다 (§13.2 ②) — 이미 등록된 `AD-S2-10`(InfoRow 문구)과 **같은 사유**이며 그 등록이 제목·본문·CTA 를 덮지 못했을 뿐이다 ③ "No right answers" 의 **의미는 보존**했다 (진단·판정 금지, `rules/frontend.md` §8) | 해당 3개 텍스트의 **문구 비교 제외** (`AD-9` · `AD-S2-10` 확장). 블록 수·위치·크기·톤 차이는 허용하지 않는다. **최종 문구는 `S2-COPY-1` 결정에 묶여 있다** |
+| **AD-S2-16** | 화면 **하단 앵커 블록이 앱 컬럼 맨 아래에 붙는다** — Figma 프레임은 하단 약 44px(iOS home indicator 영역, `179:1723`·`179:1747`·`179:1818` `y=838`)을 비우고 버튼·각주를 `y≈750`/`788` 에 두지만, 데스크톱 baseline 은 `y≈796` 이다 | 그 44px 은 **`--layout-safe-bottom`(= `env(safe-area-inset-bottom)`)** 이 맡는 영역이고 데스크톱 브라우저에서는 `env()` 가 `0px` 이다. Figma 상단 status bar 56px 을 `--layout-safe-top` 으로 흡수한 것과 **같은 처리**다. QA 가 근거를 직접 검증했다 (safe-area 주입 시 오차 46px → 2px) | **하단 앵커 요소의 세로 위치 ±48px**. 블록 순서·간격·크기 차이는 허용하지 않는다. 대상: `/auth/welcome` 각주 · `/auth/sign-up` CTA · `/auth/consent` CTA · `/onboarding` CTA · `/onboarding/saved` CTA |
+
+- `AD-S2-14`(Home 워드마크 텍스트 렌더)는 `docs/qa/stage-2-home-handoff.md` 에 기록되어 있으며, 에셋화 여부가 `S2-HOME-1`(디자이너 결정) 으로 열려 있어 이 표에 확정 등록하지 않는다.
+- `AD-S2-13`(Apple 버튼 glass 표면)은 `docs/qa/stage-2-auth-handoff.md` §6 에 기록되어 있다. 이번 갱신 지시 범위(`AD-S2-15`·`AD-S2-16`)가 아니므로 이 표에 옮겨 적지 않았다 — §11.3 등록 여부는 별도 결정 사항이다.
 
 ---
 
@@ -1086,5 +1126,5 @@ PRD §5.1 흐름은 `Step 5 완료 → ③ 프로필 결과 → ④ 발전 역�
 | 신규 Tier-3 토큰 | 5건 (`--deck-inset-x` · `--deck-peek-y` · `--deck-depth` · `--list-row-height-min` · `--select-trigger-height`) |
 | 신규 가값 | `P-17` (확정 후보) + `P-18`·`P-19` 후보 |
 | 확정된 가값 | **P-16 부분 확정** — md 188 · lg 232 (Figma 실측), sm 136은 유지 |
-| 허용 차이 | `AD-S2-1` ~ `AD-S2-12` (12건) 사전 등록 |
+| 허용 차이 | `AD-S2-1` ~ `AD-S2-12` + `AD-S2-15` · `AD-S2-16` (14건) 사전 등록 (§11.3) |
 | 결정 대기 | §13.1 14건 (그중 법무 3건) + Plan D-9 이견 1건 |

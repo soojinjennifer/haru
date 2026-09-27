@@ -286,6 +286,7 @@ interface AuthGateway {
   signInWithProvider(p: 'google' | 'apple'): Promise<AuthResult>;
   requestPasswordReset(email: string): Promise<void>;
   updatePassword(newPassword: string): Promise<void>;
+  refreshSession(): Promise<AuthSession | null>;
   signOut(): Promise<void>;
 }
 // Stage 2–3: MockAuthGateway (Web) — signUpWithEmail input = 보호자 이름·이메일·비밀번호만 (아이 정보 없음, C-5)
@@ -293,7 +294,11 @@ interface AuthGateway {
 // 연동 시점 또는 사용자 승인 후: SupabaseWebAuthGateway / SupabaseNativeAuthGateway (BACKEND_INTEGRATION_PENDING)
 ```
 
-API 호출은 `Authorization: Bearer <token>` (Mock에서는 가짜 토큰). 토큰 갱신은 Gateway 책임, API helper는 `AUTH_TOKEN_EXPIRED` 수신 시 1회 refresh 후 재시도.
+총 **9 메서드**다. `refreshSession()` 은 만료된 access token을 갱신해 새 `AuthSession` 을 돌려주고, 갱신할 수 없으면 예외 대신 `null` 을 반환한다 — 토큰 갱신을 `AuthGateway` 책임으로 두기 위해 존재하며 AC-2-07(세션 갱신)의 구현 지점이다.
+
+API 호출은 `Authorization: Bearer <token>` (Mock에서는 가짜 토큰). 토큰 갱신은 Gateway 책임, API helper는 `AUTH_TOKEN_EXPIRED` 수신 시 `refreshSession()` 으로 1회 refresh 후 재시도.
+
+> 동기화 근거: `2-AUTH` 구현(2026-09-25)에서 `refreshSession()` 누락이 보고되어 실제 구현(`apps/web/src/shared/auth/AuthGateway.ts`, `AUTH_GATEWAY_METHODS`)과 일치시켰다. 근거 문서: `docs/qa/stage-2-auth-handoff.md`. Plan §2.1 · AC-2-06(9 메서드)과도 일치한다.
 
 ### 7.3 동의(Consent)와 계정 생성의 순서 (기술 요구사항, FR-01·FR-02, PRD §7.1)
 

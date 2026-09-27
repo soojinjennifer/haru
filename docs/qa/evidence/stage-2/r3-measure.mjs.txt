@@ -1,0 +1,166 @@
+/**
+ * QA 3회차 독립 실측 — /onboarding/saved (Figma 179:1809).
+ * QA 전용 스크립트. 저장소 밖에 있고 Product Code 를 수정하지 않는다.
+ */
+import { chromium } from '/Users/soojin/dev/haru/node_modules/.pnpm/playwright@1.63.0/node_modules/playwright/index.mjs';
+
+const BASE = 'http://localhost:4399';
+const OUT = '/private/tmp/claude-501/-Users-soojin-dev-haru/af5124a6-6e94-4d11-b844-6f80398efc0f/scratchpad/qa3';
+
+const SAFE_CSS = ':root{--layout-safe-top:56px !important;--layout-safe-bottom:44px !important;}';
+
+async function pickFromSheet(page, trigger, option) {
+  await page.getByRole('button', { name: trigger }).click();
+  await page.getByRole('radio', { name: option, exact: true }).click();
+}
+
+async function completeOnboardingToSaved(page) {
+  await page.goto(`${BASE}/onboarding?scenario=me:consent-missing`, { waitUntil: 'domcontentloaded' });
+  await page.locator('main').waitFor({ state: 'attached' });
+  await page.getByRole('button', { name: 'Start' }).click();
+  await page.waitForURL(/\/onboarding\/child-info$/);
+  await page.getByLabel('First name').fill('Yuna');
+  await pickFromSheet(page, /Birth year/, String(new Date().getUTCFullYear() - 6));
+  await pickFromSheet(page, /Birth month/, '04');
+  await pickFromSheet(page, /Gender/, 'Girl');
+  await page.getByRole('button', { name: 'English' }).click();
+  for (const path of [/\/temperament$/, /\/books$/, /\/goals$/, /\/capability-items$/]) {
+    await page.getByRole('button', { name: 'Next' }).click();
+    await page.waitForURL(path);
+  }
+  const deck = page.getByRole('group', { name: 'Baseline questions' });
+  for (let i = 0; i < 10; i += 1) {
+    const option = deck.getByRole('radio').nth(2);
+    await option.click();
+    if (i < 9) await page.getByRole('button', { name: 'Next question' }).click();
+  }
+  await page.getByRole('button', { name: 'Save profile' }).click();
+  await page.waitForURL(/\/auth\/sign-up$/);
+  await page.getByLabel('Your name').fill('Sam Rivera');
+  await page.getByLabel('Email').fill('sam@example.com');
+  await page.getByRole('textbox', { name: 'Password', exact: true }).fill('sunny-evening-8');
+  await page.getByRole('button', { name: 'Create account' }).click();
+  await page.waitForURL(/\/auth\/consent$/);
+  for (const t of ['Terms of Service', 'Privacy Policy', "Recording your child's voice"]) {
+    await page.getByRole('checkbox', { name: new RegExp(t) }).click();
+  }
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.waitForURL(/\/onboarding$/);
+  await page.getByRole('button', { name: 'Pick up where you left off' }).click();
+  await page.waitForURL(/\/onboarding\/capability-items$/);
+  await page.getByRole('button', { name: 'Finish' }).click();
+  await page.waitForURL(/\/onboarding\/saved$/);
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  });
+}
+
+async function measure(page) {
+  return page.evaluate(() => {
+    const r = (el) => {
+      if (!el) return null;
+      const b = el.getBoundingClientRect();
+      return {
+        x: +b.x.toFixed(1), y: +b.y.toFixed(1),
+        w: +b.width.toFixed(1), h: +b.height.toFixed(1),
+        bottom: +b.bottom.toFixed(1),
+      };
+    };
+    const q = (s) => document.querySelector(s);
+    const viewport = q('[data-app-shell-viewport]');
+    const btn = [...document.querySelectorAll('button')].find((b) => /Get started/i.test(b.textContent ?? ''));
+    const img = q('.haru-character-illustration img');
+    return {
+      viewportSize: { w: window.innerWidth, h: window.innerHeight },
+      scroll: viewport
+        ? { clientH: viewport.clientHeight, scrollH: viewport.scrollHeight, scrollable: viewport.scrollHeight > viewport.clientHeight + 1 }
+        : null,
+      docScrollW: document.documentElement.scrollWidth,
+      main: r(q('main')),
+      saved: r(q('.haru-saved')),
+      spacerA: r(q('.haru-saved__spacer--a')),
+      illustrationBox: r(q('.haru-character-illustration')),
+      img: r(img),
+      imgNatural: img ? { w: img.naturalWidth, h: img.naturalHeight } : null,
+      title: r(q('.haru-saved__title')),
+      titleText: r(q('.haru-saved__title h1')),
+      spacerB: r(q('.haru-saved__spacer--b')),
+      cta: r(btn),
+      ctaLabel: btn ? btn.textContent.trim() : null,
+      illustrationCss: (() => {
+        const el = q('.haru-character-illustration');
+        if (!el) return null;
+        const cs = getComputedStyle(el);
+        return { flex: cs.flex, minBlockSize: cs.minBlockSize, inlineSize: cs.inlineSize, aspectRatio: cs.aspectRatio };
+      })(),
+    };
+  });
+}
+
+const TYPE_2X = `:root{
+  --haru-type-large-title-size:68px;--haru-type-large-title-line:82px;
+  --haru-type-title-1-size:56px;--haru-type-title-1-line:68px;
+  --haru-type-title-2-size:44px;--haru-type-title-2-line:56px;
+  --haru-type-title-3-size:40px;--haru-type-title-3-line:50px;
+  --haru-type-headline-size:34px;--haru-type-headline-line:44px;
+  --haru-type-body-size:34px;--haru-type-body-line:44px;
+  --haru-type-callout-size:32px;--haru-type-callout-line:42px;
+  --haru-type-subheadline-size:30px;--haru-type-subheadline-line:40px;
+  --haru-type-footnote-size:26px;--haru-type-footnote-line:36px;
+  --haru-type-caption-1-size:24px;--haru-type-caption-1-line:32px;
+  --haru-type-caption-2-size:22px;--haru-type-caption-2-line:26px;
+}`;
+
+const browser = await chromium.launch();
+const results = {};
+
+const CASES = [
+  { id: 'A-393x852-safe', w: 393, h: 852, safe: true, type2x: false, shot: 'impl-393-safe.png' },
+  { id: 'B-393x852-nosafe', w: 393, h: 852, safe: false, type2x: false, shot: 'impl-393-nosafe.png' },
+  { id: 'C-393x852-safe-200', w: 393, h: 852, safe: true, type2x: true, shot: 'impl-393-safe-200.png' },
+  { id: 'D-320x568-safe', w: 320, h: 568, safe: true, type2x: false, shot: 'impl-320.png' },
+  { id: 'E-320x568-safe-200', w: 320, h: 568, safe: true, type2x: true, shot: 'impl-320-200.png' },
+  { id: 'F-320x400-safe-200', w: 320, h: 400, safe: true, type2x: true, shot: null },
+  { id: 'G-600x852-safe', w: 600, h: 852, safe: true, type2x: false, shot: null },
+  { id: 'H-1024x852-safe', w: 1024, h: 852, safe: true, type2x: false, shot: null },
+];
+
+for (const c of CASES) {
+  const ctx = await browser.newContext({
+    viewport: { width: c.w, height: c.h },
+    deviceScaleFactor: 1,
+    reducedMotion: 'reduce',
+  });
+  const page = await ctx.newPage();
+  const css = [c.safe ? SAFE_CSS : '', c.type2x ? TYPE_2X : ''].filter(Boolean).join('\n');
+  await completeOnboardingToSaved(page);
+  if (css) {
+    await page.addStyleTag({ content: css });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  }
+  results[c.id] = await measure(page);
+  if (c.shot) {
+    await page.screenshot({ path: `${OUT}/${c.shot}` });
+    // main 영역 클립 (Figma 프레임 대조용)
+    await page.locator('main').screenshot({ path: `${OUT}/${c.shot.replace('.png', '-main.png')}` });
+  }
+  // CTA 클릭 가능성(도달성) 확인: 스크롤 후 클릭 → Home 이동
+  const reach = await (async () => {
+    try {
+      const btn = page.getByRole('button', { name: /Get started/ });
+      await btn.scrollIntoViewIfNeeded();
+      const box = await btn.boundingBox();
+      await btn.click({ timeout: 4000 });
+      await page.waitForURL((u) => new URL(u).pathname === '/', { timeout: 4000 });
+      return { clickable: true, boxAfterScroll: box };
+    } catch (e) {
+      return { clickable: false, error: String(e).slice(0, 160) };
+    }
+  })();
+  results[c.id].ctaReachable = reach;
+  await ctx.close();
+}
+
+await browser.close();
+console.log(JSON.stringify(results, null, 2));

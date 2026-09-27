@@ -1,0 +1,762 @@
+{
+  "A-393x852-safe": {
+    "viewportSize": {
+      "w": 393,
+      "h": 852
+    },
+    "scroll": {
+      "clientH": 852,
+      "scrollH": 852,
+      "scrollable": false
+    },
+    "docScrollW": 393,
+    "main": {
+      "x": 24,
+      "y": 56,
+      "w": 345,
+      "h": 752,
+      "bottom": 808
+    },
+    "saved": {
+      "x": 24,
+      "y": 56,
+      "w": 345,
+      "h": 752,
+      "bottom": 808
+    },
+    "spacerA": {
+      "x": 24,
+      "y": 56,
+      "w": 345,
+      "h": 115.8,
+      "bottom": 171.8
+    },
+    "illustrationBox": {
+      "x": 43,
+      "y": 171.8,
+      "w": 307,
+      "h": 415,
+      "bottom": 586.8
+    },
+    "img": {
+      "x": 43,
+      "y": 171.8,
+      "w": 307,
+      "h": 415,
+      "bottom": 586.8
+    },
+    "imgNatural": {
+      "w": 614,
+      "h": 830
+    },
+    "title": {
+      "x": 24,
+      "y": 618.8,
+      "w": 345,
+      "h": 56,
+      "bottom": 674.8
+    },
+    "titleText": {
+      "x": 24,
+      "y": 618.8,
+      "w": 345,
+      "h": 56,
+      "bottom": 674.8
+    },
+    "spacerB": {
+      "x": 24,
+      "y": 674.8,
+      "w": 345,
+      "h": 77.2,
+      "bottom": 752
+    },
+    "cta": {
+      "x": 24,
+      "y": 752,
+      "w": 345,
+      "h": 56,
+      "bottom": 808
+    },
+    "ctaLabel": "Get started",
+    "illustrationCss": {
+      "flex": "0 1 auto",
+      "minBlockSize": "0px",
+      "inlineSize": "307px",
+      "aspectRatio": "auto"
+    },
+    "ctaReachable": {
+      "clickable": true,
+      "boxAfterScroll": {
+        "x": 24,
+        "y": 752,
+        "width": 345,
+        "height": 56
+      }
+    }
+  },
+  "B-393x852-nosafe": {
+    "viewportSize": {
+      "w": 393,
+      "h": 852
+    },
+    "scroll": {
+      "clientH": 852,
+      "scrollH": 852,
+      "scrollable": false
+    },
+    "docScrollW": 393,
+    "main": {
+      "x": 24,
+      "y": 0,
+      "w": 345,
+      "h": 852,
+      "bottom": 852
+    },
+    "saved": {
+      "x": 24,
+      "y": 0,
+      "w": 345,
+      "h": 852,
+      "bottom": 852
+    },
+    "spacerA": {
+      "x": 24,
+      "y": 0,
+      "w": 345,
+      "h": 175.8,
+      "bottom": 175.8
+    },
+    "illustrationBox": {
+      "x": 43,
+      "y": 175.8,
+      "w": 307,
+      "h": 415,
+      "bottom": 590.8
+    },
+    "img": {
+      "x": 43,
+      "y": 175.8,
+      "w": 307,
+      "h": 415,
+      "bottom": 590.8
+    },
+    "imgNatural": {
+      "w": 614,
+      "h": 830
+    },
+    "title": {
+      "x": 24,
+      "y": 622.8,
+      "w": 345,
+      "h": 56,
+      "bottom": 678.8
+    },
+    "titleText": {
+      "x": 24,
+      "y": 622.8,
+      "w": 345,
+      "h": 56,
+      "bottom": 678.8
+    },
+    "spacerB": {
+      "x": 24,
+      "y": 678.8,
+      "w": 345,
+      "h": 117.2,
+      "bottom": 796
+    },
+    "cta": {
+      "x": 24,
+      "y": 796,
+      "w": 345,
+      "h": 56,
+      "bottom": 852
+    },
+    "ctaLabel": "Get started",
+    "illustrationCss": {
+      "flex": "0 1 auto",
+      "minBlockSize": "0px",
+      "inlineSize": "307px",
+      "aspectRatio": "auto"
+    },
+    "ctaReachable": {
+      "clickable": true,
+      "boxAfterScroll": {
+        "x": 24,
+        "y": 796,
+        "width": 345,
+        "height": 56
+      }
+    }
+  },
+  "C-393x852-safe-200": {
+    "viewportSize": {
+      "w": 393,
+      "h": 852
+    },
+    "scroll": {
+      "clientH": 852,
+      "scrollH": 852,
+      "scrollable": false
+    },
+    "docScrollW": 393,
+    "main": {
+      "x": 24,
+      "y": 56,
+      "w": 345,
+      "h": 752,
+      "bottom": 808
+    },
+    "saved": {
+      "x": 24,
+      "y": 56,
+      "w": 345,
+      "h": 752,
+      "bottom": 808
+    },
+    "spacerA": {
+      "x": 24,
+      "y": 56,
+      "w": 345,
+      "h": 48.6,
+      "bottom": 104.6
+    },
+    "illustrationBox": {
+      "x": 43,
+      "y": 104.6,
+      "w": 307,
+      "h": 415,
+      "bottom": 519.6
+    },
+    "img": {
+      "x": 43,
+      "y": 104.6,
+      "w": 307,
+      "h": 415,
+      "bottom": 519.6
+    },
+    "imgNatural": {
+      "w": 614,
+      "h": 830
+    },
+    "title": {
+      "x": 24,
+      "y": 551.6,
+      "w": 345,
+      "h": 168,
+      "bottom": 719.6
+    },
+    "titleText": {
+      "x": 24,
+      "y": 551.6,
+      "w": 345,
+      "h": 168,
+      "bottom": 719.6
+    },
+    "spacerB": {
+      "x": 24,
+      "y": 719.6,
+      "w": 345,
+      "h": 32.4,
+      "bottom": 752
+    },
+    "cta": {
+      "x": 24,
+      "y": 752,
+      "w": 345,
+      "h": 56,
+      "bottom": 808
+    },
+    "ctaLabel": "Get started",
+    "illustrationCss": {
+      "flex": "0 1 auto",
+      "minBlockSize": "0px",
+      "inlineSize": "307px",
+      "aspectRatio": "auto"
+    },
+    "ctaReachable": {
+      "clickable": true,
+      "boxAfterScroll": {
+        "x": 24,
+        "y": 752,
+        "width": 345,
+        "height": 56
+      }
+    }
+  },
+  "D-320x568-safe": {
+    "viewportSize": {
+      "w": 320,
+      "h": 568
+    },
+    "scroll": {
+      "clientH": 568,
+      "scrollH": 668,
+      "scrollable": true
+    },
+    "docScrollW": 320,
+    "main": {
+      "x": 24,
+      "y": 56,
+      "w": 272,
+      "h": 567.7,
+      "bottom": 623.7
+    },
+    "saved": {
+      "x": 24,
+      "y": 56,
+      "w": 272,
+      "h": 567.7,
+      "bottom": 623.7
+    },
+    "spacerA": {
+      "x": 24,
+      "y": 56,
+      "w": 272,
+      "h": 24,
+      "bottom": 80
+    },
+    "illustrationBox": {
+      "x": 24,
+      "y": 80,
+      "w": 272,
+      "h": 367.7,
+      "bottom": 447.7
+    },
+    "img": {
+      "x": 24,
+      "y": 80,
+      "w": 272,
+      "h": 367.7,
+      "bottom": 447.7
+    },
+    "imgNatural": {
+      "w": 614,
+      "h": 830
+    },
+    "title": {
+      "x": 24,
+      "y": 479.7,
+      "w": 272,
+      "h": 56,
+      "bottom": 535.7
+    },
+    "titleText": {
+      "x": 24,
+      "y": 479.7,
+      "w": 272,
+      "h": 56,
+      "bottom": 535.7
+    },
+    "spacerB": {
+      "x": 24,
+      "y": 535.7,
+      "w": 272,
+      "h": 32,
+      "bottom": 567.7
+    },
+    "cta": {
+      "x": 24,
+      "y": 567.7,
+      "w": 272,
+      "h": 56,
+      "bottom": 623.7
+    },
+    "ctaLabel": "Get started",
+    "illustrationCss": {
+      "flex": "0 1 auto",
+      "minBlockSize": "0px",
+      "inlineSize": "272px",
+      "aspectRatio": "auto"
+    },
+    "ctaReachable": {
+      "clickable": true,
+      "boxAfterScroll": {
+        "x": 24,
+        "y": 511.671875,
+        "width": 272,
+        "height": 56
+      }
+    }
+  },
+  "E-320x568-safe-200": {
+    "viewportSize": {
+      "w": 320,
+      "h": 568
+    },
+    "scroll": {
+      "clientH": 568,
+      "scrollH": 836,
+      "scrollable": true
+    },
+    "docScrollW": 320,
+    "main": {
+      "x": 24,
+      "y": 56,
+      "w": 272,
+      "h": 735.7,
+      "bottom": 791.7
+    },
+    "saved": {
+      "x": 24,
+      "y": 56,
+      "w": 272,
+      "h": 735.7,
+      "bottom": 791.7
+    },
+    "spacerA": {
+      "x": 24,
+      "y": 56,
+      "w": 272,
+      "h": 24,
+      "bottom": 80
+    },
+    "illustrationBox": {
+      "x": 24,
+      "y": 80,
+      "w": 272,
+      "h": 367.7,
+      "bottom": 447.7
+    },
+    "img": {
+      "x": 24,
+      "y": 80,
+      "w": 272,
+      "h": 367.7,
+      "bottom": 447.7
+    },
+    "imgNatural": {
+      "w": 614,
+      "h": 830
+    },
+    "title": {
+      "x": 24,
+      "y": 479.7,
+      "w": 272,
+      "h": 224,
+      "bottom": 703.7
+    },
+    "titleText": {
+      "x": 24,
+      "y": 479.7,
+      "w": 272,
+      "h": 224,
+      "bottom": 703.7
+    },
+    "spacerB": {
+      "x": 24,
+      "y": 703.7,
+      "w": 272,
+      "h": 32,
+      "bottom": 735.7
+    },
+    "cta": {
+      "x": 24,
+      "y": 735.7,
+      "w": 272,
+      "h": 56,
+      "bottom": 791.7
+    },
+    "ctaLabel": "Get started",
+    "illustrationCss": {
+      "flex": "0 1 auto",
+      "minBlockSize": "0px",
+      "inlineSize": "272px",
+      "aspectRatio": "auto"
+    },
+    "ctaReachable": {
+      "clickable": true,
+      "boxAfterScroll": {
+        "x": 24,
+        "y": 467.671875,
+        "width": 272,
+        "height": 56
+      }
+    }
+  },
+  "F-320x400-safe-200": {
+    "viewportSize": {
+      "w": 320,
+      "h": 400
+    },
+    "scroll": {
+      "clientH": 400,
+      "scrollH": 836,
+      "scrollable": true
+    },
+    "docScrollW": 320,
+    "main": {
+      "x": 24,
+      "y": 56,
+      "w": 272,
+      "h": 735.7,
+      "bottom": 791.7
+    },
+    "saved": {
+      "x": 24,
+      "y": 56,
+      "w": 272,
+      "h": 735.7,
+      "bottom": 791.7
+    },
+    "spacerA": {
+      "x": 24,
+      "y": 56,
+      "w": 272,
+      "h": 24,
+      "bottom": 80
+    },
+    "illustrationBox": {
+      "x": 24,
+      "y": 80,
+      "w": 272,
+      "h": 367.7,
+      "bottom": 447.7
+    },
+    "img": {
+      "x": 24,
+      "y": 80,
+      "w": 272,
+      "h": 367.7,
+      "bottom": 447.7
+    },
+    "imgNatural": {
+      "w": 614,
+      "h": 830
+    },
+    "title": {
+      "x": 24,
+      "y": 479.7,
+      "w": 272,
+      "h": 224,
+      "bottom": 703.7
+    },
+    "titleText": {
+      "x": 24,
+      "y": 479.7,
+      "w": 272,
+      "h": 224,
+      "bottom": 703.7
+    },
+    "spacerB": {
+      "x": 24,
+      "y": 703.7,
+      "w": 272,
+      "h": 32,
+      "bottom": 735.7
+    },
+    "cta": {
+      "x": 24,
+      "y": 735.7,
+      "w": 272,
+      "h": 56,
+      "bottom": 791.7
+    },
+    "ctaLabel": "Get started",
+    "illustrationCss": {
+      "flex": "0 1 auto",
+      "minBlockSize": "0px",
+      "inlineSize": "272px",
+      "aspectRatio": "auto"
+    },
+    "ctaReachable": {
+      "clickable": true,
+      "boxAfterScroll": {
+        "x": 24,
+        "y": 299.671875,
+        "width": 272,
+        "height": 56
+      }
+    }
+  },
+  "G-600x852-safe": {
+    "viewportSize": {
+      "w": 600,
+      "h": 852
+    },
+    "scroll": {
+      "clientH": 852,
+      "scrollH": 852,
+      "scrollable": false
+    },
+    "docScrollW": 600,
+    "main": {
+      "x": 84,
+      "y": 56,
+      "w": 432,
+      "h": 752,
+      "bottom": 808
+    },
+    "saved": {
+      "x": 84,
+      "y": 56,
+      "w": 432,
+      "h": 752,
+      "bottom": 808
+    },
+    "spacerA": {
+      "x": 84,
+      "y": 56,
+      "w": 432,
+      "h": 132.6,
+      "bottom": 188.6
+    },
+    "illustrationBox": {
+      "x": 146.5,
+      "y": 188.6,
+      "w": 307,
+      "h": 415,
+      "bottom": 603.6
+    },
+    "img": {
+      "x": 146.5,
+      "y": 188.6,
+      "w": 307,
+      "h": 415,
+      "bottom": 603.6
+    },
+    "imgNatural": {
+      "w": 614,
+      "h": 830
+    },
+    "title": {
+      "x": 84,
+      "y": 635.6,
+      "w": 432,
+      "h": 28,
+      "bottom": 663.6
+    },
+    "titleText": {
+      "x": 84,
+      "y": 635.6,
+      "w": 432,
+      "h": 28,
+      "bottom": 663.6
+    },
+    "spacerB": {
+      "x": 84,
+      "y": 663.6,
+      "w": 432,
+      "h": 88.4,
+      "bottom": 752
+    },
+    "cta": {
+      "x": 84,
+      "y": 752,
+      "w": 432,
+      "h": 56,
+      "bottom": 808
+    },
+    "ctaLabel": "Get started",
+    "illustrationCss": {
+      "flex": "0 1 auto",
+      "minBlockSize": "0px",
+      "inlineSize": "307px",
+      "aspectRatio": "auto"
+    },
+    "ctaReachable": {
+      "clickable": true,
+      "boxAfterScroll": {
+        "x": 84,
+        "y": 752,
+        "width": 432,
+        "height": 56
+      }
+    }
+  },
+  "H-1024x852-safe": {
+    "viewportSize": {
+      "w": 1024,
+      "h": 852
+    },
+    "scroll": {
+      "clientH": 852,
+      "scrollH": 852,
+      "scrollable": false
+    },
+    "docScrollW": 1024,
+    "main": {
+      "x": 296,
+      "y": 56,
+      "w": 432,
+      "h": 752,
+      "bottom": 808
+    },
+    "saved": {
+      "x": 296,
+      "y": 56,
+      "w": 432,
+      "h": 752,
+      "bottom": 808
+    },
+    "spacerA": {
+      "x": 296,
+      "y": 56,
+      "w": 432,
+      "h": 132.6,
+      "bottom": 188.6
+    },
+    "illustrationBox": {
+      "x": 358.5,
+      "y": 188.6,
+      "w": 307,
+      "h": 415,
+      "bottom": 603.6
+    },
+    "img": {
+      "x": 358.5,
+      "y": 188.6,
+      "w": 307,
+      "h": 415,
+      "bottom": 603.6
+    },
+    "imgNatural": {
+      "w": 614,
+      "h": 830
+    },
+    "title": {
+      "x": 296,
+      "y": 635.6,
+      "w": 432,
+      "h": 28,
+      "bottom": 663.6
+    },
+    "titleText": {
+      "x": 296,
+      "y": 635.6,
+      "w": 432,
+      "h": 28,
+      "bottom": 663.6
+    },
+    "spacerB": {
+      "x": 296,
+      "y": 663.6,
+      "w": 432,
+      "h": 88.4,
+      "bottom": 752
+    },
+    "cta": {
+      "x": 296,
+      "y": 752,
+      "w": 432,
+      "h": 56,
+      "bottom": 808
+    },
+    "ctaLabel": "Get started",
+    "illustrationCss": {
+      "flex": "0 1 auto",
+      "minBlockSize": "0px",
+      "inlineSize": "307px",
+      "aspectRatio": "auto"
+    },
+    "ctaReachable": {
+      "clickable": true,
+      "boxAfterScroll": {
+        "x": 296,
+        "y": 752,
+        "width": 432,
+        "height": 56
+      }
+    }
+  }
+}

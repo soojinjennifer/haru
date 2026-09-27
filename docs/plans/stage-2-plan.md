@@ -1,6 +1,6 @@
 # Stage 2 Plan — Auth + Consent + Onboarding + Child Profile (Frontend) + Home 화면 골격
 
-Status: DRAFT
+Status: APPROVED (2026-09-25, user)
 Based on:
 - PRD v1.4 — `docs/source/HARU_PRD_v1.4.md` (FR-01 · FR-02 · FR-03 · FR-04 · FR-05 · FR-06 · FR-24, §6.2 · §7.1 · §7.2 · §7.3 · §7.8 · §11 NFR 프라이버시·최소 수집·접근성·보안, §12.1)
 - Baseline Survey v1 — `docs/source/HARU_Developmental_Baseline_Survey_v1.docx.md` (Step 5 문항 원문 · 척도 · 비채점 응답)
@@ -293,7 +293,7 @@ Stage 1에서 이미 있는 것: `common/*` 5 · `enums/*` 23 · `rules/session-
 | PATCH | `/v1/children/:childId` | `UpdateChild` | `ChildProfile` | — | 필요 | — | — | **Out → Stage 6** |
 | GET | `/v1/children/:childId/capability-snapshots` \| `/personas` | cursor | `Paginated<…>` | — | 필요 | — | — | **Out → Stage 6·7** |
 
-- **인증(AuthGateway)** 은 HTTP endpoint가 아니다: `signUpWithEmail` · `signInWithEmail` · `signInWithProvider` · `requestPasswordReset` · `updatePassword` · `signOut` · `getSession` · `onChange` (ARCHITECTURE §7.2).
+- **인증(AuthGateway)** 은 HTTP endpoint가 아니다. **9 메서드**: `getSession` · `onChange` · `signUpWithEmail` · `signInWithEmail` · `signInWithProvider` · `requestPasswordReset` · `updatePassword` · `refreshSession` · `signOut` (ARCHITECTURE §7.2). `refreshSession()` 은 만료 토큰을 갱신하고 갱신 불가 시 `null` 을 반환하며, AC-2-07(세션 갱신)을 Gateway 책임으로 구현하는 지점이다. <br>동기화 근거: `2-AUTH` 구현(2026-09-25) · `docs/qa/stage-2-auth-handoff.md` — 실제 구현 `apps/web/src/shared/auth/AuthGateway.ts` 기준으로 §2.1 · AC-2-06(9 메서드)과 일치시켰다.
 - **동의 가드(CG)** 가 붙는 endpoint는 Stage 4(녹음 시작·업로드)부터다. Stage 2는 `CONSENT_REQUIRED` 를 **온보딩 쓰기 경로**에서 사용한다 (ARCHITECTURE §7.3.1-3).
 - Http Adapter는 Stage 1 D-7 결정대로 **Mock과 동시에 골격을 작성**한다. 실제 서버 연동 검증은 `BACKEND_INTEGRATION_PENDING`(§10).
 
