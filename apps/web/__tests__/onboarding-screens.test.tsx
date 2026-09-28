@@ -98,6 +98,32 @@ function nextButton(): HTMLElement {
   return screen.getByRole('button', { name: onboardingCopy.wizard.next });
 }
 
+/**
+ * Step 2 필수 문항 Q1 · Q4 에 응답한다 (`S2-ONB-1` — approvals §9.1).
+ * 선택지 문구는 copy 모듈이 소유하므로 테스트도 문구를 다시 적지 않는다.
+ */
+function answerTemperament(): void {
+  fireEvent.click(
+    screen.getByRole('radio', {
+      name: onboardingCopy.choiceOptions['temperament.story_comfort'].quiet_gentle,
+    }),
+  );
+  fireEvent.click(
+    screen.getByRole('radio', {
+      name: onboardingCopy.choiceOptions['temperament.read_aloud_behavior'].sits_and_listens,
+    }),
+  );
+}
+
+/** Step 4 필수 문항 Q2 에 응답한다 (`S2-ONB-1`). */
+function answerGoals(): void {
+  fireEvent.click(
+    screen.getByRole('button', {
+      name: onboardingCopy.choiceOptions['goals.growth_goals'].emotion_regulation,
+    }),
+  );
+}
+
 beforeEach(() => {
   globalThis.localStorage.clear();
 });
@@ -213,6 +239,133 @@ describe('Step 2~4 — 문항은 instrument 가 정한다 (결정 D-A ②③)', 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: label }).getAttribute('aria-pressed')).toBe('true');
     });
+  });
+});
+
+describe('필수 문항 — Q1 · Q4 · Q2 (`S2-ONB-1`, approvals §9.1)', () => {
+  it('Step 2 는 두 문항에 모두 응답해야 다음으로 간다', async () => {
+    await renderApp({ path: onboardingStepPath('temperament') });
+
+    fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.wizard.next }));
+    await expectPath(onboardingStepPath('temperament'));
+
+    // 한 문항만 골라도 아직 막힌다.
+    fireEvent.click(
+      screen.getByRole('radio', {
+        name: onboardingCopy.choiceOptions['temperament.story_comfort'].quiet_gentle,
+      }),
+    );
+    fireEvent.click(nextButton());
+    await expectPath(onboardingStepPath('temperament'));
+
+    fireEvent.click(
+      screen.getByRole('radio', {
+        name: onboardingCopy.choiceOptions['temperament.read_aloud_behavior'].sits_and_listens,
+      }),
+    );
+    fireEvent.click(nextButton());
+    await expectPath(onboardingStepPath('books'));
+  });
+
+  it('회피 선택지를 고르면 진행된다 — 없는 답을 강요하지 않는다 (approvals §9.1)', async () => {
+    await renderApp({ path: onboardingStepPath('temperament') });
+
+    fireEvent.click(
+      await screen.findByRole('radio', {
+        name: onboardingCopy.choiceOptions['temperament.story_comfort'].depends_on_the_day,
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole('radio', {
+        name: onboardingCopy.choiceOptions['temperament.read_aloud_behavior'].sits_and_listens,
+      }),
+    );
+
+    fireEvent.click(nextButton());
+    await expectPath(onboardingStepPath('books'));
+  });
+
+  it('Step 4 는 성장 목표를 최소 1개 골라야 다음으로 간다', async () => {
+    await renderApp({ path: onboardingStepPath('goals') });
+
+    fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.wizard.next }));
+    await expectPath(onboardingStepPath('goals'));
+
+    answerGoals();
+    fireEvent.click(nextButton());
+    await expectPath(onboardingStepPath('capability-items'));
+  });
+
+  it('Step 3(Q3)은 선택 유지라 응답 없이 넘어간다', async () => {
+    await renderApp({ path: onboardingStepPath('books') });
+
+    fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.wizard.next }));
+    await expectPath(onboardingStepPath('goals'));
+  });
+
+  it('CTA 는 native disabled 가 아니라 `aria-disabled` + 이유 연결이다 (§2.6 패턴)', async () => {
+    await renderApp({ path: onboardingStepPath('temperament') });
+
+    const cta = await screen.findByRole('button', { name: onboardingCopy.wizard.next });
+    expect(cta.getAttribute('aria-disabled')).toBe('true');
+    expect((cta as HTMLButtonElement).disabled).toBe(false);
+
+    const reasonId = cta.getAttribute('aria-describedby');
+    expect(reasonId).not.toBeNull();
+    // 계수형 문구 — Step 2 는 필수 2건이라 복수형이다 (§2.9).
+    expect(document.getElementById(reasonId ?? '')?.textContent).toBe(
+      onboardingCopy.wizard.requiredBlockedReason(2),
+    );
+    expect(document.getElementById(reasonId ?? '')?.textContent).toBe(
+      'Answer the 2 questions above to continue.',
+    );
+
+    // 1건만 답하면 남은 필수가 1건이라 단수형으로 바뀐다.
+    fireEvent.click(
+      screen.getByRole('radio', {
+        name: onboardingCopy.choiceOptions['temperament.story_comfort'].quiet_gentle,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(document.getElementById(reasonId ?? '')?.textContent).toBe(
+        'Answer the question above to continue.',
+      );
+    });
+
+    answerTemperament();
+
+    await waitFor(() => {
+      const enabled = screen.getByRole('button', { name: onboardingCopy.wizard.next });
+      expect(enabled.getAttribute('aria-disabled')).toBeNull();
+      expect(enabled.getAttribute('aria-describedby')).toBeNull();
+    });
+  });
+
+  it('Step 2 는 문항별 표식 대신 두 그룹에 `aria-required` 를 둔다 (§2.9)', async () => {
+    await renderApp({ path: onboardingStepPath('temperament') });
+
+    const groups = await screen.findAllByRole('radiogroup');
+    expect(groups).toHaveLength(2);
+    for (const group of groups) {
+      expect(group.getAttribute('aria-required')).toBe('true');
+    }
+
+    // 시각 "Required" 표식은 두지 않는다 — 전부 필수인 단계이기 때문이다.
+    expect(screen.queryByText('Required')).toBeNull();
+  });
+
+  it('Step 4 Chip 그룹에는 `aria-required` 대신 보조 문구가 필수성을 말한다 (§2.9)', async () => {
+    await renderApp({ path: onboardingStepPath('goals') });
+
+    const description = await screen.findByText(
+      onboardingCopy.questions['goals.growth_goals'].description ?? '',
+    );
+    expect(description.textContent).toBe('Pick at least one, up to two.');
+
+    // `role="group"` 에는 `aria-required` 가 유효하지 않다 — 넣지 않았는지 확인한다.
+    expect(document.querySelectorAll('[aria-required]')).toHaveLength(0);
+    expect(document.querySelectorAll('[role="radiogroup"]')).toHaveLength(0);
   });
 });
 
@@ -374,6 +527,7 @@ describe('Trial — 가입 전에는 서버 요청이 0건이다 (AC-2-27 · C-1
     fireEvent.click(nextButton());
     await expectPath(onboardingStepPath('temperament'));
 
+    answerTemperament();
     fireEvent.click(nextButton());
     await expectPath(onboardingStepPath('books'));
 
@@ -457,12 +611,14 @@ describe('제출과 착지 (AC-2-26 · AC-2-28)', () => {
     fireEvent.click(nextButton());
     await expectPath(onboardingStepPath('temperament'));
 
+    answerTemperament();
     fireEvent.click(nextButton());
     await expectPath(onboardingStepPath('books'));
 
     fireEvent.click(nextButton());
     await expectPath(onboardingStepPath('goals'));
 
+    answerGoals();
     fireEvent.click(nextButton());
     await expectPath(onboardingStepPath('capability-items'));
 

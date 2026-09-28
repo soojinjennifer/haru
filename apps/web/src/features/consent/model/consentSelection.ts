@@ -15,6 +15,7 @@ import type {
   ConsentStatus,
   ConsentType,
   RecordConsentsRequest,
+  SessionProvider,
 } from '@haru/contracts';
 
 /** `ConsentType` → 체크 여부. 응답에 없는 항목은 키도 없다. */
@@ -78,12 +79,20 @@ export function isReconsent(status: ConsentStatus): boolean {
 }
 
 /**
- * 동의 기록의 발생 경로 (`consent_events.source` — D-16).
+ * 동의 기록의 발생 경로 (`consent_events.source` — D-16 · `S2-CONSENT-1`).
  *
- * 최초 가입 직후인지 재동의인지는 `ConsentStatus` 로 알 수 있다.
- * **`signup_oauth` 는 구분하지 않는다** — 어떤 가입 경로였는지를 기억하는 상태가 현재 없고,
- * 그 상태를 새로 만드는 것은 이 Step 의 범위를 넘는다 (handoff §NEEDS_DECISION 에 기록).
+ * - 최초 가입 직후인지 재동의인지는 `ConsentStatus` 가 안다.
+ * - 가입 경로(이메일 / Google · Apple)는 **세션**이 안다 (`AuthSession.provider`).
+ *   `signup_oauth` 를 지금 구분하는 이유: 동의 출처는 법무 감사 값이라 잘못 기록되면
+ *   소급 보정이 어렵다 (approvals §9).
+ *
+ * `status` 가 아직 없으면(`me` 미해석) 재동의일 수 없으므로 가입 경로만 본다.
  */
-export function consentSourceFor(status: ConsentStatus): ConsentSource {
-  return isReconsent(status) ? 'reconsent' : 'signup_email';
+export function consentSourceFor(
+  status: ConsentStatus | undefined,
+  provider: SessionProvider | undefined,
+): ConsentSource {
+  if (status !== undefined && isReconsent(status)) return 'reconsent';
+
+  return provider === 'google' || provider === 'apple' ? 'signup_oauth' : 'signup_email';
 }

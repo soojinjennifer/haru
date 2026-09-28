@@ -2,7 +2,8 @@
  * 위저드 컨트롤러 — 화면이 필요한 것만 모아서 돌려준다.
  *
  * 여기에서만 일어나는 일
- * 1. **문항의 출처 결정**: 서버 instrument > Trial 기본 instrument (결정 D-A ③)
+ * 1. **문항의 출처 결정**: 서버 instrument > Trial 기본 instrument (결정 D-A ③).
+ *    필수 여부도 같은 출처에서 온다 — 화면은 `missingRequired` 만 본다 (`S2-ONB-1`)
  * 2. **저장 경로 분리**: 로컬 draft 400ms debounce / 서버는 단계 이동 시 1회 (결정 D-11)
  * 3. **Trial 보호**: 미인증이면 `GET /v1/onboarding` · `PUT …/steps/:step` 을 호출하지 않는다
  *    (C-12 · AC-2-27 — 가입 전 서버 요청 0건)
@@ -13,7 +14,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
+  unansweredRequiredQuestions,
   type CaregiverRelationship,
+  type ChoiceQuestionId,
   type OnboardingDraftAnswers,
   type OnboardingInstrument,
   type OnboardingStep,
@@ -62,6 +65,12 @@ export interface OnboardingWizardController {
   submitError: unknown;
   /** 제출에 필요한 단계가 비어 있을 때 그 목록. */
   submitBlockedBy: readonly OnboardingStep[];
+  /**
+   * **현재 단계**에서 아직 응답하지 않은 필수 문항 (`S2-ONB-1`).
+   * 비어 있지 않으면 `goNext()` 가 아무 일도 하지 않는다 — 화면은 CTA 를 `aria-disabled` 로
+   * 표시하고 이유를 `aria-describedby` 로 연결한다 (동의 화면과 같은 패턴, Design Spec §2.6).
+   */
+  missingRequired: readonly ChoiceQuestionId[];
   /** 보호자 관계 — 아동 데이터와 **다른 요청**으로 전송된다 (결정 D-16). */
   relationship: CaregiverRelationship | null;
   setRelationship: (value: CaregiverRelationship) => void;
@@ -191,7 +200,12 @@ export function useOnboardingWizard(
     void navigate(pathForStep(previous));
   }, [draft, navigate, persistStep, step]);
 
+  const missingRequired = unansweredRequiredQuestions(instrument, draft.answers, step);
+
   const goNext = useCallback(() => {
+    // 필수 문항이 비어 있으면 진행하지 않는다 (`S2-ONB-1`). 무엇이 필수인지는 instrument 가 안다.
+    if (unansweredRequiredQuestions(instrument, draft.answers, step).length > 0) return;
+
     persistStep(draft.answers);
 
     const following = nextStep(step);
@@ -240,6 +254,7 @@ export function useOnboardingWizard(
     submitPending: submit.isPending,
     submitError: submit.isError ? submit.error : null,
     submitBlockedBy,
+    missingRequired,
     relationship: effectiveRelationship,
     setRelationship: setRelationshipState,
     setAnswers: draft.setAnswers,

@@ -55,7 +55,7 @@ function answersWith(value: SurveyAnswerValue): CompleteOnboardingAnswers {
       gender: null,
       languageEnvironment: ['english'],
     },
-    temperament: { storyComfort: 'quiet_gentle' },
+    temperament: { storyComfort: 'quiet_gentle', readAloudBehavior: 'sits_and_listens' },
     books: { favoriteBooks: [], homeBooks: [], topicTags: ['narrative'] },
     goals: { growthGoals: ['emotion_regulation'] },
     capability_items: {
@@ -184,6 +184,46 @@ describe('POST /v1/onboarding/submit', () => {
 
     expect(ProfileResultSchema.safeParse(result).success).toBe(true);
     expect(result.snapshot.scores).toHaveLength(CapabilitySchema.options.length);
+  });
+
+  it('필수 문항(Q4)이 비어 있으면 `ONBOARDING_INCOMPLETE` 로 거부한다 (`S2-ONB-1`)', async () => {
+    const { api } = makeApi();
+    const request = submitRequest();
+    const without = {
+      ...request,
+      answers: { ...request.answers, temperament: { storyComfort: 'quiet_gentle' as const } },
+    };
+
+    await expect(api.submit(without, IK)).rejects.toMatchObject({
+      code: 'ONBOARDING_INCOMPLETE',
+    });
+  });
+
+  it('필수 문항(Q2)이 비어 있으면 `ONBOARDING_INCOMPLETE` 로 거부한다 (`S2-ONB-1`)', async () => {
+    const { api } = makeApi();
+    const request = submitRequest();
+    const without = {
+      ...request,
+      answers: { ...request.answers, goals: { growthGoals: [] } },
+    };
+
+    await expect(api.submit(without, IK)).rejects.toMatchObject({
+      code: 'ONBOARDING_INCOMPLETE',
+    });
+  });
+
+  it('선택 문항(Q3)은 비어 있어도 제출이 통과한다 (`S2-ONB-1` — Q3 는 선택 유지)', async () => {
+    const { api } = makeApi();
+    const request = submitRequest();
+    const without = {
+      ...request,
+      answers: {
+        ...request.answers,
+        books: { favoriteBooks: [], homeBooks: [], topicTags: [] },
+      },
+    };
+
+    await expect(api.submit(without, IK)).resolves.toBeDefined();
   });
 
   it('제출이 성공하면 온보딩 상태가 완료로 바뀐다 (Guard 가 홈으로 보낼 수 있다)', async () => {

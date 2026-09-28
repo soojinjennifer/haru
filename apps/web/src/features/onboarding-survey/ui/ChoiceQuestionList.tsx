@@ -48,6 +48,12 @@ function QuestionBlock({
           legend={question.prompt}
           name={question.questionId}
           variant="card"
+          /*
+            필수 문항이면 `aria-required` 로 알린다 (`S2-ONB-1`, §2.9). 필수 목록을 여기에
+            적지 않는다 — instrument 의 `required` 값만 읽는다. Chip 그룹(아래)은
+            `role="group"` 이라 `aria-required` 가 유효하지 않아 보조 문구가 대신한다.
+          */
+          required={question.required}
           value={selected[0] ?? null}
           options={question.options.map((option) => ({
             value: option.code,

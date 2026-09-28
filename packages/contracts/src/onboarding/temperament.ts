@@ -13,7 +13,9 @@ import { z } from 'zod';
  * 그래서 Stage 2-CONTRACTS 의 4축(활동성 · 낯가림 · 집중 성향 · 선호 활동)을 **관찰 가능한
  * 행동 2문항으로 교체**했다. 추상적 기질 형용사를 보호자에게 묻지 않는다.
  *
- * 두 문항 모두 **선택**이다 (결정 D-C — Step 2~4 전부 선택). 응답하지 않아도 진행할 수 있다.
+ * 두 문항 모두 **필수**다 (`S2-ONB-1`, approvals §9.1 — 질문지가 Q1 · Q4 를 Required 로 규정하며
+ * 결정 `D-C` 의 "Step 2~4 전부 선택"을 일부 뒤집는다). 필수 여부를 이 파일이 아니라 문항 정의
+ * (`instrument.ts` `ONBOARDING_CHOICE_QUESTIONS[].required`)가 소유하므로, 화면·Mock 은 그 값만 읽는다.
  * 표시 문구는 `apps/web` feature copy 모듈이 소유한다 (D-A 구조 제약 ①).
  */
 

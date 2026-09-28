@@ -35,11 +35,25 @@ export async function completeOnboardingToSaved(page: Page): Promise<void> {
   await pickFromSheet(page, /Gender/, 'Girl');
   await page.getByRole('button', { name: 'English' }).click();
 
-  // Step 2~4 는 선택이다 (결정 D-C).
-  for (const path of [/\/temperament$/, /\/books$/, /\/goals$/, /\/capability-items$/]) {
-    await page.getByRole('button', { name: 'Next' }).click();
-    await expect(page).toHaveURL(path);
-  }
+  // Step 2 · Step 4 는 필수 문항이 있다 (`S2-ONB-1`). Step 3(Q3)만 선택으로 남는다.
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page).toHaveURL(/\/temperament$/);
+
+  await page
+    .getByRole('radio', { name: 'Quiet, gentle stories — bedtime-style, slow pace' })
+    .click();
+  await page.getByRole('radio', { name: 'Sits close and listens' }).click();
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page).toHaveURL(/\/books$/);
+
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page).toHaveURL(/\/goals$/);
+
+  await page
+    .getByRole('button', { name: 'Helping with big feelings — when emotions feel overwhelming' })
+    .click();
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page).toHaveURL(/\/capability-items$/);
 
   const deck = page.getByRole('group', { name: 'Baseline questions' });
   for (let index = 0; index < 10; index += 1) {

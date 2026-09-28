@@ -37,6 +37,15 @@ export interface RadioGroupProps {
    * 비채점 옵션 caption 을 스크린리더에 연결한다). `error` 가 있으면 함께 전달된다.
    */
   describedBy?: string | undefined;
+  /**
+   * 응답이 필수인 그룹 (Stage 2 Design Spec §2.9 — 문항별 시각 "Required" 표식을 두지 않는
+   * 단계에서 접근성을 갚는 경로다). `true` 면 `aria-required="true"` 를 둔다.
+   *
+   * `aria-required` 는 `role="group"`(fieldset 기본값) 에서는 허용되지 않고 `radiogroup`
+   * 에서만 유효하므로, 이 경우에만 fieldset 에 `role="radiogroup"` 을 함께 둔다.
+   * 시각 변화는 없다 — `required` 시각 슬롯은 만들지 않는다 (§2.9).
+   */
+  required?: boolean;
 }
 
 /**
@@ -55,6 +64,7 @@ export function RadioGroup({
   error,
   disabled = false,
   describedBy,
+  required = false,
 }: RadioGroupProps) {
   const groupId = useId();
   const errorId = `${groupId}-error`;
@@ -64,6 +74,8 @@ export function RadioGroup({
     <fieldset
       className={cx('haru-radio-group', `haru-radio-group--${variant}`)}
       disabled={disabled}
+      role={required ? 'radiogroup' : undefined}
+      aria-required={required ? true : undefined}
       aria-invalid={error ? true : undefined}
       aria-describedby={described.length > 0 ? described : undefined}
     >

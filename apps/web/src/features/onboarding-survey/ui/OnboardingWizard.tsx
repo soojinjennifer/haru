@@ -12,7 +12,7 @@
  * - 색만으로 값을 전달하지 않는다 — 항상 텍스트를 함께 둔다.
  */
 import { Button, Icon, IconButton, InlineAlert, ProgressBar, Text, TopBar } from '@haru/ui';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import type { OnboardingStep } from '@haru/contracts';
 
 import { isHaruApiError } from '../../../shared/api/helpers';
@@ -58,14 +58,23 @@ export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) 
   const submitFailure = wizard.submitError === null ? undefined : wizard.submitError;
   const submitCode = isHaruApiError(submitFailure) ? submitFailure.code : undefined;
 
+  /**
+   * 필수 문항이 남았는가 (`S2-ONB-1`). **이 화면은 무엇이 필수인지 모른다** — instrument 가
+   * 판정한 결과(`wizard.missingRequired`)만 읽는다.
+   */
+  const blocked = wizard.missingRequired.length > 0;
+
   function handleNext(): void {
-    // Step 1 만 필수 항목이 있다 (결정 D-C). 비어 있으면 에러를 노출하고 멈춘다.
+    // Step 1 은 항목별 인라인 에러가 더 정확하다 — 필드 위치를 가리킬 수 있기 때문이다.
     if (step === 'child_info' && wizard.answers.child_info?.firstName === undefined) {
       setShowErrors(true);
       return;
     }
 
     setShowErrors(false);
+    // CTA 는 `aria-disabled` 라 포커스·클릭이 가능하다 — 진행은 여기(와 컨트롤러)에서 막는다.
+    if (blocked) return;
+
     wizard.goNext();
   }
 
@@ -113,6 +122,7 @@ export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) 
   }
 
   const ctaLabel = !isSurvey ? copy.next : wizard.isTrial ? copy.saveProfile : copy.finish;
+  const blockedReasonId = useId();
 
   return (
     <div className="flex flex-1 flex-col gap-4">
@@ -195,12 +205,23 @@ export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) 
             {onboardingCopy.survey.remaining(remaining)}
           </Text>
         ) : null}
+        {/*
+          필수 미충족은 native `disabled` 가 아니라 `aria-disabled` + 이유 텍스트다 (§2.6 · §10).
+          native `disabled` 면 버튼이 포커스를 받지 못해 이유가 스크린리더에 전달되지 않는다.
+        */}
+        {blocked ? (
+          <Text id={blockedReasonId} variant="caption-1" tone="secondary">
+            {copy.requiredBlockedReason(wizard.missingRequired.length)}
+          </Text>
+        ) : null}
         <Button
           variant="accent"
           size="lg"
           fullWidth
           loading={wizard.submitPending}
           onPress={handleNext}
+          aria-disabled={blocked ? true : undefined}
+          aria-describedby={blocked ? blockedReasonId : undefined}
         >
           {ctaLabel}
         </Button>

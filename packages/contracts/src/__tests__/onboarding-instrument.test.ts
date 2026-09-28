@@ -9,6 +9,8 @@ import {
   TOPIC_TAG_NOT_SURE,
   applyChoiceAnswer,
   choiceQuestionValueSchema,
+  stepsMissingRequiredAnswers,
+  unansweredRequiredQuestions,
   instrumentRefOf,
   pruneUnknownChoiceAnswers,
   readChoiceAnswer,
@@ -61,8 +63,23 @@ describe('기본 문항 구조 — 질문지 v1.1', () => {
     expect(labels.every((label) => label === undefined)).toBe(true);
   });
 
-  it('Stage 2 문항은 전부 선택이다 (결정 D-C)', () => {
-    expect(ONBOARDING_CHOICE_QUESTIONS.every((question) => !question.required)).toBe(true);
+  it('질문지가 Required 로 규정한 Q1 · Q4 · Q2 만 필수다 (`S2-ONB-1`)', () => {
+    expect(
+      Object.fromEntries(
+        ONBOARDING_CHOICE_QUESTIONS.map((question) => [question.questionId, question.required]),
+      ),
+    ).toStrictEqual({
+      'temperament.story_comfort': true,
+      'temperament.read_aloud_behavior': true,
+      'books.topic_tags': false,
+      'goals.growth_goals': true,
+    });
+  });
+
+  it('필수 단일 선택 문항(Q1)에는 회피 선택지가 있다 (approvals §9.1)', () => {
+    expect(
+      questionById('temperament.story_comfort').options.map((option) => option.code),
+    ).toContain('depends_on_the_day');
   });
 
   it('질문지가 정한 복수 선택 상한은 2 다 (Q2 · Q3)', () => {
@@ -153,29 +170,30 @@ describe('선택 토글 규칙', () => {
   });
 });
 
-describe('instrument 교체 — 화면 코드를 고치지 않고 문항이 바뀐다', () => {
-  const survey = {
-    code: 'baseline_v1' as const,
-    version: '1.0.0',
-    stem: 'In the past two weeks…',
-    scaleLabels: [
-      { value: 1 as const, label: 'Never' },
-      { value: 2 as const, label: 'Rarely' },
-      { value: 3 as const, label: 'Sometimes' },
-      { value: 4 as const, label: 'Often' },
-      { value: 5 as const, label: 'Almost always' },
-      { value: 'not_observed' as const, label: 'Not yet' },
-    ],
-    items: ['ER1', 'ER2', 'AG1', 'AG2', 'AG3', 'CF1', 'CF2', 'IM1', 'IM2', 'IM3'].map(
-      (itemCode, index) => ({
-        itemCode,
-        capability: CapabilitySchema.options[Math.floor(index / 3)] ?? 'intrinsic_motivation',
-        order: index + 1,
-        prompt: `prompt ${String(index + 1)}`,
-      }),
-    ),
-  };
+/** 구조 검증용 최소 survey — 이 파일의 관심사는 선택형 문항이라 문구는 자리표시자다. */
+const survey = {
+  code: 'baseline_v1' as const,
+  version: '1.0.0',
+  stem: 'In the past two weeks…',
+  scaleLabels: [
+    { value: 1 as const, label: 'Never' },
+    { value: 2 as const, label: 'Rarely' },
+    { value: 3 as const, label: 'Sometimes' },
+    { value: 4 as const, label: 'Often' },
+    { value: 5 as const, label: 'Almost always' },
+    { value: 'not_observed' as const, label: 'Not yet' },
+  ],
+  items: ['ER1', 'ER2', 'AG1', 'AG2', 'AG3', 'CF1', 'CF2', 'IM1', 'IM2', 'IM3'].map(
+    (itemCode, index) => ({
+      itemCode,
+      capability: CapabilitySchema.options[Math.floor(index / 3)] ?? 'intrinsic_motivation',
+      order: index + 1,
+      prompt: `prompt ${String(index + 1)}`,
+    }),
+  ),
+};
 
+describe('instrument 교체 — 화면 코드를 고치지 않고 문항이 바뀐다', () => {
   const reduced: OnboardingInstrument = {
     code: 'onboarding_v2',
     version: '2.0.0',
@@ -214,5 +232,61 @@ describe('instrument 교체 — 화면 코드를 고치지 않고 문항이 바�
     expect(pruned.goals?.growthGoals).toStrictEqual(['emotion_regulation']);
     // instrument 에서 사라진 문항의 응답은 건드리지 않는다 — 서버가 호환을 판단한다.
     expect(pruned.temperament?.storyComfort).toBe('wild_ride');
+  });
+});
+
+describe('필수 응답 판정 — instrument 가 소유한다 (`S2-ONB-1`)', () => {
+  const instrument: OnboardingInstrument = {
+    code: 'onboarding_v1_1',
+    version: '1.1.0',
+    questions: [...ONBOARDING_CHOICE_QUESTIONS],
+    survey,
+  };
+
+  it('아무것도 응답하지 않으면 필수 문항 3개가 남는다', () => {
+    expect(unansweredRequiredQuestions(instrument, {})).toStrictEqual([
+      'temperament.story_comfort',
+      'goals.growth_goals',
+      'temperament.read_aloud_behavior',
+    ]);
+  });
+
+  it('단계를 주면 그 단계만 본다 (CTA 판정)', () => {
+    expect(unansweredRequiredQuestions(instrument, {}, 'temperament')).toStrictEqual([
+      'temperament.story_comfort',
+      'temperament.read_aloud_behavior',
+    ]);
+    // Q3 는 선택이므로 Step 3 은 언제나 비어 있다.
+    expect(unansweredRequiredQuestions(instrument, {}, 'books')).toStrictEqual([]);
+  });
+
+  it('회피 선택지를 고른 것도 응답이다 (approvals §9.1)', () => {
+    const answers = applyChoiceAnswer({}, 'temperament.story_comfort', ['depends_on_the_day']);
+
+    expect(unansweredRequiredQuestions(instrument, answers, 'temperament')).toStrictEqual([
+      'temperament.read_aloud_behavior',
+    ]);
+  });
+
+  it('필수가 빈 단계를 `OnboardingStep` 순서로 돌려준다', () => {
+    expect(stepsMissingRequiredAnswers(instrument, {})).toStrictEqual(['temperament', 'goals']);
+  });
+
+  it('필수를 모두 채우면 남는 단계가 없다', () => {
+    let answers = applyChoiceAnswer({}, 'temperament.story_comfort', ['quiet_gentle']);
+    answers = applyChoiceAnswer(answers, 'temperament.read_aloud_behavior', ['sits_and_listens']);
+    answers = applyChoiceAnswer(answers, 'goals.growth_goals', ['emotion_regulation']);
+
+    expect(stepsMissingRequiredAnswers(instrument, answers)).toStrictEqual([]);
+    expect(unansweredRequiredQuestions(instrument, answers)).toStrictEqual([]);
+  });
+
+  it('필수 여부는 instrument 응답이 정한다 — 전부 선택인 instrument 는 아무것도 막지 않는다', () => {
+    const optional: OnboardingInstrument = {
+      ...instrument,
+      questions: ONBOARDING_CHOICE_QUESTIONS.map((question) => ({ ...question, required: false })),
+    };
+
+    expect(stepsMissingRequiredAnswers(optional, {})).toStrictEqual([]);
   });
 });

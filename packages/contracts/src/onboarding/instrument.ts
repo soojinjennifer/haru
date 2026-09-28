@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { OnboardingStepSchema } from '../enums/onboarding-step.js';
+import { OnboardingStepSchema, type OnboardingStep } from '../enums/onboarding-step.js';
 import { OnboardingDraftAnswersSchema, type OnboardingDraftAnswers } from './answers.js';
 import { TOPIC_TAG_NOT_SURE, TopicTagSchema, GrowthGoalSchema } from './options.js';
 import { SurveyInstrumentSchema } from './survey.js';
@@ -95,7 +95,14 @@ export const ChoiceQuestionSchema = z
     selection: ChoiceSelectionSchema,
     /** `multi` 일 때의 선택 상한. 질문지 Q2·Q3 는 2 다. */
     maxSelections: z.int().min(1).optional(),
-    /** 응답이 필수인지 — Stage 2 는 전부 `false` 다 (결정 D-C). */
+    /**
+     * 응답이 필수인지.
+     *
+     * **화면이 아니라 이 문항 정의가 필수 여부를 소유한다** — `S2-ONB-1`
+     * (`docs/decisions/stage-2-approvals.md` §9.1) 로 Q1·Q4·Q2 가 필수가 되었지만,
+     * 화면 코드는 그 사실을 모른 채 `required` 만 읽는다. 나중에 필수/선택이 다시 바뀌면
+     * instrument 응답만 바꾸면 된다.
+     */
     required: z.boolean(),
     /** 서버가 함께 내려주는 질문 문구 (선택). 없으면 클라이언트 copy 모듈이 id 로 조회한다. */
     prompt: z.string().min(1).optional(),
@@ -150,6 +157,21 @@ export function choiceQuestionValueSchema(questionId: ChoiceQuestionId): z.ZodTy
  *
  * 표시 문구가 없다는 점이 핵심이다. 이 배열은 Trial(서버 요청 0건) 구간의 기본 instrument 와
  * Mock 응답이 **같은 구조**를 쓰도록 하는 단일 출처다.
+ *
+ * ── 필수 여부 (`S2-ONB-1`, approvals §9.1 — 결정 `D-C` 를 일부 뒤집는다) ──
+ * 질문지 문서의 규정을 그대로 옮긴다.
+ *
+ * | 문항 | 질문지 | `required` |
+ * |---|---|---|
+ * | Q1 `temperament.story_comfort` | "Single-select. **Required.**" | `true` |
+ * | Q4 `temperament.read_aloud_behavior` | "Single-select. **Required.**" | `true` |
+ * | Q3 `books.topic_tags` | "Optional — 'not sure yet' is a valid answer." | `false` |
+ * | Q2 `goals.growth_goals` | "**Required** — at least one option must be picked." | `true` |
+ *
+ * 필수화가 "없는 답"을 강요하지 않는지는 선택지 구성이 보장한다: Q1 은 회피 선택지
+ * `depends_on_the_day` 를 갖는다. Q4·Q2 에는 회피 선택지가 없으나, Q4 는 관찰 가능한 행동
+ * 5종을 모두 열거하고 Q2 는 **보호자 자신의 바람**을 묻는 문항이라 아이에 대한 관찰을
+ * 요구하지 않는다 (approvals §9.1 의 "없는 답 강요 금지" 취지와 충돌하지 않는다).
  */
 export const ONBOARDING_CHOICE_QUESTIONS: readonly ChoiceQuestion[] = [
   {
@@ -157,7 +179,8 @@ export const ONBOARDING_CHOICE_QUESTIONS: readonly ChoiceQuestion[] = [
     step: 'temperament',
     order: 1,
     selection: 'single',
-    required: false,
+    // 질문지 Q1 Required — 회피 선택지 `depends_on_the_day` 가 있다.
+    required: true,
     options: StoryComfortSchema.options.map((code) => ({ code })),
   },
   {
@@ -165,7 +188,8 @@ export const ONBOARDING_CHOICE_QUESTIONS: readonly ChoiceQuestion[] = [
     step: 'temperament',
     order: 2,
     selection: 'single',
-    required: false,
+    // 질문지 Q4 Required.
+    required: true,
     options: ReadAloudBehaviorSchema.options.map((code) => ({ code })),
   },
   {
@@ -174,6 +198,7 @@ export const ONBOARDING_CHOICE_QUESTIONS: readonly ChoiceQuestion[] = [
     order: 1,
     selection: 'multi',
     maxSelections: 2,
+    // 질문지 Q3 Optional — `not_sure_yet` 자체가 유효한 응답이다.
     required: false,
     options: TopicTagSchema.options.map((code) =>
       code === TOPIC_TAG_NOT_SURE ? { code, exclusive: true } : { code },
@@ -185,10 +210,54 @@ export const ONBOARDING_CHOICE_QUESTIONS: readonly ChoiceQuestion[] = [
     order: 1,
     selection: 'multi',
     maxSelections: 2,
-    required: false,
+    // 질문지 Q2 Required — 최소 1개.
+    required: true,
     options: GrowthGoalSchema.options.map((code) => ({ code })),
   },
 ];
+
+/* ── 필수 응답 판정 (instrument 가 소유한다) ────────────────────────────────── */
+
+/**
+ * 아직 응답하지 않은 **필수** 문항 (`S2-ONB-1`).
+ *
+ * 화면·Mock·향후 Backend 가 같은 함수를 쓴다 — 필수 목록을 세 곳에 옮겨 적지 않는다.
+ * `step` 을 주면 그 단계만 본다 (단계 CTA 판정), 생략하면 전체를 본다 (제출 판정).
+ *
+ * 응답 여부의 기준은 **선택된 코드가 1개 이상 있는가** 다. "관찰한 적 없음" · "아직
+ * 모르겠다" 류의 회피 선택지도 코드가 저장되므로 **응답으로 인정된다** (approvals §9.1).
+ */
+export function unansweredRequiredQuestions(
+  instrument: OnboardingInstrument,
+  answers: OnboardingDraftAnswers,
+  step?: OnboardingStep,
+): readonly ChoiceQuestionId[] {
+  return instrument.questions
+    .filter((question) => question.required && (step === undefined || question.step === step))
+    .sort((left, right) => left.order - right.order)
+    .filter((question) => readChoiceAnswer(answers, question.questionId).length === 0)
+    .map((question) => question.questionId);
+}
+
+/**
+ * 필수 응답이 비어 있는 단계 목록 — `OnboardingStep` 선언 순서로 중복 없이 돌려준다.
+ * 제출을 막고 해당 단계로 되돌릴 때 쓴다.
+ */
+export function stepsMissingRequiredAnswers(
+  instrument: OnboardingInstrument,
+  answers: OnboardingDraftAnswers,
+): readonly OnboardingStep[] {
+  const blocked = new Set(
+    instrument.questions
+      .filter(
+        (question) =>
+          question.required && readChoiceAnswer(answers, question.questionId).length === 0,
+      )
+      .map((question) => question.step),
+  );
+
+  return OnboardingStepSchema.options.filter((step) => blocked.has(step));
+}
 
 /* ── 응답 읽기 / 쓰기 (저장 위치 매핑) ──────────────────────────────────────── */
 

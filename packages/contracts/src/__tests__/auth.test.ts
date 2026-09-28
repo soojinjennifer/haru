@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   AuthProviderSchema,
   AuthSessionSchema,
+  SessionProviderSchema,
   PASSWORD_MIN_LENGTH,
   RequestPasswordResetInputSchema,
   SignInWithEmailInputSchema,
@@ -88,7 +89,27 @@ describe('AuthSession · AuthProvider', () => {
       userId: '0f2c4a4e-6c3f-4c0f-9f7a-3b1d2c9f5a11',
       accessToken: 'token',
       expiresAt: '2026-09-25T00:00:00Z',
+      provider: 'email',
     };
     expect(AuthSessionSchema.parse(session)).toEqual(session);
+  });
+
+  /* `S2-CONSENT-1` — 동의 출처가 `signup_email` / `signup_oauth` 로 갈리려면 세션이
+     가입 경로를 알아야 한다. 값이 없을 때 이메일로 기본값을 주면 결함이 되돌아온다. */
+  it('세션은 가입 경로(provider)를 반드시 담는다', () => {
+    expect(SessionProviderSchema.options).toEqual(['email', 'google', 'apple']);
+    expect(
+      AuthSessionSchema.safeParse({
+        userId: '0f2c4a4e-6c3f-4c0f-9f7a-3b1d2c9f5a11',
+        accessToken: 'token',
+        expiresAt: '2026-09-25T00:00:00Z',
+      }).success,
+    ).toBe(false);
+  });
+
+  it('OAuth provider 는 그대로 세션 provider 가 된다', () => {
+    for (const provider of AuthProviderSchema.options) {
+      expect(SessionProviderSchema.safeParse(provider).success).toBe(true);
+    }
   });
 });

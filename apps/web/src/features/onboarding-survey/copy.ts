@@ -74,7 +74,18 @@ export const onboardingCopy = {
     stepOf: (step: number, total: number) => `Step ${String(step)} of ${String(total)}`,
     saveFailedTitle: "We couldn't save that just yet.",
     saveFailedDescription: 'Your answers are still here. We will try again as you continue.',
-    optionalHint: 'Every question here is optional.',
+    /**
+     * 필수 문항이 남아 CTA 를 아직 누를 수 없는 이유 (`S2-ONB-1`, Design Spec §2.9 정식 문구).
+     * `aria-describedby` 로 버튼에 연결한다 — 동의 화면 `blockedReason` 과 같은 패턴이다.
+     *
+     * **계수형이다.** Step 2 는 필수 문항이 2건이라 단수형 "an answer" 가 어느 문항인지
+     * 알려주지 못한다. 개수는 화면이 세지 않고 contracts 의 미응답 판정 결과
+     * (`unansweredRequiredQuestions`) 길이에서 온다. 오류 문구가 아니다 — tone 은 secondary 다.
+     */
+    requiredBlockedReason: (count: number) =>
+      count === 1
+        ? 'Answer the question above to continue.'
+        : `Answer the ${String(count)} questions above to continue.`,
   },
 
   /** 단계 제목 — TopBar. 순서·개수는 contracts `OnboardingStep` 이 정한다. */
@@ -205,7 +216,9 @@ export const onboardingCopy = {
     },
     'goals.growth_goals': {
       prompt: 'What would you like to grow together?',
-      description: 'Pick up to two. This is about what you want to lean into, not a score.',
+      // 최소·최대를 함께 말한다 (`S2-ONB-1`, §2.10 Step 4). Chip 그룹은 `role="group"` 이라
+      // `aria-required` 를 쓸 수 없으므로 이 보조 문구가 필수성을 전달한다.
+      description: 'Pick at least one, up to two.',
     },
   } as const satisfies Record<ChoiceQuestionId, QuestionCopy>,
 

@@ -21,7 +21,9 @@
  * ── 서버가 강제하는 규칙을 Mock 도 그대로 재현한다 ──
  * 1. **동의 기록 전에는 어떤 아동 데이터도 받지 않는다** → `CONSENT_REQUIRED`
  *    (`ARCHITECTURE` §7.3.1 · AC-2-13). 실제 서버 측 강제는 `BACKEND_INTEGRATION_PENDING`.
- * 2. 제출은 5단계 전체 + 10문항 전부가 있어야 한다 → 부족하면 `ONBOARDING_INCOMPLETE`
+ * 2. 제출은 5단계 전체 + 10문항 전부 + **필수 문항 응답**(질문지 Q1·Q4·Q2 — `S2-ONB-1`)이
+ *    있어야 한다 → 부족하면 `ONBOARDING_INCOMPLETE`. 무엇이 필수인지는 Mock 이 정하지 않고
+ *    자기가 내려준 instrument 가 정한다 (`unansweredRequiredQuestions`)
  * 3. `Idempotency-Key` 를 실제로 보관한다 — 같은 key + 같은 body 는 최초 응답 재생,
  *    같은 key + 다른 body 는 `IDEMPOTENCY_KEY_REUSED` (AC-2-16)
  *
@@ -36,6 +38,7 @@ import {
   SaveOnboardingStepRequestSchema,
   SubmitOnboardingRequestSchema,
   createSubmitOnboardingRequestSchema,
+  unansweredRequiredQuestions,
   type CompleteOnboardingAnswers,
   type ErrorCode,
   type OnboardingState,
@@ -220,6 +223,12 @@ export function createMockOnboardingApi(deps: MockOnboardingApiDeps): Onboarding
     }
 
     const instrument = createOnboardingInstrumentFixture();
+
+    // 서버는 화면을 믿지 않는다 — 필수 문항 응답을 instrument 기준으로 다시 본다 (`S2-ONB-1`).
+    if (unansweredRequiredQuestions(instrument, validated.data.answers).length > 0) {
+      fail('ONBOARDING_INCOMPLETE', 'Some required onboarding questions have no answer yet.');
+    }
+
     const answers =
       scenario === 'capability-all-missing'
         ? withAllMissingCapability(

@@ -1,6 +1,7 @@
 /**
  * Stage 2-ONBOARDING e2e — Trial 진입 · 제스처 없는 설문 완주 · 서버 요청 0건.
- * AC-2-19 · AC-2-25 · AC-2-27 + 결정 **D-9**(제스처는 부가 기능) · **D-C**(선택 항목).
+ * AC-2-19 · AC-2-25 · AC-2-27 + 결정 **D-9**(제스처는 부가 기능) ·
+ * **`S2-ONB-1`**(Q1 · Q4 · Q2 필수, Q3 선택 — approvals §9.1).
  *
  * 여기에서만 확인할 수 있는 것: **실제 브라우저의 포커스·키 입력**. jsdom 단위 테스트는
  * 클릭 이벤트까지만 증명한다.
@@ -39,14 +40,59 @@ test.describe('Trial 진입 (AC-2-19 · AC-2-27)', () => {
     expect(calls).toEqual([]);
   });
 
-  test('Step 2~4 는 응답하지 않아도 넘어간다 (결정 D-C)', async ({ page }) => {
+  test('Step 2 필수 문항을 비운 채로는 넘어가지 못한다 (`S2-ONB-1`)', async ({ page }) => {
     await gotoApp(page, '/onboarding/temperament');
 
-    await page.getByRole('button', { name: 'Next' }).click();
+    const next = page.getByRole('button', { name: 'Next' });
+
+    // native `disabled` 가 아니라 `aria-disabled` 다 — 포커스가 가능해야 이유가 읽힌다 (§2.6).
+    await expect(next).toHaveAttribute('aria-disabled', 'true');
+    await expect(next).toHaveAttribute('aria-describedby', /.+/);
+    // 계수형 문구 — 이 단계는 필수 2건이다 (§2.9).
+    await expect(page.getByText('Answer the 2 questions above to continue.')).toBeVisible();
+
+    await next.focus();
+    await expect(next).toBeFocused();
+
+    // `force` 로 실제 클릭을 강제해도 진행되지 않는다 (핸들러가 막는다).
+    await next.click({ force: true });
+    await expect(page).toHaveURL(/\/onboarding\/temperament$/);
+  });
+
+  test('회피 선택지를 고르면 진행된다 — 없는 답을 강요하지 않는다', async ({ page }) => {
+    await gotoApp(page, '/onboarding/temperament');
+
+    await page.getByRole('radio', { name: 'It really depends on the day or their mood' }).click();
+    await page.getByRole('radio', { name: 'Sits close and listens' }).click();
+
+    const next = page.getByRole('button', { name: 'Next' });
+    await expect(next).not.toHaveAttribute('aria-disabled', 'true');
+
+    await next.click();
     await expect(page).toHaveURL(/\/onboarding\/books$/);
+  });
+
+  test('Step 3(Q3)은 선택이라 응답 없이 넘어간다', async ({ page }) => {
+    await gotoApp(page, '/onboarding/books');
 
     await page.getByRole('button', { name: 'Next' }).click();
     await expect(page).toHaveURL(/\/onboarding\/goals$/);
+  });
+
+  test('Step 4 는 성장 목표를 최소 1개 골라야 넘어간다 (`S2-ONB-1`)', async ({ page }) => {
+    await gotoApp(page, '/onboarding/goals');
+
+    const next = page.getByRole('button', { name: 'Next' });
+    await expect(next).toHaveAttribute('aria-disabled', 'true');
+    await next.click({ force: true });
+    await expect(page).toHaveURL(/\/onboarding\/goals$/);
+
+    await page
+      .getByRole('button', { name: 'Helping with big feelings — when emotions feel overwhelming' })
+      .click();
+    await expect(next).not.toHaveAttribute('aria-disabled', 'true');
+    await next.click();
+    await expect(page).toHaveURL(/\/onboarding\/capability-items$/);
   });
 });
 

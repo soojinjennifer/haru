@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { devWarn } from '../devWarn';
 
 describe('devWarn — packages/ui 의 유일한 console 접근 지점 (QA-1-001)', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it('고정 문구와 식별자만 출력한다', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -42,6 +46,16 @@ describe('devWarn — packages/ui 의 유일한 console 접근 지점 (QA-1-001)
     expect(String(warn.mock.calls[0]?.[0])).toBe(
       '[haru/ui] Icon needs either a `label` or `decorative` (Design Spec §4.2).',
     );
+    warn.mockRestore();
+  });
+
+  it('Production 빌드에서는 아무것도 출력하지 않는다 (QA-1-004)', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.stubEnv('DEV', false);
+
+    devWarn('Icon', 'missing-accessible-name', 'haru:tab-center-home');
+
+    expect(warn).not.toHaveBeenCalled();
     warn.mockRestore();
   });
 });

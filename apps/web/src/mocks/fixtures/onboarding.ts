@@ -89,7 +89,8 @@ export function createResumeDraftAnswers(): OnboardingDraftAnswers {
       languageEnvironment: ['english'],
       readingRoutine: 'few_times_a_week',
     },
-    temperament: { storyComfort: 'some_adventure' },
+    // Step 2 는 필수 문항 2개(Q1 · Q4)를 모두 갖는다 (`S2-ONB-1`) — `completedSteps` 와 맞춘다.
+    temperament: { storyComfort: 'some_adventure', readAloudBehavior: 'asks_questions' },
   };
 }
 

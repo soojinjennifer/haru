@@ -78,8 +78,10 @@
  * `flex-grow` 는 **단위 없는 비율**이라 spacing 토큰 대상이 아니다. 고정 값
  * (spacer 최소값 · 일러스트↔제목 간격)은 전부 기존 semantic token 이다.
  *
- * 공간이 모자랄 때 줄어드는 순서: spacer 최소값(24 / 32) → 일러스트(비율 유지 축소,
- * `character.css`) → 앱 컬럼 스크롤. 제목·CTA 는 `flex: none` 이라 잘리지 않는다.
+ * 공간이 모자랄 때 실제로 일어나는 일(개정된 Design Spec §2.11 · `QA-2-006`)은 두 단계다:
+ * ① spacer 가 최소값(24 / 32)까지 축소 → ② 앱 컬럼 스크롤. **일러스트 비율 축소 단계는
+ * 발동하지 않는다** — `AppColumn` 이 콘텐츠 높이만큼 자라는 grid 여서 세로 음수 여유가
+ * 생기지 않기 때문이다 (근거는 `character.css` 주석). 제목·CTA 는 `flex: none` 이라 잘리지 않는다.
  */
 .haru-saved {
   display: flex;

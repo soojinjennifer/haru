@@ -122,6 +122,7 @@ describe('세션 만료 2회 실패 → /auth/log-in (AC-2-07)', () => {
     userId: '11111111-1111-4111-8111-111111111111',
     accessToken: 'mock-access-token-1',
     expiresAt: '2026-01-01T01:00:00.000Z',
+    provider: 'email',
   };
 
   /** refresh 가 불가능한 Gateway — `withAuthRefresh` 의 "2회 실패" 경로를 만든다. */

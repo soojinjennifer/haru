@@ -38,6 +38,7 @@ import {
   type AuthSession,
   type ErrorCode,
   type RequestPasswordResetInput,
+  type SessionProvider,
   type SignInWithEmailInput,
   type SignUpWithEmailInput,
   type UpdatePasswordInput,
@@ -99,9 +100,14 @@ export function createMockAuthGateway(deps: MockAuthGatewayDeps): AuthGateway {
     for (const listener of listeners) listener(next);
   }
 
-  function issueSession(): AuthSession {
+  /**
+   * 세션 발급 — `provider` 를 반드시 받는다 (`S2-CONSENT-1`).
+   * 갱신(`refreshSession`)은 **기존 세션의 provider 를 이어받는다** — 갱신했다고 가입 경로가
+   * 바뀌지 않는다.
+   */
+  function issueSession(provider: SessionProvider): AuthSession {
     generation += 1;
-    const next = createAuthSessionFixture(clock, generation);
+    const next = createAuthSessionFixture(clock, generation, provider);
     publish(next);
     return next;
   }
@@ -179,7 +185,7 @@ export function createMockAuthGateway(deps: MockAuthGatewayDeps): AuthGateway {
         'signUpWithEmail',
         'VALIDATION_FAILED',
         'We could not create the account with that information.',
-        () => result(issueSession()),
+        () => result(issueSession('email')),
       );
     },
 
@@ -194,7 +200,7 @@ export function createMockAuthGateway(deps: MockAuthGatewayDeps): AuthGateway {
         'AUTH_REQUIRED',
         // 계정 존재 여부를 구분해 주지 않는다 (enumeration 방지 — NFR 보안).
         'That email and password did not match.',
-        () => result(issueSession()),
+        () => result(issueSession('email')),
       );
     },
 
@@ -211,7 +217,7 @@ export function createMockAuthGateway(deps: MockAuthGatewayDeps): AuthGateway {
         'signInWithProvider',
         'PROVIDER_UNAVAILABLE',
         'That sign-in option is not responding right now.',
-        () => result(issueSession()),
+        () => result(issueSession(provider)),
       );
     },
 
@@ -253,7 +259,7 @@ export function createMockAuthGateway(deps: MockAuthGatewayDeps): AuthGateway {
       // `error` 에서는 갱신이 불가능하다 → 호출자가 signOut 으로 정리한다 (AC-2-07 2회 실패 경로).
       if (store.resolve(authScenarioGroup) === 'error') return Promise.resolve(null);
 
-      return Promise.resolve(issueSession());
+      return Promise.resolve(issueSession(session.provider));
     },
 
     signOut() {

@@ -182,14 +182,36 @@ describe('재동의 판정 (Design Spec §2.6)', () => {
     ).toBe(false);
   });
 
-  it('source 는 재동의면 reconsent, 아니면 가입 경로다', () => {
-    expect(
-      consentSourceFor({
-        required: [],
-        missing: ['marketing'],
-        grantedAt: '2026-01-01T00:00:00.000Z',
-      }),
-    ).toBe('reconsent');
-    expect(consentSourceFor({ required: [], missing: [], grantedAt: null })).toBe('signup_email');
+  it('source 는 재동의면 reconsent 다 — 가입 경로보다 우선한다', () => {
+    const reconsentStatus = {
+      required: [],
+      missing: ['marketing' as const],
+      grantedAt: '2026-01-01T00:00:00.000Z',
+    };
+
+    expect(consentSourceFor(reconsentStatus, 'email')).toBe('reconsent');
+    expect(consentSourceFor(reconsentStatus, 'google')).toBe('reconsent');
+  });
+});
+
+describe('동의 출처 — 가입 경로 구분 (`S2-CONSENT-1`)', () => {
+  const firstConsent = { required: [], missing: [], grantedAt: null };
+
+  it('이메일 가입은 `signup_email` 이다', () => {
+    expect(consentSourceFor(firstConsent, 'email')).toBe('signup_email');
+  });
+
+  it('Google · Apple 가입은 `signup_oauth` 다', () => {
+    expect(consentSourceFor(firstConsent, 'google')).toBe('signup_oauth');
+    expect(consentSourceFor(firstConsent, 'apple')).toBe('signup_oauth');
+  });
+
+  it('세션이 아직 해석되지 않았으면 `signup_email` 로 남는다 (OAuth 를 추측하지 않는다)', () => {
+    expect(consentSourceFor(firstConsent, undefined)).toBe('signup_email');
+    expect(consentSourceFor(undefined, undefined)).toBe('signup_email');
+  });
+
+  it('`me` 가 아직 없어도 가입 경로만으로 판정한다', () => {
+    expect(consentSourceFor(undefined, 'apple')).toBe('signup_oauth');
   });
 });
