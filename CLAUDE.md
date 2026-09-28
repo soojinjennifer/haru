@@ -53,6 +53,7 @@ MVP 전제: 양육자가 계정 소유자, 아이는 로그인 계정 없음, Ch
 | Functional | `docs/source/HARU_PRD_v1.4.md` |
 | Visual | Figma HARU_MVP — fileKey `YWWu3AFEJpRxvw0T5klq0k` (page `8:2` Design Guide, page `16:2` MVP_KeyScreen_V.2) |
 | Scope | `docs/source/prompts/01-stage0-1-1-frontend-scope.md` (Frontend-only 경계) |
+| 온보딩 문항 | `docs/source/HARU_Onboarding_Questionnaire_v1-1.docx.md` — 온보딩 Step 2~4 문항(Q1~Q5)·선택지·필수 여부의 근거 (등재 2026-09-28, `stage-2-approvals.md` §9) |
 | 참고 | `docs/source/HARU_Development_Architecture_8Stage_v0.2.md`, `$HARU_ONEDRIVE/디자인/**` 프로토타입, `docs/source/HARU_Developmental_Baseline_Survey_v1.docx.md` |
 
 - PRD = Functional Source of Truth, Figma = Visual Source of Truth.
@@ -107,7 +108,7 @@ Stage 8 Handoff (예정): `docs/BACKEND_HANDOFF.md` · `docs/API_CONTRACTS.md` �
 
 - 저장소: `~/dev/haru` (OneDrive 밖) · origin `https://github.com/soojinjennifer/haru.git` (private). GitHub가 백업·다른 컴퓨터 동기화 수단이다 (다른 컴퓨터: `git clone` → 작업 전 `git pull` → 작업 후 `git push`). commit·push는 사용자 요청 시에만 한다.
 - 원본 기획·디자인 자료는 OneDrive에 둔다. 문서의 `$HARU_ONEDRIVE` = `/Users/soojin/Library/CloudStorage/OneDrive-개인/HARU` (`디자인/`, `기존 자료/`, `Chracter/`). 이 경로에는 한글·공백이 있으므로 셸에서 반드시 인용한다.
-- 저장소에 포함된 원본 사본: `docs/source/HARU_PRD_v1.4.md`, `docs/source/HARU_Development_Architecture_8Stage_v0.2.md`, `docs/source/prompts/` (사용자 지시 원문), `docs/source/HARU_Developmental_Baseline_Survey_v1.docx.md` (온보딩 역량 문항 원문, Stage 0 C-8·C-14). 사본은 수정하지 않으며, OneDrive 원본이 갱신되면 사본을 교체한다.
+- 저장소에 포함된 원본 사본: `docs/source/HARU_PRD_v1.4.md`, `docs/source/HARU_Development_Architecture_8Stage_v0.2.md`, `docs/source/prompts/` (사용자 지시 원문), `docs/source/HARU_Developmental_Baseline_Survey_v1.docx.md` (Step 5 Baseline 역량 문항 원문, Stage 0 C-8·C-14), `docs/source/HARU_Onboarding_Questionnaire_v1-1.docx.md` (온보딩 Q1~Q5 문항 원문). 사본은 수정하지 않으며, OneDrive 원본이 갱신되면 사본을 교체한다.
 - 이전 작업 폴더 `$HARU_ONEDRIVE/HARU Dev` 는 보존용이다. 개발·문서 갱신은 이 저장소에서만 한다.
 - 사용자 홈 디렉토리(`/Users/soojin`)에는 다른 프로젝트(Lawservice)의 git 저장소가 있다. 건드리지 않는다 (Stage 0 #4-3).
 - 쓰기 경로 guard hook (`.claude/settings.json`, `.claude/hooks/`, Stage 0 #26):

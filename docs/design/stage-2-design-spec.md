@@ -4,12 +4,17 @@
 **Based on**
 - Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` — page `16:2`, section `179:1700`(Signup & Baseline survey) · section `31:204`(`26:21` Home 헤더), page `8:2` 컴포넌트. **조회·실측 일자 2026-09-23** (`179:1701` · `179:1724` · `179:1740` · `179:1748` · `179:1759` · `179:1770` · `179:1782` · `179:1789` · `179:1809` · `179:1820` · `163:2145`)
 - `docs/plans/stage-2-plan.md` (Stage 2 Plan, 2026-09-23) — §2 In Scope · §5 · §7 · §8 · §9 · §11 · §15 Handoff · §16 D-1~D-17
-- `docs/decisions/stage-2-approvals.md` §2(C-13 11건 명세 / 2건 디자이너) · §3(Stage 2 / Stage 2-B 분리)
+- `docs/decisions/stage-2-approvals.md` §2(C-13 11건 명세 / 2건 디자이너) · §3(Stage 2 / Stage 2-B 분리) · **§8 `D-A`·`D-B`·`D-C`**(온보딩 문항 근거 문서·성장 목표 = 4대 역량·필수 범위, 2026-09-26) · **§9 `S2-ONB-1`**(Q1·Q4·Q2 필수 — `D-C` 일부 번복, 2026-09-28)
+- `docs/source/HARU_Onboarding_Questionnaire_v1-1.docx.md` — "The Questionnaire" **Q1~Q5**. 결정 `D-A` 로 **온보딩 문항의 근거 문서**가 되었고 `CLAUDE.md` Source of Truth 표에 등재되었다 (`S2-SRC-1`·`S2-ONB-3`, 2026-09-28). §2.10 Step 2·3·4 의 문항 구성은 이 문서 → `packages/contracts/src/onboarding/{instrument,options,temperament,goals}.ts` 로 이미 반영되어 있다
 - `docs/design/stage-1-design-spec.md` — 토큰·Shared UI 22종·공통 상태(P-10)·Layout·접근성의 **정본**. 이 문서는 그 위에 Stage 2 화면만 얹는다.
 
 **개정 (2026-09-27, design-agent)** — QA 2회차 지시 반영 **2건만**. ① `S2-DESIGN-2`: §2.11 `/onboarding/saved` 의 여백 분배 규칙을 Figma `179:1809` **재실측(2026-09-27)** 에 맞게 수정 (`(flex spacer)` 를 일러스트↔제목 사이에 두었던 오류 → 일러스트 위 A / 제목 아래 B 로 3 : 2 분배). ② `S2-DESIGN-1`: §11.3 에 `AD-S2-15` · `AD-S2-16` 등록. 새 요구사항·새 화면·새 허용 차이·신규 토큰은 추가하지 않았다. `Status: APPROVED` 는 2026-09-25 승인 상태 그대로이며, **이 2건의 승인 범위 포함 여부는 사용자 확인 사항**이다.
 
 **개정 2 (2026-09-27, design-agent)** — QA 3회차 문서 항목 **4건만** 반영. ① `S2-TOKEN-1`: 정의되지 않은 토큰 이름 `--space-7`·`--space-10` 참조 8곳 → Figma 재실측 후 **스케일 2단계 신규 제안**(§6.1) + 지점별 값 정정 (§2.1 · §2.2 · §2.3 · §2.8 · §5.3 · §2.11 말미 표). ② `QA-2-005`: `179:1813`(27/33) · `179:1831`(30) 제목 토큰을 `AD-6` 흡수표대로 `--text-title-1` 로 정정, 30→28 은 `AD-S2-17` 로 등록. ③ `QA-2-006`: §2.11 축소 순서를 실제 동작(spacer 최소값 → 스크롤)으로 정정. ④ `QA-2-007`: §2.11 에셋 이름 `hello-heart-full`, 검산 전제(제목 높이) 정정. **새 요구사항·새 화면·Stage 2-B 명세는 추가하지 않았다.** 이 개정은 `/onboarding/saved` · `/auth/log-in` 두 화면의 **구현 변경과 시각 baseline 재생성을 요구한다** (§14-11).
+
+**개정 3 (2026-09-28, design-agent)** — Stage 3 착수 전 **미결 항목 정리**(approvals §9 사용자 결정) 반영. ① `S2-ONB-1`: Q1·Q4(Step 2) · Q2(Step 4) **필수** 확정 → §2.9 에 "필수 응답과 CTA 차단" 절 신설(차단 방식·정식 문구·문항별 표식 판단) + §2.10 Step 2·3·4 주석 갱신. ② `S2-COPY-1`: 소개 화면 InfoRow **빈 슬롯 = 미렌더** 확정 동작을 §2.8 에 명시. ③ `S2-HOME-1`: 워드마크 **텍스트 유지** 확정을 §2.13 에 반영. ④ §11.3 에 `AD-S2-13`(`S2-AUTH-2`) · `AD-S2-14`(`S2-HOME-1`) · `AD-S2-18`(`S2-CARD-1`) · `AD-S2-19`(`S2-WELCOME-1`) 정식 등록. **값·레이아웃·토큰은 하나도 바꾸지 않았다** — 통과한 시각 비교 baseline 42건은 그대로 유효하다. 요구하는 구현 변경은 copy·ARIA 3건뿐이다 (§14-12).
+
+**개정 4 (2026-09-28, design-agent)** — §2.10 온보딩 **단계 구성**을 결정 **`D-A`·`D-B`**(approvals §8, 2026-09-26)에 맞춘다. 개정 3(`S2-ONB-1`)이 필수 여부만 다루고 남겨 둔 잔여 구간이다. ① **Step 2**: `D-A` 이전 판의 4축(활동성·낯가림·집중 성향·선호 활동, `QuestionBlock × 4`) → 질문지 v1.1 **Q1·Q4 두 문항**(단일 선택 `RadioGroup` 2개, 선택지 4·5) 으로 교체. ② **Step 3**: 주제 문항을 **Q3**(복수 최대 2, 선택지 5, `not_sure_yet` 배타)로 명시하고 고정 `SectionLabel` 을 문항 legend 로 대체. ③ **Step 4**: `D-B` — 성장 목표 = **4대 역량과 같은 목록**(`GrowthGoalSchema = CapabilitySchema`). 이전 판의 "4대 역량과 같은 개념이 아니다" 서술을 폐기하고, **Step 4 와 프로필 결과가 서로를 평가하지 않는다**는 제약(approvals §8.2)을 Stage 2-B 상속 조항으로 명문화. ④ §13.1 ⑭ 를 `D-A`·`D-B` 해소분과 잔여분으로 분리. **이 개정은 이미 구현·contracts 에 반영된 사실을 문서에 맞춘 것이며, 값·레이아웃·토큰을 하나도 바꾸지 않았다** — 통과한 시각 비교 baseline 42건은 그대로 유효하다. **새로 요구하는 구현 변경은 없다** — 개정 3 이 남긴 copy 1건(§14-12 ③)이 그대로 남을 뿐이다 (§14-13).
 
 ---
 
@@ -116,7 +121,7 @@ Plan §9.1은 `/auth/*` · `/onboarding/*` 의 Layout을 **Fullscreen** 으로 �
 
 ```
 [safe-top]
- (gap --space-10)   ← 40 · **신규 토큰 제안 §6.1**. Figma 94 — 압축 근거는 아래 마지막 주석
+ (gap --space-10)   ← 40 · **신규 토큰 제안 §6.1**. Figma 94 — 허용 차이 `AD-S2-19` (아래 마지막 주석)
  CharacterMedallion  size=lg (232)  asset=hello-heart       ← 179:1703/1704, decorative
  (gap --space-8)
  Text  "HARU"            --text-large-title / --font-weight-heavy / --color-fg-primary   ← 179:1707
@@ -138,7 +143,7 @@ Plan §9.1은 `/auth/*` · `/onboarding/*` 의 Layout을 **Fullscreen** 으로 �
 - Figma 실측: medallion 232, 버튼 341×56(x=26) / 345×58은 다른 화면. **gutter 24 통일** → 폭은 `AppColumn` 100%. (`허용 차이 AD-10`)
 - `179:1722` 는 **동의 기록이 아니다** (C-1·C-2). 단순 고지 문구이며, 실제 동의는 `/auth/consent` 에서만 기록한다. 이 문장 안의 "Terms"·"Privacy Policy" 는 `TextLink`(외부 링크, `Plan D-4 전제`).
 - 순서 근거: Google → Apple → Email. Apple 버튼은 Apple 공식 "Sign in with Apple" 규격(로고·라벨·최소 높이·모서리)을 따르며 `Button` 의 glass 표면을 그대로 쓴다 (`Plan D-15 전제`). Apple 규격과 glass 표면이 충돌하면 **Apple 규격이 우선**이고 그 사실을 `허용 차이` 로 등록한다 — `NEEDS DECISION` (§13.1 ③).
-- **상단 여백 40 의 근거** (Figma 재실측 2026-09-27 · `S2-TOKEN-1`): Figma 는 safe-top(56) → medallion(`179:1703` y=150) = **94**, medallion bottom(382) → "HARU"(`179:1707` y=450) = **68** 이다. 명세·구현은 이 두 구간을 `--space-10`(40) + `--space-8`(32) = **72** 로 압축한다. 회수한 **90** 은 Figma 에 없는 Apple 버튼(56 + gap 12 = **68**, `AD-S2-2`)과 하단 각주·프롬프트 행 여백(`AD-S2-16`)이 차지한다. 즉 40 은 Figma 94 의 흡수가 아니라 **버튼 1개 추가에 따른 세로 재분배 결과**다. Figma 94 로 되돌리려면 이 화면의 세로 구성을 다시 설계해야 하므로 **값 변경은 사용자·Orchestrator 결정 사항**이며, 이번 개정은 값을 바꾸지 않고 근거만 기록한다. 현 구현(`pt-10` = 40)은 이 명세와 일치한다.
+- **상단 여백 40 의 근거** (Figma 재실측 2026-09-27 · `S2-TOKEN-1`): Figma 는 safe-top(56) → medallion(`179:1703` y=150) = **94**, medallion bottom(382) → "HARU"(`179:1707` y=450) = **68** 이다. 명세·구현은 이 두 구간을 `--space-10`(40) + `--space-8`(32) = **72** 로 압축한다. 회수한 **90** 은 Figma 에 없는 Apple 버튼(56 + gap 12 = **68**, `AD-S2-2`)과 하단 각주·프롬프트 행 여백(`AD-S2-16`)이 차지한다. 즉 40 은 Figma 94 의 흡수가 아니라 **버튼 1개 추가에 따른 세로 재분배 결과**다. Figma 94 로 되돌리려면 이 화면의 세로 구성을 다시 설계해야 한다. → **`CONFIRMED (S2-WELCOME-1, 사용자 결정 2026-09-28 — 현재 유지)`** 이며 §11.3 **`AD-S2-19`** 로 정식 등록했다. 값은 바뀌지 않는다. 현 구현(`pt-10` = 40)은 이 명세와 일치한다.
 
 ### 2.2 `/auth/sign-up` — Figma `179:1724` (보호자 영역만)
 
@@ -316,16 +321,22 @@ TopBar variant=centered  title="One more step"
    ├ Text  제목 2줄  --text-title-3 / --color-fg-primary    ← 179:1757 (아이 first name 사용, C-6)
    └ Text  본문 3줄  --text-subheadline / --color-fg-secondary  ← 179:1758 `가값 (P-01)`
  (gap --space-7)   ← Figma **29** (카드 bottom 533 → `179:1759` y 562) → 28. 이전 판의 `--space-5`(20) 은 실측과 Δ9 였다 (`S2-TOKEN-1`)
- InfoRow  icon=clock  "소요 시간·단계 수"        ← 179:1759  §4.4
- (gap --space-2)
- InfoRow  icon=list-checks  "진행 방식"          ← 179:1764
+ InfoRow  icon=clock  "소요 시간·단계 수"        ← 179:1759  §4.4   ← **슬롯 비어 있음 → 렌더하지 않음 (S2-COPY-1)**
+ (gap --space-2)                                                      ← 위 InfoRow 를 그리지 않으면 이 gap 도 없다
+ InfoRow  icon=list-checks  "진행 방식"          ← 179:1764          ← **슬롯 비어 있음 → 렌더하지 않음 (S2-COPY-1)**
  (flex spacer)
  Button variant=accent size=lg fullWidth  "Start"   ← 179:1768
 ```
 
-- **문구 불일치**: Figma `179:1763` "About 3 minutes · 10 cards" 와 `179:1767` "Swipe each card away to move on" 은 **Step 5(설문 10문항)만** 설명한다. 5단계 전체 소개 화면으로는 맞지 않는다 (§13.2 ②). 대체 문구는 `NEEDS DECISION`(copy 소유자). 소요 시간은 실측 근거가 없어 **design-agent가 숫자를 정하지 않는다.**
+- **문구 불일치**: Figma `179:1763` "About 3 minutes · 10 cards" 와 `179:1767` "Swipe each card away to move on" 은 **Step 5(설문 10문항)만** 설명한다. 5단계 전체 소개 화면으로는 맞지 않는다 (§13.2 ②). 소요 시간은 실측 근거가 없어 **design-agent가 숫자를 정하지 않는다.**
+- **`CONFIRMED (S2-COPY-1, 사용자 결정 2026-09-28 — 빈 슬롯 유지)` — 두 InfoRow 의 확정 동작**: 소요 시간·단계 수 문구는 **실제 소요 시간을 측정한 뒤 채운다.** 그때까지 이 두 InfoRow 는 **슬롯이 비어 있고, 슬롯이 비면 InfoRow 자체를 렌더하지 않는다.**
+  - 플레이스홀더(빈 값·"—"·회색 자리표시·Skeleton)를 그리지 않는다. 빈 행이 남으면 아무도 미결 사실을 눈치채지 못하고, 보호자에게는 로딩 실패로 읽힌다.
+  - 두 슬롯이 모두 비면 **블록 하나가 직전 `--space-7` gap 까지 통째로 사라진다** — medallion 위 카드와 CTA 사이 간격은 `(flex spacer)` 가 흡수하고, 이를 메우는 대체 요소를 넣지 않는다.
+  - 한쪽만 채워져도 채워진 행만 그린다. 행 사이 `--space-2` gap 은 **두 행이 모두 그려질 때만** 존재한다.
+  - 슬롯이 채워지는 시점에 이 명세를 바꿀 필요가 없다 — 값이 들어오면 위 레이아웃 그대로 렌더된다. 문구 소유자는 copy 모듈이며 이 문서가 숫자를 확정하지 않는다.
+  - 시각 비교에서 이 두 행의 **부재**는 `AD-S2-10`(InfoRow 문구 비교 제외)이 덮는다.
 - Trial(미인증) 진입 시 §2.11 안내가 이 화면 상단에 붙는다.
-- **상단 여백 (2026-09-27 실측 · 이전 판에는 명세 값이 없었다)**: Figma 는 safe-top(56) → medallion(`179:1750` y=110) = **54** 다. 명세·구현은 `--space-6`(24)이며, 회수한 30 은 Figma 에 없는 항목(InfoRow 6번째 옵션 안내·Trial `InlineAlert`, `AD-S2-10`·§2.12)과 하단 CTA 정렬(`AD-S2-16`)이 쓴다. §2.1 과 같은 성격의 **세로 재분배**이며 값 변경은 사용자·Orchestrator 결정 사항이다 — 이번 개정은 구현 현황을 명세에 적어 **명세 공백만 닫는다**(구현 변경 없음).
+- **상단 여백 (2026-09-27 실측 · 이전 판에는 명세 값이 없었다)**: Figma 는 safe-top(56) → medallion(`179:1750` y=110) = **54** 다. 명세·구현은 `--space-6`(24)이며, 회수한 30 은 Figma 에 없는 항목(InfoRow 6번째 옵션 안내·Trial `InlineAlert`, `AD-S2-10`·§2.12)과 하단 CTA 정렬(`AD-S2-16`)이 쓴다. §2.1 과 같은 성격의 **세로 재분배**다. → §11.3 **`AD-S2-19`** 에 `/auth/welcome` 과 함께 등록했다 (세로 −30px). 값은 바뀌지 않는다.
 
 ### 2.9 `/onboarding/:step` 공통 chrome (Step 1~5)
 
@@ -340,6 +351,8 @@ TopBar variant=centered
  [step 본문]
  (flex spacer, 최소 --space-8)
  [하단 CTA — 스크롤 컨테이너 내부]
+   Text  차단 사유 (미응답 필수 문항이 있을 때만)  --text-caption-1 / --color-fg-secondary
+         "Answer the question above to continue."   ← id 로 버튼에 aria-describedby 연결 (S2-ONB-1)
    Button variant=accent size=lg fullWidth  "Next" (Step 5 마지막 카드 = "Save profile" / 인증 상태면 "Finish")
 ```
 
@@ -351,6 +364,65 @@ TopBar variant=centered
 | 저장 | 로컬 draft = 입력 변경 debounce, 서버 draft = step 이동 시 1회 (`Plan D-11 전제`) — 디자인 영향: **저장 중 표시를 만들지 않는다**(조용한 저장). 저장 실패 시에만 `InlineAlert tone=warning placement=inline` |
 | step 전환 모션 | 없음(즉시 교체) — `RECOMMENDED`. 위저드 이동마다 화면 전환 애니메이션을 넣지 않는다 |
 | 라이브 영역 | step 전환 시 제목을 `aria-live="polite"` 로 알린다 |
+
+#### 필수 응답과 CTA 차단 — `CONFIRMED (S2-ONB-1, 사용자 결정 2026-09-28 · approvals §9.1)`
+
+결정 `D-C`("Step 2~4 전부 선택")를 **일부 뒤집는다**. 필수 여부는 온보딩 질문지 문서가 정하고 **contracts 의 문항 정의가 소유**한다.
+
+| 단계 | 문항 | 필수 여부 |
+|---|---|---|
+| Step 1 `child_info` | 이름·생년월·언어환경 | 필수 (성·성별 미응답 허용) — **변경 없음** |
+| Step 2 `temperament` | Q1 이야기 편안 범위 · Q4 읽어 줄 때의 모습 | **둘 다 필수** |
+| Step 3 `books` | Q3 주제 · 책 선택 | **선택 유지** |
+| Step 4 `goals` | Q2 성장 목표 | **필수** (최소 1개) |
+| Step 5 `capability_items` | 10문항 | 문항별 "관찰한 적 없음" 허용 — **변경 없음** |
+
+- 화면은 필수 목록을 **하드코딩하지 않는다.** 문항 정의의 `required` 값만 읽는다 — §2.6 동의 화면이 `ConsentDocument.required` 만 읽는 것과 같은 규칙이다. 필수/선택이 다시 바뀌어도 이 화면 명세는 바뀌지 않는다.
+- 필수화가 **없는 답을 강요하지 않는다**: Q1 은 회피 선택지("It really depends on the day")를 갖고, Q2 는 아이 관찰이 아니라 **보호자 자신의 바람**을 묻는 문항이다 (approvals §9.1).
+
+**CTA 차단 방식 — §2.6 동의 화면과 같은 패턴**
+
+| 항목 | 규격 |
+|---|---|
+| 버튼 | native `disabled` 를 쓰지 않는다. **`aria-disabled="true"` + 포커스 가능**. 시각은 `--opacity-disabled` |
+| 사유 문구 | CTA **바로 위** 1줄, `--text-caption-1` / `--color-fg-secondary`, CTA 와 좌측 정렬 일치. `id` 를 버튼 `aria-describedby` 로 연결 |
+| 표시 조건 | 그 단계에 **미응답 필수 문항이 1건 이상**일 때만 렌더. 충족되면 문구와 `aria-disabled` 가 함께 사라진다 |
+| 자리 예약 | 문구 영역의 **빈 자리를 미리 잡지 않는다.** 블록이 붙고 떨어지며 CTA 가 `--space-2` + 1행만큼 움직이는 것은 허용 범위다 — 빈 줄을 상시 띄우면 레이아웃이 비어 보인다 |
+| 모션 | 없음(즉시 교체). 선택할 때마다 페이드가 들어가면 입력이 무거워진다 |
+| 라이브 영역 | 사유 문구를 `aria-live` 로 읽지 **않는다.** `aria-describedby` 로 CTA 포커스 시 읽히면 충분하고, 선택마다 읽으면 소음이 된다 |
+| 오류 톤 아님 | `--color-field-fg-error` · `InlineAlert` 를 쓰지 않는다. **아직 하지 않은 일은 오류가 아니다** (rules/frontend §8) |
+
+**정식 문구 (design-agent 확정 2026-09-28)** — 구현이 임시로 지어 쓰던 `"Pick an answer above to continue."` 를 대체한다.
+
+| 남은 필수 문항 | 문구 |
+|---|---|
+| 1건 | `Answer the question above to continue.` |
+| 2건 이상 | `Answer the {n} questions above to continue.` |
+
+- **개수를 말하는 이유**: Step 2 는 필수 문항이 **2건**이라 단수형 "an answer" 가 어느 문항인지 알려주지 않는다. Step 5 가 이미 쓰는 `"N questions left."` 와 같은 계수 패턴이다.
+- 동의 화면의 `"Select the required items to continue."` 와 **"… to continue." 어미를 맞춘다.** 같은 차단 상황의 문구 형식이 화면마다 다르면 학습되지 않는다.
+- 문구의 소유자는 copy 모듈이다. 이 표는 **형식과 계수 규칙**만 확정하며, 개수는 contracts 의 미응답 판정 결과에서 온다.
+
+**개별 문항 "Required" 표식 — 두지 않는다 (design-agent 결정 2026-09-28)**
+
+규칙: **필수/선택 표식은 한 단계 안에 필수와 선택이 섞여 있을 때만 단다.**
+
+| 화면·단계 | 구성 | 표식 |
+|---|---|---|
+| Step 1 | 필수(이름·생년월·언어환경) + 선택(성·성별) **혼재** | **유지** — `TextField required` 시각 표시 + `aria-required` (Stage 1 §4.13), "Last name — Optional" |
+| §2.6 동의 | 필수 3 + 선택 2 **혼재** | **유지** — 행마다 "Required" / "Optional" |
+| Step 2 · Step 4 | 선택형 문항이 **전부 필수** | **두지 않는다** |
+| Step 3 | **전부 선택** | 두지 않는다 |
+
+근거: ① 전부 필수인 단계에서 문항마다 "Required" 를 붙이면 **변별 정보가 0** 이고 시각 소음만 는다 — 표식은 "건너뛸 수 있다/없다"를 가를 때만 정보다. ② 온보딩은 보호자의 관찰을 부드럽게 묻는 화면이라 의무 표식이 반복되면 시험 톤이 된다 (rules/frontend §8). ③ `RadioGroup`·`Chip` 에는 `required` 시각 슬롯이 없다 (Stage 1 §4.16·§4.17) — 표식을 넣으려면 Shared UI 를 고쳐야 하는데 ①·② 때문에 얻는 정보가 거의 없다.
+
+표식을 생략하는 **대가는 세 경로로 갚는다** (WCAG 3.3.2 Labels or Instructions):
+
+| 경로 | 적용 |
+|---|---|
+| CTA 위 사유 문구 + `aria-describedby` | Step 2 · Step 4 (위 규격표) |
+| 그룹 `aria-required="true"` | Step 2 의 `RadioGroup` 2개 — `role="radiogroup"` 에 유효한 속성이다 |
+| 질문 보조 문구(`description`) | Step 4 Q2 — Chip 그룹은 `role="group"` 이라 `aria-required` 가 **유효하지 않다.** 그래서 보조 문구가 그 역할을 대신한다: "Pick up to two." 는 상한만 말하므로 **"Pick at least one, up to two."** 로 최소 개수를 함께 말한다 |
 
 ### 2.10 Step별 본문
 
@@ -388,26 +460,40 @@ SectionLabel "AT HOME"
 | 관계·언어·루틴 옵션 문구 | contracts enum + copy 모듈 값만 표시한다. 이 문서가 문구를 확정하지 않는다 (`NEEDS DECISION`) |
 | 전송 경로 | `relationship` 은 `PATCH /v1/me`, 나머지는 `ChildInfoAnswers` (`Plan D-16 전제`) — **디자인상 한 화면이지만 요청이 2개**라는 점을 구현 메모로 남긴다 |
 
-#### Step 2 `temperament` — **C13-05 (명세)**
+#### Step 2 `temperament` — **C13-05 (명세)** · `D-A` 반영 (개정 4, 2026-09-28)
 
-Figma 없음. Step 5의 `SwipeDeck` 을 재사용하지 않는다(4개 문항은 덱 비용이 더 크다). **세로 스크롤 카드 목록**으로 명세한다.
+Figma 없음. Step 5의 `SwipeDeck` 을 재사용하지 않는다(문항이 2개뿐이라 덱 비용이 더 크다). **세로 스크롤 카드 목록**으로 명세한다.
 
 ```
 Text  step 안내 1줄  --text-subheadline / --color-fg-secondary
 (gap --space-5)
-QuestionBlock × 4   (gap --space-6)
-  ├ Text  질문        --text-headline / --color-fg-strong
-  ├ Text  보조 설명(선택) --text-caption-1 / --color-fg-secondary
-  └ 응답 컨트롤
-      · 활동성 · 낯가림 · 집중 성향 → RadioGroup variant=card (단일 선택)
-      · 선호 활동                   → Chip multi-select (wrap)
+QuestionBlock × 2   (사이 gap --space-6)     ← 문항 목록은 instrument 가 소유한다 (`D-A` 구조 제약 ②·③)
+  ├ Q1 `temperament.story_comfort`        단일 선택 · 선택지 4
+  └ Q4 `temperament.read_aloud_behavior`  단일 선택 · 선택지 5
+
+QuestionBlock 내부 (gap --space-3)
+  ├ legend  질문 문구        --text-headline / --color-fg-strong
+  ├ RadioGroup variant=card  (단일 선택)
+  └ Text  보조 설명(문항 정의에 있을 때만)  --text-caption-1 / --color-fg-secondary
 ```
 
-- 4개 축(활동성·낯가림·집중 성향·선호 활동)은 PRD §7.2 Step 2 문언 그대로이며, **옵션 값·문구는 contracts(`TemperamentAnswersSchema`, Plan §7.1 RECOMMENDED) 확정 후 주입**한다.
-- "기질 카드 선택형"의 카드 = `RadioGroup variant=card` 의 카드 행으로 해석한다. 이미지 카드·일러스트는 에셋이 없어 만들지 않는다 (§13.1 ⑥).
-- 미응답 허용 여부는 contracts 결정에 따른다. 필수면 하단 CTA를 `aria-disabled` + 사유 문구로 처리(§2.6과 동일 패턴).
+**문항 = 질문지 v1.1 `Q1` · `Q4`** — `CONFIRMED (D-A, approvals §8, 2026-09-26)`
 
-#### Step 3 `books` — **C13-06 (명세)**
+질문지가 온보딩에서의 기질 측정 범위를 스스로 제한한다: *"The full Motor / Attention / Fear schema … is **not invoked at onboarding**. The MVP uses observable behavioral proxies (Q1, Q4)."* 그래서 **추상적 기질 형용사를 보호자에게 묻지 않는다.**
+
+| 문항 | 질문지 문구 | 선택 | 선택지 코드 (contracts) |
+|---|---|---|---|
+| Q1 `temperament.story_comfort` | "When you read to your child, which kinds of stories tend to go best?" | 단일 · **필수** | `quiet_gentle` · `some_adventure` · `wild_ride` · `depends_on_the_day` (4) |
+| Q4 `temperament.read_aloud_behavior` | "During read-aloud, what does your child usually do?" | 단일 · **필수** | `sits_and_listens` · `points_and_touches` · `acts_it_out` · `asks_questions` · `moves_but_listens` (5) |
+
+- *이전 판의 4축 구성(활동성 · 낯가림 · 집중 성향 · 선호 활동, `QuestionBlock × 4`, 마지막 축은 Chip 복수 선택)은 `D-A` 이전 판이며 **폐기**한다.* 이 단계에 **Chip(복수 선택) 컨트롤은 없다** — 두 문항 모두 `RadioGroup variant=card` 다.
+- **문구를 진단형으로 바꾸지 않는다.** Q1 은 아이의 자극 편안 범위를 **선호 질문의 형태로** 묻는 장치다 (질문지: *"the high-fear filter, disguised as a preference question"*). "아이가 불안이 많나요" 류로 고쳐 쓰면 질문의 기능이 사라지고 `rules/frontend.md` §8(진단 표현 금지)과도 충돌한다.
+- "기질 카드 선택형"의 카드 = `RadioGroup variant=card` 의 카드 행으로 해석한다. 이미지 카드·일러스트는 에셋이 없어 만들지 않는다 (§13.1 ⑥).
+- **두 문항 모두 필수다** — `CONFIRMED (S2-ONB-1, 2026-09-28)`. 미응답이면 하단 CTA 를 `aria-disabled` + 사유 문구로 막는다 (§2.9 "필수 응답과 CTA 차단"). 문항별 "Required" 표식은 두지 않으며, 두 `RadioGroup` 에 `aria-required="true"` 를 둔다. 필수 2건이 모두 비어 있으면 사유 문구는 복수형("Answer the 2 questions above to continue.")이다.
+- 필수화가 **없는 답을 강요하지 않는 근거**: Q1 은 회피 선택지 `depends_on_the_day`("It really depends on the day or their mood")를 갖고, Q4 는 관찰 가능한 행동 5종을 모두 열거한다 (approvals §9.1).
+- **화면은 문항을 하드코딩하지 않는다** (`D-A` 구조 제약 ②·③). 문항 수·순서·선택지·필수 여부는 instrument 응답에서 오고, 위 표는 **현재 instrument 의 내용**을 기록한 것이다. 문항이 늘거나 줄어도 이 화면 명세(세로 목록 · 단일 선택 카드 · 블록 간 `--space-6`)는 그대로 성립한다.
+
+#### Step 3 `books` — **C13-06 (명세)** · `D-A` 반영 (개정 4, 2026-09-28)
 
 ```
 SectionLabel "BOOKS YOUR CHILD LOVES"   (최대 5권)
@@ -428,24 +514,68 @@ TextField  label="Search a book"  leadingIcon=search  trailingAction="Clear"  in
 SectionLabel "BOOKS AT HOME"
   TextField label="Add a book at home" trailingAction="Add"  → ListGroup 누적, 행마다 Remove
 (gap --space-6)
-SectionLabel "TOPICS YOUR CHILD LIKES"
-  Chip multi-select (wrap, gap --space-2)
+QuestionBlock × 1                                ← 문항 목록은 instrument 가 소유한다 (`D-A` 구조 제약 ②·③)
+  └ Q3 `books.topic_tags`   복수 선택 · 최대 2 · 선택지 5
+      ├ legend  질문 문구        --text-headline / --color-fg-strong
+      ├ Chip multi-select (wrap, gap --space-2)   ← topicTags[]
+      └ Text  보조 문구 "Pick up to two."          --text-caption-1 / --color-fg-secondary
 ```
 
+- **주제 문항 = 질문지 v1.1 `Q3`** — `CONFIRMED (D-A, approvals §8, 2026-09-26)`. 이전 판의 고정 `SectionLabel "TOPICS YOUR CHILD LIKES"` 는 **두지 않는다**: 문항 문구를 instrument·copy 가 소유하므로(`D-A` 구조 제약 ①) 화면에 박아 둔 섹션 제목과 문항 문구가 이중으로 나오고, 문구가 바뀌면 둘이 어긋난다. **문항 legend 가 제목 역할을 한다.**
+
+| 코드 (contracts) | 질문지 v1.1 Q3 보호자 노출 문구 | 비고 |
+|---|---|---|
+| `narrative` | Characters and stories — what happens, who's in it | |
+| `inquiry` | How things work, animals, the world around them | |
+| `artistic` | Colors, art, things that look beautiful or interesting | |
+| `social` | Books with other kids, families, friendships | |
+| `not_sure_yet` | Honestly not sure yet — they're still figuring it out | **배타 선택** (아래) |
+
+- **`not_sure_yet` 은 배타 선택지다** (contracts `ChoiceOption.exclusive`). 고르면 다른 선택이 해제되고, 다른 것을 고르면 이것이 해제된다. **전환은 즉시·무모션**이며 오류 톤을 쓰지 않는다 — 잘못된 조작이 아니라 **다른 종류의 응답**이다 (Step 5 비채점 옵션과 같은 취지, §2.10 Step 5). 해제되는 칩에 경고·흔들림을 넣지 않는다.
+- 상한 2는 contracts `TOPIC_TAGS_MAX = 2` 다. 2개 선택 후 새로 고르면 **가장 오래된 선택이 밀려난다** (contracts `toggleChoiceSelection`) — Step 3 행에는 선택을 막는 `aria-disabled` 를 쓰지 않는다 (책 5권 상한과 다른 규칙이다).
+- **이 단계의 문항은 전부 선택이다** — `CONFIRMED (S2-ONB-1, 2026-09-28)`. CTA 를 막지 않으며 차단 사유 문구도 나오지 않는다. 문항별 "Optional" 표식도 두지 않는다 (§2.9 표식 규칙 — 전부 선택인 단계).
 - 검색은 `GET /v1/books/search` 최소 범위 (`Plan D-17 전제`). 표지 이미지(`ListRow media`)는 **Stage 3** 이므로 Stage 2 행에는 표지를 넣지 않는다 (§4.3).
 - 입력 디바운스·요청 타이밍은 구현 결정. 화면은 **150ms 미만 응답 시 Skeleton을 그리지 않는다**(Stage 1 §5.1).
 
-#### Step 4 `goals` — **C13-07 (명세)**
+#### Step 4 `goals` — **C13-07 (명세)** · `D-B` 반영 (개정 4, 2026-09-28)
 
 ```
-Text  "What would you like to grow together?"   --text-title-3
-Text  "Choose as many as feel true."            --text-subheadline / --color-fg-secondary
-(gap --space-5)
-Chip multi-select (wrap, gap --space-2)         ← growthGoals[]
+QuestionBlock × 1                                ← 문항 목록은 instrument 가 소유한다 (`D-A` 구조 제약 ②·③)
+  └ Q2 `goals.growth_goals`   복수 선택 · 최대 2 · 선택지 4
+      ├ legend  질문 문구        --text-headline / --color-fg-strong
+      ├ Chip multi-select (wrap, gap --space-2)   ← growthGoals[]
+      └ Text  보조 문구 "Pick at least one, up to two."  --text-caption-1 / --color-fg-secondary
+                                                   ← S2-ONB-1 (최소·최대를 함께 말한다)
 ```
 
-- 목표 항목이 4대 역량과 **같은 개념이 아니다**. 역량 라벨(#14)을 그대로 쓰면 Step 5 결과와 혼동되므로, 목표 문구는 contracts/copy 값으로 따로 둔다 (`NEEDS DECISION` — 목록 소유자).
-- 선택 0개 허용 여부는 contracts 결정. Chip 선택은 색 + **leading `check` 아이콘** 이중 표시(Stage 1 §4.16).
+**선택지 = 4대 역량과 같은 목록** — `CONFIRMED (D-B, approvals §8, 2026-09-26)`
+
+| 코드 (contracts) | 질문지 v1.1 Q2 보호자 노출 문구 |
+|---|---|
+| `emotion_regulation` | Helping with big feelings — when emotions feel overwhelming for them |
+| `self_directed_agency` | Building their confidence and sense of "I can do it" |
+| `cognitive_flexibility` | Helping them adjust when things change or don't go their way |
+| `intrinsic_motivation` | Sparking their wonder about the world and connection with us |
+
+- 이 목록은 `GrowthGoalSchema = CapabilitySchema` 로 **4대 역량 enum 을 그대로 재사용**한다 (별도 목표 enum 없음). *이전 판의 "목표 항목이 4대 역량과 같은 개념이 아니다 / 목표 문구를 따로 둔다"는 서술은 `D-B` 로 폐기되었다.*
+- 상한 2는 contracts `GROWTH_GOALS_MAX = 2` 다. 2개 선택 후 새로 고르면 **가장 오래된 선택이 밀려난다** (contracts `toggleChoiceSelection`) — 선택이 막히지 않는다.
+- **최소 1개 필수다** — `CONFIRMED (S2-ONB-1, 2026-09-28)`. 0개면 하단 CTA 를 `aria-disabled` + 사유 문구로 막는다 (§2.9). Chip 그룹은 `role="group"` 이라 `aria-required` 를 쓸 수 없으므로 **보조 문구가 최소 개수를 말한다**: **"Pick at least one, up to two."** — 이전 판의 `"Choose as many as feel true."` 는 하한도 상한(2)도 말하지 않아 대체했다.
+- Chip 선택은 색 + **leading `check` 아이콘** 이중 표시(Stage 1 §4.16).
+
+**★ `D-B` 제약 — Step 4 와 프로필 결과는 서로를 평가하지 않는다** (approvals §8.2, `.claude/rules/frontend.md` §8)
+
+성장 목표가 4대 역량과 같은 목록이 되면서 **Step 4(보호자가 바라는 것)와 프로필 결과(관찰된 신호)가 같은 라벨로 나란히 놓인다.** 두 화면의 성격이 다르다는 사실을 화면이 지켜야 한다.
+
+| 구분 | Step 4 `goals` | 프로필 결과 화면 |
+|---|---|---|
+| 말하는 것 | 보호자가 **무엇을 함께 키우고 싶은지** (바람) | **지금 관찰된 신호** (관찰) |
+| 시점 | 온보딩 시점의 선택 | 세션 누적 이후 |
+
+- **금지 (copy · 시각 모두)**: "목표 대비 달성" · "기대했던 역량 vs 실제" · 목표와 결과의 점수 비교 · 미달/달성 표시 · 목표로 고른 역량만 강조하거나 고르지 않은 역량을 흐리게 하는 시각 처리.
+- **허용**: 두 화면이 **각자의 문장으로 독립해** 같은 라벨을 쓰는 것. Step 4 는 선택 상태만, 결과는 관찰 신호만 말한다.
+- Step 4 의 보조 문구·성공 문구는 목표를 **약속이 아니라 방향**으로 말한다. 구현 copy 가 붙인 `"This is about what you want to lean into, not a score."` 는 이 취지에 맞는 문장이다 (§14-13 참조).
+- **이 제약은 Stage 2-B 프로필 결과 화면(`/onboarding/profile` · `/onboarding/growth-capability`)이 그대로 상속한다.** Stage 2-B 명세는 이 문서 범위 밖(§1.2)이지만, 그 화면을 쓰는 사람은 위 표와 금지 목록을 **출발 제약**으로 받는다. 이 문서는 Stage 2-B 화면을 명세하지 않는다.
+- **QA 확인 항목** (approvals §8.2): Step 4 선택과 프로필 결과를 대조·평가하는 표현이 화면·copy 에 없을 것.
 
 #### Step 5 `capability-items` — Figma `179:1770` + **C13-08**
 
@@ -554,7 +684,7 @@ SwipeDeck  depth=3                                                       ← 179
 
 ```
 [Home 헤더 — TopBar variant=large 확장형, sticky]
-   leading  = 워드마크 (HARU 로고 에셋)                  ← 26:39
+   leading  = 워드마크 Text "HARU" (--text-title-2 / --font-weight-heavy)  ← 26:39 · 허용 차이 AD-S2-14
    trailing = IconButton(settings, "Settings") → /settings  ← 26:44 (우측 --layout-gutter, 시각 38 / hit 44)
  (gap --space-8)
  콘텐츠 영역 (세로 가운데 정렬)
@@ -569,6 +699,7 @@ SwipeDeck  depth=3                                                       ← 179
 | contract 호출 | **0건** (`HomeSummary` 는 Stage 3) → 이 화면에 Loading/Error 상태가 없다 |
 | 캐릭터 일러스트 | **넣지 않는다.** `26:22` 캐릭터·`88:922` 버블·`26:40` streak·덱·BottomTabBar는 전부 Stage 3 (#33) |
 | 액션 버튼 | EmptyState에 **CTA를 두지 않는다** — Stage 2에 이동할 곳이 없다 |
+| 워드마크 | **로고 에셋이 아니라 텍스트로 렌더한다** — `CONFIRMED (S2-HOME-1, 사용자 결정 2026-09-28)`. 에셋이 존재하지 않고, 폰트 렌더라 확대·스크린리더에 유리하며 단순 워드마크라 에셋화 이득이 적다. Figma 21px 은 `--text-title-2`(22) 로 흡수 → 허용 차이 **`AD-S2-14`**. 에셋이 나중에 확정되면 이 `Text` 1곳만 교체한다 (`COMPONENT_MAP.md` §Home 의 NEEDS DECISION 해소) |
 | 문구 | 기능을 약속하지 않는 관찰 톤. 예: 제목 "Your storytime space is ready." / 설명 "Tonight's activity will show up here." — `RECOMMENDED`, copy 승인 필요 (§13.1 ⑧) |
 
 ### 2.14 `/settings` — **C13-12 (명세)**
@@ -772,7 +903,7 @@ TopBar variant=centered  leading=IconButton(chevron-left, "Back")  title="Settin
 | 항목 | 값 |
 |---|---|
 | 카드 | `--color-surface-strong` + `--radius-card`(28) + `--shadow-glass-rest`, padding `--space-6`(Figma 24) |
-| 세로 구성 | counter(y24, 박스 `179:1784` bottom 38) → (gap `--space-10`(40) — Figma **40 정확 일치**, 신규 토큰 §6.1) eyebrow(y78) → (gap `--space-1`) question(y99) → (gap `--space-6`) 옵션(y248). Figma 절대 좌표를 gap 으로 환산했으며, **고정 높이(546)를 만들지 않는다**. eyebrow→question(Figma 7) · question→옵션(Figma 잔여 45, 단 질문 박스 104 = 4행 기준)의 환산 정확도는 이번 개정 범위가 아니다 — §13.2 에 기록 |
+| 세로 구성 | counter(y24, 박스 `179:1784` bottom 38) → (gap `--space-10`(40) — Figma **40 정확 일치**, 신규 토큰 §6.1) eyebrow(y78) → (gap `--space-1`) question(y99) → (gap `--space-6`) 옵션(y248). Figma 절대 좌표를 gap 으로 환산했으며, **고정 높이(546)를 만들지 않는다**. eyebrow→question(Figma 7) · question→옵션(Figma 잔여 45, 단 질문 박스 104 = 4행 기준)은 **`CONFIRMED (S2-CARD-1, 사용자 결정 2026-09-28 — 현재 유지)`** 이며 §11.3 **`AD-S2-18`** 로 등록했다: 질문 박스 높이가 instrument 문구의 실제 행수에 따라 변하므로 Figma 잠재값(고정 4행 기준)과 단순 비교가 성립하지 않는다 |
 | counter | `--text-caption-1` `--color-fg-secondary` (`가값 (P-01)`) |
 | eyebrow | `--text-caption-1` 대문자 `--color-fg-secondary`. 대비는 P-11 확정값 계열 |
 | question | `--text-title-3` `--color-fg-strong` (Figma 104px 높이 = 4줄까지 자연 증가) |
@@ -987,12 +1118,17 @@ Stage 2 고유 규칙:
 | **AD-S2-10** | 소개 화면 InfoRow 문구 변경 (10 cards → 5단계 기준) | Figma 문구가 Step 5만 설명 (§13.2 ②) | 문구 비교 제외 (`AD-9` 확장) |
 | **AD-S2-11** | Step 5 RadioGroup **6옵션**(Figma 5옵션) | `CONFIRMED (C-8 · D-04)` | 옵션 1개분 + 구분선·caption 차이 허용 |
 | **AD-S2-12** | Button 높이 58 → 56, 폭 341/345 → 컬럼 100%(gutter 24) | `가값 P-15 확정(56)` + `AD-10` gutter 통일 | 높이 ±2, 좌우 ±2 |
+| **AD-S2-13** | Welcome·Log in 의 **Apple "Sign in with Apple" 버튼 표면이 solid white 가 아니라 반투명 glass** (`Button variant=glass` — `--color-surface-glass` + `--blur-material-md`) | `CONFIRMED (D-15 — Apple 공식 규격 우선 승인)`. Apple 규격은 white / black / white-outline 3종을 제시하지만 HARU 전 화면의 보조 버튼 표면이 glass 이고, §2.1 이 `variant=glass` 를 지정했다. **식별 요소(로고 자형·라벨 문구·최소 높이·좌우 여백 비율·모서리)는 전부 규격대로**다 | **표면 알파·블러 차이만** 허용. 로고·라벨·간격·높이·비율 차이는 허용하지 않는다. 출처: `docs/qa/stage-2-auth-handoff.md` §6 |
+| **AD-S2-14** | Home 워드마크(`26:39`)를 **로고 에셋이 아니라 텍스트**로 렌더하고 크기를 **21px → `--text-title-2`(22px)** 로 흡수 | `CONFIRMED (S2-HOME-1, 사용자 결정 2026-09-28 — 텍스트 유지)`. 에셋이 존재하지 않고(`COMPONENT_MAP.md` §Home 이 NEEDS DECISION 으로 기록), 폰트 렌더라 고해상도 문제가 없으며 텍스트 확대·스크린리더에 유리하다. raw 21 은 토큰 스케일로 흡수한다 (Stage 0 #10) | **글자 크기 +1px** 허용. 자형·색·위치 차이는 허용하지 않는다. 에셋이 나중에 확정되면 `HomeTopBar` 의 `Text` 1곳만 교체한다. 출처: `docs/qa/stage-2-handoff.md` §5 |
 | **AD-S2-15** | `/onboarding` 소개 화면(`179:1748`)의 **제목 `179:1757` · 본문 `179:1758` · CTA 라벨 `179:1768`** 문구가 Figma와 다름 | Figma 문구를 그대로 쓸 수 없다 — ① 제목이 아이 이름("Yuna")을 부르지만 이 화면은 **이름을 받기 전**이다 (이름은 Step 1 수집, C-6) ② "Ten short questions" · "Start the questions" 는 **Step 5(10문항)만** 설명하는데 실제 온보딩은 5단계다 (§13.2 ②) — 이미 등록된 `AD-S2-10`(InfoRow 문구)과 **같은 사유**이며 그 등록이 제목·본문·CTA 를 덮지 못했을 뿐이다 ③ "No right answers" 의 **의미는 보존**했다 (진단·판정 금지, `rules/frontend.md` §8) | 해당 3개 텍스트의 **문구 비교 제외** (`AD-9` · `AD-S2-10` 확장). 블록 수·위치·크기·톤 차이는 허용하지 않는다. **최종 문구는 `S2-COPY-1` 결정에 묶여 있다** |
 | **AD-S2-16** | 화면 **하단 앵커 블록이 앱 컬럼 맨 아래에 붙는다** — Figma 프레임은 하단 약 44px(iOS home indicator 영역, `179:1723`·`179:1747`·`179:1818` `y=838`)을 비우고 버튼·각주를 `y≈750`/`788` 에 두지만, 데스크톱 baseline 은 `y≈796` 이다 | 그 44px 은 **`--layout-safe-bottom`(= `env(safe-area-inset-bottom)`)** 이 맡는 영역이고 데스크톱 브라우저에서는 `env()` 가 `0px` 이다. Figma 상단 status bar 56px 을 `--layout-safe-top` 으로 흡수한 것과 **같은 처리**다. QA 가 근거를 직접 검증했다 (safe-area 주입 시 오차 46px → 2px) | **하단 앵커 요소의 세로 위치 ±48px**. 블록 순서·간격·크기 차이는 허용하지 않는다. 대상: `/auth/welcome` 각주 · `/auth/sign-up` CTA · `/auth/consent` CTA · `/onboarding` CTA · `/onboarding/saved` CTA |
 | **AD-S2-17** | 텍스트 크기 흡수 **30 → 28**(`--text-title-1`) — `/auth/log-in` 제목 `179:1831` (Figma 30px, 박스 h=36) | `AD-6` 흡수표(11.5→11 · 12.5→12 · 14.5→15 · 21→22 · 27→28)에 **30 항목이 없다**. 이웃 스타일은 `title-1` 28(Δ−2) 과 `large-title` 34(Δ+4) 뿐이고 **신규 텍스트 스타일은 만들지 않는다**(#10-②) → 가까운 28 을 배정한다 (`DESIGN_TOKEN_MAP` §3.3 "두 스타일 사이 값의 택1은 design-agent") | font-size ±2 · line-height 36 → 34(±2). **`/onboarding/saved` 제목 `179:1813`(27/33)은 `AD-6` 의 27→28 항목이 그대로 덮으므로 신규 등록 없이 `--text-title-1`** 이다 (`QA-2-005`) |
+| **AD-S2-18** | `SurveyQuestionCard` **내부 세로 간격** — eyebrow→질문 명세 `--space-1`(4) ↔ Figma 7, 질문→옵션 명세 `--space-6`(24) ↔ Figma 45 (§5.3) | `CONFIRMED (S2-CARD-1, 사용자 결정 2026-09-28 — 현재 유지)`. Figma 의 7·45 는 **질문 박스를 고정 104px(4행)로 둔 상태의 잔여 좌표**다. 실제 질문은 instrument 문구 길이에 따라 1~5행으로 변하므로 카드 높이가 함께 변하고, 이때 Figma 의 잠재값과 단순 비교가 성립하지 않는다. 고정 높이(546)를 만들지 않기로 한 §5.3 결정의 결과다 | eyebrow→질문 **±4px**, 질문→옵션 **±24px**. counter→eyebrow `--space-10`(40, Figma 40 정확 일치) · 카드 padding `--space-6`(24) · radius·그림자·블록 순서 차이는 허용하지 않는다. 비교는 §11.2 영역 클립으로 수행한다 |
+| **AD-S2-19** | `/auth/welcome` **상단 여백** — safe-top → medallion 명세 `--space-10`(40) ↔ Figma 94 (§2.1) | `CONFIRMED (S2-WELCOME-1, 사용자 결정 2026-09-28 — 현재 유지)`. 회수한 세로 공간을 **Figma 에 없는 Apple 버튼**(56 + gap 12 = 68, `AD-S2-2`)과 하단 앵커 정렬(`AD-S2-16`)이 쓴다. 즉 40 은 94 의 흡수가 아니라 **버튼 1개 추가에 따른 세로 재분배 결과**이며, 94 로 되돌리려면 이 화면의 세로 구성을 다시 설계해야 한다 | **medallion 상단 위치 세로 −54px** 까지 허용. medallion 지름(`AD-S2-3` 별도) · 블록 순서 · medallion→"HARU" `--space-8`(32) 이후 간격 차이는 허용하지 않는다. 같은 성격의 `/onboarding` 소개 화면 상단 여백(`--space-6`(24) ↔ Figma 54, §2.8)도 이 항목에 포함한다 — **세로 −30px** |
 
-- `AD-S2-14`(Home 워드마크 텍스트 렌더)는 `docs/qa/stage-2-home-handoff.md` 에 기록되어 있으며, 에셋화 여부가 `S2-HOME-1`(디자이너 결정) 으로 열려 있어 이 표에 확정 등록하지 않는다.
-- `AD-S2-13`(Apple 버튼 glass 표면)은 `docs/qa/stage-2-auth-handoff.md` §6 에 기록되어 있다. 이번 갱신 지시 범위(`AD-S2-15`·`AD-S2-16`)가 아니므로 이 표에 옮겨 적지 않았다 — §11.3 등록 여부는 별도 결정 사항이다.
+- **2026-09-28 등록** — `AD-S2-13`·`AD-S2-14`(handoff 문서에만 있던 2건, `S2-AUTH-2`·`S2-HOME-1`)와 `AD-S2-18`·`AD-S2-19`(`S2-CARD-1`·`S2-WELCOME-1`)를 이 표에 정식 등록했다. 이로써 Stage 2 허용 차이는 **`AD-S2-1` ~ `AD-S2-19` 전부 이 표 하나가 소유**하며, handoff·QA 문서는 참조만 한다.
+- 값 자체는 하나도 바꾸지 않았다. 네 항목 모두 **현재 구현 값을 사용자가 유지로 확정**한 것이며(approvals §9), 통과한 시각 비교 baseline 42건은 그대로 유효하다.
+- 번호 `AD-S2-13`·`AD-S2-14` 는 handoff 문서가 이미 쓰던 ID 라 그대로 둔다. 새 항목은 `AD-S2-18` 부터 이어 붙인다.
 
 ---
 
@@ -1073,25 +1209,25 @@ PRD §5.1 흐름은 `Step 5 완료 → ③ 프로필 결과 → ④ 발전 역�
 |---|---|---|
 | ① | **Stage 2 route 수** — Plan §9.1은 15개, approvals §3 분리에 따르면 Stage 2는 **14개**(`/onboarding/profile` · `/onboarding/growth-capability` 제외) | Plan 표기 정정 여부 (plan-agent 소관) |
 | ② | **Layout 배정 불일치** — Plan §9.1 "Fullscreen" ↔ Stage 1 §2.3 "StackLayout". 이 문서는 **StackLayout** 을 채택했다 (§1.3) | 확정 필요 (AC-2-59 reflow와 직결) |
-| ③ | **Apple 버튼 규격 vs glass 표면** — Apple 공식 가이드(색·모서리·여백·라벨)가 `Button variant=glass` 와 충돌할 경우 Apple 규격 우선 | 승인 + 허용 차이 등록 |
+| ③ | ~~**Apple 버튼 규격 vs glass 표면**~~ → **해소 (2026-09-28)**: `D-15` 로 **Apple 규격 우선**이 승인되었고, 표면 차이는 §11.3 **`AD-S2-13`** 으로 등록했다 | **결정 완료** |
 | ④ | **비밀번호 재설정 resend** — PRD·Figma 근거 없어 명세에서 제외 | 필요하면 추가 승인 |
 | ⑤ | **Step 5 진행 의미 이중화** — 진행바가 Step 1–4는 5단계, Step 5는 10문항 | 권장안(병기) 승인 |
 | ⑥ | **Step 2 기질 "카드"의 형태** — 이미지·일러스트 카드 에셋 없음 → `RadioGroup variant=card` 로 해석 | 디자이너 의도 확인 |
 | ⑦ | **`179:1804` refresh 아이콘 동작** — Figma 미정의(M-36) → "Clear this answer" 로 명세 | 확정 필요 |
-| ⑧ | **Home skeleton EmptyState 문구·일러스트 유무** — 일러스트 없음으로 명세 | copy 승인 |
+| ⑧ | **Home skeleton EmptyState 문구·일러스트 유무** — 일러스트 없음으로 명세. *워드마크 에셋화 여부는 **해소** (`S2-HOME-1` 2026-09-28 텍스트 유지 → `AD-S2-14`)* | EmptyState **copy 승인만** 남음 |
 | ⑨ | **medallion `ring-offset`** — Figma에 ring 없음 | 토큰 유지 / 폐기 |
 | ⑩ | **`CharacterBubble` Stage 2 사용 여부** — Plan §15.4는 "Welcome·Intro 인사"로 적었으나 두 화면의 Figma는 **버블이 아니라 본문 텍스트**다 | Stage 3으로 이월 확인 |
 | ⑪ | **동의 항목 문구·필수 여부** | 법무 **L-02** |
 | ⑫ | **VPC 방식·문구** | 법무 **L-01** |
 | ⑬ | **`lastName` 수집 적합성** | 법무 **L-07** |
-| ⑭ | **Step 1 관계/언어/루틴, Step 2 기질, Step 4 목표의 옵션 값·문구** | contracts 확정 + copy 소유자 |
+| ⑭ | **Step 1 관계/언어/루틴 옵션 값·문구** — *Step 2 기질 · Step 3 주제 · Step 4 목표는 **해소 (2026-09-26 `D-A`·`D-B`)**: 질문지 v1.1 Q1·Q4·Q3·Q2 의 선택지로 확정되어 `packages/contracts` 가 코드를, copy 모듈이 문구를 소유한다* | **남은 결정은 Step 1 3항목뿐.** 이 3항목은 질문지 문서에 없어 `D-A` 로 해소되지 않는다 (contracts 주석: "질문지 문서에 없는 항목 — C13-04"). 코드는 contracts 에 있으나 **어떤 언어·루틴 구간을 보호자에게 보일지는 제품 결정**이다 |
 
 ### 13.2 Figma 내부 불일치 · 신규 발견 (2026-09-23 실측)
 
 | # | 항목 | 실측 | 처리 |
 |---|---|---|---|
 | ① | **`179:1775`(Step 5 forward IconButton) 가 프레임을 벗어난다** — x=372, w=38 → 우측 끝 410 > 프레임 393 | 17px 초과 | 구현은 gutter 24(x=331) 정렬. `AD-S2-9` + 디자이너 수정 요청 |
-| ② | **`179:1763` "About 3 minutes · 10 cards" / `179:1767` "Swipe each card away"** 가 5단계 온보딩 소개 화면에 붙어 있으나 **Step 5만 설명**한다 | — | 문구 교체 필요(숫자는 design-agent가 정하지 않음). `AD-S2-10` + 디자이너·copy 요청 |
+| ② | **`179:1763` "About 3 minutes · 10 cards" / `179:1767` "Swipe each card away"** 가 5단계 온보딩 소개 화면에 붙어 있으나 **Step 5만 설명**한다 | — | **해소 (`S2-COPY-1`, 2026-09-28 — 빈 슬롯 유지)**: 실제 소요 시간을 측정할 때까지 두 InfoRow 를 **렌더하지 않는다** (§2.8). `AD-S2-10` 유지 + 디자이너 Figma 문구 수정 요청은 남는다 |
 | ③ | **medallion 3종 크기 혼재** 188 / 200 / 232 (Stage 2 화면 내) | 실측 | 3단계 스케일로 흡수(`AD-S2-3`), 디자이너 확인 요청 |
 | ④ | **Button 규격 2종 혼재** — 소셜/보조 `341×56`(x=26), 주 CTA `345×58`(x=24) | 실측 | `--button-height-lg` 56 확정값 + gutter 24 통일(`AD-S2-12`, `AD-10`) |
 | ⑤ | **설문 카드(`179:1783`) 내부 간격 환산 정확도** (2026-09-27 재실측) — eyebrow `179:1786` bottom 92 → question `179:1787` y 99 = **7**(명세 `--space-1` = 4), question 박스 bottom 203 → 옵션 `179:1788` y 248 = **45**(명세 `--space-6` = 24). 질문 박스 104 는 **4행 기준 높이**여서 실제 렌더 행수에 따라 잔여가 달라진다 | 실측 | **이번 개정 범위 밖**(`S2-TOKEN-1` 4건에 포함되지 않음). 값을 바꾸지 않고 기록만 한다 — 조정은 카드 실측 baseline 과 함께 판단해야 하며 사용자·Orchestrator 결정 사항 |
@@ -1150,6 +1286,17 @@ PRD §5.1 흐름은 `Step 5 완료 → ③ 프로필 결과 → ④ 발전 역�
     ④ `entities/character/character.css` 의 "축소 순서 ② (일러스트 비율 축소) 구현" 주석을 실제 동작(spacer 최소값 → 스크롤)으로 정정 (§2.11 · `QA-2-006`). **동작·렌더 변경 없음, 주석만.**
     ⑤ **변경하지 않는 것**: `/onboarding` 소개 화면(현재 `gap-7` = 28 이 개정된 명세와 일치) · `/auth/welcome`(`pt-10` = 40 유지) · `/auth/sign-up`(`pt-10` = 40 하한 유지) · `SurveyQuestionCard`(`gap-10` = 40 유지) · §2.11 일러스트↔제목 `--space-8`(32) 유지.
 
+12. **2026-09-28 개정(미결 항목 정리)이 요구하는 구현 변경** — `S2-ONB-1` 확정 반영 3건. 전부 **copy·ARIA 속성**이며 레이아웃·토큰·시각 baseline 42건에 영향이 없다:
+    ① `features/onboarding-survey/copy.ts` 의 `wizard.requiredBlockedReason` 를 **계수 함수**로 교체한다 (§2.9). 구현이 임시로 지은 `'Pick an answer above to continue.'` → 1건 `Answer the question above to continue.` / 2건 이상 `Answer the {n} questions above to continue.` — 개수는 contracts 의 미응답 판정 결과에서 온다.
+    ② Step 2 의 `RadioGroup` 2개에 **`aria-required="true"`** 를 둔다 (§2.9 — 문항별 시각 표식을 두지 않는 대가). `role="radiogroup"` 에 유효한 속성이다.
+    ③ Step 4 Q2 의 보조 문구를 **`Pick at least one, up to two.`** 로 한다 (§2.10 Step 4). Chip 그룹은 `role="group"` 이라 `aria-required` 를 쓸 수 없으므로 이 문구가 필수성을 전달한다. 기존 `'Pick up to two. …'` 는 상한만 말한다.
+    ④ **하지 않는 것**: 문항별 "Required"/"Optional" 배지·별표 추가, `RadioGroup`·`Chip` 에 `required` 시각 슬롯 신설, 차단 문구의 `aria-live` 화, 차단 문구 자리 상시 예약. 근거는 §2.9 표식 규칙이다.
+
+13. **2026-09-28 개정 4(`D-A`·`D-B` 반영)가 요구하는 구현 변경** — **새로 생기는 것은 없다.** 이 개정은 이미 `packages/contracts`·`apps/web` 에 구현된 구성(Q1·Q4 / Q3 / Q2)을 문서에 맞춘 것이다. 문항 수·선택지 수·선택 규칙·상한은 **문서와 contracts 가 일치**한다 (Q1 4 · Q4 5 · Q3 5(`not_sure_yet` 배타, 최대 2) · Q2 4(최대 2)).
+    ① 남아 있는 구현 변경은 **`14-12 ③` 1건뿐**이다 (Step 4 보조 문구). `D-B` 관점의 권장 형태: 최소 개수를 **앞에** 두고 기존 문장을 유지한다 — `Pick at least one, up to two. This is about what you want to lean into, not a score.` 뒷문장은 목표를 점수로 읽지 않게 하는 `D-B` 가드라 지울 이유가 없다. **문구 확정 권한은 copy 모듈·사용자에게 있으며 이 문서는 형식만 정한다.**
+    ② **하지 않는 것**: Step 2 에 Chip(복수 선택) 컨트롤 부활, Step 3 에 고정 `SectionLabel "TOPICS YOUR CHILD LIKES"` 추가, Step 4 용 별도 목표 enum 신설(`GrowthGoalSchema = CapabilitySchema` 유지), `not_sure_yet`·상한 초과 시 오류 톤·`aria-disabled` 사용.
+    ③ **`D-B` 금칙 표현 테스트**: Step 4 와 (이후) 프로필 결과 화면의 copy 에 "목표 대비" · "달성" · "기대 vs 실제" · 점수 비교 어휘가 없는지 확인한다 (§2.10 Step 4 ★, approvals §8.2 QA 확인 항목).
+
 ---
 
 ## 15. 요약
@@ -1163,5 +1310,7 @@ PRD §5.1 흐름은 `Step 5 완료 → ③ 프로필 결과 → ④ 발전 역�
 | 신규 Tier-3 토큰 | 5건 (`--deck-inset-x` · `--deck-peek-y` · `--deck-depth` · `--list-row-height-min` · `--select-trigger-height`) |
 | 신규 가값 | `P-17` (확정 후보) + `P-18`·`P-19` 후보 |
 | 확정된 가값 | **P-16 부분 확정** — md 188 · lg 232 (Figma 실측), sm 136은 유지 |
-| 허용 차이 | `AD-S2-1` ~ `AD-S2-12` + `AD-S2-15` · `AD-S2-16` · `AD-S2-17` (15건) 사전 등록 (§11.3) |
-| 결정 대기 | §13.1 14건 (그중 법무 3건) + Plan D-9 이견 1건 |
+| 허용 차이 | **`AD-S2-1` ~ `AD-S2-19` (19건)** 사전 등록 (§11.3). 2026-09-28 에 `AD-S2-13`·`AD-S2-14`(handoff 문서에만 있던 2건) + `AD-S2-18`·`AD-S2-19`(`S2-CARD-1`·`S2-WELCOME-1`) 추가 |
+| 결정 대기 | §13.1 **12건** (③ 해소 · ⑧ 부분 해소 · **⑭ 부분 해소** — Step 2·3·4 옵션은 `D-A`·`D-B` 로 확정, Step 1 관계/언어/루틴만 남음. 그중 법무 3건) + Plan D-9 이견 1건 |
+| 2026-09-28 개정 4 (`D-A`·`D-B`) | §2.10 **Step 2** 4축 → 질문지 **Q1·Q4** 2문항(단일 선택, 선택지 4·5) · **Step 3** 주제 = **Q3**(복수 최대 2, 선택지 5, `not_sure_yet` 배타) · **Step 4** 성장 목표 = **4대 역량과 같은 목록**(`D-B`) + 평가·비교 금지 제약(Stage 2-B 상속) · §13.1 ⑭ 정리. **값·레이아웃·토큰 변경 0, baseline 42건 유효, 새 구현 변경 0** |
+| 2026-09-28 확정 반영 | `S2-ONB-1`(Q1·Q2·Q4 필수 — §2.9 신설 · §2.10 Step 2/3/4) · `S2-COPY-1`(빈 슬롯 = InfoRow 미렌더 — §2.8) · `S2-HOME-1`(워드마크 텍스트 — §2.13) · `S2-AUTH-2` · `S2-CARD-1` · `S2-WELCOME-1` (§11.3) |

@@ -1051,3 +1051,54 @@ stage-qa-agent 소관이다.
 여백(§2.1 · §2.8 등) · `playwright.config.ts`(임시 변경 후 원복) · `docs/design/**` ·
 `docs/plans/**` · `docs/decisions/**` · `packages/contracts` · Mock · 다른 baseline 41건 ·
 Stage 2-B · Stage 3 이상 · Backend (`apps/api`·`supabase` 미생성 유지).
+
+---
+
+## 14.8 `S2-ONB-1` 정식 명세 반영 (3회차, 2026-09-28) — Design Spec §2.9 · §14-12
+
+design-agent 가 §2.9 "필수 응답과 CTA 차단" 을 신설하며 요구한 **구현 변경 3건만** 반영했다.
+전부 copy·ARIA 이며 값·레이아웃·토큰은 건드리지 않았다.
+
+| # | 변경 | 근거 |
+|---|---|---|
+| ① | `wizard.requiredBlockedReason` 를 **계수 함수**로 교체. 1건 = `Answer the question above to continue.` / 2건 이상 = `Answer the {n} questions above to continue.` 개수는 화면이 세지 않고 contracts `unansweredRequiredQuestions(instrument, answers, step)` 결과 길이(`wizard.missingRequired.length`)에서 온다 | §2.9 정식 문구 |
+| ② | 필수 단일선택 문항의 `RadioGroup` 에 `aria-required="true"`. 필수 목록을 화면에 적지 않고 instrument 의 `required` 값만 읽으므로 Step 2 의 2개 그룹에만 붙는다 | §2.9 표식 생략의 대가 |
+| ③ | Step 4 Q2 보조 문구 `Pick up to two. This is about what you want to lean into, not a score.` → **`Pick at least one, up to two.`** (contracts `maxSelections: 2` + 최소 1개 필수와 일치) | §2.10 Step 4 |
+
+`aria-required` 는 `role="group"`(fieldset 기본값) 에서 허용되지 않고 `radiogroup` 에서만
+유효하므로, `RadioGroup` 에 `required` prop 을 추가해 **`required` 일 때만** `role="radiogroup"`
++ `aria-required="true"` 를 둔다. `required` 를 주지 않는 기존 사용처(Step 1 · Step 5 · UI
+gallery)는 role 이 그대로 `group` 이라 동작·테스트가 바뀌지 않는다. **시각 변화 없음** —
+`required` 시각 슬롯은 만들지 않았다 (§2.9 "하지 않는 것").
+
+**하지 않은 것**: 문항별 Required/Optional 배지·별표, 차단 문구 `aria-live` 화, 차단 문구 자리
+상시 예약, 오류 톤(`field-fg-error`·`InlineAlert`) 적용, 필수/선택 규칙 변경, Step 3
+`books.topic_tags` 의 `Pick up to two.`(전부 선택인 단계라 그대로), `docs/design/**` ·
+`docs/plans/**` · `docs/decisions/**` 수정, Stage 2-B · Stage 3 · Backend.
+
+### 생성·수정 파일
+
+| 파일 | 변경 |
+|---|---|
+| `apps/web/src/features/onboarding-survey/copy.ts` | `requiredBlockedReason` 계수 함수화 · `goals.growth_goals.description` 교체 |
+| `apps/web/src/features/onboarding-survey/ui/OnboardingWizard.tsx` | `requiredBlockedReason(wizard.missingRequired.length)` |
+| `apps/web/src/features/onboarding-survey/ui/ChoiceQuestionList.tsx` | `RadioGroup required={question.required}` |
+| `packages/ui/src/field/RadioGroup.tsx` | `required` prop → `role="radiogroup"` + `aria-required` |
+| `apps/web/__tests__/onboarding-screens.test.tsx` | 계수 문구 단수/복수 전환 · Step 2 `aria-required` · Step 4 미적용 테스트 (+2건) |
+| `e2e/onboarding.spec.ts` | 차단 문구 문자열 갱신 |
+
+### 검증
+
+`pnpm typecheck` PASS · `lint` PASS · `test` **1029 / 98파일** PASS (1027 → +2 신규) ·
+`lint:boundaries` PASS(450 modules, 위반 0) · `build` PASS · `format:check` PASS ·
+`test:e2e` **124 passed**. 시각 baseline **재생성 0건** — `playwright.config.ts` 임계값을
+일시적으로 0(`maxDiffPixelRatio` · `maxDiffPixels` · 영역 상한)으로 낮춰 `visual.spec.ts` 41건을
+전수 재비교했고 **전부 픽셀 동일**이었다 (설정은 원복, `git diff` 비어 있음). design-agent 의
+"copy·ARIA 라 baseline 영향 없음" 예상과 일치한다.
+
+### 남긴 관찰 (Non-blocking — design-agent 판단 대상)
+
+| # | 내용 |
+|---|---|
+| `S2-ONB-1-a` | 교체로 사라진 문장 `This is about what you want to lean into, not a score.` 는 **비채점 톤**(rules/frontend §8)을 담고 있었다. §2.10 Step 4 블록이 한 줄만 규정해 그대로 따랐으나, 그 톤을 다른 위치(예: 단계 제목 아래)에 살릴지는 design-agent 결정 사항이다 |
+| `S2-ONB-1-b` | §2.10 Step 2·4 블록은 보조 설명을 **질문 바로 아래 · `--text-subheadline`** 으로 그리지만, 구현(`ChoiceQuestionList`)은 **컨트롤 아래 · `--text-caption-1`** 이다. 이번 개정 이전부터의 차이라 손대지 않았다 |

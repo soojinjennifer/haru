@@ -11,6 +11,8 @@ Based on:
 
 Author: design-agent
 
+**2026-09-28 갱신 (design-agent)** — `S1-E-1` 정정 **1건만**. §3.4 `@theme --color-*` 행의 유틸리티 예시를 `border-subtle` → **`border-border-subtle`** 로 바로잡고, `--color-*` 토큰의 유틸리티 이름 규칙을 같은 절에 명시했다 (Stage 1-E 가 컴파일로 확인). 토큰 이름·값·다른 절은 바뀌지 않았다. 같은 절의 나머지 예시(`text-fg-primary` · `bg-surface-glass` · `bg-capability-emotion-bg` · `rounded-card` · `shadow-glass-rest` · `backdrop-blur-material-md` 등)와 문서 전체의 클래스 예시를 전수 확인했고 **다른 오류는 없었다.**
+
 **2026-09-23 갱신 (design-agent)** — Stage 1 구현으로 확정된 사실을 반영했다. **새 요구사항·새 디자인 결정은 만들지 않았다.** 갱신 절과 근거:
 
 | 절 | 반영한 확정 사실 | 근거 |
@@ -384,7 +386,7 @@ border는 각각 `--haru-palette-red / -yellow / -green / -blue` (Figma 파스�
 
 | 방식 | 대상 | 생성 유틸 예 |
 |---|---|---|
-| `@theme` `--color-*` | §3.2.1 전체 64개 | `text-fg-primary`, `bg-surface-glass`, `border-subtle`, `bg-capability-emotion-bg` |
+| `@theme` `--color-*` | §3.2.1 전체 64개 | `text-fg-primary`, `bg-surface-glass`, `border-border-subtle`, `bg-capability-emotion-bg` |
 | `@theme` `--font-*` | `--font-sans` | `font-sans` |
 | `@theme` `--text-*` (+ `--line-height`/`--font-weight`/`--letter-spacing` 보조) | 11 style | `text-body`, `text-caption-2` |
 | `@theme` `--font-weight-*` | 5종 | `font-semibold` |
@@ -408,6 +410,8 @@ border는 각각 `--haru-palette-red / -yellow / -green / -blue` (Figma 파스�
 | **`@utility`** | 아이콘 크기 | `size-icon-sm` `size-icon-md` `size-icon-lg` |
 
 근거: Plan §5.5 — z-index·motion·material·layout·safe-area는 v4 네임스페이스가 없으므로 `@utility` 로 노출해 화면 코드의 `style={{ … var(--z-dialog) }}` inline 사용과 arbitrary value를 막는다.
+
+**유틸리티 이름 규칙 (S1-E-1, Stage 1-E 컴파일 확인 2026-09-28)** — `@theme` `--color-*` 토큰은 `<유틸리티 접두사>-<토큰 이름에서 `--color-` 를 뗀 나머지>` 로 생성된다. 따라서 `--color-border-subtle` 의 border-color 유틸리티는 `border-subtle` 이 아니라 **`border-border-subtle`** 이다(`border-` 접두사 + `border-subtle` 토큰명). 같은 규칙으로 `text-border-subtle` · `bg-border-subtle` 도 생성된다. 토큰 이름이 유틸리티 접두사와 같은 단어로 시작하면 접두사가 중복돼 보이지만 정상이다.
 
 ### 3.5 화면 raw 값 → 스케일 흡수표 (Stage 1 확정분)
 

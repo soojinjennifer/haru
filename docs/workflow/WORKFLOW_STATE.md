@@ -8,12 +8,12 @@
 
 | 항목 | 값 |
 |---|---|
-| Major Stage | **Stage 2** — Auth · Consent · Onboarding · Child Profile · Home 골격 |
-| Stage Status | **`COMPLETE`** — Verdict `PASS` (2026-09-27, 3회차) |
-| Next Step | **없음 — STOP.** Stage 3 진입은 사용자 승인 후 |
-| Queue 파일 | `docs/workflow/stage-2/QUEUE.md` |
-| QA Fix Loop 횟수 | 2 / 3 (2회차에 해소) |
-| 마지막 갱신 | 2026-09-27 (Stage 2 COMPLETE — Verdict PASS) |
+| Major Stage | **Stage 3** — Home · Activity Card · Library · Book Selection · Recommendation |
+| Stage Status | `IN_PROGRESS` — 사용자 승인으로 착수 (2026-09-28) |
+| Next Step | **`3-PLAN`** (plan-agent) |
+| Queue 파일 | `docs/workflow/stage-3/QUEUE.md` (plan·design 승인 후 생성) |
+| QA Fix Loop 횟수 | 0 / 3 |
+| 마지막 갱신 | 2026-09-28 (Stage 2 커밋·푸시 완료 · Stage 3 착수) |
 
 ## 2-0. Step 진행 기록 (Stage 2)
 
@@ -65,7 +65,7 @@
 | `S1-E-1` | Design Spec §3.4 예시 `border-subtle` → 실제 클래스는 `border-border-subtle` | 1-QA 이후 | 정보 · design-agent 소관 |
 | `S1-E-3` | `TabLayout` 이 BottomTabBar 를 `fixed` 가 아니라 앱 컬럼 내 flex 행으로 배치 (시각 결과 동일) | Stage 3 | 정보 · 탭 마운트 시 재확인 |
 | `S1-E-5` | 클린 체크아웃에서 `dist/` 부재 시 `prebuild`/`predev` 선행 필요 (폰트 resolve) | — | 정보 |
-| `S1-B-3` | Design Spec §14 요약 수치 오류(Tier3 36↔48, provisional 48↔71, Semantic 164↔192) | 1-QA 이후 | design-agent 소관 |
+| ~~`S1-B-3`~~ | ✅ **해소** — §14 정정(Semantic 193 · Tier3 48 · provisional 71→41). 이전 내용: Design Spec §14 요약 수치 오류(Tier3 36↔48, provisional 48↔71, Semantic 164↔192) | 1-QA 이후 | design-agent 소관 |
 | `S1-C-1` | `docs/qa/stage-1-handoff.md` 통합 인계 문서 | 1-G | ✅ **해소** |
 | `S1-G-1` | **PageIndicator `interactive` dot 의 44 터치 타깃이 현재 기하로 불가능** — Spec §9.3(44 요구) ↔ §4.19(dot 7 + gap 6) 내부 충돌. 이웃 확장 영역이 서로를 덮어 1·2번 dot 은 측정 0×0 | 1-G 수정 | **결정됨** (approvals §8) |
 | `S1-G-2` | **TextField 행 높이 42px < 44** (`--field-row-height`, Figma `76:364`). Spec §9.3 터치 표에 TextField 행이 없음 | 1-G 수정 | **결정됨** (approvals §8) |
@@ -86,21 +86,21 @@
 | `S2-CONSENT-1` | `consent_events.source` 의 `signup_oauth` 미구분 — Google·Apple 가입도 `signup_email` 로 기록. 수정은 `consentSourceFor()` 한 함수 | 사용자 판단 | 결정 필요 |
 | `S2-AUTH-1` | `docs/ARCHITECTURE.md` §7.2 가 `AuthGateway` 8메서드만 나열 — 구현·Plan §2.1·AC-2-06 은 9개(`refreshSession()` 누락) | — | ✅ **해소** (2026-09-26) |
 | `S2-HOME-1` | Home 워드마크(`26:39`) **에셋화 여부** — Design Spec §2.13 은 "로고 에셋", `COMPONENT_MAP.md` 는 "SF Pro Heavy 21px 텍스트 로고 · 에셋화 NEEDS DECISION". 에셋이 없어 **텍스트(`--text-title-2` 22px heavy)** 로 구현하고 허용 차이 `AD-S2-14` 등록. 에셋 확정 시 `HomeTopBar` 의 `Text` 1곳만 교체 | 디자이너 | 결정 필요 |
-| `S2-HOME-2` | 온보딩 화면 3건(`179:1748`·`179:1770`·`179:1809`) **시각 baseline 미생성** — AC-2-56 이 이 node 들을 명시한다 | `2-QA` | 확인 필요 |
+| ~~`S2-HOME-2`~~ | ✅ **해소** — Fix Loop 1 에서 영역 클립 baseline 3건 추가. 이전 내용: 온보딩 화면 3건(`179:1748`·`179:1770`·`179:1809`) **시각 baseline 미생성** — AC-2-56 이 이 node 들을 명시한다 | `2-QA` | 확인 필요 |
 | `S2-AUTH-2` | Apple 버튼 표면이 solid white 가 아니라 `variant=glass` — 허용 차이 `AD-S2-13` 등록됨. Design Spec §11.3 표 반영 여부 | design-agent | 정보 |
 | `S2-COPY-1` | Figma `179:1763`/`179:1767` 문구가 5단계 소개 화면인데 Step 5 만 설명 — 교체 문구는 **기획 결정 필요**. copy 모듈에 빈 슬롯(`intro.durationSlot`·`formatSlot` = `null`)으로 두었고 슬롯이 비면 해당 InfoRow 를 렌더하지 않는다. 질문지 문서의 "~2.5 minutes · five questions" 는 Q1~Q5 만 센 값이라 **그대로 쓸 수 없다**(Step 1·Step 5 가 더 있다) | `2-ONBOARDING` 처리 완료 · 문구 확정 대기 | **결정 필요** |
 | `S2-ONB-1` | 질문지 문서가 Q1·Q2·Q4 를 **Required** 로 적지만 결정 `D-C` 는 Step 2~4 를 **전부 선택**으로 확정 — 구현은 **D-C 를 따랐다**. 추천 엔진 cold-start 품질과의 트레이드오프 | 기획 확인 권장 | 확인 필요 |
 | `S2-ONB-2` | 질문지 **Q5 표지 그리드**(8권 프리셋, 2열 커버 썸네일) 미구현 — 표지 이미지가 **Stage 3** 범위(Design Spec §4.3). 같은 데이터는 "집에 있는 책" 제목 입력으로 수집 중 | Stage 3 | 결정 필요 |
 | `S2-ONB-3` | `HARU_Onboarding_Questionnaire_v1-1.docx.md` 가 `CLAUDE.md` Source of Truth 표에 **미등재** — 이 Step 으로 온보딩 문항의 근거 문서가 되었다 (approvals §8.3 재확인) | 사용자 판단 | 결정 필요 |
 | `QA-1-004` | `devWarn` 주석의 살균 문자 집합 표기 부정확 · "PII 불가" 표현이 실제 보장보다 강함 · `import.meta.env.DEV` 게이트 없어 production 번들 포함 (1회차 `Icon.tsx` 와 동일 동작이라 회귀 아님) | Stage 2 착수 전 | 정보 (AC 는 PASS) |
-| `QA-1-002` | TextField `trailingAction` 밑줄 — Figma `76:417` 에는 없음. WCAG 1.4.1 관점에서는 개선일 수 있어 QA 가 단독 판정하지 않음 | 사용자 판단 | **결정 필요** (AC 는 PASS) |
+| ~~`QA-1-002`~~ | ✅ **해소** — 결정 `D-14` 로 밑줄 제거 + `P-17` 가값 등록 (Stage 2-UI). 이전 내용: TextField `trailingAction` 밑줄 — Figma `76:417` 에는 없음. WCAG 1.4.1 관점에서는 개선일 수 있어 QA 가 단독 판정하지 않음 | 사용자 판단 | **결정 필요** (AC 는 PASS) |
 | `QA-1-003` | 일부 baseline 에 gallery nav pill·FAB 가 demo 블록 위에 겹쳐 캡처됨 — 가려진 영역 회귀 미탐지 | 1-QA 이후 | 정보 (AC 는 PASS) |
 | `S1-G-6` | 확정 임계값 `maxDiffPixels: 200` 이 전체 프레임 baseline 에서 21px 아이콘 교체를 놓친다 (실측 diff 110–178px). 요소 단위 baseline 은 비율 0.002 로 정상 탐지(`v9-icon` 346px) | 사용자 판단 | 정보 · 조정 가능 |
 | ~~`S2-TOKEN-1`~~ | `--space-7`(28) · `--space-10`(40) 이 토큰에 미정의인데 Design Spec 이 8곳에서 참조 | design-agent | ✅ **문서 해소** (2026-09-27) — **신규 토큰 2건 제안**, 추가는 development-agent |
 | ~~`QA-2-005`~~ | Figma `179:1813`(27/33) · `179:1831`(30) 에 `--text-title-2`(22/28) 배정 — 흡수표 `AD-6`(27→28) 밖 | design-agent | ✅ **문서 해소** — `title-1` 로 정정 + `AD-S2-17` 등록. **구현 변경 필요** |
 | ~~`QA-2-006`~~ | §2.11 축소 순서 ②(일러스트 비율 축소)가 실제로 발동하지 않음 | design-agent | ✅ **문서 해소** — 실제 동작으로 재작성 |
 | ~~`QA-2-007`~~ | §2.11 이 `asset=hello-heart` 로 적고 검산 전제(제목 66)가 토큰(56)과 자기모순 | design-agent | ✅ **문서 해소** — `hello-heart-full` 정정 + 제목 68 기준 재계산 |
-| **`S2-FOLLOW-1`** | **위 문서 개정에 따른 구현 반영 3건** — ① `--space-7`·`--space-10` 토큰 추가(렌더 변화 0) ② `OnboardingSaved` 제목 `title-2`→`title-1` ③ `LogInPage` 제목 `title-1` + 부제→소셜 간격 24→40. baseline `s2-onboarding-saved`·`s2-login` 재생성 | **development-agent** | **진행 중** |
+| ~~`S2-FOLLOW-1`~~ | ✅ **해소** (커밋 `ef0443a`·`0825112`) — 실측 검산 기준 대비 ≤0.01px. 이전 내용: 문서 개정에 따른 구현 반영 3건 — ① `--space-7`·`--space-10` 토큰 추가(렌더 변화 0) ② `OnboardingSaved` 제목 `title-2`→`title-1` ③ `LogInPage` 제목 `title-1` + 부제→소셜 간격 24→40. baseline `s2-onboarding-saved`·`s2-login` 재생성 | **development-agent** | **진행 중** |
 | `S2-CARD-1` | 설문 카드 내부 간격 환산 정확도 — eyebrow→question 명세 4 ↔ Figma 7, question→옵션 명세 24 ↔ Figma 45. 질문 박스 높이가 실제 행수에 따라 달라져 baseline 과 함께 판단 필요 | 사용자 판단 | 정보 |
 | `S2-WELCOME-1` | welcome 상단 여백 Figma 94 ↔ 명세 40 — Figma 에 없는 Apple 버튼(`AD-S2-2`)이 회수분을 쓰므로 복원하려면 화면 세로 재설계 필요 | 사용자 판단 | 정보 |
 | `S1-G-7` | source map(`dist/**/*.js.map`)에 소스 주석이 포함된다. 배포 JS/CSS/HTML 에는 dev 문자열 0건이나, map 을 함께 배포하면 소스 텍스트가 공개된다 | Stage 8 (C-18 프리뷰 배포) | 정보 |
@@ -114,8 +114,8 @@
 |---|---|---|
 | 0 | Architecture · Figma Mapping · Design System · API Contract Planning | `COMPLETE` (승인 2026-09-14) |
 | 1 | Frontend Foundation | **`COMPLETE`** (Verdict PASS, 2026-09-21). 이후 P-10 확정 + 그림자 클리핑 결함 수정 (2026-09-23, 미커밋) |
-| 2 | Auth · Consent · Onboarding · Child Profile · Home 골격 | **`COMPLETE`** (Verdict PASS, 2026-09-27, 미커밋). **Stage 2-B**(`C13-09`·`C13-10`)는 디자이너 Figma 대기 |
-| 3 | Home · Activity Card · Library · Recommendation | `NOT_STARTED` |
+| 2 | Auth · Consent · Onboarding · Child Profile · Home 골격 | **`COMPLETE`** (Verdict PASS 2026-09-27 · 커밋 `0825112` 까지). **Stage 2-B**(`C13-09`·`C13-10`)는 디자이너 Figma 대기 |
+| 3 | Home · Activity Card · Library · Recommendation | **`IN_PROGRESS`** (착수 2026-09-28) |
 | 4 | Storytime Session · Recording Client · Upload UX | `NOT_STARTED` |
 | 5 | Reflection · Async Analysis · Short Feedback | `NOT_STARTED` |
 | 6 | Personalization · Profile Update · Recommendation Loop | `NOT_STARTED` |
