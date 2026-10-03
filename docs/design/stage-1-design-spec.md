@@ -124,7 +124,15 @@ Stage 1에는 **사용자에게 보이는 제품 화면이 없다** (Plan §1 No
 - BottomTabBar·Sheet·Toast·Dialog도 **앱 컬럼 폭 안에** 정렬한다 (좌우 `--layout-gutter`).
 - 고정 높이 컨테이너 금지 (텍스트 200% 확대 reflow — DESIGN_SYSTEM §11.2).
 
-> **확인 필요 (design-agent 보고, 결정 아님)**: BottomTabBar 가 sticky = 흐름 안에 남으므로 스크롤 끝에서 마지막 콘텐츠를 가리지 않는다. 구현(`TabLayout.tsx`)은 그래서 `main` 에 `--layout-tabbar-height` 하단 padding 을 적용하지 않는다. 이 문서의 §5.2 · §4.12(Toast) · §6.2 는 아직 "콘텐츠 하단 padding = `--layout-tabbar-height` + `--layout-safe-bottom`" 기술을 유지하고 있다. **`fixed` 전제의 기술이므로 Stage 3 실제 탭 마운트 시 재확인이 필요하다.** 이번 갱신에서는 임의로 고치지 않았다.
+> **해소됨 — `CONFIRMED (D-1, 사용자 결정 2026-09-29 · stage-3-approvals §3)` · 실측 2026-09-30 (Stage 3 Design Spec §2.1)**
+>
+> `sticky` 가 정본이다. 실측(320·393·600·1024 × 스크롤 상단/하단)에서 탭바 하단 모서리는 **항상 뷰포트 하단**(safe-bottom 만큼 띄운 지점)에 있었다 — `main flex-1` 이 남는 높이를 전부 먹기 때문이며, 결과 좌표는 `fixed` 와 같다. 따라서:
+>
+> 1. **콘텐츠 하단에 `--layout-tabbar-height` 를 더하지 않는다.** sticky 는 흐름 안에 있으므로 바 높이는 이미 레이아웃에 잡혀 있다 — 더하면 70px 빈 공간이 생긴다.
+> 2. **중앙 버튼 돌출(35)만 따로 확보한다.** 확보 지점은 탭바 래퍼(`.haru-app-shell__bar-bottom`)의 `padding-block-start` 이며 값은 `--layout-tabbar-center-overhang` 이다. `pt-3`(12)은 23px 부족해 스크롤 하단에서 마지막 콘텐츠를 중앙 버튼이 덮었다(실측).
+> 3. `--layout-safe-bottom` 은 `AppColumn` 의 `padding-block-end` 가 이미 담당한다.
+>
+> 즉 **콘텐츠 아래 확보량 = `--layout-tabbar-center-overhang` + `--layout-safe-bottom`** 이고, 페이지·`main` 은 탭바 관련 하단 padding 을 **추가로 넣지 않는다**(이중 계상 금지). 이 규칙에 맞춰 §4.12 · §5.2 · §6.2 를 갱신했다 (2026-09-30).
 
 ### 2.3 Layout별 영역 구성
 
@@ -640,7 +648,7 @@ border는 각각 `--haru-palette-red / -yellow / -green / -blue` (Figma 파스�
 |---|---|
 | variant `tone` | `neutral`(기본) · `success` · `error` |
 | state | `entering` · `visible` · `exiting` |
-| 치수/배치 | 앱 컬럼 폭 − 2×gutter, **하단** `calc(--layout-safe-bottom + --space-4)`; BottomTabBar가 있는 Layout에서는 `+ --layout-tabbar-height`. radius `--radius-surface`, padding `--space-4`, `Surface fill=strong material=rest` |
+| 치수/배치 | 앱 컬럼 폭 − 2×gutter, **하단** `calc(--layout-safe-bottom + --space-4)`; BottomTabBar가 있는 Layout에서는 `+ --layout-tabbar-height + --layout-tabbar-center-overhang`. radius `--radius-surface`, padding `--space-4`, `Surface fill=strong material=rest` — **갱신 2026-09-30 (D-1 실측)**: 기존 식(`+ --layout-tabbar-height` 까지)은 Toast 하단이 탭바 상단보다 16 위에 오지만, 중앙 버튼이 그보다 **35 더 위**로 돌출해 Toast 와 19px 겹쳤다(`--z-toast` 60 > `--z-tabbar` 20 이라 Toast 가 홈 버튼을 덮는다). overhang 을 더하면 Toast 하단이 중앙 버튼 위 `--space-4` 지점에 놓인다 |
 | z-index | `--z-toast` (60) |
 | duration | 기본 4000ms(액션 없음) / 6000ms(액션 있음); `duration=0` 이면 수동 해제 |
 | 모션 | enter `translateY(12px) → 0` + fade, `--motion-duration-base` `--motion-ease-standard`; exit fade only |
@@ -870,7 +878,7 @@ AppColumn
          └ 액션   Button variant=accent size=md  (선택)
 ```
 - 상하 여백: 콘텐츠 영역 안에서 세로 가운데. 단 스크롤 가능한 목록의 "결과 없음"은 **목록 위치 그대로**(가운데 정렬 아님).
-- BottomTabBar가 있으면 하단 padding = `--layout-tabbar-height` + `--layout-safe-bottom`.
+- BottomTabBar가 있으면 하단 확보량 = `--layout-tabbar-center-overhang` + `--layout-safe-bottom` — **갱신 2026-09-30 (D-1)**. sticky 라 바 높이는 이미 흐름에 잡혀 있으므로 `--layout-tabbar-height` 를 더하지 않는다. overhang 은 탭바 래퍼의 `padding-block-start` 가, safe-bottom 은 `AppColumn` 의 `padding-block-end` 가 담당하므로 **EmptyState 쪽에서 별도 padding 을 넣지 않는다**.
 
 ### 5.3 Error + Retry
 
@@ -1030,7 +1038,7 @@ type BottomTabBarProps = {
 - 중앙 항목도 동일한 `<a>` 이며 시각적으로만 돌출한다. **중앙 버튼 hit area 64 ≥ 44 ✓**, 좌우 항목 hit area = 항목 폭(약 115) × 70 ✓.
 - 라벨은 아이콘과 **항상 함께** 표시한다(텍스트 의존 최소화와 균형: 아이콘+텍스트 병행, PRD §11).
 - 키보드: Tab으로 순차 이동(Tab bar 내부 화살표 키 순환은 도입하지 않음 — 링크 목록이므로).
-- 중앙 버튼이 바 위로 35px 돌출하므로 **바 위 콘텐츠와 겹치지 않도록** 콘텐츠 하단 padding = `--layout-tabbar-height` + `--layout-tabbar-center-overhang` + `--layout-safe-bottom`.
+- 중앙 버튼이 바 위로 35px 돌출하므로 **바 위 콘텐츠와 겹치지 않도록** 돌출분을 확보한다 — **갱신 2026-09-30 (`D-1` 실측)**: 확보량 = `--layout-tabbar-center-overhang` + `--layout-safe-bottom` 이며 `--layout-tabbar-height` 는 **더하지 않는다**(sticky = 흐름 안). 확보 지점은 탭바 래퍼 `.haru-app-shell__bar-bottom` 의 `padding-block-start: var(--layout-tabbar-center-overhang)` 한 곳이다. 현재 구현의 `pt-3`(12)은 23px 부족하다 (실측: 스크롤 하단에서 `main` 하단이 중앙 버튼 상단보다 23px 아래).
 
 ---
 

@@ -1,8 +1,8 @@
 # HARU API Contracts
 
-Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (Rev 6: #33 · C-19 반영)
+Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (Rev 7: Stage 3 승인 결정 D-4 · D-5 · D-8 · D-15 · N-2 · §8.5 반영, 2026-10-02 plan-agent)
 Reflects: `docs/decisions/stage-0-approvals.md` #7 · #8 · #13 · #14 · #15 · #16 · #17 · #19 · #27 · C-1~C-10 · C-12 · C-13 · C-15 · C-16 · C-18 (Rev 5) · #33 · C-19 (Rev 6)
-Decision log: `docs/decisions/stage-0-approvals.md` — 이 문서와 다르면 결정 기록이 우선한다. 라벨: `CONFIRMED (사용자 결정 YYYY-MM-DD, #id)` · `RECOMMENDED` · `NEEDS DECISION (법무, L-xx)`.
+Decision log: `docs/decisions/stage-0-approvals.md` + **`docs/decisions/stage-3-approvals.md` (Stage 3 — §3 · §6 · §6.1 · §7 · §7.1 · §8 · §8.1~§8.6)** — 이 문서와 다르면 결정 기록이 우선한다. 라벨: `CONFIRMED (사용자 결정 YYYY-MM-DD, #id)` · `RECOMMENDED` · `NEEDS DECISION (법무, L-xx)`.
 Based on: PRD v1.4, `docs/ARCHITECTURE.md` (DRAFT 2026-09-14), `docs/DATA_MODEL.md` (DRAFT 2026-09-14), design-agent `docs/FIGMA_SCREEN_MAP.md` · `docs/COMPONENT_MAP.md` (DRAFT 2026-09-14) — Rev 2: Figma 대비 gap §6 추가
 Author: plan-agent (2026-09-14)
 
@@ -115,7 +115,7 @@ Author: plan-agent (2026-09-14)
 | `CompletedReason` | `user_done, auto_timeout, recovered_after_crash` | **CONFIRMED (#16)** (FR-09, NFR 안정성) |
 | `AnalysisOutcome` | `full, excluded_low_quality` | **CONFIRMED (#16)** (§13). `skipped_audio_deleted` 는 OAQ-17 결정 전 enum 제외 (#16). `skipped_consent_revoked` 제거 (C-4) |
 | `UploadStatus` (server 응답) | `pending, uploaded, failed, deleted, expired` | **CONFIRMED (#16)** (별도 upload status). 클라이언트 UploadQueue 상태(`local_only…stalled_48h`)는 contracts 가 아니라 `features/recording` 내부 |
-| `ReadingContext` | `now, bedtime, after_pickup, weekend_morning, in_the_car, custom_time` | §7.4, FR-08 ("유치원 하원 후" = after_pickup — 영문 라벨 design 확인) |
+| `ReadingContext` | `now, bedtime, after_pickup, weekend_morning, in_the_car, custom_time` | §7.4, FR-08. **영문 라벨 CONFIRMED (2026-10-02, `stage-3-approvals.md` §8.5 ⑨)**: `now`=**Now** · `bedtime`=**Bedtime** · `after_pickup`=**After pickup**(PRD "유치원 하원 후") · `weekend_morning`=**Weekend morning** · `in_the_car`=**In the car** · `custom_time`=**Pick a time…**. 라벨 원본 = `docs/design/stage-3-design-spec.md` §2.4. **문구는 copy 모듈에만 두고 enum 값을 화면에 그대로 쓰지 않는다** |
 | `ConsentType` | `terms_of_service, privacy_policy, child_voice_data, marketing, pilot_participation` | **CONFIRMED (사용자 결정 2026-09-14, C-1)** — 필수 여부는 enum이 아니라 `ConsentDocument.required` (pilot = 법무 L-02). `third_party_disclosure` 는 법무 결정 시에만 추가 |
 | `ConsentAction` | `granted` | **CONFIRMED (C-4)** — `revoked` 없음 (동의 철회 MVP 제외) |
 | `Gender` | `girl, boy, prefer_not_to_say` — 필드는 nullable, 미응답 = `null` | **CONFIRMED (사용자 결정 2026-09-14, C-7)** |
@@ -449,6 +449,60 @@ export const isReportEligible = (p: { recordedSeconds: number; recordedSessions:
 
 ---
 
+### 3.6 Prompt 표시 필드 · Activity Card Option (Stage 3 — D-4 · D-5 · D-8 · N-2 · **D-21 · D-22** 반영)
+
+> 근거: `docs/decisions/stage-3-approvals.md` §3 (**D-4 · D-5**, 2026-09-29) · §6.1 (**N-2**, 2026-10-01) · §8 · §8.1 (**D-8**, 2026-10-02) · **§9 · §9.1 (D-21 Prompt 개수 상한 해제 · D-22 `targetCapability` 삭제, 2026-10-03)**.
+> 세 결정 모두 §2 **PRD ↔ Figma 우선순위 원칙**(Figma 우선 + 지점별 승인)으로 **PRD 를 뒤집은 것**이며, 어긋나는 PRD 항목은 `stage-3-approvals.md` §5 **PRD 수정 대상**에 등재되어 있다. Stage 3 Plan 권장안(§16 D-8 = "넣지 않는다")은 **기각**되었다.
+
+```ts
+// packages/contracts/src/prompts/prompt.ts (설계 스케치 — 실제 정의는 packages/contracts)
+export const PromptSchema = z.object({
+  id: z.string().uuid(),
+  kind: PromptKindSchema,                                  // question | follow_up
+  text: z.string().min(1),
+  order: z.number().int().min(0),
+  // ── D-8 (CONFIRMED 2026-10-02) — Figma `PRE` / `POST` 배지, `P.6` 페이지 참조
+  phase: z.enum(['pre', 'post']).nullable().optional(),    // 읽기 전 / 읽은 후
+  pageRef: z.string().nullable().optional(),               // 표시 문자열 (예: "P.6")
+});
+```
+
+| 규칙 | 내용 |
+|---|---|
+| **optional 인 이유** | 전환기에 값이 없는 Prompt 가 섞여도 화면이 깨지지 않게 한다 (§8.1). 서버가 값을 못 내려주는 상태에서도 계약이 성립해야 한다 |
+| **표시 전용** | Frontend 는 `phase`·`pageRef` 를 **생성·추론·가공·재포맷하지 않는다** (`rules/frontend.md` §8). 값이 없으면 배지를 **렌더하지 않는다** |
+| **라벨** | `PRE`/`POST` 라벨 문구와 페이지 표기는 **copy 모듈**에 둔다. enum 값을 화면에 그대로 출력하지 않는다 |
+| **`phase` 값 집합** | `'pre' \| 'post'` 만. §6 G-03 의 과거 후보 `'during'` 은 **Figma 근거가 없어 채택하지 않았다** |
+| **`pageRef` 타입** | `string`. 과거 후보 `number` 는 `"P.6"`·`"pp. 6–7"` 같은 표기를 담을 수 없어 채택하지 않았다 — **표기 책임을 서버/콘텐츠에 둔다** |
+| **Mock** | fixture 가 두 값을 **결정적으로** 채워 화면에 실제로 표시되게 한다 (Stage 3 Plan AC-3-80 · AC-3-81) |
+| **Backend (`BACKEND_INTEGRATION_PENDING`)** | `phase` 판정 로직 = **`P3-BIP-13`** · `pageRef` 책별 페이지 앵커 데이터(큐레이션 20권 **페이지 메타가 없으면 생성 불가** → **콘텐츠 제작 범위**) = **`P3-BIP-14`** (Stage 3 Plan §10 → Stage 8 Handoff 1:1 이월) |
+
+```ts
+// packages/contracts/src/activity/option.ts (설계 스케치)
+export const ActivityCardOptionSchema = z.object({
+  id: z.string().uuid(),
+  position: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+  kind: ActivityOptionKindSchema,                 // book | reread_book | conversation_only
+  book: BookSummarySchema.nullable(),
+  userEnteredBook: z.object({ title: z.string(), author: z.string().optional() }).optional(),
+  reason: z.string().min(1),                      // 추천 이유 1–2문장 (서버 생성 문구)
+  coachingLine: z.string().min(1),                // 부모용 코칭 문장 (서버 생성 문구)
+  capability: CapabilitySchema,                   // D-5 — option 별 역량 (카드 단위 1개가 아니다)
+  promptPreview: z.array(PromptSchema).min(1),    // D-4 — 책 선택 *전* 카드에 노출. D-21 — .max() 없음
+});
+```
+
+| 규칙 | 내용 |
+|---|---|
+| **`capability`** (D-5) | 덱 **카드마다 다른 역량**(CONFIRMED). 화면 배지는 option 값을 쓴다. **카드 단위 `ActivityCard.targetCapability` 는 삭제한다** — **D-22 (CONFIRMED 2026-10-03, §9)**: `D-5` 로 역량이 option 단위가 되어 카드 단위 대표 역량의 사용처가 없다 (`N-3` 과 같은 귀결). PRD §7.4·§8.3(하루 1개 + 날짜 단위 순환)과 충돌 → **PRD 수정 대상 §5-2**, §8.3 순환 규칙은 **추천 엔진 Backend 요구**(`P3-BIP-02`) |
+| **`capability`** 표기 | 역량 **라벨만** 표시한다. `" Day"` suffix 는 폐기(**N-3**, §6). Figma `163:2648` 의 `"Emotion Day Day"`(M-13)는 오타이므로 계약·화면에 옮기지 않는다 |
+| **`promptPreview`** (D-4) | 선택 **전** 카드에 노출. PRD FR-07·§7.4("책 선택 후 제시")와 충돌 → **PRD 수정 대상 §5-1** |
+| **`promptPreview` 길이** (N-2 · **D-21**) | **상한 없음 — `.max(3)` 를 두지 않는다. `.min(1)` 만 둔다**(빈 세트는 화면이 성립하지 않는다; `.min(2)` 로 올리지 않는다 — 서버가 1개만 내려주는 상황을 parse 실패로 만들 근거가 없다). 서버가 더 많이 내려줄 수 있고 **Frontend 는 `slice` 하지 않는다**. 접힌 상태 표시 개수 3은 **cutoff 이며 cap 이 아니다** — 나머지는 확장·키보드로 도달한다. PRD FR-07·§8.2 의 "2~3개"는 **표시 개수로만 유지되고 상한으로는 성립하지 않는다** → PRD 수정 대상 §6.2-4 · §9.3-6. 검증 = Stage 3 Plan **AC-3-17** |
+| **선택 후 `promptSet`** | `POST …/selection` 의 `ActivityCardSelection.promptSet` 은 그대로 유지된다 (선택 전 preview ↔ 선택 후 set 은 별개 필드) |
+| **`promptSet.questions` 길이** (**D-21**) | `promptPreview` 와 **동일 규칙** — `.min(1)`, **상한 없음**, Frontend `slice` 금지. "책별 최소 6개 · 제시 2~3개"(PRD §8.2)는 **Backend 생성 정책**이며 **Frontend 검증 조건이 아니다** (Stage 3 Plan `P3-BIP-03`) |
+
+---
+
 ## 4. Endpoint Groups by Stage
 
 표기: Request/Response는 contracts schema 이름(`…RequestSchema` / `…ResponseSchema` 접미사 생략). **IK** = Idempotency-Key 필수. **CG** = `child_voice_data` 동의 가드.
@@ -542,15 +596,15 @@ Home 상단 설정 아이콘(`26:44`) → 설정 목록. Stage 2는 `/` Home ske
 
 | Method | Path | Request | Response | Key errors | PRD |
 |---|---|---|---|---|---|
-| GET | `/v1/children/:childId/home` | — | `HomeSummary` (todayCard, streakDays, sessionsThisWeek, lastHighlightLine?, activeSession?) | ONBOARDING_INCOMPLETE | FR-07, §6.1, §7.4 보조 요소 |
-| GET | `/v1/children/:childId/activity-cards/today` | — | `ActivityCard` (date, targetCapability, options[3]{kind, book, reason, coachingLine}) | ONBOARDING_INCOMPLETE | FR-07 (2초 내 로딩 NFR) |
-| POST | `/v1/activity-cards/:cardId/selection` | `SelectActivityOption` (optionId, readingContext, customTime?) | `ActivityCardSelection` (option, promptSet{questions[2–3], coachingLine, followUps}) | RESOURCE_NOT_FOUND | FR-07 책 선택 후 Prompt, FR-08 |
+| GET | `/v1/children/:childId/home` | — | `HomeSummary` (todayCard, sessionsThisWeek, **characterLine**, lastHighlightLine?, activeSession?) — **`streakDays` 삭제 · `characterLine` 추가 (CONFIRMED 2026-10-02, `stage-3-approvals.md` §8.5 ①·④)** | ONBOARDING_INCOMPLETE | FR-07, §6.1, §7.4 보조 요소 |
+| GET | `/v1/children/:childId/activity-cards/today` | — | `ActivityCard` (date, options[3]{kind, book, reason, coachingLine, **capability**, **promptPreview[]**}) — **`targetCapability` 없음 (D-22)** — **`options[].capability` = D-5 · `options[].promptPreview` = D-4 (CONFIRMED 2026-09-29, §3)**. 상세 §3.6 | ONBOARDING_INCOMPLETE | FR-07 (2초 내 로딩 NFR) |
+| POST | `/v1/activity-cards/:cardId/selection` | `SelectActivityOption` (optionId, readingContext, customTime?) | `ActivityCardSelection` (option, promptSet{questions(**`.min(1)`, 상한 없음 — D-21**), coachingLine, followUps}) | RESOURCE_NOT_FOUND | FR-07 책 선택 후 Prompt, FR-08 |
 | GET | `/v1/children/:childId/library` | `?filter=owned\|gifted\|history` cursor | `Paginated<LibraryBook>` | — | FR-20, FR-22 |
 | POST | `/v1/children/:childId/library/books` (IK) | `AddOwnBook` (bookId \| title+author) | `LibraryBook` | VALIDATION_FAILED | FR-23, §8.1 |
-| GET | `/v1/books/:bookId/prompts?childId=` | — | `BookPrompts` (promptSets for age band) | — | FR-20 "책별 Prompt 보기" |
-| POST | `/v1/children/:childId/gift-requests` (IK) | `CreateGiftRequest` (bookId, shipping — OAQ) | `GiftRequest` | GIFT_REQUEST_DUPLICATE | FR-22, §13 |
+| GET | `/v1/books/:bookId/prompts?childId=` | — | `BookPrompts` (promptSets for age band) — 각 `Prompt` 는 **`phase`·`pageRef`(optional)** 를 포함할 수 있다 (§3.6, D-8) | — | FR-20 "책별 Prompt 보기" |
+| POST | `/v1/children/:childId/gift-requests` (IK) | `CreateGiftRequest` = **`{ bookId }` 만 — 배송지 필드 없음 (CONFIRMED 2026-10-02, §8 D-15)** | `GiftRequest` | GIFT_REQUEST_DUPLICATE | FR-22, §13. 배송지 수집·저장은 운영·법무 결정 후 별도 Stage (`P3-BIP-06`) |
 | GET | `/v1/children/:childId/gift-requests` | — | `GiftRequest[]` | — | §13 배송 상태 서재 확인 |
-| GET | `/v1/notification-preferences` | — | `NotificationPreferences` | — | FR-08, §7.8 |
+| GET | `/v1/notification-preferences` | — | `NotificationPreferences` | — | FR-08, §7.8. **Contract 정의 유지** — D-18(2026-10-02, §8.4)은 **알림 설정 화면만** Stage 3 제외이며 contract 는 삭제하지 않는다 |
 | PUT | `/v1/notification-preferences` | `UpdateNotificationPreferences` | `NotificationPreferences` | — | FR-08, §7.8 |
 | POST | `/v1/push-devices` | `RegisterPushDevice` (platform, token) | `PushDevice` | — | FR-08 |
 | DELETE | `/v1/push-devices/:id` | — | 204 | — | FR-08 |
@@ -756,17 +810,19 @@ apps/web/src/
 
 ## 6. Figma 대비 Contract Gap (design-agent 결과 반영)
 
-아래 항목은 **계약에 추가하지 않았다.** PRD 근거가 없거나 PRD와 충돌하는 Figma 요소이므로, 해당 불일치(M-xx)가 결정된 뒤에만 contracts·Mock에 반영한다.
+아래 항목은 작성 시점(2026-09-14) 기준으로 **계약에 추가하지 않은 것**이다. PRD 근거가 없거나 PRD와 충돌하는 Figma 요소이므로, 해당 불일치(M-xx)가 결정된 뒤에만 contracts·Mock에 반영한다.
+
+> **갱신 2026-10-02 (plan-agent)** — Stage 3 승인으로 **G-02 · G-03 · G-05 · G-07 4건이 해소**되었다 (`docs/decisions/stage-3-approvals.md` §3 · §8 · §8.5). `라벨` 열을 참조하고, 해소 항목은 **§3.6 · §4 Stage 3 표가 정본**이다. 나머지 항목은 여전히 `NEEDS DECISION` 이다.
 
 | # | Gap | Figma 근거 | 현재 계약 | 채택 시 후보 변경 | 라벨 |
 |---|---|---|---|---|---|
 | G-01 | **주간 Progress 지표** (주간 세션 수·총 분·전주 대비 %, 요일별 분, 월 출석 달력, 주별 분, longest streak, % of nights read, 평균 세션 길이) | `31:102`, `110:522` | `ReportOverview` 에 주간 지표 없음 (PRD §7.7은 4주 리포트만) | `GET /v1/children/:childId/progress?weekStart=` → `WeeklyProgress`. 비교·달성률 표현("+18% vs last week", "80% of nights read")은 M-12 copy 결정 필요. 탭 표시 이름 "Progress"는 #15로 확정 (지표 채택과 별개) | NEEDS DECISION (M-10) |
-| G-02 | **홈 누적 읽기 분** ("12-day/115 Min") | `26:40`, `26:43` | `HomeSummary` = `streakDays`, `sessionsThisWeek`, `lastHighlightLine?` — minutes 없음 | `HomeSummary.totalMinutes` (집계 기간 정의 필요: 누적 / 이번 주 / streak 기간). PRD §7.4 보조 요소에는 "분" 없음 | NEEDS DECISION (M-30) |
-| G-03 | **Prompt 단계·페이지 태그** PRE / POST / P.6 | `139:2410–2412`, `163:2648`, `145:1132`, `88:960` | `Prompt` = `text`, `kind`(question/follow_up) | `Prompt.phase: 'pre' \| 'during' \| 'post'`, `Prompt.pageRef: number \| null` (+ DATA_MODEL `prompts` 컬럼, 콘텐츠 제작 범위 확대) | NEEDS DECISION (M-29) |
-| G-04 | **책 저장 / My Saved, 책 평점, 읽기 진행** ("Save to my shelf", "Rated 4.5", "Reading now · 3 of 5 nights", "Last read Tue · 12 min") | `86:245`, `86:372`, `145:1157`, `109:511`, `145:1141–1152` | 없음 (PRD FR-20 범위 밖) | `LibraryBook.saved` + `PUT/DELETE /v1/children/:childId/library/books/:id/saved`; `LibraryBook.averageRating` (회고 별점 집계인지 정의 필요); reading plan 모델(`targetNights`, `nightsRead`, `lastReadAt`) | NEEDS DECISION (M-14) |
-| G-05 | **덱 카드별 역량** | `163:2648` — 3장이 각각 Self-Direction / Emotion / Intrinsic Motivation | `ActivityCard.targetCapability` = 카드(하루) 단위 1개 (PRD §7.4 "오늘의 역량 배지", §8.3 순환 스케줄) | (a) PRD 유지: 3개 option 모두 같은 역량 표시 (b) `ActivityCard.options[].capability` 추가 + 순환 스케줄 규칙 변경 | NEEDS DECISION (M-31) |
+| G-02 | **홈 누적 읽기 분** ("12-day/115 Min") | `26:40`, `26:43` | `HomeSummary` = `sessionsThisWeek`, `characterLine`, `lastHighlightLine?` — **minutes 없음 · `streakDays` 도 삭제됨** | **채택하지 않음.** `totalMinutes` 미추가 | **CONFIRMED (2026-09-29 §3 D-6 · 2026-10-02 §8.5 ①·④; M-30 해소)** — Home 집계는 "이번 주" 기준(=`/progress` 와 동일 창), Figma "12-day" 연속 일수 미채택, 누적 분 미표시. `streakDays` **삭제**(달성률 언어), `characterLine` **추가**(서버 값만 표시, 없으면 버블 미렌더) |
+| G-03 | **Prompt 단계·페이지 태그** PRE / POST / P.6 | `139:2410–2412`, `163:2648`, `145:1132`, `88:960` | **추가 완료** — `Prompt` = `text`, `kind`, **`phase: 'pre' \| 'post' \| null` (optional)**, **`pageRef: string \| null` (optional)** — §3.6 | 반영 완료. 과거 후보 `'during'`·`pageRef: number` 는 **채택하지 않음** | **CONFIRMED (2026-10-02, §8 · §8.1 D-8; M-29 해소)** — Figma 기준 채택, Plan 권장안 기각. Backend: `phase` 판정 = `P3-BIP-13`, `pageRef` 책별 페이지 앵커 데이터 = `P3-BIP-14` (**콘텐츠 제작 범위** — 큐레이션 20권 페이지 메타 필요) |
+| G-04 | **책 저장 / My Saved, 책 평점, 읽기 진행** ("Save to my shelf", "Rated 4.5", "Reading now · 3 of 5 nights", "Last read Tue · 12 min") | `86:245`, `86:372`, `145:1157`, `109:511`, `145:1141–1152` | 없음 (PRD FR-20 범위 밖) | `LibraryBook.saved` + `PUT/DELETE /v1/children/:childId/library/books/:id/saved`; `LibraryBook.averageRating` (회고 별점 집계인지 정의 필요); reading plan 모델(`targetNights`, `nightsRead`, `lastReadAt`) | **CONFIRMED — 채택하지 않음 (2026-10-01, `stage-3-approvals.md` §7 D-7; M-14 해소)**: 서재는 FR-20·FR-22 의 4기능만. 평점은 저장 위치·집계 규칙이 없고 HARU 의 비판정 톤과 거리가 있어 제외하며, Figma 차이는 **허용 차이로 기록**한다. 재검토는 별도 Stage·승인 |
+| G-05 | **덱 카드별 역량** | `163:2648` — 3장이 각각 Self-Direction / Emotion / Intrinsic Motivation | **(b) 채택** — `ActivityCard.options[].capability` **추가**, 카드 단위 `targetCapability` 는 **삭제**(D-22, 2026-10-03 §9) (§3.6) | 반영 완료. §8.3 순환 스케줄 규칙 변경은 **추천 엔진 Backend 요구**(`P3-BIP-02`) | **CONFIRMED (2026-09-29, §3 D-5; M-31 해소)** — Figma 우선 적용, PRD §7.4·§8.3 은 **PRD 수정 대상 §5-2**. `" Day"` suffix 폐기(N-3), "Emotion Day Day"(M-13) 오타 미복제 |
 | G-06 | **회고 칩 정의** | `91:710–714` Engaged / Big feelings / Ask Questions / Stay Focus / Tricky today (on/off) + 별점 `91:693` + 한 줄 입력 `91:716` | `ReflectionFormDefinition` 은 이름만 정의, `SubmitReflection.checks` 값 형태·선택지 미정 | PRD 체크 5종 ↔ 칩 1:1 매핑 후보 (아이 반응↔Engaged, 감정 표현↔Big feelings, 질문 여부↔Ask Questions, 집중 시간↔Stay Focus, 어려웠던 점↔Tricky today). 칩 = boolean인지 항목별 선택지인지, 문구, 자유 후기 별도 카드 여부 결정 후 `ReflectionCheckKey` enum + `checks: Record<ReflectionCheckKey, boolean>` 확정 | NEEDS DECISION (M-15) |
-| G-07 | **Prompt 노출 시점** | 모든 카드 변형이 책 선택 전 Prompt 노출 (`163:2648`, `86:438`, `86:512/545`) | `ActivityCard.options[]` 에 prompt 없음, `SelectActivityOption` 응답에서 `promptSet` 제공 (PRD §7.4) | Figma 채택 시 `options[].promptPreview` 추가 | NEEDS DECISION (M-09) |
+| G-07 | **Prompt 노출 시점** | 모든 카드 변형이 책 선택 전 Prompt 노출 (`163:2648`, `86:438`, `86:512/545`) | **`options[].promptPreview: Prompt[]` 추가** (선택 전 노출). `SelectActivityOption` 응답의 `promptSet` 은 그대로 유지 — §3.6 | 반영 완료. **길이 상한 없음**(N-2 + **D-21**: `.min(1)` 만, `.max(3)` 없음, Frontend 가 `slice` 하지 않는다 — 표시 개수 3은 cutoff) | **CONFIRMED (2026-09-29 §3 D-4 + 2026-10-01 §6.1 N-2; M-09 해소)** — Figma 우선 적용, PRD FR-07·§7.4·§8.2 는 **PRD 수정 대상 §5-1 · §6.2-4** |
 | G-08 | **세션 준비 버블에 Prompt 목록** ("Try this prompt !") | `139:2803` | `SessionSummary.bubble` = 검수 템플릿 인사, `prompts` 는 Prompt 모아보기용 | PRD §7.5(자동 제시 금지) 기준 현 계약 유지 | NEEDS DECISION (M-25) |
 | G-09 | **녹음 Discard / Submit** | `163:1618`, `163:1620` (용도 불명) | 녹음 폐기 전이 없음 | 채택 시 FR-21 삭제 흐름·동의 정책과 함께 정의 (예: 완료 전 폐기 = `abandoned` + 로컬 삭제, 서버 업로드 없음) | NEEDS DECISION (M-26) |
 | G-10 | **가입 화면 아이 정보** | `179:1740` | 가입 입력에 아이 필드 없음 (`SignUpWithEmailInput`), 아이 정보는 동의 후 온보딩 Step 1 `child_info` (성·이름 두 칸, 성별 선택) — §3.4 | 반영 완료. Figma 가입 화면 수정은 디자이너 요청 | CONFIRMED (사용자 결정 2026-09-14, C-5 · C-6 · C-7; M-28 해소) |

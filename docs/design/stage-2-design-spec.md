@@ -16,6 +16,13 @@
 
 **개정 4 (2026-09-28, design-agent)** — §2.10 온보딩 **단계 구성**을 결정 **`D-A`·`D-B`**(approvals §8, 2026-09-26)에 맞춘다. 개정 3(`S2-ONB-1`)이 필수 여부만 다루고 남겨 둔 잔여 구간이다. ① **Step 2**: `D-A` 이전 판의 4축(활동성·낯가림·집중 성향·선호 활동, `QuestionBlock × 4`) → 질문지 v1.1 **Q1·Q4 두 문항**(단일 선택 `RadioGroup` 2개, 선택지 4·5) 으로 교체. ② **Step 3**: 주제 문항을 **Q3**(복수 최대 2, 선택지 5, `not_sure_yet` 배타)로 명시하고 고정 `SectionLabel` 을 문항 legend 로 대체. ③ **Step 4**: `D-B` — 성장 목표 = **4대 역량과 같은 목록**(`GrowthGoalSchema = CapabilitySchema`). 이전 판의 "4대 역량과 같은 개념이 아니다" 서술을 폐기하고, **Step 4 와 프로필 결과가 서로를 평가하지 않는다**는 제약(approvals §8.2)을 Stage 2-B 상속 조항으로 명문화. ④ §13.1 ⑭ 를 `D-A`·`D-B` 해소분과 잔여분으로 분리. **이 개정은 이미 구현·contracts 에 반영된 사실을 문서에 맞춘 것이며, 값·레이아웃·토큰을 하나도 바꾸지 않았다** — 통과한 시각 비교 baseline 42건은 그대로 유효하다. **새로 요구하는 구현 변경은 없다** — 개정 3 이 남긴 copy 1건(§14-12 ③)이 그대로 남을 뿐이다 (§14-13).
 
+**개정 5 (2026-10-02, design-agent)** — **`D-12`(`S2-ONB-2`) Q5 표지 프리셋 그리드 명세 추가**. 근거 = `docs/decisions/stage-3-approvals.md` **§8 `D-12` · §8.5 ⑥** (2026-10-02, user). **Stage 3 Design Spec 이 Stage 2 화면을 재명세하지 않고, 화면 명세 소유를 이 문서에 두는 것**이 결정이다 (design-agent §13.1 ⑥ 의견 채택).
+
+- 추가 절: **§2.10 Step 3 → `#### Step 3 보강 — Q5 표지 프리셋 그리드 (D-12)`**. 기존 Step 3 명세는 **그대로 유지**되며 "BOOKS AT HOME" 블록에 그리드가 **얹힌다**.
+- **구현 Stage 는 Stage 3** 다 — 표지 에셋·`BookCover`·카탈로그 fixture 가 Stage 3 범위라서 이월된 항목이다. **Stage 2 구현을 되돌리지 않는다.**
+- 이 개정은 **Step 3 화면의 구현 변경과 시각 baseline 재생성 1건**(`s2-onboarding-books`)을 요구한다 (§14-14).
+- 값·토큰은 하나도 새로 만들지 않았다. 사용하는 모든 값은 Stage 1 §3 토큰 + Stage 3 Design Spec §6.2 의 `--book-cover-*` Tier-3 토큰이다.
+
 ---
 
 ## 0. 이 문서를 읽는 법
@@ -536,6 +543,52 @@ QuestionBlock × 1                                ← 문항 목록은 instrumen
 - **이 단계의 문항은 전부 선택이다** — `CONFIRMED (S2-ONB-1, 2026-09-28)`. CTA 를 막지 않으며 차단 사유 문구도 나오지 않는다. 문항별 "Optional" 표식도 두지 않는다 (§2.9 표식 규칙 — 전부 선택인 단계).
 - 검색은 `GET /v1/books/search` 최소 범위 (`Plan D-17 전제`). 표지 이미지(`ListRow media`)는 **Stage 3** 이므로 Stage 2 행에는 표지를 넣지 않는다 (§4.3).
 - 입력 디바운스·요청 타이밍은 구현 결정. 화면은 **150ms 미만 응답 시 Skeleton을 그리지 않는다**(Stage 1 §5.1).
+
+#### Step 3 보강 — Q5 표지 프리셋 그리드 · `CONFIRMED (D-12, stage-3-approvals §8 · §8.5 ⑥)`
+
+> **구현 Stage = Stage 3.** 이 절은 **Stage 2 화면(`/onboarding/books`)의 명세**이지만, 표지 에셋·`BookCover`·카탈로그 fixture 가 Stage 3 범위라서 **구현이 Stage 3 로 이월**된 항목이다 (`S2-ONB-2`). Stage 3 Design Spec 은 이 화면을 재명세하지 않고 **이 절을 참조**한다.
+
+**근거** — 질문지 v1.1 **Q5** 를 "the single highest-ROI question" 으로 명시한다. 이미 보유한 책을 추천 후보에서 제거하는 것이 cold-start 추천 품질의 핵심이며, **제목 자유 입력만으로는 `book_id` 매칭이 불확실**해 엔진이 쓸 수 있는 데이터가 되지 않는다.
+
+**놓이는 위치** — 기존 `SectionLabel "BOOKS AT HOME"` 아래, **기존 "집에 있는 책" 제목 입력(`TextField label="Add a book at home"`) 위**다. 기존 블록은 **삭제·대체되지 않는다**.
+
+```
+SectionLabel "BOOKS AT HOME"
+├ BookPresetGrid                                  ← ★ 추가 (D-12)
+│   ├ 질문 legend  (instrument Q5 문구)            ← 화면이 제목을 박지 않는다
+│   ├ grid 2열 × n행  (프리셋 8권, 서버 값)
+│   │    └ BookPresetItem × 8
+│   │         ├ BookCover(lg, variant=default|selected)
+│   │         └ 제목 (2줄 말줄임)
+│   └ 보조 문구 (선택 안 함 허용을 알리는 1줄, instrument/copy 소유)
+├ (gap --space-5)
+└ TextField label="Add a book at home" trailingAction="Add"   ← 기존 경로 유지
+      → ListGroup 누적, 행마다 Remove
+```
+
+**규칙**
+
+| 항목 | 규격 |
+|---|---|
+| **선택 방식** | **다중 선택**, **선택 안 함 허용**. 상한 없음 (Step 3 의 "좋아하는 책 최대 5권" 상한과 **다른 축**이다 — 혼동하지 않는다) |
+| **필수 여부** | **선택**이다. CTA 를 막지 않으며 차단 사유 문구도 나오지 않는다 (`S2-ONB-1` — Step 3 는 전부 선택인 단계). 문항별 "Optional" 표식도 두지 않는다 (§2.9 표식 규칙) |
+| **데이터 출처** | 프리셋 8권은 **Mock instrument / fixture 응답 값**이다. **화면에 하드코딩하지 않는다** — 8권 선정이 바뀌어도 코드가 바뀌지 않아야 한다 (2026-09-26 사용자 원칙 · `D-A` 구조 제약 ②·③). 제목·표지 경로·식별자 모두 응답 값 |
+| **문항 문구** | 질문 legend 와 보조 문구는 **instrument / copy 모듈이 소유**한다. 고정 `SectionLabel` 을 새로 박지 않는다 (Step 3 Q3 와 같은 규칙 — 문구가 바뀌면 둘이 어긋난다) |
+| **기존 입력 경로** | **유지한다.** 프리셋 밖의 책은 기존 `TextField` + "Add" 로 제목을 직접 넣는다. 프리셋 선택과 직접 입력은 **서로를 배제하지 않는다** |
+| 열 수 | **항상 2열** (질문지 v1.1 "2열 커버 썸네일"). 폭이 줄면 열이 줄지 않고 **아이템이 작아진다** — Stage 3 `Carousel` 의 열 고정 규칙과 같은 취지(페이지 수·읽기 순서의 폭 독립성) |
+| 아이템 | `BookCover(lg)` + 제목(`--text-caption-1`, **2줄 말줄임**). **전체가 하나의 선택 컨트롤**이다 (커버만 누를 수 있게 하지 않는다) |
+| 선택 표현 | `BookCover variant=selected` — pastel 배경 + check 아이콘 (Figma `113:1991`). **색 단독 금지** → check 아이콘(기하)과 `aria-checked` 가 2·3번째 전달 수단이다 |
+| 표지 없음 | `BookCover variant=placeholder` (pastel 배경 + 제목 이니셜 1–2자). **"No cover" 같은 판정 문구를 넣지 않는다** |
+| 치수·간격 | 열 폭 = `(콘텐츠 폭 − --space-3) / 2`, 커버 aspect `--book-cover-aspect`(7/10) + `object-fit: cover`, 행 간격 `--space-4`, 커버↔제목 `--space-2`. **고정 높이를 두지 않는다**(텍스트 200% reflow) |
+| 신규 컴포넌트 | **없다.** `BookCover`(Stage 3 Domain) + `Checkbox`/선택 상태 조합이다. `BookPresetGrid`·`BookPresetItem` 은 **온보딩 feature 안의 조립 단위**이며 `packages/ui` 에 넣지 않는다 |
+| 상태 | **Loading** = 커버 자리 Skeleton 8칸(2열 × 4행) · **Error** = 그리드 자리에만 `InlineAlert tone=error` + 인라인 "Try again" (**직접 입력 경로는 계속 쓸 수 있어야 한다**) · **Empty**(프리셋 0건) = **그리드 자체를 렌더하지 않는다**(빈 슬롯 규칙 `S2-COPY-1`) — 안내 문구를 만들지 않는다 |
+| 오프라인 | 기존 Offline Banner 그대로. 그리드는 마지막 응답을 유지하고 **선택 상태를 잃지 않는다** |
+| 접근성 | `<fieldset>` + `<legend>`(= 문항 문구). 각 아이템은 `role="checkbox"`(또는 `<input type="checkbox">` + 라벨) + `aria-checked`. **접근성 이름 = 책 제목**이며 커버 `alt` 는 제목이 이미 텍스트로 있으므로 **`alt=""`** (중복 읽기 방지, Stage 3 §5.3 규칙과 동일). 터치 타깃은 아이템 **전체 영역**이며 44×44 이상 |
+| 모션 | 선택 전환은 **모션 없음**(즉시). `prefers-reduced-motion` 분기 불필요 |
+| 문구 톤 | "You haven't picked any" 같은 결핍 문구 금지. 선택 안 함이 **정상 경로**임이 보조 문구로 전달돼야 한다 |
+
+- **Step 3 의 기존 "좋아하는 책 최대 5권" 블록과 이 그리드는 다른 질문이다.** 한쪽의 상한·선택 규칙을 다른 쪽에 적용하지 않는다.
+- 선택 결과가 들어가는 contract 필드명·전송 시점은 **plan-agent / development-agent 소관**이다 — 이 절은 화면 규격만 정한다.
 
 #### Step 4 `goals` — **C13-07 (명세)** · `D-B` 반영 (개정 4, 2026-09-28)
 
@@ -1098,6 +1151,7 @@ Stage 2 고유 규칙:
 | `s2-saved` | `/onboarding/saved` 전체 프레임 | 프레임 |
 | `s2-home-header` | `/` 헤더(워드마크 + 설정 아이콘) | 영역 클립 |
 | `s2-selecttrigger` · `s2-inforow` · `s2-listrow` · `s2-dividerlabel` · `s2-deck` | 신규 컴포넌트 (dev gallery) | 영역 클립 |
+| **`s2-onboarding-books`** | `/onboarding/books` **"BOOKS AT HOME" 블록**(Q5 표지 프리셋 그리드 2열 + 직접 입력 필드) — **`D-12`, Stage 3 구현 시 생성** | 영역 클립 (**회귀 전용** `0.002 / 200` — Figma 대응 프레임이 없다) |
 
 - 전체 프레임 baseline은 레이아웃 회귀 전용(`0.002 / 200`), 영역 클립은 Figma 대조용(`0.002 / 20`) — `Plan D-12 전제`.
 - Stage 1의 `AD-1`~`AD-10` 은 **그대로 적용**된다.
@@ -1296,6 +1350,12 @@ PRD §5.1 흐름은 `Step 5 완료 → ③ 프로필 결과 → ④ 발전 역�
     ① 남아 있는 구현 변경은 **`14-12 ③` 1건뿐**이다 (Step 4 보조 문구). `D-B` 관점의 권장 형태: 최소 개수를 **앞에** 두고 기존 문장을 유지한다 — `Pick at least one, up to two. This is about what you want to lean into, not a score.` 뒷문장은 목표를 점수로 읽지 않게 하는 `D-B` 가드라 지울 이유가 없다. **문구 확정 권한은 copy 모듈·사용자에게 있으며 이 문서는 형식만 정한다.**
     ② **하지 않는 것**: Step 2 에 Chip(복수 선택) 컨트롤 부활, Step 3 에 고정 `SectionLabel "TOPICS YOUR CHILD LIKES"` 추가, Step 4 용 별도 목표 enum 신설(`GrowthGoalSchema = CapabilitySchema` 유지), `not_sure_yet`·상한 초과 시 오류 톤·`aria-disabled` 사용.
     ③ **`D-B` 금칙 표현 테스트**: Step 4 와 (이후) 프로필 결과 화면의 copy 에 "목표 대비" · "달성" · "기대 vs 실제" · 점수 비교 어휘가 없는지 확인한다 (§2.10 Step 4 ★, approvals §8.2 QA 확인 항목).
+14. **2026-10-02 개정 5(`D-12` Q5 표지 프리셋 그리드)가 요구하는 구현 변경** — **구현 Stage 는 Stage 3** 다. Stage 2 구현을 되돌리지 않으며, Stage 3 작업 시 아래를 처리한다.
+    ① `/onboarding/books` 의 **"BOOKS AT HOME" 블록에 프리셋 그리드를 얹는다** (§2.10 `Step 3 보강`). 기존 제목 직접 입력 경로는 **삭제하지 않는다**.
+    ② **프리셋 8권을 화면에 하드코딩하지 않는다** — Mock instrument / fixture 응답 값으로 내려온다. 질문 legend·보조 문구도 instrument/copy 소유다 (`D-A` 구조 제약).
+    ③ 신규 Shared UI **0건**, 신규 토큰 **0건**. `BookCover`(Stage 3 Domain, Stage 3 Spec §5.3)와 기존 선택 컨트롤 조합이다. **`BookCover` 는 고정 `aspect-ratio` + `object-fit: cover`**(`QA-2-004` 재발 방지).
+    ④ **시각 baseline `s2-onboarding-books` 1건 생성**(회귀 전용 — Figma 대응 프레임 없음, §11.2). 기존 42건은 영향을 받지 않는다.
+    ⑤ **하지 않는 것**: Q5 를 필수로 만들기, 선택 상한 두기(좋아하는 책 5권 상한과 혼동), 프리셋 밖의 책을 직접 입력으로 못 넣게 막기, "선택하지 않았다"는 결핍 문구 추가.
 
 ---
 
@@ -1313,4 +1373,5 @@ PRD §5.1 흐름은 `Step 5 완료 → ③ 프로필 결과 → ④ 발전 역�
 | 허용 차이 | **`AD-S2-1` ~ `AD-S2-19` (19건)** 사전 등록 (§11.3). 2026-09-28 에 `AD-S2-13`·`AD-S2-14`(handoff 문서에만 있던 2건) + `AD-S2-18`·`AD-S2-19`(`S2-CARD-1`·`S2-WELCOME-1`) 추가 |
 | 결정 대기 | §13.1 **12건** (③ 해소 · ⑧ 부분 해소 · **⑭ 부분 해소** — Step 2·3·4 옵션은 `D-A`·`D-B` 로 확정, Step 1 관계/언어/루틴만 남음. 그중 법무 3건) + Plan D-9 이견 1건 |
 | 2026-09-28 개정 4 (`D-A`·`D-B`) | §2.10 **Step 2** 4축 → 질문지 **Q1·Q4** 2문항(단일 선택, 선택지 4·5) · **Step 3** 주제 = **Q3**(복수 최대 2, 선택지 5, `not_sure_yet` 배타) · **Step 4** 성장 목표 = **4대 역량과 같은 목록**(`D-B`) + 평가·비교 금지 제약(Stage 2-B 상속) · §13.1 ⑭ 정리. **값·레이아웃·토큰 변경 0, baseline 42건 유효, 새 구현 변경 0** |
+| **2026-10-02 개정 5 (`D-12`)** | §2.10 **Step 3 보강** — Q5 표지 프리셋 그리드(2열·다중 선택·선택 안 함 허용, 프리셋은 **Mock instrument/fixture 값**, 직접 입력 경로 **유지**). **구현 Stage = Stage 3**. 신규 토큰 0건, 신규 Shared UI 0건. 요구하는 변경 = Step 3 구현 + baseline `s2-onboarding-books` 1건 |
 | 2026-09-28 확정 반영 | `S2-ONB-1`(Q1·Q2·Q4 필수 — §2.9 신설 · §2.10 Step 2/3/4) · `S2-COPY-1`(빈 슬롯 = InfoRow 미렌더 — §2.8) · `S2-HOME-1`(워드마크 텍스트 — §2.13) · `S2-AUTH-2` · `S2-CARD-1` · `S2-WELCOME-1` (§11.3) |

@@ -10,10 +10,20 @@
 |---|---|
 | Major Stage | **Stage 3** — Home · Activity Card · Library · Book Selection · Recommendation |
 | Stage Status | `IN_PROGRESS` — 사용자 승인으로 착수 (2026-09-28) |
-| Next Step | **`3-PLAN`** (plan-agent) |
+| Next Step | **승인 체크포인트 — STOP.** design 단계 선행 결정 필요 (C-13 8건 · D-1·D-4·D-5·D-6) |
 | Queue 파일 | `docs/workflow/stage-3/QUEUE.md` (plan·design 승인 후 생성) |
 | QA Fix Loop 횟수 | 0 / 3 |
-| 마지막 갱신 | 2026-09-28 (Stage 2 커밋·푸시 완료 · Stage 3 착수) |
+| 마지막 갱신 | 2026-09-29 (Stage 3 Plan 작성 완료 · design 선행 결정 대기) |
+
+## 2-0. Step 진행 기록 (Stage 3)
+
+| Step | Agent | 상태 | 비고 |
+|---|---|---|---|
+| `3-PLAN` | plan-agent | `COMPLETE` | `docs/plans/stage-3-plan.md` (925줄) · AC-3-01~79 · D-1~D-20 · C-13 8건 · PENDING 12건 예상 |
+| **승인 체크포인트** | 사용자 | **대기 중** | design 차단: C-13 8건 + `D-1`(탭바 고정) · `D-4`(Prompt 노출) · `D-5`(카드별 역량) · `D-6`(Home IA) |
+| `3-DESIGN` | design-agent | `PENDING` | 위 결정 후 |
+| `3-IMPL` | development-agent | `PENDING` | 추가 차단: `D-13`(에셋·sharp) · `D-3` · `D-2` · `D-7` |
+| `3-QA` | stage-qa-agent | `PENDING` | |
 
 ## 2-0. Step 진행 기록 (Stage 2)
 
@@ -90,7 +100,7 @@
 | `S2-AUTH-2` | Apple 버튼 표면이 solid white 가 아니라 `variant=glass` — 허용 차이 `AD-S2-13` 등록됨. Design Spec §11.3 표 반영 여부 | design-agent | 정보 |
 | `S2-COPY-1` | Figma `179:1763`/`179:1767` 문구가 5단계 소개 화면인데 Step 5 만 설명 — 교체 문구는 **기획 결정 필요**. copy 모듈에 빈 슬롯(`intro.durationSlot`·`formatSlot` = `null`)으로 두었고 슬롯이 비면 해당 InfoRow 를 렌더하지 않는다. 질문지 문서의 "~2.5 minutes · five questions" 는 Q1~Q5 만 센 값이라 **그대로 쓸 수 없다**(Step 1·Step 5 가 더 있다) | `2-ONBOARDING` 처리 완료 · 문구 확정 대기 | **결정 필요** |
 | `S2-ONB-1` | 질문지 문서가 Q1·Q2·Q4 를 **Required** 로 적지만 결정 `D-C` 는 Step 2~4 를 **전부 선택**으로 확정 — 구현은 **D-C 를 따랐다**. 추천 엔진 cold-start 품질과의 트레이드오프 | 기획 확인 권장 | 확인 필요 |
-| `S2-ONB-2` | 질문지 **Q5 표지 그리드**(8권 프리셋, 2열 커버 썸네일) 미구현 — 표지 이미지가 **Stage 3** 범위(Design Spec §4.3). 같은 데이터는 "집에 있는 책" 제목 입력으로 수집 중 | Stage 3 | 결정 필요 |
+| ~~`S2-ONB-2`~~ | 질문지 **Q5 표지 그리드**(8권 프리셋, 2열 커버 썸네일) 미구현 — 표지 이미지가 **Stage 3** 범위(Design Spec §4.3). 같은 데이터는 "집에 있는 책" 제목 입력으로 수집 중 | ✅ **결정** `D-12` | **Stage 2 Design Spec 개정**으로 명세, 구현은 Stage 3. 프리셋은 Mock fixture 값 — 화면 하드코딩 금지 |
 | `S2-ONB-3` | `HARU_Onboarding_Questionnaire_v1-1.docx.md` 가 `CLAUDE.md` Source of Truth 표에 **미등재** — 이 Step 으로 온보딩 문항의 근거 문서가 되었다 (approvals §8.3 재확인) | 사용자 판단 | 결정 필요 |
 | `QA-1-004` | `devWarn` 주석의 살균 문자 집합 표기 부정확 · "PII 불가" 표현이 실제 보장보다 강함 · `import.meta.env.DEV` 게이트 없어 production 번들 포함 (1회차 `Icon.tsx` 와 동일 동작이라 회귀 아님) | Stage 2 착수 전 | 정보 (AC 는 PASS) |
 | ~~`QA-1-002`~~ | ✅ **해소** — 결정 `D-14` 로 밑줄 제거 + `P-17` 가값 등록 (Stage 2-UI). 이전 내용: TextField `trailingAction` 밑줄 — Figma `76:417` 에는 없음. WCAG 1.4.1 관점에서는 개선일 수 있어 QA 가 단독 판정하지 않음 | 사용자 판단 | **결정 필요** (AC 는 PASS) |
@@ -104,6 +114,23 @@
 | `S2-CARD-1` | 설문 카드 내부 간격 환산 정확도 — eyebrow→question 명세 4 ↔ Figma 7, question→옵션 명세 24 ↔ Figma 45. 질문 박스 높이가 실제 행수에 따라 달라져 baseline 과 함께 판단 필요 | 사용자 판단 | 정보 |
 | `S2-WELCOME-1` | welcome 상단 여백 Figma 94 ↔ 명세 40 — Figma 에 없는 Apple 버튼(`AD-S2-2`)이 회수분을 쓰므로 복원하려면 화면 세로 재설계 필요 | 사용자 판단 | 정보 |
 | `S1-G-7` | source map(`dist/**/*.js.map`)에 소스 주석이 포함된다. 배포 JS/CSS/HTML 에는 dev 문자열 0건이나, map 을 함께 배포하면 소스 텍스트가 공개된다 | Stage 8 (C-18 프리뷰 배포) | 정보 |
+| `S3-ASSET-1` | Home 캐릭터 2x 미달 — 투명 원본 최대 **933px**(`Haru_Hello_Heart_t 1.png`), 표시 폭 528 기준 **1.77x**(123px 부족). Figma `221:1147` 전수 확인 결과 1056px 원본 없음(Figma Home fill 은 294×373 민트 베이크). 393px 뷰포트는 2.12x 충족 | ✅ **결정** `D-13` | **허용 차이 — QA `PASS (accepted: D-13)`.** 디자이너가 1056px 투명 원본을 주면 **에셋 파일만 교체** |
+| `S3-ROUTE-1` | 서재 3개 시트의 **Mock 전용 route** — `app/router/mockPreviewRoutes.tsx` 한 파일에 모으고, route 가 사라져도 시트가 부모 화면 상태로 동작해야 한다 | ✅ **결정** `D-17` | **Stage 8 Handoff 제거 대상 등재 필요** |
+| `S3-NOTIF-1` | 알림 **설정 화면**(`/settings/notifications` 시간·요일 입력, `C13-19`) Stage 3 미구현 — Figma 누락. D-16 push 권한 Port·Mock 은 구현 유지, contracts 는 정의 유지 | ✅ **결정** `D-18` | **디자이너 Figma 요청 + 이월.** Stage 3 QA 에서 Out of Scope (FAIL 아님) |
+| `S3-PROMPT-1` | `Prompt.pageRef`(Figma `P.6`) 는 **책별 페이지 앵커 데이터**가 필요 — 큐레이션 20권 페이지 메타 없이는 생성 불가 | ✅ **결정** `D-8` | Frontend 는 표시만. **`BACKEND_INTEGRATION_PENDING` + 콘텐츠 제작 범위** |
+| `P-20` | `Toggle` 치수 3종(`--toggle-track-w/h`, `--toggle-knob-size`) — iOS kit 외 근거 없음 | ✅ **가값 승인** `§8.5 ⑤` | `provisional` 주석 필수. 디자이너 값 도달 시 **토큰 값만 교체** |
+| `P-22` | `conversation_only` 카드 일러스트 — 전용 에셋 없어 기존 캐릭터 에셋 재사용 | ✅ **가값 승인** `§8.5 ⑧` | 전용 에셋 도달 시 **파일만 교체** |
+| `S3-COPY-1` | 증정 접수 안내 문구 — 잠정값 사용, 수치·기한 금지 | ✅ **결정** `§8.2` | 운영 표현 확정 시 **copy 모듈 값만 교체** |
+| ~~`S3-DOC-1`~~ | §8.6 문서 갱신 7건 (Plan §16 · Stage 3 Spec · Stage 2 Spec · API_CONTRACTS · COMPONENT_MAP · designer-request · 이 파일) | ✅ **완료** (2026-10-03) | 2차 갱신(§9·§10)까지 반영. 추가 변경: `PLANNING.md` · `FIGMA_SCREEN_MAP.md` M-31 · `DESIGN_SYSTEM.md` · `DESIGN_TOKEN_MAP.md` |
+| `S3-PROMPT-2` | Prompt 개수 **상한 해제** — `promptPreview`·`promptSet.questions` 에서 `.max(3)` 제거, `.min(1)` 유지. Frontend `slice(0,3)` 금지. `AC-3-17` 재작성 + Mock 에 **4개 이상 케이스** 포함 | ✅ **결정** `D-21` | `N-2` 와 `AC-3-17` 충돌 해소. 상한이 실제로 없음을 증명하는 테스트 필요 |
+| `S3-CARD-1` | `ActivityCard.targetCapability` **삭제** — `D-5` 의 `options[].capability` 만 남는다 | ✅ **결정** `D-22` | `N-3` 과 같은 귀결 |
+| `P-23` | Prompt 단계 배지 흰 라벨 대비 **1.72:1** — `P-02` 에 흡수하지 않고 신설 | ✅ **가값 승인** `§9.2 ⑫` | 대상·교체 조건이 `P-02` 와 다르다 |
+| `S3-CHIP-1` | `Chip` 다중 선택이 **Stage 3 에 미마운트** (요일 선택이 유일 사용처였고 `D-18` 로 제외) → `P-02` 의 "미선택 Chip 경계" 증빙이 Stage 3 에서 사라진다 | ✅ **처리** `§9.2` | 가값 재제시 때 **Stage 2 온보딩 화면**을 증빙으로 쓴다 |
+| `S3-TOGGLE-1` | `Toggle` 사용처가 **push on/off 1곳**으로 축소 (`D-18` 로 리마인더 토글 제외) | ✅ **처리** `§9.2` | **3종 유지.** 사용처 0건이 되면 그때 제외 |
+| `S3-PRD-1` | PRD 수정 대상 **6건** (approvals §5 · §6.2 · §9.3) — ① FR-07/§7.4 prompt 노출 시점 ② §7.4/§8.3 카드별 역량 ③ §7.4 이번 주 집계 ④ FR-07/§8.2 개수 = 표시 개수 ⑤ FR-07/§8.2 `phase`·`pageRef` 개념 부재 ⑥ FR-07/§8.2 상한 없음 | **사용자 조치** (OneDrive 원본) | **미처리** — 저장소 사본은 수정하지 않는다 |
+| `S3-CONTEXT-1` | Reading Context `custom_time` picker 규격(30분 단위, 네이티브 `input[type=time]` 금지)의 근거를 **`D-18` 에서 분리** — 이 시트는 Stage 3 In Scope(`AC-3-23`) | ✅ **결정** `§9.2 ⑩` | `D-18` 이월에 묶여 근거가 사라졌던 항목 |
+| `S3-DB-1` | `activity_cards.target_capability` **DB 열** — `D-22` 는 contract 필드만 삭제했다 | ✅ **결정** `D-23` | **Backend 개발자 재량.** `DATA_MODEL`·`DATA_REQUIREMENTS` 에는 "역량 순환 중복 회피" **요구만**, 열 설계 미지정. `BACKEND_INTEGRATION_PENDING` 아님 |
+| `S3-PROV-1` | 가값 번호 대장이 **3개 문서로 분산** (`P-01~16` stage-0 §4 / `P-17~19` stage-2 §6.4 / `P-20~23` stage-3 §6.4). 중복·빈 번호 없음. `P-18`·`P-19`·`P-21` 은 **재제시 목록에 없고** `P-19` 는 Stage 3 사용처 0건. Plan 이 "신규는 `P-18…`" 로 낡음 → 실제 다음 번호는 **`P-24`** | **Stage 3 구현 후** | **미처리** — Stage 0 #10-4 절차로 항목별 재제시. 번호 재배정 금지 |
 
 **`NEEDS_DECISION` 항목이 다음 Step의 필수 입력이면 Runner는 실행하지 않고 STOP 한다.**
 현재 `NEEDS_DECISION` 2건(`S1-D2-5` · `S1-D2-6`)은 **1-G 가 판단 근거(시각 비교 결과·실제 diff 수치)를 생성해야 결정할 수 있는 항목**이다. 근거 없이 지금 결정할 수 없으므로 1-G 는 제안값을 잠정 적용해 실행하고, **1-G 종료 시 실제 수치와 함께 사용자에게 제시**한다.

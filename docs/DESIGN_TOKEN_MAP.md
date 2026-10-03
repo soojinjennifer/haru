@@ -64,7 +64,7 @@ v3 `tailwind.config` `theme.extend` 형태는 **사용하지 않는다 (obsolete
 | Figma Variable | Value | 중복 이름 (같은 값) | Primitive CSS Var | 비고 |
 |---|---|---|---|---|
 | `accents/blue` | `#7faec1` | `color/azure/63`, `misc/tab-bar-selection` | `--haru-palette-blue` | |
-| `accents/cyan` | `#a0ccdd` | — | `--haru-palette-cyan` | Pagetag, age Tag, **Cognitive Flexibility 배지·차트** (#19) |
+| `accents/cyan` | `#a0ccdd` | — | `--haru-palette-cyan` | Pagetag, age Tag, **Cognitive Flexibility 배지·차트** (#19). **주의**: Prompt 단계·페이지 배지(Pagetag)는 **역량 토큰 `--color-capability-flexibility-*` 를 직접 쓰지 않고** Tier-3 `--prompt-phase-tag-bg/-fg` 로 분리한다 (같은 primitive, 다른 의미 — `stage-3-design-spec.md` §6.2). 흰 라벨 1.72:1 = **`가값 (P-23)`** (2026-10-03, `stage-3-approvals.md` §9.2 ⑫) |
 | `accents/teal` | `#85bfb6` | — | `--haru-palette-teal` | 브랜드 주 색 (Accent Button, 선택 칩, 진행 바). 역량 색으로 쓰지 않음 (#19) |
 | `accents/mint` | `#b0cfc0` | `color/spring green/75` | `--haru-palette-mint` | |
 | `accents/green` | `#90bfad` | — | `--haru-palette-green` | **Self-Direction 배지·차트** (#19) |

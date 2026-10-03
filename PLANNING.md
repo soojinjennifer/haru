@@ -224,7 +224,7 @@ FR ID가 없는 화면 요구사항:
   - [C·M] home, activity-cards(today, selection), library, books search/prompts, gift-requests, notification-preferences, push-devices + Mock.
   - [HO] BH(07:00 카드 생성, Cold/Warm 추천·역량 순환, push 발송), DR(books, child_books, gift_requests, activity_cards, notification_preferences, push_devices).
 - **Mock scenarios**: `success`, `loading`, `empty`, `error`, `retry` + `offline-cached-card`, `conversation-only-option`, `reread-option`, `books-exhausted`, `session-already-active`, `gift-pending`, `gift-duplicate`, `user-entered-book`, `push-permission-denied`.
-- **Exit Criteria**: 3장 스와이프·버튼 전환; 선택 → Prompt 2~3개 표시(M-09 결정 반영); conversation_only 카드 경로; offline에서 캐시 카드 + Banner; Context 선택이 Mock 요청에 포함; 직접 등록 책 선택 가능; Loading/Empty/Error. PENDING: 실제 추천 품질, push 수신, 실 API 2초 성능.
+- **Exit Criteria**: 3장 스와이프·버튼 전환; 선택 → Prompt 표시(M-09 결정 반영 = **선택 전 노출**, D-4; **개수 상한 없음** — 접힌 상태 3개 + 확장 도달, D-21); conversation_only 카드 경로; offline에서 캐시 카드 + Banner; Context 선택이 Mock 요청에 포함; 직접 등록 책 선택 가능; Loading/Empty/Error. PENDING: 실제 추천 품질, push 수신, 실 API 2초 성능.
 - **Dependencies**: S2; M-09/M-14/M-29/M-30/M-31 결정; 누락 화면별 디자인 방식(C-13); 책 표지·캐릭터 에셋 사용 가능 (C-17).
 - **Blocking decisions**: M-09/M-14/M-29/M-30/M-31, M-32 잔여(Reading Context 선택 없이 세션 시작 허용 여부) (내비게이션 #15·Capacitor #7 결정 완료 — Stage 3은 Web + Mock push 권한 UX만).
 

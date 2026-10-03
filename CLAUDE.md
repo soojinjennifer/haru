@@ -57,7 +57,8 @@ MVP 전제: 양육자가 계정 소유자, 아이는 로그인 계정 없음, Ch
 | 참고 | `docs/source/HARU_Development_Architecture_8Stage_v0.2.md`, `$HARU_ONEDRIVE/디자인/**` 프로토타입, `docs/source/HARU_Developmental_Baseline_Survey_v1.docx.md` |
 
 - PRD = Functional Source of Truth, Figma = Visual Source of Truth.
-- PRD와 Figma에 없는 요구사항을 임의로 추가하지 않는다. 불일치는 보고하고 결정을 기다린다.
+- **PRD ↔ Figma 충돌 시 Figma를 우선한다** (Figma가 더 나중에 확정된 산출물 — 사용자 결정 2026-09-29, `docs/decisions/stage-3-approvals.md` §2). 단 **충돌 지점마다 사용자 승인을 받는다** — Agent가 임의로 적용하지 않는다. 충돌 지점·양쪽 내용·영향 범위(contract·화면·Backend 요구)를 제시하고 승인을 받은 뒤 적용하며, 그 결과 어긋나는 PRD 항목은 **수정 대상으로 기록**한다. Figma가 명백한 탐색 변형·오타인 경우는 이 규칙 대상이 아니며 근거를 들어 판단을 받는다.
+- PRD와 Figma에 없는 요구사항을 임의로 추가하지 않는다.
 - 최신 PRD와 Figma, 최신 사용자 지시는 이전 대화·Agent Memory보다 우선한다.
 
 ## Agent Workflow (필수)

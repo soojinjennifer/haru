@@ -292,7 +292,7 @@ Figma 에 없는 컴포넌트 상태(focus·error·loading)와 공통 상태 화
 | white | `accents/blue` #7faec1 | **2.41** | — | ✗ |
 | white | `accents/green` #90bfad | **2.05** | CapabilityBadge SD `76:439` | ✗ |
 | white | `accents/purple` #c9b8d4 | **1.86** | IM 배지 | ✗ |
-| white | `accents/cyan` #a0ccdd | **1.72** | Pagetag, "3yr 4mo" | ✗ |
+| white | `accents/cyan` #a0ccdd | **1.72** | **Pagetag**(Prompt 단계·페이지 배지 — `가값 (P-23)`, Tier-3 `--prompt-phase-tag-fg`), "3yr 4mo" | ✗ |
 | white | `color/blue/81` #c7c9d7 | **1.65** | "Not selected" 9px | ✗ |
 | white | `accents/pink` #efc3d4 | **1.56** | ER 배지 | ✗ |
 | `#3b4a48` | white | **9.30** | 입력 값·설문 질문 | ✓ |
@@ -311,7 +311,8 @@ Figma 에 없는 컴포넌트 상태(focus·error·loading)와 공통 상태 화
 |---|---|---|---|
 | ① | Accent(teal `#85bfb6`) 위 흰 라벨 2.07:1 — 모든 주요 CTA, 선택 칩·설문 옵션 | **현재 색 유지**, AA 미충족을 사용자가 수용 | CONFIRMED (사용자 결정 2026-09-14, #18-①), **D-01** (범위: `--color-action-primary-bg` 위 흰 라벨에 한정, 법무 L-04). QA 는 해당 항목을 FAIL 로 기록하되 `PASS (accepted: D-01)` 로 처리 |
 | ② | 보조 텍스트 `text-secondary`·`#9aabaa` 캡션, glass 위 비선택 Tab 라벨 | 현재 Figma `#7d9291` 로 가값 운영 | `가값 (P-01)` — 디자이너 결정 대기 |
-| ③ | 비텍스트: 진행 바(1.73–1.94)·별점(1.64)·칩·체크박스 경계, **배지 글자**(흰 글자 1.56–2.05) | 현재 Figma 값으로 가값 운영 | `가값 (P-02)` — 디자이너 결정 대기 |
+| ③ | 비텍스트: 진행 바(1.73–1.94)·별점(1.64)·칩·체크박스 경계, **역량 배지 글자**(흰 글자 1.56–2.05) | 현재 Figma 값으로 가값 운영 | `가값 (P-02)` — 디자이너 결정 대기. **범위 주의**: Prompt 단계·페이지 배지(Pagetag, 1.72)는 **`P-02` 가 아니라 `P-23`** 이다 (아래 행) |
+| — | **Prompt 단계·페이지 배지**(`Pagetag1–3 139:2410–2412`) 흰 라벨 / cyan `#a0ccdd` 배경 **1.72:1** — Tier-3 토큰 `--prompt-phase-tag-fg` / `--prompt-phase-tag-bg` | 현재 Figma 실측값으로 가값 운영 (`provisional` 주석) | **`가값 (P-23)` — 신설 확정 (사용자 결정 2026-10-03, `stage-3-approvals.md` §9.2 ⑫)**. **`P-02` 에 흡수하지 않는다** — `P-02` 는 **역량 색 4종 위 흰 라벨**이라 역량 팔레트 확정으로 해소되지만, `P-23` 은 **Prompt 배지 전용 Tier-3 토큰**이라 역량 팔레트가 바뀌어도 해소되지 않는다(대상·교체 조건이 다르다). 색 단독 전달이 아니므로 정보 손실 없음(라벨 텍스트가 본체). 해소 시 **토큰 값만 교체**. 사용처·명세 = `stage-3-design-spec.md` §5.4.1 · §6.2 · §6.3 · §6.4 |
 | ④ | focus ring | `--haru-ink-700` 2px (white 6.81 · teal 3.28) | `가값 (P-03)` — 디자이너 결정 대기 |
 | — | Glass 버튼 라벨·PromptPill·"Question 1 of 10" 의 `text-button` `#5e7370` (4.18–4.48, 근소 미달) | 현재 Figma 값으로 가값 운영 (D-01 범위 밖) | `가값 (P-11)` — 디자이너 결정 대기 |
 
