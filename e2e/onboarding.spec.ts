@@ -17,6 +17,7 @@ import {
   DECK_LABEL,
   expectCardIndex,
   fillChildInfo,
+  frontCardCounter,
 } from './support/onboarding';
 
 const FIRST_CARD_PATH = '/onboarding/reading-together';
@@ -43,6 +44,29 @@ function counter(page: Page, index: number) {
   return page
     .locator('.haru-swipe-deck__card--front')
     .getByText(new RegExp(`^${String(index)} / \\d+$`));
+}
+
+/** 통산 카운터의 **분모**. 구간에 따라 다르므로 읽어서 쓴다 (`§11.19` 7-1). */
+async function cardCounterTotal(page: Page): Promise<number> {
+  const text = await frontCardCounter(page).textContent();
+  const match = /^(\d+) \/ (\d+)$/.exec((text ?? '').trim());
+
+  if (match?.[2] === undefined) throw new Error('card counter not rendered');
+  return Number(match[2]);
+}
+
+/**
+ * 자동 전진이 "일어나지 않는 것"을 확인하려면 대기가 필요하다 — 기다릴 이벤트가 없다.
+ * `AUTO_ADVANCE_DELAY_MS`(400) 보다 넉넉히 둔다.
+ */
+async function settleAutoAdvance(page: Page): Promise<void> {
+  await page.waitForTimeout(1_200);
+}
+
+/** 앞 카드에 **키보드로** 답한다 — 포인터 선택은 자동 전진을 유발한다 (§14.3). */
+async function answerFrontCardByKeyboard(page: Page): Promise<void> {
+  await page.getByRole('radio').first().focus();
+  await page.keyboard.press('Space');
 }
 
 test.describe('흐름 (`AC-2R-01` · `AC-2R-11` · `AC-2-27`)', () => {
@@ -151,6 +175,95 @@ test.describe('자동 전진과 복귀 경로 (§14)', () => {
     await expect(counter(page, 2)).toBeVisible();
   });
 
+  /*
+    아래 세 건은 **단계 경계**를 본다. 위 테스트가 첫 카드만 보기 때문에 "단계의 마지막
+    카드에서 전진이 멈추는" 결함을 놓쳤다 (첫 카드는 단계의 마지막이 아니다).
+    카드 흐름은 15장(또는 16장)이 **하나의 덱**이라는 것이 `R-02` 통산 카운터의 전제다.
+  */
+
+  test('★ 단계의 마지막 카드에서도 전진한다 — 단계 경계를 넘는다', async ({ page }) => {
+    await gotoApp(page, FIRST_CARD_PATH);
+
+    await page.getByRole('radio').first().click();
+    await expectCardIndex(page, 2);
+
+    // 2번째 카드가 `Reading together` 의 **마지막** 카드다.
+    await page.getByRole('radio').first().click();
+
+    await expectCardIndex(page, 3);
+    await expect(page).toHaveURL(/\/onboarding\/books-and-interests$/);
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Books and interests' }),
+    ).toBeVisible();
+  });
+
+  test('★ 덱의 마지막 카드에서는 전진하지 않는다 (경계 유지)', async ({ page }) => {
+    await gotoApp(page, SURVEY_PATH);
+
+    const nextCard = page.getByRole('button', { name: 'Next question' });
+
+    // 역량 단계 마지막 카드 = 덱 전체의 마지막 카드. 키보드로 답하며 걸어간다.
+    for (let guard = 0; guard < BASELINE_ITEMS; guard += 1) {
+      if (await nextCard.isDisabled()) break;
+
+      const before = await cardCounterIndex(page);
+      if (before === null) throw new Error('card counter not rendered');
+      await nextCard.click();
+      await expectCardIndex(page, before + 1);
+    }
+
+    await expect(nextCard).toBeDisabled();
+    const last = await cardCounterIndex(page);
+    expect(last).not.toBeNull();
+
+    await page.getByRole('radio').first().click();
+    await settleAutoAdvance(page);
+
+    expect(await cardCounterIndex(page)).toBe(last);
+    await expect(page).toHaveURL(new RegExp(`${SURVEY_PATH}$`));
+  });
+
+  test('★ 단일 선택 카드 전부에서 전진한다 (단계마다 하나씩만 보면 같은 함정에 빠진다)', async ({
+    page,
+  }) => {
+    await gotoApp(page, FIRST_CARD_PATH);
+
+    const nextCard = page.getByRole('button', { name: 'Next question' });
+    const total = await cardCounterTotal(page);
+
+    for (let index = 1; index <= total; index += 1) {
+      await expectCardIndex(page, index);
+
+      const radio = page.getByRole('radio').first();
+
+      if ((await radio.count()) > 0) {
+        // 단일 선택 — 포인터로 고르면 자동 전진한다 (단계 경계와 무관하게).
+        await radio.click();
+
+        if (index < total) {
+          await expectCardIndex(page, index + 1);
+          continue;
+        }
+
+        await settleAutoAdvance(page);
+        expect(await cardCounterIndex(page)).toBe(total);
+        return;
+      }
+
+      // 복수 선택·텍스트 입력 카드가 수동인 것은 설계대로다 (`S2R-OPEN-3`).
+      const checkbox = page.getByRole('checkbox').first();
+      if ((await checkbox.count()) > 0) {
+        await checkbox.focus();
+        await page.keyboard.press('Space');
+      }
+
+      await nextCard.click();
+      await expectCardIndex(page, index + 1);
+    }
+
+    throw new Error('deck never reached a single-choice last card');
+  });
+
   test('키보드 선택은 자동 전진하지 않는다 (방향키 탐색을 막지 않는다)', async ({ page }) => {
     await gotoApp(page, FIRST_CARD_PATH);
 
@@ -185,6 +298,109 @@ test.describe('자동 전진과 복귀 경로 (§14)', () => {
     await expect(counter(page, 2)).toBeVisible();
 
     await expect(page.getByRole('radio').first()).toBeFocused();
+  });
+
+  /*
+    위 두 건은 **한 단계 안**만 본다. 단계를 넘으면 navigate 가 일어나고
+    `RouteErrorBoundary`(`key={location.key}`)가 덱을 통째로 재마운트하므로, 떠난 카드 목록과
+    포커스가 그 지점에서 사라졌다. 아래 두 건이 그 경계를 지킨다.
+  */
+
+  test('★ 경계를 넘어 돌아온 카드에서도 자동 전진하지 않는다', async ({ page }) => {
+    await gotoApp(page, FIRST_CARD_PATH);
+
+    await page.getByRole('radio').first().click();
+    await expectCardIndex(page, 2);
+    await page.getByRole('radio').first().click();
+    await expectCardIndex(page, 3);
+
+    // 단계의 첫 카드에서 leading 은 `Go back` 이고 이전 단계의 **마지막 카드**로 돌아간다.
+    await page.getByRole('button', { name: 'Go back' }).click();
+    await expect(page).toHaveURL(new RegExp(`${FIRST_CARD_PATH}$`));
+    await expectCardIndex(page, 2);
+
+    // 2번 카드는 **경계를 넘긴 그 카드**다 → 답을 고쳐도 머문다.
+    const correctedLast = page.getByRole('radio').nth(2);
+    await correctedLast.click();
+    await settleAutoAdvance(page);
+
+    await expect(correctedLast).toBeChecked();
+    expect(await cardCounterIndex(page)).toBe(2);
+    await expect(page).toHaveURL(new RegExp(`${FIRST_CARD_PATH}$`));
+
+    // 경계를 넘기 전에 떠난 1번 카드도 마찬가지다.
+    await page.getByRole('button', { name: 'Previous question' }).click();
+    await expectCardIndex(page, 1);
+
+    const corrected = page.getByRole('radio').nth(2);
+    await corrected.click();
+    await settleAutoAdvance(page);
+
+    await expect(corrected).toBeChecked();
+    expect(await cardCounterIndex(page)).toBe(1);
+  });
+
+  test('★ 단계를 넘은 뒤에도 포커스가 새 카드의 첫 옵션에 있다 (§14.3)', async ({ page }) => {
+    await gotoApp(page, FIRST_CARD_PATH);
+
+    await page.getByRole('radio').first().click();
+    await expectCardIndex(page, 2);
+    await page.getByRole('radio').first().click();
+    await expectCardIndex(page, 3);
+
+    const focused = await page.evaluate(() => {
+      const element = document.activeElement;
+      if (element === null) return null;
+
+      return {
+        tag: element.tagName,
+        inFrontCard: element.closest('.haru-swipe-deck__card--front') !== null,
+      };
+    });
+
+    expect(focused?.tag).not.toBe('BODY');
+    expect(focused?.inFrontCard).toBe(true);
+  });
+
+  test('★ 이전 단계로 돌아가면 그 단계의 마지막 카드다 (§14.2-1)', async ({ page }) => {
+    // `/onboarding/books-and-interests` 의 첫 카드가 통산 3번이다.
+    await gotoApp(page, '/onboarding/books-and-interests');
+    await expectCardIndex(page, 3);
+
+    await page.getByRole('button', { name: 'Go back' }).click();
+
+    await expect(page).toHaveURL(new RegExp(`${FIRST_CARD_PATH}$`));
+    // 이전 단계의 **마지막** 카드다 — 첫 카드(1)가 아니다.
+    await expectCardIndex(page, 2);
+  });
+
+  test('★ 앞뒤로 오가도 복귀 지점이 어긋나지 않는다', async ({ page }) => {
+    await gotoApp(page, FIRST_CARD_PATH);
+
+    const nextCard = page.getByRole('button', { name: 'Next question' });
+
+    // 키보드로 답한다 — 포인터는 자동 전진을 유발해 전진 제어가 겹친다 (§14.3).
+    await answerFrontCardByKeyboard(page);
+    await nextCard.click();
+    await expectCardIndex(page, 2);
+
+    await answerFrontCardByKeyboard(page);
+    await nextCard.click();
+    await expectCardIndex(page, 3); // 단계를 넘었다
+
+    await page.getByRole('button', { name: 'Go back' }).click();
+    await expectCardIndex(page, 2);
+
+    // 다시 앞으로 — 복귀 지점이 남아 있으면 여기에서 어긋난다.
+    await nextCard.click();
+    await expectCardIndex(page, 3);
+
+    await page.getByRole('button', { name: 'Go back' }).click();
+    await expectCardIndex(page, 2);
+
+    // 같은 단계 안의 뒤로 가기는 여전히 한 칸이다.
+    await page.getByRole('button', { name: 'Previous question' }).click();
+    await expectCardIndex(page, 1);
   });
 });
 

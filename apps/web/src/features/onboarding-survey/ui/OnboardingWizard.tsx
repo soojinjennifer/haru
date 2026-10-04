@@ -35,6 +35,7 @@ import {
 } from '../model/instrumentView';
 import { CARD_STEPS, isCardStep, LAST_STEP, previousStep } from '../model/steps';
 import { unansweredCount } from '../model/surveyAnswers';
+import { useOnboardingSession } from '../model/onboardingSession';
 import { useOnboardingWizard } from '../model/useOnboardingWizard';
 
 import { ChildInfoStep } from './ChildInfoStep';
@@ -57,16 +58,27 @@ function stepTitle(step: OnboardingStep): string | undefined {
 export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) {
   const copy = onboardingCopy.wizard;
   const wizard = useOnboardingWizard({ step, store, clock });
+  const session = useOnboardingSession();
   const [showErrors, setShowErrors] = useState(false);
 
   /**
    * 단계 안에서의 카드 위치. 단계가 바뀌면 0 으로 돌아간다 — props 변화에 state 를 맞추는
    * 패턴이므로 effect 를 쓰지 않는다.
+   *
+   * **뒤로 와서 도착했으면 그 단계의 마지막 카드에서 시작한다** (§14.2-1 — 카드 흐름이 하나다).
+   * `handlePrevious` 가 `setCursor` 로 직접 넣을 수 없다: 그 직후의 navigate 가
+   * `RouteErrorBoundary`(`key={location.key}`)를 바꿔 이 컴포넌트를 재마운트시켜 state 가
+   * 사라지기 때문이다. 그래서 복귀 지점을 재마운트 밖(`OnboardingSession`)에 두고 **초기값으로
+   * 한 번 읽어 소비**한다 — effect 에서 `setCursor` 하면 첫 카드가 그려졌다 바뀌고,
+   * `react-hooks/set-state-in-effect` 도 그것을 금지한다.
+   *
+   * StrictMode 가 초기화 함수를 두 번 부르지만, 두 호출이 **같은 마운트 안**에서 연달아 일어나고
+   * 둘 중 하나의 결과만 쓰이므로 복귀 지점은 그대로 반영된다 (dev StrictMode e2e 로 확인).
    */
-  const [cursor, setCursor] = useState<{ step: OnboardingStep; index: number }>({
+  const [cursor, setCursor] = useState<{ step: OnboardingStep; index: number }>(() => ({
     step,
-    index: 0,
-  });
+    index: session.takeReturnIndex(step) ?? 0,
+  }));
   const cardIndex = cursor.step === step ? cursor.index : 0;
 
   const allCards: readonly SurveyCard[] = surveyCards(wizard.instrument, CARD_STEPS);
@@ -125,9 +137,13 @@ export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) 
 
     const previous = previousStep(step);
     if (onCardStep && previous !== null && isCardStep(previous)) {
-      // 이전 단계의 **마지막 카드**로 돌아간다 — 카드 흐름이 하나이기 때문이다.
+      /*
+        이전 단계의 **마지막 카드**로 돌아간다 — 카드 흐름이 하나이기 때문이다.
+        `setCursor` 로는 안 된다: 바로 아래 `goBack()` 의 navigate 가 이 컴포넌트를
+        재마운트시켜 state 가 사라진다. 요청만 남기고 새 위저드가 읽는다 (§14.2-1).
+      */
       const previousCards = cardsForStep(allCards, previous);
-      setCursor({ step: previous, index: Math.max(previousCards.length - 1, 0) });
+      session.requestReturnTo(previous, Math.max(previousCards.length - 1, 0));
     }
 
     wizard.goBack();
@@ -219,6 +235,11 @@ export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) 
             onIndexChange={(next) => {
               setCursor({ step, index: next });
             }}
+            /*
+              단계의 마지막 카드에서 자동 전진하면 **다음 단계의 첫 카드**로 간다 — chevron 과
+              같은 경로다 (`handleNextCard`). 덱은 단계 안의 번호만 알아서 이 전환을 할 수 없다.
+            */
+            onAdvanceStep={handleNextCard}
             missingRequired={wizard.missingRequired}
             {...(announcement === undefined ? {} : { announcement })}
           />

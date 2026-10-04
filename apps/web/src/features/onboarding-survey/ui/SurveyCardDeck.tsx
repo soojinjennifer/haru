@@ -13,16 +13,20 @@
  * 자동 전진 (§14.1 · §14.2)
  * - **단일 선택 카드만** 포인터 선택 후 `--motion-duration-slow`(400ms) 대기 뒤 다음 카드로.
  * - **이미 떠난 적 있는 카드에서는 끈다** — 없으면 오선택을 고치는 순간 또 튕겨나가 수정이
- *   불가능해진다 (§14.2-3).
+ *   불가능해진다 (§14.2-3). 떠난 카드 목록과 전환 후 포커스 요청은 **덱 밖**(`OnboardingSession`)
+ *   에 있다 — navigate 할 때마다 이 덱이 재마운트되기 때문이다 (`model/onboardingSession.tsx`).
+ * - 전진은 **단계 경계와 무관하다**. 멈추는 곳은 덱 전체의 마지막 카드 한 곳뿐이다
+ *   (`allCards` 기준). 단계의 마지막 카드에서는 `onAdvanceStep` 으로 상위가 단계를 넘긴다.
  * - `prefers-reduced-motion` 은 슬라이드만 없애고 **대기는 유지**한다 (`SwipeDeck.css` 가 모션을
  *   끄므로 이 파일은 대기만 관리한다).
  */
 import { SwipeDeck } from '@haru/ui';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { OnboardingDraftAnswers, OnboardingInstrument } from '@haru/contracts';
 
 import { onboardingCopy } from '../copy';
 import { cardPosition, type SurveyCard } from '../model/instrumentView';
+import { useOnboardingSession } from '../model/onboardingSession';
 
 import { CapabilityItemCard } from './CapabilityItemCard';
 import { ChoiceQuestionCard } from './ChoiceQuestionCard';
@@ -44,6 +48,14 @@ export interface SurveyCardDeckProps {
   /** 필수 미응답으로 전진이 막힌 문항의 id 목록 (instrument 판정 결과). */
   missingRequired: readonly string[];
   /**
+   * **단계의 마지막 카드**에서 전진할 때 호출한다.
+   *
+   * 덱은 단계를 넘길 수 없다 — `index` 가 **단계 안의 번호**라 마지막 카드에서 `+1` 은 범위
+   * 밖이다. 단계 전환은 route 이동이므로 상위(`OnboardingWizard`)가 한다. 카드 흐름은 15장
+   * (또는 16장)이 하나이고 (`R-02` 통산 카운터), 단계 경계는 제목만 바뀌는 지점이다.
+   */
+  onAdvanceStep: () => void;
+  /**
    * 카드 전환을 알리는 문구 — `{단계 제목} · {n} of N` (§14.3 · §15).
    * `SwipeDeck` 의 `aria-live` 영역이 이 값을 읽는다. 라이브 영역을 두 개 두지 않는다.
    */
@@ -58,6 +70,7 @@ export function SurveyCardDeck({
   onChange,
   index,
   onIndexChange,
+  onAdvanceStep,
   missingRequired,
   announcement,
 }: SurveyCardDeckProps) {
@@ -66,10 +79,10 @@ export function SurveyCardDeck({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   /**
-   * 한 번 떠난 적 있는 카드의 key. **세션 동안 유지**되며, 여기에 있는 카드에서는 자동 전진이
-   * 일어나지 않는다 (§14.2-3).
+   * 떠난 카드 목록 · 전환 후 포커스 요청. **단계 전환을 넘어 유지**되어야 하므로 덱이 아니라
+   * 상위 provider 가 들고 있다 (§14.2-3 "세션 동안 유지" — `model/onboardingSession.tsx`).
    */
-  const [visited, setVisited] = useState<ReadonlySet<string>>(() => new Set<string>());
+  const session = useOnboardingSession();
 
   useEffect(
     () => () => {
@@ -78,6 +91,17 @@ export function SurveyCardDeck({
     [],
   );
 
+  /**
+   * 단계 전환 콜백의 **최신 값**. 자동 전진은 선택 핸들러 안에서 예약되는데, 그 시점의 prop 은
+   * **응답이 아직 반영되지 않은 렌더**의 것이다 (`ChoiceQuestionCard` 가 `commit()` 과 같은
+   * 턴에 부른다). 단계 전환은 상위에서 필수 응답을 검사하므로 그 낡은 콜백을 부르면 방금 한
+   * 응답을 못 보고 막힌다. 400ms 뒤에는 이 ref 가 반영된 콜백을 들고 있다.
+   */
+  const advanceStepRef = useRef(onAdvanceStep);
+  useEffect(() => {
+    advanceStepRef.current = onAdvanceStep;
+  });
+
   /** 새 카드의 **첫 번째 옵션**으로 포커스를 옮긴다 — 덱 밖으로 떨어지지 않게 (§14.3). */
   const focusFrontCard = useCallback(() => {
     const first = containerRef.current?.querySelector<HTMLElement>(
@@ -85,6 +109,16 @@ export function SurveyCardDeck({
     );
     first?.focus();
   }, []);
+
+  /**
+   * 단계를 넘어온 직후면 새 덱의 첫 옵션으로 포커스를 옮긴다 (§14.3).
+   *
+   * 고정 지연이 아니라 **마운트 신호**를 쓴다: 이 effect 는 새 단계의 카드가 DOM 에 commit 된
+   * 뒤에 실행되므로 기다릴 필요가 없다. 요청은 읽는 순간 소비되어 한 번만 옮긴다.
+   */
+  useEffect(() => {
+    if (session.takeFocusRequest()) focusFrontCard();
+  }, [focusFrontCard, session]);
 
   const goToCard = useCallback(
     (next: number) => {
@@ -97,17 +131,34 @@ export function SurveyCardDeck({
 
   const scheduleAdvance = useCallback(
     (cardKey: string, cardIndex: number) => {
-      if (visited.has(cardKey)) return;
-      if (cardIndex >= cards.length - 1) return;
+      if (session.hasVisited(cardKey)) return;
+      /*
+        **덱 전체**의 마지막 카드에서만 멈춘다. `cards` 는 이 단계의 카드라 여기에서 길이를
+        보면 단계 경계마다 전진이 끊긴다 — 카드 흐름은 하나다 (`R-02`).
+      */
+      if (cardPosition(allCards, cardKey) >= allCards.length) return;
 
       if (timerRef.current !== null) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
         timerRef.current = null;
-        setVisited((current) => new Set(current).add(cardKey));
+        session.markVisited(cardKey);
+
+        /*
+          단계의 마지막 카드면 다음 단계의 첫 카드로 — 전환은 상위가 한다.
+
+          포커스는 여기에서 옮길 수 없다. 단계 전환은 navigate 라 이 덱이 재마운트되고, 전환
+          뒤의 DOM 은 이 시점에 없다. 그래서 **요청만 남기고** 새 덱이 마운트될 때 옮긴다.
+        */
+        if (cardIndex >= cards.length - 1) {
+          session.requestFocusOnMount();
+          advanceStepRef.current();
+          return;
+        }
+
         goToCard(cardIndex + 1);
       }, AUTO_ADVANCE_DELAY_MS);
     },
-    [cards.length, goToCard, visited],
+    [allCards, cards.length, goToCard, session],
   );
 
   /** 수동 이동(스와이프·chevron)도 "떠난 카드" 로 기록한다. */
@@ -119,13 +170,11 @@ export function SurveyCardDeck({
       }
 
       const leaving = cards[index];
-      if (leaving !== undefined) {
-        setVisited((current) => new Set(current).add(leaving.key));
-      }
+      if (leaving !== undefined) session.markVisited(leaving.key);
 
       onIndexChange(next);
     },
-    [cards, index, onIndexChange],
+    [cards, index, onIndexChange, session],
   );
 
   function renderCard(card: SurveyCard, cardIndex: number) {

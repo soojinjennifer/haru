@@ -15,6 +15,7 @@ import { authCopy } from '../features/auth';
 import { consentCopy } from '../features/consent';
 import { HomePage, HomeTopBar } from '../pages/home';
 import { NotFoundPage } from '../pages/not-found/NotFoundPage';
+import { OnboardingSessionProvider } from '../features/onboarding-survey';
 import {
   OnboardingIntroPage,
   OnboardingSavedPage,
@@ -196,7 +197,20 @@ export function AppRoutes() {
         온보딩은 화면마다 TopBar 구성이 다르고, Step 5 는 **문항 index** 에 따라 제목·trailing 이
         바뀐다. layout route 는 정적이라 이를 표현할 수 없으므로 TopBar 를 위저드가 렌더한다.
       */}
-      <Route element={<StackLayout />}>
+      {/*
+        온보딩 세션 상태(떠난 카드 · 전환 후 포커스)는 **에러 경계보다 위**에 있어야 한다.
+        `RouteErrorBoundary` 가 `key={location.key}` 라서 navigate 할 때마다 그 아래 트리가
+        재마운트되기 때문이다 (features/onboarding-survey/model/onboardingSession.tsx).
+        provider 를 layout element 안에 두면 온보딩 route 사이에서는 살아남고, 온보딩을
+        벗어나면 함께 사라진다.
+      */}
+      <Route
+        element={
+          <OnboardingSessionProvider>
+            <StackLayout />
+          </OnboardingSessionProvider>
+        }
+      >
         <Route
           path={ROUTES.onboarding.intro}
           element={

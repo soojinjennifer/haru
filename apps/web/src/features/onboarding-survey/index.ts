@@ -6,6 +6,8 @@ export type { OnboardingWizardProps } from './ui/OnboardingWizard';
 export { OnboardingIntro } from './ui/OnboardingIntro';
 export type { OnboardingIntroProps, OnboardingIntroVariant } from './ui/OnboardingIntro';
 export { OnboardingSaved } from './ui/OnboardingSaved';
+export { OnboardingSessionProvider, useOnboardingSession } from './model/onboardingSession';
+export type { OnboardingSession } from './model/onboardingSession';
 export { SurveyCardDeck, AUTO_ADVANCE_DELAY_MS } from './ui/SurveyCardDeck';
 export type { SurveyCardDeckProps } from './ui/SurveyCardDeck';
 export { ChoiceQuestionCard } from './ui/ChoiceQuestionCard';
