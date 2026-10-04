@@ -20,7 +20,7 @@ model: opus
 
 ## 1. Source of Truth (우선순위 순)
 
-1. 최신 PRD — `docs/source/HARU_PRD_v1.4.md` (Functional Source of Truth)
+1. 최신 PRD — `docs/source/HARU_PRD_v1.5.md` (Functional Source of Truth)
 2. Figma HARU_MVP — Visual Source of Truth (fileKey `YWWu3AFEJpRxvw0T5klq0k`)
 3. 최신 사용자 Scope 지시 — `CLAUDE.md` Development Scope
 4. 승인된 문서 — `docs/ARCHITECTURE.md`, `docs/API_CONTRACTS.md`, `docs/DATA_MODEL.md`, `PLANNING.md`

@@ -1,18 +1,24 @@
 /**
- * 온보딩 위저드 — Design Spec §2.9 공통 chrome + §2.10 단계 본문.
+ * 온보딩 위저드 — 재구성 Design Spec §3 (공통 chrome) + §4 (프로필 입력).
  *
  * 화면 골격만 담당한다. 문항·저장·전송은 `useOnboardingWizard` 가 가지고 있고, 문항 목록은
  * instrument 에서 온다 (결정 **D-A**).
  *
- * TopBar 를 여기에서 렌더하는 이유: 제목이 단계마다 바뀌고 Step 5 는 **문항 index** 에 따라
- * "Question n of 10" 이 되며 trailing 버튼도 그때만 있다. layout route 는 정적이라 표현할 수 없다.
+ * 두 종류의 화면이 이 컴포넌트를 공유한다.
  *
- * 진행 표시 (§2.9)
- * - Step 1~4 = `step / 5`, Step 5 = 문항 진행(`n / 10`) + "Step 5 of 5" caption 병기.
- * - 색만으로 값을 전달하지 않는다 — 항상 텍스트를 함께 둔다.
+ * | | `child_info` | 카드 4단계 |
+ * |---|---|---|
+ * | 본문 | 입력 폼 (`ChildInfoStep`) | 카드 덱 (`SurveyCardDeck`) |
+ * | ProgressBar | **없음** (Figma `248:1159` 에 없다) | 단계 비율 구간 |
+ * | 하단 CTA | `Next` | **없다.** 마지막 카드에만 제출 CTA (`§11.7` · §3.2) |
+ * | 전진 | CTA | 스와이프 · TopBar chevron · 단일 선택 자동 전진 |
+ *
+ * 카드 단계에 CTA 를 두지 않는 근거: Figma `179:1770` 트리에 Button 노드가 **0건**이고,
+ * `179:1767` 이 "Swipe each card away to move on" 으로 전진 수단을 명시한다. CTA 블록(≈90px)을
+ * 유지하면 16장 중 대부분이 뷰포트를 넘는다 (Design Spec §5).
  */
 import { Button, Icon, IconButton, InlineAlert, ProgressBar, Text, TopBar } from '@haru/ui';
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import type { OnboardingStep } from '@haru/contracts';
 
 import { isHaruApiError } from '../../../shared/api/helpers';
@@ -20,14 +26,19 @@ import { errorCopyForCode } from '../../../shared/copy/error-copy';
 import type { Clock } from '../../../shared/lib/clock';
 import type { OnboardingDraftStore } from '../../../shared/lib/onboarding-draft';
 import { onboardingCopy } from '../copy';
-import { ONBOARDING_STEP_COUNT, stepNumber } from '../model/steps';
+import {
+  cardCountsByStep,
+  cardPosition,
+  cardsForStep,
+  surveyCards,
+  type SurveyCard,
+} from '../model/instrumentView';
+import { CARD_STEPS, isCardStep, LAST_STEP, previousStep } from '../model/steps';
 import { unansweredCount } from '../model/surveyAnswers';
 import { useOnboardingWizard } from '../model/useOnboardingWizard';
 
-import { BooksStep } from './BooksStep';
-import { CapabilityItemsStep } from './CapabilityItemsStep';
 import { ChildInfoStep } from './ChildInfoStep';
-import { ChoiceQuestionList } from './ChoiceQuestionList';
+import { SurveyCardDeck } from './SurveyCardDeck';
 import { DraftDiscardNotice, TrialNotice } from './OnboardingNotices';
 
 export interface OnboardingWizardProps {
@@ -37,23 +48,40 @@ export interface OnboardingWizardProps {
   clock?: Clock | undefined;
 }
 
+/** 단계 제목 — copy 에 없는 단계(instrument 확장)는 제목 없이 렌더한다 (§10-3). */
+function stepTitle(step: OnboardingStep): string | undefined {
+  const titles: Record<string, string> = onboardingCopy.steps;
+  return titles[step];
+}
+
 export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) {
   const copy = onboardingCopy.wizard;
   const wizard = useOnboardingWizard({ step, store, clock });
-  const [surveyIndex, setSurveyIndex] = useState(0);
   const [showErrors, setShowErrors] = useState(false);
 
-  const isSurvey = step === 'capability_items';
-  const surveyTotal = wizard.instrument.survey.items.length;
-  const remaining = unansweredCount(wizard.instrument, wizard.answers);
+  /**
+   * 단계 안에서의 카드 위치. 단계가 바뀌면 0 으로 돌아간다 — props 변화에 state 를 맞추는
+   * 패턴이므로 effect 를 쓰지 않는다.
+   */
+  const [cursor, setCursor] = useState<{ step: OnboardingStep; index: number }>({
+    step,
+    index: 0,
+  });
+  const cardIndex = cursor.step === step ? cursor.index : 0;
 
-  const title = isSurvey
-    ? onboardingCopy.survey.questionOf(surveyIndex + 1, surveyTotal)
-    : onboardingCopy.steps[step];
+  const allCards: readonly SurveyCard[] = surveyCards(wizard.instrument, CARD_STEPS);
+  const cards = cardsForStep(allCards, step);
+  const onCardStep = isCardStep(step);
+  const currentCard = cards[cardIndex];
 
-  const progressValue = isSurvey
-    ? (surveyIndex + 1) / surveyTotal
-    : stepNumber(step) / ONBOARDING_STEP_COUNT;
+  /** 통산 번호 — 단계가 바뀌어도 끊기지 않는다 (`R-02`). 숫자는 전부 파생값이다. */
+  const globalIndex = currentCard === undefined ? 0 : cardPosition(allCards, currentCard.key);
+
+  const title = stepTitle(step);
+  const announcement =
+    title === undefined || !onCardStep
+      ? undefined
+      : onboardingCopy.survey.cardAnnouncement(title, globalIndex, allCards.length);
 
   const submitFailure = wizard.submitError === null ? undefined : wizard.submitError;
   const submitCode = isHaruApiError(submitFailure) ? submitFailure.code : undefined;
@@ -63,9 +91,19 @@ export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) 
    * 판정한 결과(`wizard.missingRequired`)만 읽는다.
    */
   const blocked = wizard.missingRequired.length > 0;
+  /** 현재 카드가 필수 미응답인가 — 전진 어포던스만 막는다 (카드 밖으로 나가지 못하게). */
+  const currentCardBlocked =
+    currentCard?.kind === 'choice' &&
+    wizard.missingRequired.includes(currentCard.question.questionId);
+
+  const isLastCardStep = step === LAST_STEP;
+  const onLastCard = onCardStep && cardIndex === cards.length - 1;
+  /** 제출 CTA 는 **전체 마지막 카드**에서만 나온다 (§3.2). */
+  const showSubmitCta = (onCardStep && isLastCardStep && onLastCard) || !onCardStep;
+  const remaining = unansweredCount(wizard.instrument, wizard.answers);
 
   function handleNext(): void {
-    // Step 1 은 항목별 인라인 에러가 더 정확하다 — 필드 위치를 가리킬 수 있기 때문이다.
+    // `child_info` 는 항목별 인라인 에러가 더 정확하다 — 필드 위치를 가리킬 수 있기 때문이다.
     if (step === 'child_info' && wizard.answers.child_info?.firstName === undefined) {
       setShowErrors(true);
       return;
@@ -78,10 +116,113 @@ export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) 
     wizard.goNext();
   }
 
-  function body() {
-    switch (step) {
-      case 'child_info':
-        return (
+  /** TopBar leading — 카드 안이면 이전 카드, 첫 카드면 이전 화면 (§14.2-1). */
+  function handlePrevious(): void {
+    if (onCardStep && cardIndex > 0) {
+      setCursor({ step, index: cardIndex - 1 });
+      return;
+    }
+
+    const previous = previousStep(step);
+    if (onCardStep && previous !== null && isCardStep(previous)) {
+      // 이전 단계의 **마지막 카드**로 돌아간다 — 카드 흐름이 하나이기 때문이다.
+      const previousCards = cardsForStep(allCards, previous);
+      setCursor({ step: previous, index: Math.max(previousCards.length - 1, 0) });
+    }
+
+    wizard.goBack();
+  }
+
+  /** TopBar trailing — 다음 카드. 마지막 카드에서는 다음 단계로 넘긴다. */
+  function handleNextCard(): void {
+    if (currentCardBlocked) return;
+
+    if (cardIndex < cards.length - 1) {
+      setCursor({ step, index: cardIndex + 1 });
+      return;
+    }
+
+    if (!isLastCardStep) wizard.goNext();
+  }
+
+  const ctaLabel = !onCardStep ? copy.next : wizard.isTrial ? copy.saveProfile : copy.finish;
+
+  return (
+    /*
+      세로 간격이 두 종류다 (Design Spec §3.1): `TopBar → ProgressBar` = `--space-4`(16),
+      `ProgressBar → 카드` = `--space-6`(24). 단일 `gap` 으로는 한 값만 표현할 수 있어
+      상단 묶음과 본문을 분리한다 (`QA-2R-002`).
+    */
+    <div className="flex flex-1 flex-col">
+      <div className="flex flex-col gap-4">
+        <TopBar
+          variant="centered"
+          {...(title === undefined ? {} : { title })}
+          leading={
+            <IconButton
+              icon={<Icon name="chevron-left" decorative />}
+              label={onCardStep && cardIndex > 0 ? onboardingCopy.survey.prevQuestion : copy.back}
+              variant="plain"
+              onPress={handlePrevious}
+            />
+          }
+          trailing={
+            onCardStep ? (
+              <IconButton
+                icon={<Icon name="chevron-right" decorative />}
+                label={onboardingCopy.survey.nextQuestion}
+                variant="plain"
+                /* 필수 미응답은 native `disabled` 가 아니라 `aria-disabled` 다 — 사유가 카드 안에
+                 1행으로 함께 있어야 스크린리더에 전달된다 (§3.2). */
+                aria-disabled={currentCardBlocked ? true : undefined}
+                disabled={isLastCardStep && onLastCard}
+                onPress={handleNextCard}
+              />
+            ) : undefined
+          }
+        />
+
+        {onCardStep ? (
+          <ProgressBar
+            value={globalIndex}
+            max={allCards.length}
+            tone="accent"
+            size="sm"
+            label={copy.progressLabel}
+            /* 구간 비율은 단계별 카드 수 파생값이다 — 배열을 코드에 박지 않는다 (§3.3). */
+            segments={cardCountsByStep(allCards, CARD_STEPS)}
+            valueText={announcement}
+          />
+        ) : null}
+      </div>
+
+      <div
+        className={`flex flex-1 flex-col gap-4 ${
+          onCardStep ? 'haru-wizard-body' : 'haru-wizard-body--compact'
+        }`}
+      >
+        <DraftDiscardNotice
+          reason={wizard.draft.discarded}
+          onDismiss={wizard.draft.dismissDiscardNotice}
+        />
+        {/* Trial 안내는 **미로그인일 때만** 렌더한다 (`R-07`). */}
+        {step === 'child_info' ? <TrialNotice isTrial={wizard.isTrial} /> : null}
+
+        {onCardStep ? (
+          <SurveyCardDeck
+            instrument={wizard.instrument}
+            cards={cards}
+            allCards={allCards}
+            answers={wizard.answers}
+            onChange={wizard.setAnswers}
+            index={cardIndex}
+            onIndexChange={(next) => {
+              setCursor({ step, index: next });
+            }}
+            missingRequired={wizard.missingRequired}
+            {...(announcement === undefined ? {} : { announcement })}
+          />
+        ) : (
           <ChildInfoStep
             answers={wizard.answers}
             onChange={wizard.setAnswers}
@@ -90,141 +231,50 @@ export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) 
             now={wizard.now}
             showErrors={showErrors}
           />
-        );
-      case 'books':
-        return (
-          <BooksStep
-            instrument={wizard.instrument}
-            answers={wizard.answers}
-            onChange={wizard.setAnswers}
+        )}
+
+        {wizard.saveFailed ? (
+          <InlineAlert
+            tone="warning"
+            title={copy.saveFailedTitle}
+            description={copy.saveFailedDescription}
           />
-        );
-      case 'capability_items':
-        return (
-          <CapabilityItemsStep
-            instrument={wizard.instrument}
-            answers={wizard.answers}
-            onChange={wizard.setAnswers}
-            index={surveyIndex}
-            onIndexChange={setSurveyIndex}
-          />
-        );
-      default:
-        return (
-          <ChoiceQuestionList
-            instrument={wizard.instrument}
-            step={step}
-            answers={wizard.answers}
-            onChange={wizard.setAnswers}
-          />
-        );
-    }
-  }
-
-  const ctaLabel = !isSurvey ? copy.next : wizard.isTrial ? copy.saveProfile : copy.finish;
-  const blockedReasonId = useId();
-
-  return (
-    <div className="flex flex-1 flex-col gap-4">
-      <TopBar
-        variant="centered"
-        title={title}
-        leading={
-          <IconButton
-            icon={<Icon name="chevron-left" decorative />}
-            label={isSurvey && surveyIndex > 0 ? onboardingCopy.survey.prevQuestion : copy.back}
-            variant="plain"
-            onPress={() => {
-              // Step 5 는 카드 단위 이동이 우선이다 (Figma `179:1772`).
-              if (isSurvey && surveyIndex > 0) {
-                setSurveyIndex(surveyIndex - 1);
-                return;
-              }
-              wizard.goBack();
-            }}
-          />
-        }
-        trailing={
-          isSurvey ? (
-            <IconButton
-              icon={<Icon name="chevron-right" decorative />}
-              label={onboardingCopy.survey.nextQuestion}
-              variant="plain"
-              disabled={surveyIndex >= surveyTotal - 1}
-              onPress={() => {
-                setSurveyIndex(surveyIndex + 1);
-              }}
-            />
-          ) : undefined
-        }
-      />
-
-      <div className="flex flex-col gap-1">
-        <ProgressBar
-          value={progressValue}
-          max={1}
-          tone="accent"
-          size="sm"
-          label={copy.progressLabel}
-        />
-        <Text variant="caption-1" tone="secondary">
-          {copy.stepOf(stepNumber(step), ONBOARDING_STEP_COUNT)}
-        </Text>
-      </div>
-
-      <DraftDiscardNotice
-        reason={wizard.draft.discarded}
-        onDismiss={wizard.draft.dismissDiscardNotice}
-      />
-      {step === 'child_info' ? <TrialNotice isTrial={wizard.isTrial} /> : null}
-
-      {body()}
-
-      {wizard.saveFailed ? (
-        <InlineAlert
-          tone="warning"
-          title={copy.saveFailedTitle}
-          description={copy.saveFailedDescription}
-        />
-      ) : null}
-
-      {submitCode === 'CHILD_LIMIT_REACHED' ? (
-        <InlineAlert tone="warning" title={onboardingCopy.survey.childLimit} />
-      ) : submitFailure === undefined || submitFailure === null ? null : (
-        <InlineAlert
-          tone="error"
-          title={onboardingCopy.survey.submitFailedTitle}
-          description={errorCopyForCode(submitCode).description}
-        />
-      )}
-
-      {/* 하단 CTA 는 스크롤 컨테이너 **내부** 마지막 블록이다 (키보드 가림 방지 — §2.2). */}
-      <div className="mt-auto flex flex-col gap-2 pt-8">
-        {isSurvey && remaining > 0 ? (
-          <Text variant="caption-1" tone="secondary">
-            {onboardingCopy.survey.remaining(remaining)}
-          </Text>
         ) : null}
+
+        {submitCode === 'CHILD_LIMIT_REACHED' ? (
+          <InlineAlert tone="warning" title={onboardingCopy.survey.childLimit} />
+        ) : submitFailure === undefined || submitFailure === null ? null : (
+          <InlineAlert
+            tone="error"
+            title={onboardingCopy.survey.submitFailedTitle}
+            description={errorCopyForCode(submitCode).description}
+          />
+        )}
+
         {/*
-          필수 미충족은 native `disabled` 가 아니라 `aria-disabled` + 이유 텍스트다 (§2.6 · §10).
-          native `disabled` 면 버튼이 포커스를 받지 못해 이유가 스크린리더에 전달되지 않는다.
+          하단 CTA — 카드 단계에서는 **마지막 카드에서만** 그린다 (§3.2).
+          스크롤 컨테이너 **내부** 마지막 블록이다 (키보드 가림 방지 — §2.2). 아래 여백 44 는
+          `AppShell bottomGap="cta"` 가 담당한다 (`S2-FIX-1`).
         */}
-        {blocked ? (
-          <Text id={blockedReasonId} variant="caption-1" tone="secondary">
-            {copy.requiredBlockedReason(wizard.missingRequired.length)}
-          </Text>
+        {showSubmitCta ? (
+          <div className="mt-auto flex flex-col gap-2 pt-8">
+            {onCardStep && remaining > 0 ? (
+              <Text variant="caption-1" tone="secondary">
+                {onboardingCopy.survey.remaining(remaining)}
+              </Text>
+            ) : null}
+            <Button
+              variant="accent"
+              size="lg"
+              fullWidth
+              loading={wizard.submitPending}
+              onPress={handleNext}
+              aria-disabled={blocked ? true : undefined}
+            >
+              {ctaLabel}
+            </Button>
+          </div>
         ) : null}
-        <Button
-          variant="accent"
-          size="lg"
-          fullWidth
-          loading={wizard.submitPending}
-          onPress={handleNext}
-          aria-disabled={blocked ? true : undefined}
-          aria-describedby={blocked ? blockedReasonId : undefined}
-        >
-          {ctaLabel}
-        </Button>
       </div>
     </div>
   );

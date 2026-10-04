@@ -28,7 +28,11 @@ export { Checkbox } from './field/Checkbox';
 export type { CheckboxProps } from './field/Checkbox';
 
 export { CheckboxGroup } from './field/CheckboxGroup';
-export type { CheckboxGroupProps } from './field/CheckboxGroup';
+export type {
+  CheckboxCardOption,
+  CheckboxGroupProps,
+  CheckboxGroupVariant,
+} from './field/CheckboxGroup';
 
 export { RadioGroup } from './field/RadioGroup';
 export type {

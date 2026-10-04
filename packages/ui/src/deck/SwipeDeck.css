@@ -37,9 +37,17 @@
   isolation: isolate;
 }
 
-/* ===== 카드 표면 — Figma fill .85 / radius 30 → 토큰 흡수 (AD-S2-7) ======= */
+/*
+ * ===== 카드 표면 — **뒤 카드만** 그린다 (`S2-FIX-3`) ======================
+ * 앞 카드의 표면은 `renderItem` 이 소유한다 (Design Spec §4.2 · §5.3). 앞 카드에도 면을 주면
+ * `renderItem` 의 Surface 와 겹쳐 흰 면이 4겹이 되고 내부 여백이 20 + 24 = 44 가 된다
+ * (Figma `179:1783` 은 단일 프레임 · 내부 여백 24).
+ */
 .haru-swipe-deck__card {
   box-sizing: border-box;
+}
+
+.haru-swipe-deck__card--behind {
   padding: var(--space-5);
   border-radius: var(--radius-card);
   background-color: var(--color-surface-strong);
@@ -48,13 +56,13 @@
 }
 
 @supports not (backdrop-filter: blur(1px)) {
-  .haru-swipe-deck__card {
+  .haru-swipe-deck__card--behind {
     background-color: var(--material-glass-fill-fallback);
   }
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .haru-swipe-deck__card {
+  .haru-swipe-deck__card--behind {
     background-color: var(--material-glass-fill-fallback);
     backdrop-filter: none;
   }
@@ -78,7 +86,7 @@
   animation: none;
 }
 
-/* 뒤 카드: 위쪽은 앞 카드에 가려지고 아래·좌우만 보인다. */
+/* 뒤 카드 배치: 위쪽은 앞 카드에 가려지고 아래·좌우만 보인다. */
 .haru-swipe-deck__card--behind {
   position: absolute;
   inset-block-start: 0;

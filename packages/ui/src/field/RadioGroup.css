@@ -31,6 +31,13 @@
   box-sizing: border-box;
   /* Figma 행 높이 43 → 44 확장 (§9.3). */
   min-block-size: var(--radio-row-height);
+  /*
+   * 상하 여백 12 (`S2-FIX-2`). 1줄 렌더는 `max(44, 20 + 12 + 12)` = 44 로 **1px 도 바뀌지
+   * 않고**, 2줄은 64 · 3줄은 84 로 hug 한다. 이 선언이 없으면 2줄 행의 여백이 2px 로
+   * 찌그러지고 3줄은 0 이 된다 (`min-block-size` + `align-items:center` 에만 의존하기 때문).
+   * `ListRow`(`list/List.css`)가 이미 쓰는 것과 같은 규칙이다.
+   */
+  padding-block: var(--space-3);
   padding-inline: var(--space-4);
   border-radius: var(--radius-field);
   background-color: var(--color-surface-subtle);

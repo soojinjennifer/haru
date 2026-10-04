@@ -13,6 +13,7 @@ import {
   ListChecks,
   Mail,
   OctagonAlert,
+  Pencil,
   RotateCcw,
   Settings,
   ShieldCheck,
@@ -34,6 +35,7 @@ import {
  * Stage 2-AUTH 추가: `mail`(Welcome 의 "Sign up with email" — Design Spec §2.1).
  * Stage 2-CONSENT 추가: `shield-check`(VPC 슬롯의 아이콘 배지 — Design Spec §2.7).
  * Stage 2-HOME 추가: `book-open`(Home skeleton EmptyState 아이콘 배지 — Design Spec §2.13).
+ * Stage 2 재구성 추가: `pencil`(`About your child` 섹션 헤더의 편집 전환 — 재구성 Design Spec §4.3).
  *
  * 탭 아이콘 글리프는 `book` / `chart-no-axes-column-increasing` 으로 **확정**되었다
  * (결정 `S1-D2-5`, approvals §8 — Figma `25:87` 16배 확대 대조 결과 path 가 1:1 대응한다).
@@ -53,6 +55,7 @@ export const LUCIDE_ICONS = {
   'list-checks': ListChecks,
   mail: Mail,
   'octagon-alert': OctagonAlert,
+  pencil: Pencil,
   'rotate-ccw': RotateCcw,
   settings: Settings,
   'shield-check': ShieldCheck,

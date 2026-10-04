@@ -2,7 +2,7 @@
 
 Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (Rev 6: #33 · C-19 반영)
 Decision log: `docs/decisions/stage-0-approvals.md` — 이 문서와 다르면 결정 기록이 우선한다.
-Based on: PRD v1.4 (`docs/source/HARU_PRD_v1.4.md`, 2026-07-18), Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` (page `8:2`, `16:2` — design-agent `docs/FIGMA_SCREEN_MAP.md` · `COMPONENT_MAP.md` · `DESIGN_SYSTEM.md` · `DESIGN_TOKEN_MAP.md` · `FRONTEND_IMPLEMENTATION_PLAN.md` DRAFT 2026-09-14), `CLAUDE.md` Development Scope 및 `.claude/rules/*.md` (Frontend-only 개정 2026-09-14), `docs/source/prompts/01-stage0-1-1-frontend-scope.md`, `docs/decisions/stage-0-technical-research.md`, `docs/source/HARU_Development_Architecture_8Stage_v0.2.md`(참고, 미승인)
+Based on: PRD v1.4 (`docs/source/HARU_PRD_v1.5.md`, 2026-07-18), Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` (page `8:2`, `16:2` — design-agent `docs/FIGMA_SCREEN_MAP.md` · `COMPONENT_MAP.md` · `DESIGN_SYSTEM.md` · `DESIGN_TOKEN_MAP.md` · `FRONTEND_IMPLEMENTATION_PLAN.md` DRAFT 2026-09-14), `CLAUDE.md` Development Scope 및 `.claude/rules/*.md` (Frontend-only 개정 2026-09-14), `docs/source/prompts/01-stage0-1-1-frontend-scope.md`, `docs/decisions/stage-0-technical-research.md`, `docs/source/HARU_Development_Architecture_8Stage_v0.2.md`(참고, 미승인)
 Author: plan-agent (2026-09-14)
 
 라벨: `CONFIRMED` = PRD/Figma/사용자 결정으로 확정 · `RECOMMENDED` = 근거 있는 권장안, 승인 필요 · `NEEDS DECISION` = 사용자/법무/비즈니스 결정 필요.

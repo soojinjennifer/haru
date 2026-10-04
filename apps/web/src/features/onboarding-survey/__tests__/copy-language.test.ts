@@ -77,14 +77,14 @@ describe('D-B — Step 4 와 프로필 결과가 서로를 평가하지 않는�
   }
 
   it('Step 4 문구는 "무엇을 함께 키우고 싶은지" 를 묻는다 (관찰 결과를 묻지 않는다)', () => {
-    const prompt = onboardingCopy.questions['goals.growth_goals'].prompt;
+    const prompt = onboardingCopy.questions['growing_together.growth_goals'].prompt;
 
     expect(prompt).toContain('grow together');
     expect(prompt).not.toMatch(/how (good|well|strong)/i);
   });
 
   it('Step 4 선택지는 4대 역량 코드를 키로 쓰되 화면 문구는 보호자 언어다', () => {
-    const labels = Object.values(onboardingCopy.choiceOptions['goals.growth_goals']);
+    const labels = Object.values(onboardingCopy.choiceOptions['growing_together.growth_goals']);
 
     expect(labels).toHaveLength(4);
     for (const label of labels) {
@@ -94,9 +94,25 @@ describe('D-B — Step 4 와 프로필 결과가 서로를 평가하지 않는�
   });
 });
 
-describe('S2-COPY-1 — 문구 미확정 슬롯 (approvals §6 ②)', () => {
-  it('소개 화면의 소요 시간 · 진행 방식 문구는 빈 슬롯이다 (플레이스홀더 금지)', () => {
-    expect(onboardingCopy.intro.durationSlot).toBeNull();
-    expect(onboardingCopy.intro.formatSlot).toBeNull();
+describe('소개 화면 숫자 — 리터럴 금지 (`R-03` · `AC-2R-09`)', () => {
+  it('소요 시간·카드 수가 함수 슬롯이고 인자에 따라 바뀐다', () => {
+    const { profile, survey } = onboardingCopy.intro;
+
+    expect(typeof profile.duration).toBe('function');
+    expect(typeof survey.duration).toBe('function');
+    // 단수/복수를 copy 가 처리한다 (Figma `About 1 minutes` 오타는 옮기지 않는다 — AD-S2R-02).
+    expect(profile.duration(1)).toBe('About 1 minute');
+    expect(profile.duration(3)).toBe('About 3 minutes');
+    expect(survey.duration(3, 16)).toBe('About 3 minutes · 16 cards');
+    expect(survey.duration(1, 1)).toBe('About 1 minute · 1 card');
+  });
+
+  it('소개 문구 본문에 숫자가 들어 있지 않다 (수치는 InfoRow 가 소유한다)', () => {
+    const { profile, survey } = onboardingCopy.intro;
+
+    expect(profile.title).not.toMatch(/\d/);
+    expect(profile.body).not.toMatch(/\d/);
+    expect(survey.body).not.toMatch(/\d/);
+    expect(survey.titleWithoutName).not.toMatch(/\d/);
   });
 });

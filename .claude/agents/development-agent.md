@@ -32,7 +32,7 @@ model: opus
 
 ## 2. 구현 기준 (우선순위 순)
 
-1. 최신 PRD (`docs/source/HARU_PRD_v1.4.md`)
+1. 최신 PRD (`docs/source/HARU_PRD_v1.5.md`)
 2. 승인된 Plan (`docs/plans/stage-N-plan.md`)
 3. Figma HARU_MVP (fileKey `YWWu3AFEJpRxvw0T5klq0k`)
 4. `docs/DESIGN_SYSTEM.md` (+ `docs/DESIGN_TOKEN_MAP.md`)

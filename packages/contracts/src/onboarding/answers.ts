@@ -1,22 +1,26 @@
 import { z } from 'zod';
 
 import { ChildInfoAnswersSchema } from './child-info.js';
-import { BooksAnswersSchema } from './books.js';
-import { GoalsAnswersSchema } from './goals.js';
+import { BooksAndInterestsAnswersSchema } from './books-and-interests.js';
+import { GrowingTogetherAnswersSchema } from './growing-together.js';
 import { CapabilityItemsAnswersSchema, CompleteCapabilityItemsAnswersSchema } from './survey.js';
-import { TemperamentAnswersSchema } from './temperament.js';
+import { ReadingTogetherAnswersSchema } from './reading-together.js';
 
 /**
  * 온보딩 5단계 응답 묶음 — 키는 `OnboardingStep` enum 값과 1:1 이다.
  * 근거: `docs/API_CONTRACTS.md` §3.4 (`OnboardingDraft.answers`), `docs/plans/stage-2-plan.md` §7.1.
+ *
+ * 설문 재구성(2026-10-03)으로 세 키가 rename 되었다 (`reading_together` ·
+ * `books_and_interests` · `growing_together` — Plan §7.2). 1:1 불변식을 유지하기 위해
+ * enum 과 **같이** 바꾼다.
  */
 
 /** 중도 저장(draft) 형태 — 단계별로 없거나 일부만 채워져 있을 수 있다. */
 export const OnboardingDraftAnswersSchema = z.object({
   child_info: ChildInfoAnswersSchema.partial().optional(),
-  temperament: TemperamentAnswersSchema.partial().optional(),
-  books: BooksAnswersSchema.partial().optional(),
-  goals: GoalsAnswersSchema.partial().optional(),
+  reading_together: ReadingTogetherAnswersSchema.partial().optional(),
+  books_and_interests: BooksAndInterestsAnswersSchema.partial().optional(),
+  growing_together: GrowingTogetherAnswersSchema.partial().optional(),
   capability_items: CapabilityItemsAnswersSchema.optional(),
 });
 
@@ -30,9 +34,9 @@ export type OnboardingDraftAnswers = z.infer<typeof OnboardingDraftAnswersSchema
  */
 export const CompleteOnboardingAnswersSchema = z.object({
   child_info: ChildInfoAnswersSchema,
-  temperament: TemperamentAnswersSchema,
-  books: BooksAnswersSchema,
-  goals: GoalsAnswersSchema,
+  reading_together: ReadingTogetherAnswersSchema,
+  books_and_interests: BooksAndInterestsAnswersSchema,
+  growing_together: GrowingTogetherAnswersSchema,
   capability_items: CompleteCapabilityItemsAnswersSchema,
 });
 

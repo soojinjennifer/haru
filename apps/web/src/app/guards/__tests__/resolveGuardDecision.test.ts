@@ -52,6 +52,7 @@ const PATHS = [
   ROUTES.auth.consent,
   ROUTES.auth.verifyParent,
   ROUTES.onboarding.intro,
+  ROUTES.onboarding.start,
   '/onboarding/child-info',
   '/onboarding/capability-items',
   ROUTES.onboarding.saved,
@@ -176,35 +177,93 @@ describe('4. VPC pending | failed → /auth/verify-parent', () => {
   });
 });
 
-describe('5. 온보딩 미완료 → /onboarding', () => {
+describe('5. 온보딩 미완료 → 프로필 안내 또는 저장된 지점 (`§11.19` 7-2)', () => {
   it.each(['not_started', 'in_progress'] as const)(
-    'status=%s 이면 온보딩으로 보낸다',
+    'status=%s · draft 없음 → 프로필 안내(`/onboarding/start`)로 보낸다',
     (onboarding) => {
       const me = makeMe({ onboarding });
 
       expect(resolveGuardDecision(me, ROUTES.home)).toStrictEqual({
         status: 'redirect',
-        to: ROUTES.onboarding.intro,
+        to: ROUTES.onboarding.start,
         replace: true,
       });
     },
   );
 
-  it.each([ROUTES.onboarding.intro, '/onboarding/child-info', ROUTES.onboarding.saved])(
-    '온보딩 구간 안(%s)에서는 이동시키지 않는다',
-    (pathname) => {
-      const me = makeMe({ onboarding: 'in_progress' });
+  it('`onboardingResumePath` 를 주지 않아도 프로필 안내로 보낸다 (기본값 = draft 없음)', () => {
+    const me = makeMe({ onboarding: 'in_progress' });
 
-      expect(resolveGuardDecision(me, pathname)).toStrictEqual({ status: 'allow' });
-    },
-  );
+    expect(resolveGuardDecision(me, ROUTES.home, {})).toStrictEqual({
+      status: 'redirect',
+      to: ROUTES.onboarding.start,
+      replace: true,
+    });
+    expect(resolveGuardDecision(me, ROUTES.home, { onboardingResumePath: null })).toStrictEqual({
+      status: 'redirect',
+      to: ROUTES.onboarding.start,
+      replace: true,
+    });
+  });
+
+  it.each([
+    '/onboarding/child-info',
+    '/onboarding/reading-together',
+    '/onboarding/capability-items',
+  ])('draft 있음 → 저장된 지점(%s)으로 보낸다 — resume 경로가 깨지지 않는다', (resume) => {
+    const me = makeMe({ onboarding: 'in_progress' });
+
+    expect(resolveGuardDecision(me, ROUTES.home, { onboardingResumePath: resume })).toStrictEqual({
+      status: 'redirect',
+      to: resume,
+      replace: true,
+    });
+  });
+
+  it('draft 분기는 **규칙 5 의 목적지만** 바꾼다 — 다른 규칙은 그대로다', () => {
+    const resume = '/onboarding/reading-together';
+
+    // 미인증 (규칙 2)
+    expect(resolveGuardDecision(null, ROUTES.home, { onboardingResumePath: resume })).toStrictEqual(
+      { status: 'redirect', to: ROUTES.auth.welcome, replace: true },
+    );
+    // 동의 누락 (규칙 3)
+    expect(
+      resolveGuardDecision(makeMe({ missing: REQUIRED, onboarding: 'not_started' }), ROUTES.home, {
+        onboardingResumePath: resume,
+      }),
+    ).toStrictEqual({ status: 'redirect', to: ROUTES.auth.consent, replace: true });
+    // VPC 미완료 (규칙 4)
+    expect(
+      resolveGuardDecision(
+        makeMe({ verification: 'pending', onboarding: 'not_started' }),
+        ROUTES.home,
+        { onboardingResumePath: resume },
+      ),
+    ).toStrictEqual({ status: 'redirect', to: ROUTES.auth.verifyParent, replace: true });
+    // 온보딩 완료 (규칙 6) — draft 가 남아 있어도 온보딩으로 되돌리지 않는다.
+    expect(
+      resolveGuardDecision(makeMe(), ROUTES.auth.logIn, { onboardingResumePath: resume }),
+    ).toStrictEqual({ status: 'redirect', to: ROUTES.home, replace: true });
+  });
+
+  it.each([
+    ROUTES.onboarding.intro,
+    ROUTES.onboarding.start,
+    '/onboarding/child-info',
+    ROUTES.onboarding.saved,
+  ])('온보딩 구간 안(%s)에서는 이동시키지 않는다', (pathname) => {
+    const me = makeMe({ onboarding: 'in_progress' });
+
+    expect(resolveGuardDecision(me, pathname)).toStrictEqual({ status: 'allow' });
+  });
 
   it('인증된 사용자가 /auth/log-in 에 있어도 온보딩으로 보낸다', () => {
     const me = makeMe({ onboarding: 'in_progress' });
 
     expect(resolveGuardDecision(me, ROUTES.auth.logIn)).toStrictEqual({
       status: 'redirect',
-      to: ROUTES.onboarding.intro,
+      to: ROUTES.onboarding.start,
       replace: true,
     });
   });
@@ -249,22 +308,29 @@ describe('D-6 — 프로필 결과 확인 단계가 없다', () => {
 });
 
 describe('무한 리다이렉트 방지 (S2-R7 · AC-2-44)', () => {
-  const cases: { me: MeResponse | null; expired?: boolean }[] = [
+  const cases: { me: MeResponse | null; expired?: boolean; resume?: string | null }[] = [
     { me: null },
     { me: null, expired: true },
     { me: makeMe({ missing: REQUIRED, onboarding: 'not_started' }) },
     { me: makeMe({ verification: 'pending', onboarding: 'not_started' }) },
     { me: makeMe({ onboarding: 'in_progress' }) },
+    // draft 분기(`§11.19`)도 전수에 넣는다 — 목적지가 하나 늘었기 때문이다.
+    { me: makeMe({ onboarding: 'in_progress' }), resume: '/onboarding/reading-together' },
+    { me: makeMe({ onboarding: 'not_started' }), resume: '/onboarding/child-info' },
     { me: makeMe() },
   ];
 
   it('판정 결과 경로에서 다시 판정하면 allow 다 (모든 상태)', () => {
-    for (const { me, expired } of cases) {
+    for (const { me, expired, resume } of cases) {
       for (const pathname of PATHS) {
-        const first = resolveGuardDecision(me, pathname, { sessionExpired: expired ?? false });
+        const options = {
+          sessionExpired: expired ?? false,
+          onboardingResumePath: resume ?? null,
+        };
+        const first = resolveGuardDecision(me, pathname, options);
         if (first.status !== 'redirect') continue;
 
-        const second = resolveGuardDecision(me, first.to, { sessionExpired: expired ?? false });
+        const second = resolveGuardDecision(me, first.to, options);
         expect(second).toStrictEqual({ status: 'allow' });
       }
     }

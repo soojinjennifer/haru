@@ -1,34 +1,47 @@
 /**
- * 온보딩 Step 1~5 · 제출 · `/onboarding/saved` — 화면 동작 · 접근성 · **Privacy 불변식**.
+ * 온보딩 — 소개 2화면 · `About your child` · 카드 4단계 · 제출 · **Privacy 불변식**.
  *
- * AC-2-19 · AC-2-20 · AC-2-21 · AC-2-22 · AC-2-23 · AC-2-24 · AC-2-25 · AC-2-26 ·
- * AC-2-27 · AC-2-28 + 결정 **D-A**(문항 교체 가능 구조) · **D-B**(성장 목표 = 4대 역량) ·
- * **D-9**(제스처 없이 완주).
+ * 재구성 Design Spec (`stage-2-onboarding-rework-design-spec.md`) 과 신규 AC
+ * `AC-2R-01`~`AC-2R-15` 기준이다. 유지되는 기존 AC: `AC-2-20` · `AC-2-24` · `AC-2-25` ·
+ * `AC-2-27`~`AC-2-30`.
+ *
+ * ── 카드 수는 **파생값**이다 (`R-02` · `AC-2R-09`) ──
+ * Trial 구간은 서버 요청이 0건이라 Q5 책 카탈로그를 받아올 수 없어 카드가 하나 적다.
+ * 그래서 이 테스트도 숫자를 적지 않고 `surveyCards()` 로 센다.
  */
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { MemoryRouter, useLocation } from 'react-router';
+import { useLocation } from 'react-router';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   CapabilitySchema,
-  ONBOARDING_CHOICE_QUESTIONS,
+  FAVORITE_BOOKS_MAX,
   OnboardingDraftSchema,
-  type ChoiceQuestion,
   type OnboardingDraftAnswers,
-  type OnboardingInstrument,
 } from '@haru/contracts';
 
 import { AppRoutes } from '../src/app/router';
-import { ApiClientProvider } from '../src/app/providers/ApiClientProvider';
-import { QueryProvider, createQueryClient } from '../src/app/providers/QueryProvider';
-import { ChoiceQuestionList, onboardingCopy } from '../src/features/onboarding-survey';
-import { DEFAULT_ONBOARDING_INSTRUMENT } from '../src/features/onboarding-survey';
+import {
+  CARD_STEPS,
+  DEFAULT_ONBOARDING_INSTRUMENT,
+  onboardingCopy,
+  slugFromStep,
+  surveyCards,
+} from '../src/features/onboarding-survey';
 import { MOCK_REQUIRED_CONSENT_TYPES } from '../src/mocks/fixtures/consent';
+import { MOCK_BOOKS } from '../src/mocks/fixtures/books';
+import {
+  createOnboardingInstrumentFixture,
+  createChildInfoDraftAnswers,
+} from '../src/mocks/fixtures/onboarding';
 import { findChildDataKeys } from '../src/mocks/request-log';
 import { ONBOARDING_DRAFT_STORAGE_KEY } from '../src/shared/lib/onboarding-draft';
 import { ROUTES, onboardingStepPath } from '../src/shared/config/routes';
 import { createHarness, type Harness } from '../src/test/harness';
 
 const CREDENTIALS = { email: 'sam@example.com', password: 'sunny-evening-8' } as const;
+
+/** Trial 구간 카드 수 (Q5 카탈로그가 없어 하나 적다) — **파생값**이다 (`AC-2R-09`). */
+const TRIAL_CARD_TOTAL = surveyCards(DEFAULT_ONBOARDING_INSTRUMENT, CARD_STEPS).length;
 
 function LocationProbe() {
   const location = useLocation();
@@ -47,7 +60,10 @@ async function renderApp(options: {
   scenarios?: readonly string[];
   signIn?: boolean;
   grantConsent?: boolean;
+  draft?: OnboardingDraftAnswers;
 }): Promise<Harness> {
+  if (options.draft !== undefined) seedDraft(options.draft);
+
   const harness = createHarness({
     initialEntries: [options.path],
     scenarios: options.scenarios ?? [],
@@ -69,7 +85,6 @@ async function renderApp(options: {
     </Wrapper>,
   );
 
-  // Trial 진입 전에 남아 있을 수 있는 요청(세션 해석 등)을 구분하기 위해 기준점을 만든다.
   return harness;
 }
 
@@ -78,75 +93,102 @@ function readStoredDraft(): unknown {
   return raw === null ? null : JSON.parse(raw);
 }
 
+/** 기기에 draft 를 심는다 (가입 화면에서 받아 둔 아이 정보를 재현 — `R-01`). */
+function seedDraft(answers: OnboardingDraftAnswers): void {
+  globalThis.localStorage.setItem(
+    ONBOARDING_DRAFT_STORAGE_KEY,
+    JSON.stringify({
+      schemaVersion: 1,
+      instrument: {
+        code: DEFAULT_ONBOARDING_INSTRUMENT.code,
+        version: DEFAULT_ONBOARDING_INSTRUMENT.version,
+      },
+      currentStep: 'child_info',
+      answers,
+      updatedAt: new Date().toISOString(),
+    }),
+  );
+}
+
 /** `SelectTrigger` — 트리거를 열고 옵션을 고른다. */
 async function chooseOption(triggerName: RegExp, optionName: string): Promise<void> {
   fireEvent.click(await screen.findByRole('button', { name: triggerName }));
   fireEvent.click(await screen.findByRole('radio', { name: optionName }));
 }
 
-/** Step 1 필수 항목을 채운다 (이름 · 생년월 · 언어). */
-async function fillChildInfo(firstName = 'Nova'): Promise<void> {
-  fireEvent.change(await screen.findByLabelText(new RegExp(onboardingCopy.childInfo.firstName)), {
-    target: { value: firstName },
-  });
-  await chooseOption(new RegExp(onboardingCopy.childInfo.birthYear), '2021');
-  await chooseOption(new RegExp(onboardingCopy.childInfo.birthMonth), '04');
-  fireEvent.click(screen.getByRole('button', { name: onboardingCopy.languageOptions.english }));
+function nextCardButton(): HTMLElement {
+  return screen.getByRole('button', { name: onboardingCopy.survey.nextQuestion });
 }
 
-function nextButton(): HTMLElement {
-  return screen.getByRole('button', { name: onboardingCopy.wizard.next });
-}
-
-/**
- * Step 2 필수 문항 Q1 · Q4 에 응답한다 (`S2-ONB-1` — approvals §9.1).
- * 선택지 문구는 copy 모듈이 소유하므로 테스트도 문구를 다시 적지 않는다.
- */
-function answerTemperament(): void {
-  fireEvent.click(
-    screen.getByRole('radio', {
-      name: onboardingCopy.choiceOptions['temperament.story_comfort'].quiet_gentle,
-    }),
-  );
-  fireEvent.click(
-    screen.getByRole('radio', {
-      name: onboardingCopy.choiceOptions['temperament.read_aloud_behavior'].sits_and_listens,
-    }),
-  );
-}
-
-/** Step 4 필수 문항 Q2 에 응답한다 (`S2-ONB-1`). */
-function answerGoals(): void {
-  fireEvent.click(
-    screen.getByRole('button', {
-      name: onboardingCopy.choiceOptions['goals.growth_goals'].emotion_regulation,
-    }),
-  );
+function optionLabel(
+  questionId: 'reading_together.story_comfort' | 'reading_together.read_aloud_behavior',
+  code: string,
+): string {
+  const table: Record<string, string> = onboardingCopy.choiceOptions[questionId];
+  return table[code] ?? '';
 }
 
 beforeEach(() => {
   globalThis.localStorage.clear();
 });
 
-describe('경로와 진행 (AC-2-19)', () => {
-  it('`/onboarding` 소개 → Step 1 로 들어간다', async () => {
-    await renderApp({ path: ROUTES.onboarding.intro });
+describe('흐름과 경로 (`AC-2R-01` · `AC-2R-11`)', () => {
+  it('`/onboarding/start` 는 프로필 입력 소개이고 CTA 가 `child-info` 로 보낸다', async () => {
+    await renderApp({ path: ROUTES.onboarding.start });
 
-    fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.intro.start }));
+    expect(await screen.findByText(onboardingCopy.intro.profile.title)).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: onboardingCopy.intro.profile.cta }));
+
     await expectPath(onboardingStepPath('child-info'));
   });
 
-  it('5단계 slug 가 모두 열리고 진행 표시가 텍스트로 병기된다', async () => {
-    const slugs = ['child-info', 'temperament', 'books', 'goals', 'capability-items'] as const;
+  it('`/onboarding` 은 설문 소개이고 CTA 가 첫 카드 단계로 보낸다', async () => {
+    await renderApp({ path: ROUTES.onboarding.intro });
 
-    for (const [index, slug] of slugs.entries()) {
+    expect(await screen.findByText(onboardingCopy.intro.survey.body)).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: onboardingCopy.intro.survey.cta }));
+
+    await expectPath(onboardingStepPath('reading-together'));
+  });
+
+  it('소개 화면의 소요 시간·카드 수가 instrument 에서 온다 (`AC-2R-09`)', async () => {
+    await renderApp({ path: ROUTES.onboarding.intro });
+
+    const { surveyMinutes } = DEFAULT_ONBOARDING_INSTRUMENT.estimates;
+    expect(
+      await screen.findByText(
+        onboardingCopy.intro.survey.duration(surveyMinutes, TRIAL_CARD_TOTAL),
+      ),
+    ).toBeDefined();
+  });
+
+  it('프로필 입력을 마치면 설문 소개로 간다 (카드로 바로 들어가지 않는다)', async () => {
+    await renderApp({ path: onboardingStepPath('child-info') });
+    await fillChildInfo();
+
+    fireEvent.click(screen.getByRole('button', { name: onboardingCopy.wizard.next }));
+    await expectPath(ROUTES.onboarding.intro);
+  });
+
+  it('네 카드 단계 slug 가 모두 열리고 제목이 바뀐다 (`AC-2R-01`)', async () => {
+    for (const step of CARD_STEPS) {
       globalThis.localStorage.clear();
       document.body.innerHTML = '';
 
-      await renderApp({ path: onboardingStepPath(slug) });
+      await renderApp({ path: onboardingStepPath(slugFromStep(step)) });
 
-      expect(await screen.findByText(onboardingCopy.wizard.stepOf(index + 1, 5))).toBeDefined();
+      const titles: Record<string, string> = onboardingCopy.steps;
+      expect(await screen.findByText(titles[step] ?? '')).toBeDefined();
     }
+  });
+
+  it('`Capability` 로 표시한다 — 내부 단계 이름을 노출하지 않는다 (`R-13`)', async () => {
+    await renderApp({ path: onboardingStepPath('capability-items') });
+
+    expect(await screen.findByText('Capability')).toBeDefined();
+    // 내부 단계 이름이 화면 제목으로 노출되지 않는다 (`AD-S2R-09`).
+    expect(screen.queryByText('Capability-items')).toBeNull();
+    expect(screen.queryByText('What you have noticed')).toBeNull();
   });
 
   it('알 수 없는 slug 는 첫 단계로 되돌린다', async () => {
@@ -156,304 +198,477 @@ describe('경로와 진행 (AC-2-19)', () => {
   });
 });
 
-describe('Step 1 — 아이 정보 (AC-2-21 · AC-2-22)', () => {
-  it('성·이름 두 칸이며 성은 선택이다 (C-6 · D-1)', async () => {
+/** 필수 항목을 채운다 (이름 · 생년월 · 언어). */
+async function fillChildInfo(firstName = 'Nova'): Promise<void> {
+  fireEvent.change(await screen.findByLabelText(new RegExp(onboardingCopy.childInfo.firstName)), {
+    target: { value: firstName },
+  });
+  await chooseOption(new RegExp(onboardingCopy.childInfo.birthYear), '2021');
+  await chooseOption(new RegExp(onboardingCopy.childInfo.birthMonth), '04');
+  fireEvent.click(screen.getByRole('button', { name: onboardingCopy.languageOptions.english }));
+}
+
+describe('`About your child` — 가입에서 받은 값을 표시한다 (`R-01` · `R-08`)', () => {
+  it('draft 값이 있으면 표시 전용 행으로 보이고 재입력을 요구하지 않는다 (`AC-2R-06`)', async () => {
+    await renderApp({
+      path: onboardingStepPath('child-info'),
+      draft: { child_info: createChildInfoDraftAnswers() },
+    });
+
+    // 표시 전용 행은 `<button>` 이다 — 눌리면 편집이라는 사실을 형태로 전한다 (§4.3 신호 ③).
+    const row = await screen.findByRole('button', { name: /Nova/ });
+    expect(row.tagName).toBe('BUTTON');
+    // `readonly` input 을 쓰지 않는다 (§4.3 접근성).
+    expect(document.querySelectorAll('input[readonly]')).toHaveLength(0);
+    expect(screen.queryByLabelText(new RegExp(onboardingCopy.childInfo.firstName))).toBeNull();
+  });
+
+  it('행을 누르면 인라인 편집으로 들어간다 — 데드락이 없다 (`AC-2R-07`)', async () => {
+    await renderApp({
+      path: onboardingStepPath('child-info'),
+      draft: { child_info: createChildInfoDraftAnswers() },
+    });
+
+    fireEvent.click(await screen.findByRole('button', { name: /Nova/ }));
+
+    const input = await screen.findByLabelText(new RegExp(onboardingCopy.childInfo.firstName));
+    expect((input as HTMLInputElement).value).toBe('Nova');
+  });
+
+  it('섹션 헤더 연필로도 편집에 들어가고 Done 으로 돌아온다', async () => {
+    await renderApp({
+      path: onboardingStepPath('child-info'),
+      draft: { child_info: createChildInfoDraftAnswers() },
+    });
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: onboardingCopy.childInfo.editChild }),
+    );
+    expect(
+      await screen.findByLabelText(new RegExp(onboardingCopy.childInfo.firstName)),
+    ).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: onboardingCopy.childInfo.editDone }));
+    await waitFor(() => {
+      expect(screen.queryByLabelText(new RegExp(onboardingCopy.childInfo.firstName))).toBeNull();
+    });
+  });
+
+  it('draft 에 값이 없으면 처음부터 편집 모드이고 오류를 띄우지 않는다 (`missing-prefill`)', async () => {
     await renderApp({ path: onboardingStepPath('child-info') });
 
     expect(
       await screen.findByLabelText(new RegExp(onboardingCopy.childInfo.firstName)),
     ).toBeDefined();
-    expect(screen.getByLabelText(new RegExp(onboardingCopy.childInfo.lastName))).toBeDefined();
+    expect(screen.queryByText(onboardingCopy.childInfo.firstNameRequired)).toBeNull();
   });
 
-  it('성별은 기본 미선택이고 3옵션이다 (C-7)', async () => {
-    await renderApp({ path: onboardingStepPath('child-info') });
-
-    const trigger = await screen.findByRole('button', {
-      name: new RegExp(onboardingCopy.childInfo.gender),
-    });
-    expect(trigger.textContent).toContain(onboardingCopy.childInfo.genderPlaceholder);
-
-    fireEvent.click(trigger);
-    const sheet = await screen.findByRole('dialog', {
-      name: new RegExp(onboardingCopy.childInfo.gender),
-    });
-    expect(within(sheet).getAllByRole('radio')).toHaveLength(3);
-  });
-
-  it('나이 Tag 가 입력에서 파생되어 표시된다', async () => {
+  it('나이 Tag 가 입력에서 파생되고 접근성 이름이 축약형이 아니다 (`R-09`)', async () => {
     await renderApp({ path: onboardingStepPath('child-info') });
     await fillChildInfo();
 
     expect(await screen.findByText(/^\d+yr \d+mo$/)).toBeDefined();
+    expect(screen.getByText(/\d+ years? \d+ months?/)).toBeDefined();
   });
 
-  it('필수 항목이 비어 있으면 다음으로 넘어가지 않고 사유를 보여준다', async () => {
+  it('필수 항목이 비어 있으면 넘어가지 않고 사유를 보여준다', async () => {
     await renderApp({ path: onboardingStepPath('child-info') });
 
-    fireEvent.click(nextButton());
+    fireEvent.click(screen.getByRole('button', { name: onboardingCopy.wizard.next }));
 
     expect(await screen.findByText(onboardingCopy.childInfo.firstNameRequired)).toBeDefined();
     await expectPath(onboardingStepPath('child-info'));
   });
 
-  it('채우면 Step 2 로 넘어간다', async () => {
+  it('Trial 안내는 미로그인일 때만 나온다 (`R-07`)', async () => {
     await renderApp({ path: onboardingStepPath('child-info') });
-    await fillChildInfo();
-    fireEvent.click(nextButton());
+    expect(await screen.findByText(onboardingCopy.notices.trialTitle)).toBeDefined();
 
-    await expectPath(onboardingStepPath('temperament'));
+    document.body.innerHTML = '';
+    globalThis.localStorage.clear();
+
+    await renderApp({
+      path: onboardingStepPath('child-info'),
+      scenarios: ['me:onboarding-incomplete'],
+      signIn: true,
+      grantConsent: true,
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText(onboardingCopy.notices.trialTitle)).toBeNull();
+    });
+  });
+
+  it('프로필 입력 화면에는 ProgressBar 를 그리지 않는다 (Figma `248:1159`)', async () => {
+    await renderApp({ path: onboardingStepPath('child-info') });
+    await screen.findByLabelText(new RegExp(onboardingCopy.childInfo.firstName));
+
+    expect(screen.queryByRole('progressbar')).toBeNull();
   });
 });
 
-describe('Step 2~4 — 문항은 instrument 가 정한다 (결정 D-A ②③)', () => {
-  it('Step 2 는 instrument 의 문항 문구를 그대로 그린다', async () => {
-    await renderApp({ path: onboardingStepPath('temperament') });
+describe('카드 단계 — 한 카드 = 한 문항 (`AC-2R-02` · `AC-2R-03`)', () => {
+  it('덱이 한 번에 문항 하나만 그린다', async () => {
+    await renderApp({ path: onboardingStepPath('reading-together') });
 
-    for (const question of ONBOARDING_CHOICE_QUESTIONS.filter((q) => q.step === 'temperament')) {
-      expect(
-        await screen.findByText(onboardingCopy.questions[question.questionId].prompt),
-      ).toBeDefined();
-    }
+    await screen.findByRole('group', { name: onboardingCopy.survey.deckLabel });
+    // 카드 제목(h2)이 문항이다. `RadioGroup` legend 는 같은 문구를 스크린리더에만 남긴다.
+    expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(1);
+    expect(
+      screen.getByRole('heading', {
+        level: 2,
+        name: onboardingCopy.questions['reading_together.story_comfort'].prompt,
+      }),
+    ).toBeDefined();
+    expect(
+      screen.queryByRole('heading', {
+        level: 2,
+        name: onboardingCopy.questions['reading_together.read_aloud_behavior'].prompt,
+      }),
+    ).toBeNull();
   });
 
-  it('Step 4 선택지가 4대 역량과 같은 목록이다 (결정 D-B)', async () => {
-    await renderApp({ path: onboardingStepPath('goals') });
+  it('카운터가 **전체 통산**이고 단계가 바뀌어도 끊기지 않는다 (`AC-2R-08`)', async () => {
+    await renderApp({ path: onboardingStepPath('reading-together') });
+
+    expect(
+      await screen.findAllByText(onboardingCopy.survey.counter(1, TRIAL_CARD_TOTAL)),
+    ).toBeDefined();
+
+    // Q1 은 필수이므로 먼저 답한다 (키보드 선택 → 자동 전진 없음).
+    const option = screen.getByRole('radio', {
+      name: optionLabel('reading_together.story_comfort', 'quiet_gentle'),
+    });
+    fireEvent.keyDown(option, { key: ' ' });
+    fireEvent.click(option);
+
+    fireEvent.click(nextCardButton());
+    await waitFor(() => {
+      expect(
+        screen.getAllByText(onboardingCopy.survey.counter(2, TRIAL_CARD_TOTAL))[0],
+      ).toBeDefined();
+    });
+
+    document.body.innerHTML = '';
+    await renderApp({ path: onboardingStepPath('growing-together') });
+
+    // Reading together 2장 + Books and interests 2장(Trial, Q5 없음) 다음이 Growing together 다.
+    expect(
+      await screen.findAllByText(
+        onboardingCopy.survey.counter(TRIAL_CARD_TOTAL - 10, TRIAL_CARD_TOTAL),
+      ),
+    ).toBeDefined();
+  });
+
+  it('카드 단계에는 하단 CTA 가 없다 — 마지막 카드에만 제출 CTA 다 (`S2R-OPEN-4`)', async () => {
+    await renderApp({ path: onboardingStepPath('reading-together') });
+
+    await screen.findByRole('group', { name: onboardingCopy.survey.deckLabel });
+    expect(screen.queryByRole('button', { name: onboardingCopy.wizard.next })).toBeNull();
+    expect(screen.queryByRole('button', { name: onboardingCopy.wizard.saveProfile })).toBeNull();
+    expect(screen.queryByRole('button', { name: onboardingCopy.wizard.finish })).toBeNull();
+  });
+
+  it('필수 미응답이면 전진 어포던스가 `aria-disabled` 이고 카드 안에 사유가 있다 (§3.2)', async () => {
+    await renderApp({ path: onboardingStepPath('reading-together') });
+
+    const next = await screen.findByRole('button', {
+      name: onboardingCopy.survey.nextQuestion,
+    });
+    expect(next.getAttribute('aria-disabled')).toBe('true');
+    expect((next as HTMLButtonElement).disabled).toBe(false);
+    expect(screen.getByText(onboardingCopy.wizard.requiredBlockedReason)).toBeDefined();
+
+    // 눌러도 넘어가지 않는다.
+    fireEvent.click(next);
+    expect(
+      screen.getAllByText(onboardingCopy.survey.counter(1, TRIAL_CARD_TOTAL))[0],
+    ).toBeDefined();
+  });
+
+  it('선택 문항(Q3)은 응답 없이도 전진한다', async () => {
+    await renderApp({ path: onboardingStepPath('books-and-interests') });
+
+    const next = await screen.findByRole('button', {
+      name: onboardingCopy.survey.nextQuestion,
+    });
+    expect(next.getAttribute('aria-disabled')).toBeNull();
+  });
+
+  it('복수 선택 문항이 Chip 이 아니라 체크박스 행이다 (§3.6)', async () => {
+    await renderApp({ path: onboardingStepPath('growing-together') });
 
     const labels = CapabilitySchema.options.map(
-      (code) => onboardingCopy.choiceOptions['goals.growth_goals'][code],
+      (code) => onboardingCopy.choiceOptions['growing_together.growth_goals'][code],
     );
 
     for (const label of labels) {
-      expect(await screen.findByRole('button', { name: label })).toBeDefined();
+      expect(await screen.findByRole('checkbox', { name: label })).toBeDefined();
     }
   });
 
-  it('Step 4 에서 목표를 고르면 선택 상태가 표시된다', async () => {
-    await renderApp({ path: onboardingStepPath('goals') });
+  it('`role="group"` 에는 `aria-required` 를 두지 않는다 (§15)', async () => {
+    await renderApp({ path: onboardingStepPath('growing-together') });
 
-    const label = onboardingCopy.choiceOptions['goals.growth_goals'].emotion_regulation;
-    const chip = await screen.findByRole('button', { name: label });
-    fireEvent.click(chip);
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: label }).getAttribute('aria-pressed')).toBe('true');
-    });
-  });
-});
-
-describe('필수 문항 — Q1 · Q4 · Q2 (`S2-ONB-1`, approvals §9.1)', () => {
-  it('Step 2 는 두 문항에 모두 응답해야 다음으로 간다', async () => {
-    await renderApp({ path: onboardingStepPath('temperament') });
-
-    fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.wizard.next }));
-    await expectPath(onboardingStepPath('temperament'));
-
-    // 한 문항만 골라도 아직 막힌다.
-    fireEvent.click(
-      screen.getByRole('radio', {
-        name: onboardingCopy.choiceOptions['temperament.story_comfort'].quiet_gentle,
-      }),
-    );
-    fireEvent.click(nextButton());
-    await expectPath(onboardingStepPath('temperament'));
-
-    fireEvent.click(
-      screen.getByRole('radio', {
-        name: onboardingCopy.choiceOptions['temperament.read_aloud_behavior'].sits_and_listens,
-      }),
-    );
-    fireEvent.click(nextButton());
-    await expectPath(onboardingStepPath('books'));
-  });
-
-  it('회피 선택지를 고르면 진행된다 — 없는 답을 강요하지 않는다 (approvals §9.1)', async () => {
-    await renderApp({ path: onboardingStepPath('temperament') });
-
-    fireEvent.click(
-      await screen.findByRole('radio', {
-        name: onboardingCopy.choiceOptions['temperament.story_comfort'].depends_on_the_day,
-      }),
-    );
-    fireEvent.click(
-      screen.getByRole('radio', {
-        name: onboardingCopy.choiceOptions['temperament.read_aloud_behavior'].sits_and_listens,
-      }),
-    );
-
-    fireEvent.click(nextButton());
-    await expectPath(onboardingStepPath('books'));
-  });
-
-  it('Step 4 는 성장 목표를 최소 1개 골라야 다음으로 간다', async () => {
-    await renderApp({ path: onboardingStepPath('goals') });
-
-    fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.wizard.next }));
-    await expectPath(onboardingStepPath('goals'));
-
-    answerGoals();
-    fireEvent.click(nextButton());
-    await expectPath(onboardingStepPath('capability-items'));
-  });
-
-  it('Step 3(Q3)은 선택 유지라 응답 없이 넘어간다', async () => {
-    await renderApp({ path: onboardingStepPath('books') });
-
-    fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.wizard.next }));
-    await expectPath(onboardingStepPath('goals'));
-  });
-
-  it('CTA 는 native disabled 가 아니라 `aria-disabled` + 이유 연결이다 (§2.6 패턴)', async () => {
-    await renderApp({ path: onboardingStepPath('temperament') });
-
-    const cta = await screen.findByRole('button', { name: onboardingCopy.wizard.next });
-    expect(cta.getAttribute('aria-disabled')).toBe('true');
-    expect((cta as HTMLButtonElement).disabled).toBe(false);
-
-    const reasonId = cta.getAttribute('aria-describedby');
-    expect(reasonId).not.toBeNull();
-    // 계수형 문구 — Step 2 는 필수 2건이라 복수형이다 (§2.9).
-    expect(document.getElementById(reasonId ?? '')?.textContent).toBe(
-      onboardingCopy.wizard.requiredBlockedReason(2),
-    );
-    expect(document.getElementById(reasonId ?? '')?.textContent).toBe(
-      'Answer the 2 questions above to continue.',
-    );
-
-    // 1건만 답하면 남은 필수가 1건이라 단수형으로 바뀐다.
-    fireEvent.click(
-      screen.getByRole('radio', {
-        name: onboardingCopy.choiceOptions['temperament.story_comfort'].quiet_gentle,
-      }),
-    );
-
-    await waitFor(() => {
-      expect(document.getElementById(reasonId ?? '')?.textContent).toBe(
-        'Answer the question above to continue.',
-      );
-    });
-
-    answerTemperament();
-
-    await waitFor(() => {
-      const enabled = screen.getByRole('button', { name: onboardingCopy.wizard.next });
-      expect(enabled.getAttribute('aria-disabled')).toBeNull();
-      expect(enabled.getAttribute('aria-describedby')).toBeNull();
-    });
-  });
-
-  it('Step 2 는 문항별 표식 대신 두 그룹에 `aria-required` 를 둔다 (§2.9)', async () => {
-    await renderApp({ path: onboardingStepPath('temperament') });
-
-    const groups = await screen.findAllByRole('radiogroup');
-    expect(groups).toHaveLength(2);
-    for (const group of groups) {
-      expect(group.getAttribute('aria-required')).toBe('true');
-    }
-
-    // 시각 "Required" 표식은 두지 않는다 — 전부 필수인 단계이기 때문이다.
-    expect(screen.queryByText('Required')).toBeNull();
-  });
-
-  it('Step 4 Chip 그룹에는 `aria-required` 대신 보조 문구가 필수성을 말한다 (§2.9)', async () => {
-    await renderApp({ path: onboardingStepPath('goals') });
-
-    const description = await screen.findByText(
-      onboardingCopy.questions['goals.growth_goals'].description ?? '',
-    );
-    expect(description.textContent).toBe('Pick at least one, up to two.');
-
-    // `role="group"` 에는 `aria-required` 가 유효하지 않다 — 넣지 않았는지 확인한다.
+    await screen.findByRole('group', { name: onboardingCopy.survey.deckLabel });
+    expect(
+      await screen.findByText(
+        onboardingCopy.questions['growing_together.growth_goals'].description ?? '',
+      ),
+    ).toBeDefined();
     expect(document.querySelectorAll('[aria-required]')).toHaveLength(0);
-    expect(document.querySelectorAll('[role="radiogroup"]')).toHaveLength(0);
-  });
-});
-
-describe('문항 교체 — 화면 코드를 고치지 않는다 (결정 D-A ②)', () => {
-  function renderWithInstrument(
-    questions: readonly ChoiceQuestion[],
-    answers: OnboardingDraftAnswers = {},
-  ) {
-    const instrument: OnboardingInstrument = {
-      ...DEFAULT_ONBOARDING_INSTRUMENT,
-      questions,
-    };
-
-    render(
-      <MemoryRouter>
-        <QueryProvider client={createQueryClient()}>
-          <ApiClientProvider clients={createHarness().bundle.clients}>
-            <ChoiceQuestionList
-              instrument={instrument}
-              step="goals"
-              answers={answers}
-              onChange={() => undefined}
-            />
-          </ApiClientProvider>
-        </QueryProvider>
-      </MemoryRouter>,
-    );
-  }
-
-  const goals = ONBOARDING_CHOICE_QUESTIONS.find(
-    (question) => question.questionId === 'goals.growth_goals',
-  );
-
-  it('선택지를 줄인 instrument 는 줄어든 대로 그려진다', () => {
-    if (goals === undefined) throw new Error('missing question');
-
-    renderWithInstrument([
-      {
-        ...goals,
-        options: [{ code: 'emotion_regulation' }, { code: 'intrinsic_motivation' }],
-      },
-    ]);
-
-    expect(screen.getAllByRole('button')).toHaveLength(2);
   });
 
-  it('서버가 내려준 문구가 copy 모듈보다 우선한다', () => {
-    if (goals === undefined) throw new Error('missing question');
-
-    renderWithInstrument([
-      {
-        ...goals,
-        prompt: 'Server prompt wins',
-        options: [
-          { code: 'emotion_regulation', label: 'Server label wins' },
-          { code: 'intrinsic_motivation' },
-        ],
-      },
-    ]);
-
-    expect(screen.getByText('Server prompt wins')).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Server label wins' })).toBeDefined();
-  });
-
-  it('문항이 하나도 없는 단계는 아무것도 그리지 않는다', () => {
-    renderWithInstrument([]);
-
-    expect(screen.queryAllByRole('button')).toHaveLength(0);
-  });
-});
-
-describe('Step 5 — 설문 (AC-2-24 · AC-2-25 · D-9)', () => {
-  const instrument = DEFAULT_ONBOARDING_INSTRUMENT;
-
-  it('문항 문구와 척도 라벨이 instrument 값에서 온다', async () => {
+  it('마지막 카드에서만 제출 CTA 를 그린다', async () => {
     await renderApp({ path: onboardingStepPath('capability-items') });
 
-    const first = instrument.survey.items[0];
-    if (first === undefined) throw new Error('missing item');
-
-    // 카드 제목(h2)이 문항 문구다. `RadioGroup` legend 는 같은 문구를 스크린리더에만 남긴다.
-    expect(await screen.findByRole('heading', { level: 2, name: first.prompt })).toBeDefined();
-    for (const scale of instrument.survey.scaleLabels) {
-      expect(screen.getByRole('radio', { name: scale.label })).toBeDefined();
+    const items = DEFAULT_ONBOARDING_INSTRUMENT.survey.items;
+    for (let index = 0; index < items.length - 1; index += 1) {
+      expect(screen.queryByRole('button', { name: onboardingCopy.wizard.saveProfile })).toBeNull();
+      fireEvent.click(nextCardButton());
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            onboardingCopy.survey.counter(
+              TRIAL_CARD_TOTAL - items.length + index + 2,
+              TRIAL_CARD_TOTAL,
+            ),
+          ),
+        ).toBeDefined();
+      });
     }
+
+    expect(
+      await screen.findByRole('button', { name: onboardingCopy.wizard.saveProfile }),
+    ).toBeDefined();
+  });
+});
+
+describe('자동 전진 (`S2R-OPEN-3` · §14)', () => {
+  it('단일 선택을 포인터로 고르면 다음 카드로 넘어간다', async () => {
+    await renderApp({ path: onboardingStepPath('reading-together') });
+
+    const option = await screen.findByRole('radio', {
+      name: optionLabel('reading_together.story_comfort', 'quiet_gentle'),
+    });
+    fireEvent.pointerDown(option);
+    fireEvent.click(option);
+
+    await waitFor(
+      () => {
+        expect(
+          screen.getAllByText(onboardingCopy.survey.counter(2, TRIAL_CARD_TOTAL))[0],
+        ).toBeDefined();
+      },
+      { timeout: 2000 },
+    );
   });
 
-  it('척도는 6옵션이고 6번째(비채점)는 별도 안내를 가진다 (C-8 · C13-08)', async () => {
+  it('키보드로 고르면 자동 전진하지 않는다 (§14.3)', async () => {
+    await renderApp({ path: onboardingStepPath('reading-together') });
+
+    const option = await screen.findByRole('radio', {
+      name: optionLabel('reading_together.story_comfort', 'quiet_gentle'),
+    });
+    fireEvent.keyDown(option, { key: ' ' });
+    fireEvent.click(option);
+
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    expect(
+      screen.getAllByText(onboardingCopy.survey.counter(1, TRIAL_CARD_TOTAL))[0],
+    ).toBeDefined();
+  });
+
+  it('★ 돌아온 카드에서는 자동 전진하지 않는다 — 오선택을 고칠 수 있다 (§14.2-3)', async () => {
+    await renderApp({ path: onboardingStepPath('reading-together') });
+
+    const first = await screen.findByRole('radio', {
+      name: optionLabel('reading_together.story_comfort', 'quiet_gentle'),
+    });
+    fireEvent.pointerDown(first);
+    fireEvent.click(first);
+
+    await waitFor(
+      () => {
+        expect(
+          screen.getAllByText(onboardingCopy.survey.counter(2, TRIAL_CARD_TOTAL))[0],
+        ).toBeDefined();
+      },
+      { timeout: 2000 },
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: onboardingCopy.survey.prevQuestion }));
+    await waitFor(() => {
+      expect(
+        screen.getAllByText(onboardingCopy.survey.counter(1, TRIAL_CARD_TOTAL))[0],
+      ).toBeDefined();
+    });
+
+    const corrected = screen.getByRole('radio', {
+      name: optionLabel('reading_together.story_comfort', 'wild_ride'),
+    });
+    fireEvent.pointerDown(corrected);
+    fireEvent.click(corrected);
+
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    expect(
+      screen.getAllByText(onboardingCopy.survey.counter(1, TRIAL_CARD_TOTAL))[0],
+    ).toBeDefined();
+    expect((corrected as HTMLInputElement).checked).toBe(true);
+  });
+
+  it('해제는 자동 전진을 유발하지 않는다 (§14.2-4)', async () => {
+    await renderApp({ path: onboardingStepPath('capability-items') });
+
+    const scale = DEFAULT_ONBOARDING_INSTRUMENT.survey.scaleLabels[0];
+    if (scale === undefined) throw new Error('missing scale');
+
+    const option = await screen.findByRole('radio', { name: scale.label });
+    fireEvent.keyDown(option, { key: ' ' });
+    fireEvent.click(option);
+
+    fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.survey.clearAnswer }));
+
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    await waitFor(() => {
+      expect((screen.getByRole('radio', { name: scale.label }) as HTMLInputElement).checked).toBe(
+        false,
+      );
+    });
+  });
+});
+
+describe('Q5 — 이미 잘 아는 책 (`AC-2R-15` · `§11.11`)', () => {
+  it('제목 체크박스 목록이고 제목이 fixture 에서 온다', async () => {
+    await renderApp({
+      path: onboardingStepPath('books-and-interests'),
+      scenarios: ['me:onboarding-incomplete'],
+      signIn: true,
+      grantConsent: true,
+    });
+
+    // 첫 카드는 Q3 — 다음 카드가 Q5 다.
+    await screen.findByRole('group', { name: onboardingCopy.survey.deckLabel });
+    fireEvent.click(nextCardButton());
+
+    expect(
+      await screen.findByRole('heading', {
+        level: 2,
+        name: onboardingCopy.questions['books_and_interests.owned_books'].prompt,
+      }),
+    ).toBeDefined();
+
+    for (const book of MOCK_BOOKS) {
+      expect(screen.getByRole('checkbox', { name: book.title })).toBeDefined();
+    }
+    // 저자는 표시하지 않는다 (§6.1).
+    expect(screen.queryByText(MOCK_BOOKS[0]?.author ?? '')).toBeNull();
+  });
+
+  it('카탈로그가 비면 카드가 사라지고 카드 수가 줄어든다 (`owned-books-empty`)', async () => {
+    await renderApp({
+      path: onboardingStepPath('books-and-interests'),
+      scenarios: ['me:onboarding-incomplete', 'onboarding:owned-books-empty'],
+      signIn: true,
+      grantConsent: true,
+    });
+
+    await screen.findByRole('group', { name: onboardingCopy.survey.deckLabel });
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('heading', {
+          level: 2,
+          name: onboardingCopy.questions['books_and_interests.owned_books'].prompt,
+        }),
+      ).toBeNull();
+    });
+  });
+});
+
+describe('좋아하는 책 — 검색 없음 (`§11.13`)', () => {
+  async function openFavoritesCard(): Promise<void> {
+    await renderApp({ path: onboardingStepPath('books-and-interests') });
+    await screen.findByRole('group', { name: onboardingCopy.survey.deckLabel });
+    // Trial 에는 Q5 가 없으므로 Q3 다음이 좋아하는 책 카드다.
+    fireEvent.click(nextCardButton());
+    await screen.findByRole('heading', {
+      level: 2,
+      name: onboardingCopy.books.favoritesSection,
+    });
+  }
+
+  it('검색 입력·결과 목록·빈 상태가 없다', async () => {
+    await openFavoritesCard();
+
+    expect(document.querySelectorAll('input[type="search"]')).toHaveLength(0);
+    expect(screen.queryByText('Goodnight Moon')).toBeNull();
+  });
+
+  it('제목을 직접 입력해 목록에 담는다', async () => {
+    await openFavoritesCard();
+
+    const input = screen.getByRole('textbox', { name: onboardingCopy.books.favoritesSection });
+    fireEvent.change(input, { target: { value: 'Moonbeam' } });
+    fireEvent.click(screen.getByRole('button', { name: onboardingCopy.books.addAction }));
+
+    const picked = await screen.findByRole('list', { name: onboardingCopy.books.selectedLabel });
+    expect(within(picked).getByText('Moonbeam')).toBeDefined();
+  });
+
+  it('상한에 도달하면 **거절**하고 입력 필드를 숨기지 않는다 (`§11.15`)', async () => {
+    await openFavoritesCard();
+
+    const input = screen.getByRole('textbox', { name: onboardingCopy.books.favoritesSection });
+    for (let index = 0; index < FAVORITE_BOOKS_MAX; index += 1) {
+      fireEvent.change(input, { target: { value: `Book ${String(index)}` } });
+      fireEvent.click(screen.getByRole('button', { name: onboardingCopy.books.addAction }));
+    }
+
+    expect(
+      await screen.findByText(onboardingCopy.books.limitReached(FAVORITE_BOOKS_MAX)),
+    ).toBeDefined();
+    const field = screen.getByRole('textbox', { name: onboardingCopy.books.favoritesSection });
+    expect((field as HTMLInputElement).disabled).toBe(true);
+  });
+});
+
+describe('문항 문구는 instrument 가 소유한다 (결정 D-A ②③)', () => {
+  it('서버가 내려준 문구가 copy 모듈보다 우선한다', async () => {
+    await renderApp({
+      path: onboardingStepPath('capability-items'),
+      scenarios: ['me:onboarding-incomplete'],
+      signIn: true,
+      grantConsent: true,
+    });
+
+    const first = createOnboardingInstrumentFixture().survey.items[0];
+    if (first === undefined) throw new Error('missing item');
+
+    expect(await screen.findByRole('heading', { level: 2, name: first.prompt })).toBeDefined();
+  });
+
+  it('`instrument-v2` 로 문항이 줄면 카드 수도 따라 줄어든다 (`AC-2R-09`)', async () => {
+    const harness = await renderApp({
+      path: onboardingStepPath('reading-together'),
+      scenarios: ['me:onboarding-incomplete', 'onboarding:instrument-v2'],
+      signIn: true,
+      grantConsent: true,
+    });
+
+    const reduced = createOnboardingInstrumentFixture({
+      version: '2.1.0',
+      questionIds: ['reading_together.story_comfort', 'growing_together.growth_goals'],
+      ownedBookOptions: [],
+    });
+    const total = surveyCards(reduced, CARD_STEPS).length;
+
+    expect(await screen.findAllByText(onboardingCopy.survey.counter(1, total))).toBeDefined();
+    expect(harness.bundle.requestLog.entries().length).toBeGreaterThan(0);
+  });
+});
+
+describe('역량 문항 — 비채점 옵션 (C-8 · C13-08)', () => {
+  it('척도 6개이고 6번째에 별도 안내가 붙는다', async () => {
     await renderApp({ path: onboardingStepPath('capability-items') });
 
     await screen.findByRole('group', { name: onboardingCopy.survey.deckLabel });
@@ -461,78 +676,41 @@ describe('Step 5 — 설문 (AC-2-24 · AC-2-25 · D-9)', () => {
     expect(screen.getByText(onboardingCopy.survey.notScoredCaption)).toBeDefined();
   });
 
-  it('제스처 없이 버튼만으로 10문항 전부에 도달해 응답할 수 있다 (D-9 · WCAG 2.5.1)', async () => {
+  it('제스처 없이 버튼만으로 모든 문항에 도달한다 (`AC-2-25` · D-9)', async () => {
     await renderApp({ path: onboardingStepPath('capability-items') });
 
-    const nextQuestion = await screen.findByRole('button', {
-      name: onboardingCopy.survey.nextQuestion,
-    });
-
-    for (const [index, item] of instrument.survey.items.entries()) {
-      // 각 카드의 문항 문구가 실제로 보인다 = 그 문항에 도달했다.
+    const items = DEFAULT_ONBOARDING_INSTRUMENT.survey.items;
+    for (const [index, item] of items.entries()) {
       expect(await screen.findByRole('heading', { level: 2, name: item.prompt })).toBeDefined();
 
-      const scale = instrument.survey.scaleLabels[index % 6];
+      const scale = DEFAULT_ONBOARDING_INSTRUMENT.survey.scaleLabels[index % 6];
       if (scale === undefined) throw new Error('missing scale');
-      fireEvent.click(screen.getByRole('radio', { name: scale.label }));
+      const option = screen.getByRole('radio', { name: scale.label });
+      fireEvent.keyDown(option, { key: ' ' });
+      fireEvent.click(option);
 
-      if (index < instrument.survey.items.length - 1) {
-        fireEvent.click(nextQuestion);
-        await waitFor(() => {
-          expect(screen.getByText(onboardingCopy.survey.counter(index + 2, 10))).toBeDefined();
-        });
-      }
+      if (index < items.length - 1) fireEvent.click(nextCardButton());
     }
 
-    // 10문항을 전부 답했으므로 "남은 문항" 안내가 사라진다.
     await waitFor(() => {
       expect(screen.queryByText(/question[s]? left\./)).toBeNull();
     });
   });
-
-  it('덱 안에서 ArrowRight 로도 다음 카드로 이동한다 (키보드 1급 경로)', async () => {
-    await renderApp({ path: onboardingStepPath('capability-items') });
-
-    const deck = await screen.findByRole('group', { name: onboardingCopy.survey.deckLabel });
-    fireEvent.keyDown(deck, { key: 'ArrowRight' });
-
-    await waitFor(() => {
-      expect(screen.getByText(onboardingCopy.survey.counter(2, 10))).toBeDefined();
-    });
-  });
-
-  it('응답을 해제할 수 있다', async () => {
-    await renderApp({ path: onboardingStepPath('capability-items') });
-
-    const scale = instrument.survey.scaleLabels[0];
-    if (scale === undefined) throw new Error('missing scale');
-
-    fireEvent.click(await screen.findByRole('radio', { name: scale.label }));
-    fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.survey.clearAnswer }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('radio', { name: scale.label }).getAttribute('checked')).toBeNull();
-    });
-  });
 });
 
-describe('Trial — 가입 전에는 서버 요청이 0건이다 (AC-2-27 · C-12)', () => {
-  it('Step 1~4 를 진행하는 동안 요청 로그가 비어 있다', async () => {
-    const harness = await renderApp({ path: ROUTES.onboarding.intro });
+describe('Trial — 가입 전에는 서버 요청이 0건이다 (`AC-2-27` · C-12)', () => {
+  it('프로필 입력과 첫 카드 단계를 지나는 동안 요청 로그가 비어 있다', async () => {
+    const harness = await renderApp({ path: ROUTES.onboarding.start });
 
-    fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.intro.start }));
+    fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.intro.profile.cta }));
     await expectPath(onboardingStepPath('child-info'));
 
     await fillChildInfo();
-    fireEvent.click(nextButton());
-    await expectPath(onboardingStepPath('temperament'));
+    fireEvent.click(screen.getByRole('button', { name: onboardingCopy.wizard.next }));
+    await expectPath(ROUTES.onboarding.intro);
 
-    answerTemperament();
-    fireEvent.click(nextButton());
-    await expectPath(onboardingStepPath('books'));
-
-    fireEvent.click(nextButton());
-    await expectPath(onboardingStepPath('goals'));
+    fireEvent.click(await screen.findByRole('button', { name: /Start|Pick up/ }));
+    await expectPath(onboardingStepPath('reading-together'));
 
     expect(harness.bundle.requestLog.entries()).toStrictEqual([]);
     expect(findChildDataKeys(harness.bundle.requestLog.entries())).toStrictEqual([]);
@@ -542,64 +720,66 @@ describe('Trial — 가입 전에는 서버 요청이 0건이다 (AC-2-27 · C-1
     await renderApp({ path: onboardingStepPath('child-info') });
 
     await fillChildInfo('Nova');
-    fireEvent.click(nextButton());
-    await expectPath(onboardingStepPath('temperament'));
+    fireEvent.click(screen.getByRole('button', { name: onboardingCopy.wizard.next }));
+    await expectPath(ROUTES.onboarding.intro);
 
     const stored = readStoredDraft();
     expect(OnboardingDraftSchema.safeParse(stored).success).toBe(true);
     expect(OnboardingDraftSchema.parse(stored).answers.child_info?.firstName).toBe('Nova');
   });
 
-  it('중도 이탈 후 다시 들어오면 저장된 단계로 이어진다 (AC-2-20)', async () => {
+  it('중도 이탈 후 다시 들어오면 저장된 카드 단계로 이어진다 (`AC-2-20`)', async () => {
     await renderApp({ path: onboardingStepPath('child-info') });
     await fillChildInfo();
-    fireEvent.click(nextButton());
-    await expectPath(onboardingStepPath('temperament'));
+    fireEvent.click(screen.getByRole('button', { name: onboardingCopy.wizard.next }));
+    await expectPath(ROUTES.onboarding.intro);
 
     document.body.innerHTML = '';
 
     await renderApp({ path: ROUTES.onboarding.intro });
-    fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.intro.resume }));
+    fireEvent.click(
+      await screen.findByRole('button', { name: onboardingCopy.intro.survey.resume }),
+    );
 
-    await expectPath(onboardingStepPath('temperament'));
+    await expectPath(onboardingStepPath('reading-together'));
   });
 
-  it('Trial 안내가 나오고 마지막 CTA 가 가입으로 보낸다 (C13-11)', async () => {
-    await renderApp({ path: onboardingStepPath('child-info') });
-
-    expect(await screen.findByText(onboardingCopy.notices.trialTitle)).toBeDefined();
-
-    document.body.innerHTML = '';
+  it('마지막 카드의 CTA 가 가입으로 보낸다 (C13-11)', async () => {
     await renderApp({ path: onboardingStepPath('capability-items') });
+
+    const items = DEFAULT_ONBOARDING_INSTRUMENT.survey.items;
+    for (let index = 0; index < items.length - 1; index += 1) {
+      fireEvent.click(nextCardButton());
+    }
 
     fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.wizard.saveProfile }));
     await expectPath(ROUTES.auth.signUp);
   });
 });
 
-describe('제출과 착지 (AC-2-26 · AC-2-28)', () => {
-  async function completeSurvey(): Promise<void> {
-    const items = DEFAULT_ONBOARDING_INSTRUMENT.survey.items;
-    const nextQuestion = await screen.findByRole('button', {
-      name: onboardingCopy.survey.nextQuestion,
-    });
+describe('제출과 착지 (`AC-2R-02` payload · AC-2-28)', () => {
+  async function answerDeck(): Promise<void> {
+    // 각 카드에서 첫 옵션을 고르고 다음 카드로. 카드 수를 세지 않고 "다음" 이 끝날 때까지 돈다.
+    for (let guard = 0; guard < 40; guard += 1) {
+      const radios = screen.queryAllByRole('radio');
+      const checkboxes = screen.queryAllByRole('checkbox');
+      const target = radios[0] ?? checkboxes[0];
 
-    for (const [index, item] of items.entries()) {
-      await screen.findByRole('heading', { level: 2, name: item.prompt });
-      const scale = DEFAULT_ONBOARDING_INSTRUMENT.survey.scaleLabels[3];
-      if (scale === undefined) throw new Error('missing scale');
-      fireEvent.click(screen.getByRole('radio', { name: scale.label }));
-
-      if (index < items.length - 1) {
-        fireEvent.click(nextQuestion);
-        await waitFor(() => {
-          expect(screen.getByText(onboardingCopy.survey.counter(index + 2, 10))).toBeDefined();
-        });
+      if (target !== undefined) {
+        fireEvent.keyDown(target, { key: ' ' });
+        fireEvent.click(target);
       }
+
+      const next = screen.queryByRole('button', { name: onboardingCopy.survey.nextQuestion });
+      if (next === null || (next as HTMLButtonElement).disabled) return;
+      fireEvent.click(next);
+      await waitFor(() => {
+        expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(1);
+      });
     }
   }
 
-  it('인증 상태에서 5단계를 제출하면 `/onboarding/saved` 로 간다', async () => {
+  it('인증 상태에서 네 단계를 제출하면 `/onboarding/saved` 로 간다', async () => {
     const harness = await renderApp({
       path: onboardingStepPath('child-info'),
       scenarios: ['me:onboarding-incomplete'],
@@ -608,26 +788,19 @@ describe('제출과 착지 (AC-2-26 · AC-2-28)', () => {
     });
 
     await fillChildInfo();
-    fireEvent.click(nextButton());
-    await expectPath(onboardingStepPath('temperament'));
+    fireEvent.click(screen.getByRole('button', { name: onboardingCopy.wizard.next }));
+    await expectPath(ROUTES.onboarding.intro);
 
-    answerTemperament();
-    fireEvent.click(nextButton());
-    await expectPath(onboardingStepPath('books'));
+    fireEvent.click(await screen.findByRole('button', { name: /Start|Pick up/ }));
+    await expectPath(onboardingStepPath('reading-together'));
 
-    fireEvent.click(nextButton());
-    await expectPath(onboardingStepPath('goals'));
-
-    answerGoals();
-    fireEvent.click(nextButton());
+    // 카드 흐름은 하나다 — "다음" 이 끝날 때까지 돌면 마지막 카드에 닿는다 (단계 경계를 몰라도 된다).
+    for (let round = 0; round < CARD_STEPS.length; round += 1) await answerDeck();
     await expectPath(onboardingStepPath('capability-items'));
 
-    await completeSurvey();
-    fireEvent.click(screen.getByRole('button', { name: onboardingCopy.wizard.finish }));
-
+    fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.wizard.finish }));
     await expectPath(ROUTES.onboarding.saved);
 
-    // 제출 요청에 5단계 전체 + 10문항이 담긴다 (AC-2-26).
     const submit = harness.bundle.requestLog
       .entries()
       .find((entry) => entry.operation === 'POST /v1/onboarding/submit');
@@ -635,18 +808,18 @@ describe('제출과 착지 (AC-2-26 · AC-2-28)', () => {
 
     const payload = submit?.payload as { answers: Record<string, unknown> } | undefined;
     expect(Object.keys(payload?.answers ?? {}).sort()).toStrictEqual([
-      'books',
+      'books_and_interests',
       'capability_items',
       'child_info',
-      'goals',
-      'temperament',
+      'growing_together',
+      'reading_together',
     ]);
 
     // 제출 성공 후 로컬 draft 가 삭제된다 (D-3 삭제 시점 ①, AC-2-28).
     expect(readStoredDraft()).toBeNull();
   });
 
-  it('`/onboarding/saved` 의 CTA 는 Home 으로 직결된다 (Stage 2-B 화면을 만들지 않는다)', async () => {
+  it('`/onboarding/saved` 의 CTA 는 Home 으로 직결된다', async () => {
     await renderApp({
       path: ROUTES.onboarding.saved,
       scenarios: ['me:success'],
@@ -659,35 +832,7 @@ describe('제출과 착지 (AC-2-26 · AC-2-28)', () => {
   });
 });
 
-describe('Step 3 책 검색 (AC-2-23 · D-17)', () => {
-  it('검색 결과를 목록으로 보여준다', async () => {
-    await renderApp({ path: onboardingStepPath('books') });
-
-    fireEvent.change(await screen.findByLabelText(new RegExp(onboardingCopy.books.searchLabel)), {
-      target: { value: 'moon' },
-    });
-
-    expect(await screen.findByText('Goodnight Moon')).toBeDefined();
-  });
-
-  it('결과가 없으면 제목 직접 입력 경로를 연다', async () => {
-    await renderApp({ path: onboardingStepPath('books'), scenarios: ['books:empty'] });
-
-    fireEvent.change(await screen.findByLabelText(new RegExp(onboardingCopy.books.searchLabel)), {
-      target: { value: 'Moonbeam' },
-    });
-
-    const add = await screen.findByRole('button', {
-      name: onboardingCopy.books.addTyped('Moonbeam'),
-    });
-    fireEvent.click(add);
-
-    const picked = await screen.findByRole('list', { name: onboardingCopy.books.selectedLabel });
-    expect(within(picked).getByText('Moonbeam')).toBeDefined();
-  });
-});
-
-describe('Privacy — 동의 기록 전 아동 데이터 0건 (AC-2-13)', () => {
+describe('Privacy — 동의 기록 전 아동 데이터 0건 (`AC-2-13` · `AC-2R-13`)', () => {
   it('동의가 없으면 Guard 가 온보딩 진입을 되돌리고 아동 데이터가 나가지 않는다', async () => {
     const harness = await renderApp({
       path: onboardingStepPath('child-info'),

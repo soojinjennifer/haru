@@ -81,8 +81,11 @@ test.describe('동의 화면 — 5항목 · 필수 미체크 차단 (AC-2-10 · 
     await cta.focus();
     await page.keyboard.press('Enter');
 
-    // 동의가 끝나면 Guard 가 온보딩 구간으로 넘긴다 (화면은 `2-ONBOARDING` 이 만든다).
-    await expect(page).toHaveURL(/\/onboarding$/);
+    /*
+      동의가 끝나면 Guard 가 온보딩 구간으로 넘긴다. 저장된 draft 가 없으므로 **프로필 안내**
+      (`/onboarding/start`)다 — 중도 복귀면 그 지점으로 간다 (`§11.19` 7-2).
+    */
+    await expect(page).toHaveURL(/\/onboarding\/start$/);
   });
 });
 

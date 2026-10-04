@@ -9,6 +9,15 @@ export interface AppShellProps {
    *  - `none` — 스크롤 없이 고정 배치 (`FullscreenLayout`)
    */
   scroll?: 'auto' | 'none';
+  /**
+   * 화면 하단 인셋 (`S2-FIX-1`).
+   *  - `safe` — `env(safe-area-inset-bottom)` 만 (기본)
+   *  - `cta`  — `max(safe-bottom, --layout-cta-bottom-gap)` = 웹 44 / iOS 44
+   *
+   * Figma 44 는 홈 인디케이터를 **포함**하는 값이라 safe-area 와 더하지 않는다
+   * (`stage-2-design-spec.md` §16.1 ②·⑤).
+   */
+  bottomGap?: 'safe' | 'cta';
 }
 
 /**
@@ -44,7 +53,7 @@ export interface AppShellProps {
  * 높이는 `h-dvh`(100dvh) 다 — 모바일 주소창 때문에 `100vh` 를 쓰지 않는다 (§7.2).
  * 뷰포트와 앱 컬럼은 각각 grid 한 칸으로 세로로 늘어나므로 내부에서 `h-full` 로 flex 컬럼을 만든다.
  */
-export function AppShell({ children, scroll = 'auto' }: AppShellProps) {
+export function AppShell({ children, scroll = 'auto', bottomGap = 'safe' }: AppShellProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -60,7 +69,7 @@ export function AppShell({ children, scroll = 'auto' }: AppShellProps) {
         }
       >
         <ScrollContainerProvider value={viewportRef}>
-          <AppColumn as="div">
+          <AppColumn as="div" bottomGap={bottomGap === 'cta'}>
             <div className="flex h-full flex-col">{children}</div>
           </AppColumn>
         </ScrollContainerProvider>

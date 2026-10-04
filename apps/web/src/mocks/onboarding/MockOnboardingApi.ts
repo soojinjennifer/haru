@@ -17,6 +17,10 @@
  * | `persona-fallback` | 제출은 200, 페르소나가 fallback 문구다 |
  * | `child-limit-reached` | 제출을 `CHILD_LIMIT_REACHED` 로 거부 |
  * | `capability-all-missing` | 한 역량 문항 전부 `not_observed` → 해당 역량 `score: null` |
+ * | `prefilled-child-info` | 서버 draft 에 아이 정보가 있는 상태 (`R-01` 수집 후 — `About your child` 표시) |
+ * | `missing-prefill` | 서버 draft 에 `child_info` 가 **없는** 상태 (기기 변경 · draft 폐기 — `R-08` fallback) |
+ * | `instrument-v2` | 문항 수가 다른 instrument (카드 수·소요 시간이 파생값인지 — `AC-2R-09`) |
+ * | `owned-books-empty` | Q5 카탈로그가 비어 Q5 문항이 사라진다 → 카드 수가 하나 줄어든다 |
  *
  * ── 서버가 강제하는 규칙을 Mock 도 그대로 재현한다 ──
  * 1. **동의 기록 전에는 어떤 아동 데이터도 받지 않는다** → `CONSENT_REQUIRED`
@@ -63,10 +67,12 @@ import type { IdFactory } from '../../shared/lib/idFactory';
 import type { MockConsentState } from '../consent/consentState';
 import { MOCK_REQUIRED_CONSENT_TYPES } from '../fixtures/consent';
 import {
+  createChildInfoDraftAnswers,
   createOnboardingInstrumentFixture,
   createOnboardingStateFixture,
   createResumeDraftAnswers,
   MOCK_RESUME_STEP,
+  type OnboardingInstrumentFixtureOptions,
 } from '../fixtures/onboarding';
 import { createProfileResultFixture } from '../fixtures/profile-result';
 import type { RequestLog } from '../request-log';
@@ -88,6 +94,10 @@ export const ONBOARDING_SCENARIO_KEYS = [
   'persona-fallback',
   'child-limit-reached',
   'capability-all-missing',
+  'prefilled-child-info',
+  'missing-prefill',
+  'instrument-v2',
+  'owned-books-empty',
 ] as const;
 
 export type OnboardingScenarioKey = (typeof ONBOARDING_SCENARIO_KEYS)[number];
@@ -178,14 +188,64 @@ export function createMockOnboardingApi(deps: MockOnboardingApiDeps): Onboarding
     }
   }
 
+  /**
+   * instrument 변형 — 문항 구성이 바뀌어도 화면이 따라오는지 보기 위한 scenario 들이다.
+   * `instrument-v2` 는 **문항을 줄이고 버전을 올린다** (카드 수가 파생값인지 확인).
+   */
+  function instrumentOptions(
+    scenario: OnboardingScenarioKey,
+  ): OnboardingInstrumentFixtureOptions | undefined {
+    if (scenario === 'owned-books-empty') return { ownedBookOptions: [] };
+
+    if (scenario === 'instrument-v2') {
+      return {
+        version: '2.1.0',
+        questionIds: ['reading_together.story_comfort', 'growing_together.growth_goals'],
+        ownedBookOptions: [],
+      };
+    }
+
+    return undefined;
+  }
+
   function state(scenario: OnboardingScenarioKey): OnboardingState {
+    const instrument = instrumentOptions(scenario);
+
     if (scenario === 'draft-resume' && !onboardingState.submitted()) {
       return parseResponse(
         OnboardingStateSchema,
         createOnboardingStateFixture({
           answers: createResumeDraftAnswers(),
           currentStep: MOCK_RESUME_STEP,
-          completedSteps: ['child_info', 'temperament'],
+          completedSteps: ['child_info', 'reading_together'],
+          ...(instrument === undefined ? {} : { instrument }),
+        }),
+        { operation: STATE_OPERATION, direction: 'response' },
+      );
+    }
+
+    // `R-01` — 가입 화면에서 받은 아이 정보가 동의 이후 서버 draft 로 올라간 상태.
+    if (scenario === 'prefilled-child-info' && !onboardingState.submitted()) {
+      return parseResponse(
+        OnboardingStateSchema,
+        createOnboardingStateFixture({
+          answers: { child_info: createChildInfoDraftAnswers() },
+          currentStep: 'child_info',
+          completedSteps: ['child_info'],
+          ...(instrument === undefined ? {} : { instrument }),
+        }),
+        { operation: STATE_OPERATION, direction: 'response' },
+      );
+    }
+
+    // `missing-prefill` — 아이 정보가 어디에도 없다. 화면은 빈 편집 폼으로 진입해야 한다.
+    if (scenario === 'missing-prefill') {
+      return parseResponse(
+        OnboardingStateSchema,
+        createOnboardingStateFixture({
+          answers: {},
+          currentStep: 'child_info',
+          ...(instrument === undefined ? {} : { instrument }),
         }),
         { operation: STATE_OPERATION, direction: 'response' },
       );
@@ -197,6 +257,7 @@ export function createMockOnboardingApi(deps: MockOnboardingApiDeps): Onboarding
         answers: onboardingState.answers(),
         currentStep: onboardingState.currentStep(),
         completedSteps: onboardingState.completedSteps(),
+        ...(instrument === undefined ? {} : { instrument }),
       }),
       { operation: STATE_OPERATION, direction: 'response' },
     );
@@ -222,7 +283,7 @@ export function createMockOnboardingApi(deps: MockOnboardingApiDeps): Onboarding
       fail('VALIDATION_FAILED', 'Submitted onboarding answers are not valid.');
     }
 
-    const instrument = createOnboardingInstrumentFixture();
+    const instrument = createOnboardingInstrumentFixture(instrumentOptions(scenario));
 
     // 서버는 화면을 믿지 않는다 — 필수 문항 응답을 instrument 기준으로 다시 본다 (`S2-ONB-1`).
     if (unansweredRequiredQuestions(instrument, validated.data.answers).length > 0) {

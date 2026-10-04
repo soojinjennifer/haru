@@ -41,7 +41,7 @@ const NOW = Date.UTC(2026, 8, 26, 12, 0, 0);
 const DRAFT: OnboardingDraft = {
   schemaVersion: ONBOARDING_DRAFT_SCHEMA_VERSION,
   instrument: { code: ONBOARDING_INSTRUMENT_CODE, version: ONBOARDING_INSTRUMENT_VERSION },
-  currentStep: 'books',
+  currentStep: 'books_and_interests',
   answers: { child_info: { firstName: 'Nova' } },
   updatedAt: new Date(NOW).toISOString(),
 };

@@ -15,6 +15,15 @@
   padding-inline-end: var(--layout-safe-right);
 }
 
+/*
+ * 화면 하단 인셋 — 마지막 블록 bottom 에서 화면 bottom 까지 44 (`S2-FIX-1`, 승인 `D-25`).
+ * Figma 44 는 홈 인디케이터를 **포함**하므로 safe-area 와 더하지 않고 `max()` 로 고른다.
+ * 기본 규칙(`--layout-safe-bottom`)은 건드리지 않는다 — dev gallery `FramePage` 가 쓴다.
+ */
+.haru-app-column--bottom-gap {
+  padding-block-end: max(var(--layout-safe-bottom), var(--layout-cta-bottom-gap));
+}
+
 .haru-app-column--padded {
   padding-inline-start: calc(var(--layout-safe-left) + var(--layout-gutter));
   padding-inline-end: calc(var(--layout-safe-right) + var(--layout-gutter));

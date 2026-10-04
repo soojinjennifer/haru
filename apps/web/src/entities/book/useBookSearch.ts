@@ -2,13 +2,17 @@
  * `useBookSearch` — `GET /v1/books/search` Query hook (결정 **D-17** 최소 범위).
  *
  * ```
- * BooksStep → useBookSearch → booksApi.search → MockBooksApi | HttpBooksApi
+ * (소비자 화면) → useBookSearch → booksApi.search → MockBooksApi | HttpBooksApi
  * ```
  *
+ * ── **현재 사용처 0건** (`QA-2R-007` ②) ──
+ * 온보딩의 책 검색은 `§11.13` 으로 제거되었다 (Figma `30:74`·`179:1770` 에 검색이 0건이고,
+ * 검색이 하던 `bookId` 매칭은 Q5 `ownedBooks` 가 수행한다). contract·Mock Adapter·이 hook 은
+ * **Stage 3 Library 소관**이라 지우지 않는다 — 소비자가 Stage 3 에서 생긴다.
+ *
  * - 검색어가 비어 있으면 호출하지 않는다 (`enabled: false`) — 빈 요청을 만들지 않는다.
- * - 결과 없음(`items: []`)은 **오류가 아니다.** 화면은 그 자리에서 **제목 직접 입력** 경로를
- *   연다 (PRD §7.2, AC-2-23).
- * - 표지 이미지는 Stage 3 이라 Stage 2 화면은 `coverUrl` 을 쓰지 않는다.
+ * - 결과 없음(`items: []`)은 **오류가 아니다.** 소비자 화면이 빈 상태를 정한다.
+ * - 표지 이미지(`coverUrl`)는 Stage 3 에서 쓴다.
  */
 import { useQuery } from '@tanstack/react-query';
 import type { BookSummary, ErrorCode } from '@haru/contracts';

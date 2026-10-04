@@ -1,11 +1,12 @@
 /*
- * CheckboxGroup — Design Spec §4.14
+ * CheckboxGroup — Design Spec §4.14 + Stage 2 재구성 §3.6 · §8.1 (`variant="card"`)
  */
 
 .haru-checkbox-group {
   margin: 0;
   padding: 0;
   border: 0;
+  min-inline-size: 0;
 }
 
 .haru-checkbox-group__legend {
@@ -30,4 +31,106 @@
   line-height: var(--text-caption-1--line-height);
   /* provisional: P-04 (docs/decisions/stage-0-approvals.md §4) */
   color: var(--color-field-fg-error);
+}
+
+/*
+ * ===== variant=card — `RadioGroup variant="card"` 와 같은 기하 ===============
+ * 행 기하 Figma `179:1788`(43 / 간격 7 / 좌 15) + 컨트롤 `179:1742`(22, inner 13) 조합.
+ * 컨트롤이 22 라 행은 `max(44, 22 + 12 + 12)` = **46** 이 된다 (단일 선택 44 보다 2px 높다 —
+ * `align-items: center` 라 시각 문제는 없다, 재구성 Design Spec §3.4).
+ */
+.haru-checkbox-group--card .haru-checkbox-group__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  box-sizing: border-box;
+  min-block-size: var(--radio-row-height);
+  padding-block: var(--space-3);
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-field);
+  background-color: var(--color-surface-subtle);
+  cursor: pointer;
+  transition-property: background-color;
+  transition-duration: var(--motion-duration-fast);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+.haru-checkbox-group--card .haru-checkbox-group__label {
+  font-family: var(--font-sans);
+  /* Figma 14.5 → --text-subheadline (15) 흡수. */
+  font-size: var(--text-subheadline);
+  line-height: var(--text-subheadline--line-height);
+  color: var(--color-fg-primary);
+}
+
+/* selected — 배경 + 체크마크 이중 표시 (색 단독 구분 금지, §4 공통 규칙 7). */
+.haru-checkbox-group--card .haru-checkbox-group__option--selected {
+  background-color: var(--color-selected-bg);
+}
+
+.haru-checkbox-group--card .haru-checkbox-group__option--selected .haru-checkbox-group__label {
+  /* accepted deviation: D-01 (white label on teal = 2.07:1, approvals §3) */
+  color: var(--color-selected-fg);
+}
+
+.haru-checkbox-group--card .haru-checkbox-group__option--selected .haru-checkbox__input:checked {
+  background-color: var(--color-surface-solid);
+  border-color: var(--color-surface-solid);
+}
+
+.haru-checkbox-group--card
+  .haru-checkbox-group__option--selected
+  .haru-checkbox__input:checked
+  ~ .haru-checkbox__mark {
+  color: var(--color-selected-bg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .haru-checkbox-group--card
+    .haru-checkbox-group__option:hover:not(.haru-checkbox-group__option--disabled) {
+    background-color: var(--color-surface-tinted);
+  }
+
+  .haru-checkbox-group--card .haru-checkbox-group__option--selected:hover {
+    background-color: var(--color-selected-bg);
+  }
+}
+
+.haru-checkbox-group--card
+  .haru-checkbox-group__option:active:not(.haru-checkbox-group__option--disabled) {
+  /* Design Spec §9.1 — press scale .97 (모션 규격값, 대응 토큰 없음) */
+  transform: scale(0.97);
+  transition-duration: var(--motion-duration-instant);
+}
+
+.haru-checkbox-group--card .haru-checkbox-group__option--disabled {
+  opacity: var(--opacity-disabled);
+  cursor: default;
+}
+
+/*
+ * 배타 선택지는 목록 끝에서 **구분선과 함께** 분리된다 (재구성 §3.7).
+ * 구분선은 행 박스 **바깥**(`::before`)에 그린다 — 행 안쪽 padding 으로 그리면 세로 중앙이
+ * 깨진다 (`S2-FIX-2` ③ 와 같은 규칙).
+ */
+.haru-checkbox-group--card .haru-checkbox-group__option--separated {
+  position: relative;
+  margin-block-start: calc(var(--space-4) * 2 + 1px);
+}
+
+.haru-checkbox-group--card .haru-checkbox-group__option--separated::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: calc(-1 * var(--space-4));
+  block-size: 1px;
+  background-color: var(--color-divider);
+}
+
+/* ===== reduced motion (§9.2) ============================================== */
+@media (prefers-reduced-motion: reduce) {
+  .haru-checkbox-group--card
+    .haru-checkbox-group__option:active:not(.haru-checkbox-group__option--disabled) {
+    transform: none;
+  }
 }

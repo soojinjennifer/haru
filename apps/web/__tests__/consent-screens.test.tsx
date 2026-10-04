@@ -207,7 +207,7 @@ describe('동의 기록 → 다음 단계 (end-to-end, Mock)', () => {
 
     fireEvent.click(continueButton());
 
-    await expectPath(ROUTES.onboarding.intro);
+    await expectPath(ROUTES.onboarding.start);
     expect(harness.bundle.consentState.granted()).toStrictEqual([
       'child_voice_data',
       'privacy_policy',
@@ -220,7 +220,7 @@ describe('동의 기록 → 다음 단계 (end-to-end, Mock)', () => {
     await checkAllRequired();
     fireEvent.click(continueButton());
 
-    await expectPath(ROUTES.onboarding.intro);
+    await expectPath(ROUTES.onboarding.start);
 
     const recorded = harness.bundle.requestLog
       .entries()
@@ -244,7 +244,7 @@ describe('동의 기록 → 다음 단계 (end-to-end, Mock)', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: new RegExp(optional?.title ?? '') }));
     fireEvent.click(continueButton());
 
-    await expectPath(ROUTES.onboarding.intro);
+    await expectPath(ROUTES.onboarding.start);
     expect(harness.bundle.consentState.granted()).toContain(optional?.type);
   });
 });
@@ -272,7 +272,7 @@ describe('재동의 — consent-version-outdated (AC-2-15)', () => {
     await checkAllRequired();
     fireEvent.click(continueButton());
 
-    await expectPath(ROUTES.onboarding.intro);
+    await expectPath(ROUTES.onboarding.start);
 
     const recorded = harness.bundle.requestLog
       .entries()
@@ -402,7 +402,7 @@ describe('AC-2-13 — 동의 기록 성공 이전 구간의 모든 요청에 아
 
     // ③ 동의 기록.
     fireEvent.click(continueButton());
-    await expectPath(ROUTES.onboarding.intro);
+    await expectPath(ROUTES.onboarding.start);
 
     const entries = harness.bundle.requestLog.entries();
     const beforeConsentDone = entriesThroughConsent(entries);

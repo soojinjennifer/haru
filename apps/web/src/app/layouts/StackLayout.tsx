@@ -9,7 +9,10 @@ import { AppShell } from './AppShell';
 export interface StackLayoutProps {
   /** TopBar 슬롯 — `variant=inline | centered` 를 쓰는 화면에서 주입한다 (§2.3). */
   topBar?: ReactNode;
-  /** 하단 CTA. 키보드 가림을 피하려고 **스크롤 컨테이너 내부** 마지막 블록이다 (§2.2 — 고정하지 않는다). */
+  /**
+   * 하단 CTA. 키보드 가림을 피하려고 **스크롤 컨테이너 내부** 마지막 블록이다 (§2.2 — 고정하지 않는다).
+   * 아래쪽 여백은 `AppShell bottomGap="cta"`(44)가 담당한다 — 여기에서 또 주면 이중 계산이다.
+   */
   footer?: ReactNode;
   /** 주지 않으면 router `Outlet` 을 렌더한다. */
   children?: ReactNode;
@@ -20,10 +23,14 @@ export interface StackLayoutProps {
  *
  * TabBar 가 없는 단일 스택 화면용. Stage 1 의 `/` 는 이 Layout 을 TopBar 없이 쓴다.
  * (Stage 2 `/auth/*` · `/onboarding/*` · `/settings` 에서 실제로 사용된다.)
+ *
+ * **하단 인셋 44** (`S2-FIX-1`): 마지막 블록 bottom 에서 화면 bottom 까지 Figma 실측 44 다.
+ * 규칙을 route 별로 두지 않고 이 Layout 한 곳에서 지정한다 — CTA 가 없는 `/` · `/settings` ·
+ * 카드 단계도 같은 값을 쓴다 (`stage-3-approvals.md` §11.3-2 승인).
  */
 export function StackLayout({ topBar, footer, children }: StackLayoutProps) {
   return (
-    <AppShell>
+    <AppShell bottomGap="cta">
       {topBar === undefined ? null : (
         <div className="haru-app-shell__bar-top shrink-0">{topBar}</div>
       )}
@@ -38,7 +45,7 @@ export function StackLayout({ topBar, footer, children }: StackLayoutProps) {
         <div className="flex grow flex-col">
           <RouteErrorBoundary>{children ?? <Outlet />}</RouteErrorBoundary>
         </div>
-        {footer === undefined ? null : <div className="shrink-0 pt-6 pb-6">{footer}</div>}
+        {footer === undefined ? null : <div className="shrink-0 pt-6">{footer}</div>}
       </main>
     </AppShell>
   );

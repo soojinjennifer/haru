@@ -37,7 +37,7 @@ import type { OnboardingDraftStore } from '../../../shared/lib/onboarding-draft'
 
 import { DEFAULT_ONBOARDING_INSTRUMENT } from './defaultInstrument';
 import { buildSubmitRequest } from './submitRequest';
-import { LAST_STEP, nextStep, pathForStep, previousStep } from './steps';
+import { FIRST_CARD_STEP, LAST_STEP, nextStep, pathForStep, previousStep } from './steps';
 import {
   hasAnyAnswers,
   useOnboardingDraft,
@@ -100,12 +100,12 @@ function stepPayload(
   switch (step) {
     case 'child_info':
       return { step, answers: answers.child_info ?? {} };
-    case 'temperament':
-      return { step, answers: answers.temperament ?? {} };
-    case 'books':
-      return { step, answers: answers.books ?? {} };
-    case 'goals':
-      return { step, answers: answers.goals ?? {} };
+    case 'reading_together':
+      return { step, answers: answers.reading_together ?? {} };
+    case 'books_and_interests':
+      return { step, answers: answers.books_and_interests ?? {} };
+    case 'growing_together':
+      return { step, answers: answers.growing_together ?? {} };
     case 'capability_items':
       return {
         step,
@@ -187,11 +187,24 @@ export function useOnboardingWizard(
     [authenticated, instrument, relationship, saveStep, step, updateCaregiver],
   );
 
+  /**
+   * 흐름 (재구성 Design Spec §1):
+   * `/onboarding/start` → `child-info` → `/onboarding`(설문 소개) → 카드 단계 … → `saved`
+   *
+   * 즉 소개 화면 2장이 단계 배열 **밖**에 있고, `child_info` 와 첫 카드 단계 사이에 하나가 끼어
+   * 있다. 그래서 단계 index 만으로 전·후 경로를 정할 수 없다.
+   */
   const goBack = useCallback(() => {
     const previous = previousStep(step);
     persistStep(draft.answers);
 
     if (previous === null) {
+      void navigate(ROUTES.onboarding.start);
+      return;
+    }
+
+    // 첫 카드 단계에서 뒤로 가면 설문 소개 화면이다 (프로필 입력으로 바로 돌아가지 않는다).
+    if (step === FIRST_CARD_STEP) {
       void navigate(ROUTES.onboarding.intro);
       return;
     }
@@ -200,6 +213,10 @@ export function useOnboardingWizard(
     void navigate(pathForStep(previous));
   }, [draft, navigate, persistStep, step]);
 
+  /**
+   * **현재 단계**에서 아직 응답하지 않은 필수 문항 (`S2-ONB-1`). 카드 단계에서는 카드별
+   * 전진 차단에 쓰이고, 마지막 카드의 제출 CTA 판정에도 쓰인다.
+   */
   const missingRequired = unansweredRequiredQuestions(instrument, draft.answers, step);
 
   const goNext = useCallback(() => {
@@ -209,6 +226,13 @@ export function useOnboardingWizard(
     persistStep(draft.answers);
 
     const following = nextStep(step);
+
+    // 프로필 입력을 마치면 설문 소개 화면으로 간다 (카드 단계로 바로 들어가지 않는다).
+    if (step === 'child_info') {
+      if (following !== null) draft.setCurrentStep(following);
+      void navigate(ROUTES.onboarding.intro);
+      return;
+    }
 
     if (following !== null) {
       draft.setCurrentStep(following);

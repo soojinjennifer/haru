@@ -14,7 +14,12 @@ import { expect, test, type Page } from '@playwright/test';
 
 import { FRAME_SNAPSHOT, REGION_SNAPSHOT } from '../playwright.config';
 import { demo, GALLERY, gotoApp, gotoStable } from './support/gallery';
-import { completeOnboardingToSaved } from './support/onboarding';
+import {
+  completeOnboardingToSaved,
+  DECK_LABEL,
+  seedChildDraft,
+  signUpAndConsent,
+} from './support/onboarding';
 
 /** Design Spec §10.2 — Figma 대조 대상. */
 const FIGMA_BACKED: readonly { id: string; figma: string; page: string }[] = [
@@ -106,9 +111,10 @@ test.describe('반응형 baseline — 앱 컬럼 (AC-1-23)', () => {
 /**
  * Stage 2-AUTH 화면 baseline — Stage 2 Design Spec §11.2.
  *
- * `s2-welcome` · `s2-login` 은 **전체 프레임**(레이아웃 회귀), `s2-signup` 은 Figma
- * `179:1724` 의 **보호자 영역만** 클립한다 — "YOUR CHILD" 섹션과 단일 체크박스를 렌더하지
- * 않는 것은 사전 등록된 허용 차이 `AD-S2-1` 이라, 프레임 전체로 비교하면 의미가 없다.
+ * `s2-welcome` · `s2-login` 은 **전체 프레임**(레이아웃 회귀), `s2-signup` 은 `form` 을 클립한다.
+ * `R-01` 로 `YOUR CHILD` 섹션이 **렌더되므로** 비교 대상은 `179:1724` **전체 프레임**이다
+ * (`AD-S2R-07` — 기존 `AD-S2-1` "보호자 영역만" 은 무효). `form` 클립이 그 섹션을 포함한다.
+ * Figma `179:1745` 의 한 줄 동의 체크는 법무 보류(`S2R-OPEN-7`)로 렌더하지 않는다.
  */
 test.describe('Stage 2 Auth 화면 baseline (§11.2)', () => {
   test('s2-welcome — Figma 179:1701 (전체 프레임)', async ({ page }) => {
@@ -121,7 +127,7 @@ test.describe('Stage 2 Auth 화면 baseline (§11.2)', () => {
     await expect(page).toHaveScreenshot('s2-login.png', { fullPage: false, ...FRAME_SNAPSHOT });
   });
 
-  test('s2-signup — Figma 179:1724 보호자 영역만 (영역 클립)', async ({ page }) => {
+  test('s2-signup — Figma 179:1724 전체 프레임 (AD-S2R-07, form 클립)', async ({ page }) => {
     await gotoApp(page, '/auth/sign-up');
     await expect(page.locator('form')).toHaveScreenshot('s2-signup.png', REGION_SNAPSHOT);
   });
@@ -171,18 +177,123 @@ test.describe('Stage 2 동의 · VPC 화면 baseline (§11.2)', () => {
  * Figma 와의 판정은 QA 가 허용 차이(`AD-S2-*`)를 적용해 하며, 여기서 만드는 것은 구현 스냅샷이다.
  */
 test.describe('Stage 2 온보딩 화면 baseline (S2-HOME-2, 영역 클립)', () => {
+  test('s2-onboarding-start — Figma 243:1147', async ({ page }) => {
+    await gotoApp(page, '/onboarding/start');
+    await expect(page.getByRole('button', { name: 'Start the questions' })).toBeVisible();
+
+    await expect(page.locator('main')).toHaveScreenshot('s2-onboarding-start.png', REGION_SNAPSHOT);
+  });
+
   test('s2-onboarding-intro — Figma 179:1748', async ({ page }) => {
     await gotoApp(page, '/onboarding');
-    await expect(page.getByRole('button', { name: 'Start' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^(Start|Pick up)/ })).toBeVisible();
 
     await expect(page.locator('main')).toHaveScreenshot('s2-onboarding-intro.png', REGION_SNAPSHOT);
   });
 
-  test('s2-onboarding-step5 — Figma 179:1770', async ({ page }) => {
-    await gotoApp(page, '/onboarding/capability-items');
-    await expect(page.getByRole('group', { name: 'Baseline questions' })).toBeVisible();
+  /**
+   * `248:1159` 는 **세 상태**를 갖는다. 세 baseline 이 서로 다른 화면을 찍어야 한다
+   * (`QA-2R-003` — 이전에는 `-trial` 과 `-edit` 이 같은 상태를 두 번 찍어 바이트가 같았다).
+   *
+   * | baseline | 세션 | draft | 모드 | Trial 안내 |
+   * |---|---|---|---|---|
+   * | `-trial` | 미로그인 | **있음** | 표시 전용 | **있음** (`R-07` A) |
+   * | (기본) | 인증+동의 | **있음** | 표시 전용 | **없음** (`R-07` B) |
+   * | `-edit` | 미로그인 | 없음 | **편집** (`missing-prefill`) | 있음 |
+   */
 
-    await expect(page.locator('main')).toHaveScreenshot('s2-onboarding-step5.png', REGION_SNAPSHOT);
+  /** `R-07` A + `R-08` 표시 전용 — Trial 안내 **있음**. */
+  test('s2-onboarding-childinfo-trial — Figma 248:1159 (display · 안내 있음)', async ({ page }) => {
+    await seedChildDraft(page);
+    await gotoApp(page, '/onboarding/child-info');
+
+    await expect(page.getByText('Your answers stay on this device')).toBeVisible();
+    // 표시 전용 모드다 — 입력 필드가 없다 (`R-08`).
+    await expect(page.getByRole('button', { name: /Yuna/ })).toBeVisible();
+    await expect(page.getByLabel('First name')).toHaveCount(0);
+
+    await expect(page.locator('main')).toHaveScreenshot(
+      's2-onboarding-childinfo-trial.png',
+      REGION_SNAPSHOT,
+    );
+  });
+
+  /** `R-07` B — 가입 완료 후 도달. Trial 안내 블록과 gap 이 통째로 사라진다 (§4.4). */
+  test('s2-onboarding-childinfo — Figma 248:1159 (display · 안내 없음)', async ({ page }) => {
+    await seedChildDraft(page);
+    // 아이 정보 draft 가 있으므로 동의 직후 Guard 가 이 화면으로 되돌린다 (`§11.19` 7-2).
+    await signUpAndConsent(page, ',onboarding:prefilled-child-info');
+
+    await expect(page).toHaveURL(/\/onboarding\/child-info$/);
+    await expect(page.getByRole('button', { name: /Yuna/ })).toBeVisible();
+    await expect(page.getByText('Your answers stay on this device')).toHaveCount(0);
+
+    await expect(page.locator('main')).toHaveScreenshot(
+      's2-onboarding-childinfo.png',
+      REGION_SNAPSHOT,
+    );
+  });
+
+  /** `R-08` — `YOUR CHILD` 편집 모드. draft 값이 없으면 이 모드로 진입한다 (§4.5). */
+  test('s2-onboarding-childinfo-edit — Figma 248:1159 (edit)', async ({ page }) => {
+    await gotoApp(page, '/onboarding/child-info');
+    await expect(page.getByLabel('First name')).toBeVisible();
+
+    await expect(page.locator('main')).toHaveScreenshot(
+      's2-onboarding-childinfo-edit.png',
+      REGION_SNAPSHOT,
+    );
+  });
+
+  test('s2-deck-reading-together — Figma 179:1770 (단일 선택)', async ({ page }) => {
+    await gotoApp(page, '/onboarding/reading-together');
+    await expect(page.getByRole('group', { name: DECK_LABEL })).toBeVisible();
+
+    await expect(page.locator('main')).toHaveScreenshot(
+      's2-deck-reading-together.png',
+      REGION_SNAPSHOT,
+    );
+  });
+
+  test('s2-deck-books-q3 — Figma 179:1770 (복수 선택 + 배타 분리행)', async ({ page }) => {
+    await gotoApp(page, '/onboarding/books-and-interests');
+    await expect(page.getByRole('group', { name: DECK_LABEL })).toBeVisible();
+
+    await expect(page.locator('main')).toHaveScreenshot('s2-deck-books-q3.png', REGION_SNAPSHOT);
+  });
+
+  test('s2-deck-books-favorites — 검색 없음 (`§11.13`)', async ({ page }) => {
+    await gotoApp(page, '/onboarding/books-and-interests');
+    await expect(page.getByRole('group', { name: DECK_LABEL })).toBeVisible();
+    await page.getByRole('button', { name: 'Next question' }).click();
+
+    const input = page.getByRole('textbox', { name: 'Books your child loves' });
+    for (const title of ['Moonbeam', 'The Blue Hat', 'Ollie and Me']) {
+      await input.fill(title);
+      await page.getByRole('button', { name: 'Add' }).click();
+    }
+
+    await expect(page.locator('main')).toHaveScreenshot(
+      's2-deck-books-favorites.png',
+      REGION_SNAPSHOT,
+    );
+  });
+
+  test('s2-deck-growing-together — Figma 179:1770', async ({ page }) => {
+    await gotoApp(page, '/onboarding/growing-together');
+    await expect(page.getByRole('group', { name: DECK_LABEL })).toBeVisible();
+
+    await expect(page.locator('main')).toHaveScreenshot(
+      's2-deck-growing-together.png',
+      REGION_SNAPSHOT,
+    );
+  });
+
+  test('s2-deck-capability — Figma 179:1770 (`s2-onboarding-step5` 대체)', async ({ page }) => {
+    await gotoApp(page, '/onboarding/capability-items');
+    await expect(page.getByRole('group', { name: DECK_LABEL })).toBeVisible();
+
+    await expect(page.locator('main')).toHaveScreenshot('s2-deck-capability.png', REGION_SNAPSHOT);
   });
 
   test('s2-onboarding-saved — Figma 179:1809', async ({ page }) => {

@@ -23,6 +23,8 @@
 - 이 개정은 **Step 3 화면의 구현 변경과 시각 baseline 재생성 1건**(`s2-onboarding-books`)을 요구한다 (§14-14).
 - 값·토큰은 하나도 새로 만들지 않았다. 사용하는 모든 값은 Stage 1 §3 토큰 + Stage 3 Design Spec §6.2 의 `--book-cover-*` Tier-3 토큰이다.
 
+**개정 6 (2026-10-03, design-agent) — 구현 시각 결함 3건 (`S2-FIX-1`~`3`)**: `Status: DRAFT — 사용자 승인 대기`. 사용자가 브라우저에서 발견한 3건을 **Playwright 실측 + Figma 재조회**로 규명하고 수정 명세를 **§16** 에 추가했다. ① 최종 CTA 하단 여백이 `/auth/sign-up` 을 포함해 **모든 `StackLayout` 화면에서 0px** (Figma 44) — 신규 토큰 `--layout-cta-bottom-gap`(44) 1건 제안. ② `RadioGroup variant="card"` 에 `padding-block` 이 없어 2줄 행이 hug 하지 않고(Step 5 비채점 행은 상 17 / 하 0), Step 5 구분선을 **행 안쪽 padding** 으로 그린 것이 비대칭의 직접 원인 — 신규 토큰 0건. ③ `SwipeDeck` 앞 카드가 표면을 **중복**으로 그려 흰 면이 4겹이 되고 덱 단차가 슬래브처럼 읽힌다 — 덱 토큰(8/16/3)은 Figma 와 일치하며 **승인된 §4.2·§5.3 로의 복귀**다. **시각 baseline 8건 재생성 + 2건 확인** (§16.4). Production Code 는 수정하지 않았다.
+
 ---
 
 ## 0. 이 문서를 읽는 법
@@ -378,7 +380,8 @@ TopBar variant=centered
 
 | 단계 | 문항 | 필수 여부 |
 |---|---|---|
-| Step 1 `child_info` | 이름·생년월·언어환경 | 필수 (성·성별 미응답 허용) — **변경 없음** |
+| Step 1 `child_info` | 이름·생년월 ~~·언어환경~~ | 필수 (성·성별 미응답 허용) — ~~언어환경 필수~~ **2026-10-04 변경: 언어환경은 선택** (`stage-3-approvals.md §11.22`) |
+| Step 1 `child_info` | 언어환경 (`languageEnvironment[]`) | **선택 사항 + 기본값 영어** (`§11.22`, 2026-10-04) — 미선택으로 전진 가능 |
 | Step 2 `temperament` | Q1 이야기 편안 범위 · Q4 읽어 줄 때의 모습 | **둘 다 필수** |
 | Step 3 `books` | Q3 주제 · 책 선택 | **선택 유지** |
 | Step 4 `goals` | Q2 성장 목표 | **필수** (최소 1개) |
@@ -416,7 +419,7 @@ TopBar variant=centered
 
 | 화면·단계 | 구성 | 표식 |
 |---|---|---|
-| Step 1 | 필수(이름·생년월·언어환경) + 선택(성·성별) **혼재** | **유지** — `TextField required` 시각 표시 + `aria-required` (Stage 1 §4.13), "Last name — Optional" |
+| Step 1 | 필수(이름·생년월 ~~·언어환경~~) + 선택(성·성별·**언어환경**) **혼재** — *~~언어환경 = 필수~~ → **2026-10-04 변경: 선택 사항 + 기본값 영어** (`stage-3-approvals.md §11.22`)* | **유지** — `TextField required` 시각 표시 + `aria-required` (Stage 1 §4.13), "Last name — Optional". 언어 chip 그룹에는 `required`/`aria-required` 를 두지 않는다 |
 | §2.6 동의 | 필수 3 + 선택 2 **혼재** | **유지** — 행마다 "Required" / "Optional" |
 | Step 2 · Step 4 | 선택형 문항이 **전부 필수** | **두지 않는다** |
 | Step 3 | **전부 선택** | 두지 않는다 |
@@ -465,6 +468,7 @@ SectionLabel "AT HOME"
 | 나이 Tag | 입력에서 파생 표시(서버 값 아님). 색 단독 정보 금지 — 텍스트가 정보 본체 |
 | 성별 | SelectTrigger **`row` variant** 사용. Figma의 pill(`Tag Boy/Girl/Not selected`, 81×18)은 "Prefer not to say" 라벨 길이·44 터치·320px reflow를 만족하지 못한다 → **허용 차이 `AD-S2-6`** (§4.2) |
 | 관계·언어·루틴 옵션 문구 | contracts enum + copy 모듈 값만 표시한다. 이 문서가 문구를 확정하지 않는다 (`NEEDS DECISION`) |
+| 언어환경 (`languageEnvironment[]`) | **선택 사항 + 기본값 영어** — `CONFIRMED (stage-3-approvals.md §11.22, 2026-10-04, user)`. ~~기존 표기: Step 1 필수 3항목에 언어환경 포함~~ → 2026-10-04 변경. 화면 동작: ① `English` chip 이 **미리 선택된 상태**로 보인다(신규 문구 없음 — 선택 상태일 뿐) ② 사용자는 **전부 해제할 수 있고**, 해제해도 **전진이 막히지 않는다**(인라인 오류·차단 없음) ③ **두 상태를 구분해 저장소에 보존한다** — draft 에 **키 없음 = "아직 안 고름"** → `English` 기본 선택으로 렌더, **빈 배열 `[]` = "직접 해제"** → 해제 상태 그대로 유지(다시 영어로 되돌리지 않는다). 이 구분이 구현의 핵심이며 QA 검증 대상이다 ④ **제출 경계에서만** 빈 값을 `['english']` 로 채운다. ⚠️ **draft 저장 시점에는 채우지 않는다** — 채우면 해제가 불가능해진다 |
 | 전송 경로 | `relationship` 은 `PATCH /v1/me`, 나머지는 `ChildInfoAnswers` (`Plan D-16 전제`) — **디자인상 한 화면이지만 요청이 2개**라는 점을 구현 메모로 남긴다 |
 
 #### Step 2 `temperament` — **C13-05 (명세)** · `D-A` 반영 (개정 4, 2026-09-28)
@@ -1374,4 +1378,284 @@ PRD §5.1 흐름은 `Step 5 완료 → ③ 프로필 결과 → ④ 발전 역�
 | 결정 대기 | §13.1 **12건** (③ 해소 · ⑧ 부분 해소 · **⑭ 부분 해소** — Step 2·3·4 옵션은 `D-A`·`D-B` 로 확정, Step 1 관계/언어/루틴만 남음. 그중 법무 3건) + Plan D-9 이견 1건 |
 | 2026-09-28 개정 4 (`D-A`·`D-B`) | §2.10 **Step 2** 4축 → 질문지 **Q1·Q4** 2문항(단일 선택, 선택지 4·5) · **Step 3** 주제 = **Q3**(복수 최대 2, 선택지 5, `not_sure_yet` 배타) · **Step 4** 성장 목표 = **4대 역량과 같은 목록**(`D-B`) + 평가·비교 금지 제약(Stage 2-B 상속) · §13.1 ⑭ 정리. **값·레이아웃·토큰 변경 0, baseline 42건 유효, 새 구현 변경 0** |
 | **2026-10-02 개정 5 (`D-12`)** | §2.10 **Step 3 보강** — Q5 표지 프리셋 그리드(2열·다중 선택·선택 안 함 허용, 프리셋은 **Mock instrument/fixture 값**, 직접 입력 경로 **유지**). **구현 Stage = Stage 3**. 신규 토큰 0건, 신규 Shared UI 0건. 요구하는 변경 = Step 3 구현 + baseline `s2-onboarding-books` 1건 |
+| **2026-10-03 개정 6 (`S2-FIX-1`~`3`)** | 구현 시각 결함 3건의 원인·수정 명세 (§16). 신규 토큰 **1건**(`--layout-cta-bottom-gap` 44, Figma `179:1746`·`179:1814`·`179:1844` 3프레임 일치) · 신규 Shared UI **0건**. 영향 = `StackLayout` route **13개** · `RadioGroup` 사용처 **2화면** · `SwipeDeck` 사용처 **2곳**. baseline **8건 재생성 + 2건 확인**, `frame-*` 5건 **영향 없음** |
 | 2026-09-28 확정 반영 | `S2-ONB-1`(Q1·Q2·Q4 필수 — §2.9 신설 · §2.10 Step 2/3/4) · `S2-COPY-1`(빈 슬롯 = InfoRow 미렌더 — §2.8) · `S2-HOME-1`(워드마크 텍스트 — §2.13) · `S2-AUTH-2` · `S2-CARD-1` · `S2-WELCOME-1` (§11.3) |
+
+---
+
+## 16. 개정 6 (2026-10-03, design-agent) — 구현 시각 결함 3건
+
+**Status: DRAFT — 사용자 승인 대기.** `Status: APPROVED (2026-09-25)` 는 그대로이며, 이 절은 **승인된 명세와 구현 사이의 차이를 정정**하는 개정 제안이다.
+**근거**: 사용자가 브라우저에서 발견한 3건 + design-agent 실측(Playwright, dev 서버 `localhost:5174`, Mock 모드, 2026-10-03) + Figma 재조회(`179:1700` 섹션, 2026-10-03).
+**측정 조건**: Chromium(Playwright 1.63 번들), `deviceScaleFactor: 1`, `reducedMotion: reduce`, viewport 393×852 · 600×900 · 1024×900 · 393×700.
+**Production Code 는 수정하지 않았다** — 구현은 development-agent 가 한다.
+
+### 16.1 결함 1 — 최종 액션 버튼의 하단 여백 (`S2-FIX-1`)
+
+#### ① 실측값 vs 목표값
+
+| 화면 | 측정 지점 | 현재 (실측 2026-10-03) | 목표 (Figma) |
+|---|---|---|---|
+| `/auth/sign-up` | CTA "Create account" 하단 → 뷰포트 하단 | **0px** (393×852 · 600×900 · 1024×900 · 393×700 **전부 0**) | **44** |
+| `/onboarding/temperament` | CTA "Next" 하단 → 뷰포트 하단 | **0px** (4개 뷰포트 전부 0) | **44** |
+| `/onboarding/child-info` (콘텐츠 넘침, scrollHeight 1258) | 스크롤 최하단에서 CTA 하단 → 뷰포트 하단 | **0px** | **44** |
+
+> **사용자가 "올바른 예"로 제시한 `/auth/sign-up` 도 실제로는 0px 다.** 두 화면의 하단 여백은 **동일하게 0** 이며, 차이가 있는 것이 아니라 **둘 다 틀렸다**. (사용자가 본 여백은 iOS 실기기/기기 에뮬레이션의 `env(safe-area-inset-bottom)`(34pt) 또는 스크린샷의 브라우저 크롬으로 보인다 — `AppColumn` 이 `padding-block-end: var(--layout-safe-bottom)` 을 이미 갖고 있어 iOS 에서만 34px 가 생긴다.) 따라서 **수정은 온보딩 전용이 아니라 `StackLayout` 공통이다.**
+
+#### ② `44` 의 출처 — Figma 실측 (추정 아님)
+
+| Figma frame | Button node | y | h | bottom | frame height | **하단 여백** |
+|---|---|---|---|---|---|---|
+| `179:1724` 1b · Create account | `179:1746` | 750 | 58 | 808 | 852 | **44** |
+| `179:1809` 1e · Baseline saved | `179:1814` | 750 | 58 | 808 | 852 | **44** |
+| `179:1820` 1f · Log in | `179:1844` | 750 | 58 | 808 | 852 | **44** |
+
+세 프레임이 **정확히 일치**한다. 홈 인디케이터(`179:1747`/`179:1818`/`179:1848`, y 838 h 5)는 **이 44 안에 들어 있다** — 즉 44 는 safe-area 를 **더하는** 값이 아니라 **포함하는** 값이다.
+(`179:1748`/`243:1147` 소개 화면은 버튼 bottom 782 → 70 이지만, 그 프레임은 CTA 아래에 아무것도 없는 1-CTA 레이아웃이 아니라 **일러스트 중심 구성**이라 하단 정렬 기준으로 쓰지 않는다. `179:1701`·`179:1820` 처럼 CTA 아래 보조 텍스트가 있는 프레임은 보조 텍스트 bottom → frame bottom 이 47·15 로 제각각이다. **하단 정렬 기준값은 "마지막 블록 bottom → 화면 bottom = 44"** 하나로 둔다.)
+
+#### ③ 기존 토큰으로 표현되는가 → **안 된다. 신규 토큰 1건 제안**
+
+`--space-*` 스케일은 `0.5·1·1.5·2·2.5·3·3.5·4·5·6·7·8·10` (= 2…40) 이라 **44 가 없다**. `--size-touch-min`(44) 은 값이 같지만 **터치 타깃 의미**라 레이아웃 인셋에 전용하지 않는다.
+
+| 신규 토큰 | Tier | 값 | 근거 | 판정 |
+|---|---|---|---|---|
+| `--layout-cta-bottom-gap` | 2 (semantic / layout) | `calc(var(--spacing) * 11)` = **44** | Figma `179:1746`·`179:1814`·`179:1844` bottom 808 → frame 852 (3건 일치) | **CONFIRMED (Figma)** |
+
+`packages/design-tokens/src/semantic/layout.css` 의 `--layout-safe-*` 바로 아래에 둔다. `--space-11` 을 스케일에 추가하지 **않는다** — 44 는 간격이 아니라 **화면 하단 인셋**이고, 쓰이는 곳이 레이아웃 한 곳이다.
+
+#### ④ 원인 — 파일:줄
+
+| 위치 | 내용 |
+|---|---|
+| `packages/ui/src/layout/AppColumn.css:14` | `padding-block-end: var(--layout-safe-bottom);` — 웹에서 `env(safe-area-inset-bottom)` = **0px**. 이것이 유일한 하단 인셋이다 |
+| `apps/web/src/app/layouts/StackLayout.tsx:44` | `<div className="flex grow flex-col">` — 하단 인셋 선언 없음 |
+| `apps/web/src/features/auth/ui/SubmitButton.tsx:16` | `mt-auto flex flex-col pt-10` — **`pb-*` 없음** |
+| `apps/web/src/features/onboarding-survey/ui/OnboardingWizard.tsx:205` | `mt-auto flex flex-col gap-2 pt-8` — **`pb-*` 없음** |
+
+> **`QA-2-002`(StackLayout 래퍼가 flex 가 아니어서 `mt-auto` 무효) 와 같은 원인이 **아니다**.** 그 수정은 유효하다 — 실측에서 CTA 는 `mt-auto` 로 정확히 바닥에 붙어 있고(`flex grow flex-col` 체인 확인), 콘텐츠가 짧은 화면에서도 중간에 뜨지 않는다. **문제는 "붙는 위치"가 아니라 "바닥 인셋이 0"** 이라는 것 하나다.
+
+#### ⑤ 수정 명세 — 소유자는 **`AppShell`(= `StackLayout` 이 지정)**
+
+규칙을 **한 곳**에만 둔다. `AppColumn` 의 기본 규칙(`--layout-safe-bottom`)은 **건드리지 않는다** — `FramePage`(dev gallery)가 `AppColumn` 을 직접 쓰고 있어, 기본 규칙을 바꾸면 `frame-320/393/600/1024` baseline 4건이 불필요하게 무효가 된다.
+
+```
+packages/design-tokens/src/semantic/layout.css
+  + --layout-cta-bottom-gap: calc(var(--spacing) * 11);   /* 44 — Figma 179:1746·1814·1844 */
+
+packages/ui/src/layout/AppColumn.css
+  + .haru-app-column--bottom-gap {
+  +   padding-block-end: max(var(--layout-safe-bottom), var(--layout-cta-bottom-gap));
+  + }
+
+packages/ui/src/layout/AppColumn.tsx
+  + prop  bottomGap?: boolean   (기본 false)  →  'haru-app-column--bottom-gap'
+
+apps/web/src/app/layouts/AppShell.tsx
+  + prop  bottomGap?: 'safe' | 'cta'   (기본 'safe')  →  <AppColumn bottomGap={bottomGap === 'cta'}>
+
+apps/web/src/app/layouts/StackLayout.tsx
+  + <AppShell bottomGap="cta">
+```
+
+- **`max()` 이지 덧셈이 아니다.** Figma 44 는 홈 인디케이터를 포함한 값이다 (위 ②). iOS safe-bottom 34 → `max(34,44)` = **44** = Figma 정확 일치. 웹 safe-bottom 0 → **44**. safe-bottom 이 44 를 넘는 기기에서는 safe-area 가 이긴다.
+- **CTA 를 `position: fixed` 로 바꾸지 않는다.** §2.2 의 "하단 CTA 는 스크롤 컨테이너 **내부** 마지막 블록"(키보드 가림 방지)은 유지된다. "반응형으로 하단에 고정"은 `mt-auto`(짧은 콘텐츠) + 44 인셋(모든 경우)으로 충족한다. 콘텐츠가 넘치는 화면(`/onboarding/child-info`, scrollHeight 1258)에서는 **스크롤 최하단에서 44** 가 된다 — 이것이 의도된 동작이다.
+- `StackLayout` 의 `footer` 슬롯 `pt-6 pb-6`(24) → **`pt-6` 만 남긴다**. `pb-6` 은 새 인셋과 이중 계산된다. (현재 `footer` 슬롯을 쓰는 route 는 **0건**이다 — `layouts.test.tsx` 에서만 쓴다.)
+- `SubmitButton`(`pt-10`) · `OnboardingWizard`(`pt-8`) 의 **위쪽** 간격은 건드리지 않는다.
+- 폭에 의존하지 않는 규칙이므로 **390/393 · 600 · 1024 전부 동일하게 44** 이며, 480 앱 컬럼 가운데 정렬(Stage 0 #12)과 무관하다.
+
+#### ⑥ 영향 범위 — `StackLayout` route **13개 전부**
+
+`/auth/welcome` · `/auth/sign-up` · `/auth/log-in` · `/auth/forgot-password` · `/auth/reset-password` · `/auth/consent` · `/auth/verify-parent` · `/onboarding` · `/onboarding/:step`(5단계) · `/onboarding/saved` · `/`(Home skeleton) · `/settings` · `*`(NotFound).
+
+- `TabLayout` · `FullscreenLayout` 은 기본값 `'safe'` 라 **변화 없음** (현재 route 미사용).
+- dev gallery `FramePage` 는 `AppColumn` 직접 사용 → **변화 없음**.
+- **`/onboarding/saved` 주의**: §2.11 의 "잔여 여백 A : B = 3 : 2" 는 가용 높이에서 계산되므로 **절대 px 이 44 만큼 줄어든다**. 비율 규칙 자체는 유효하다 — 값을 다시 박지 않는다.
+
+---
+
+### 16.2 결함 2 — 질문/선택지 박스가 2줄일 때 (`S2-FIX-2`)
+
+#### ① 실측값 vs 목표값 (393×852)
+
+| 행 | 줄 수 | 박스 높이 | 라벨 높이 | **상단 여백** | **하단 여백** | 라디오 원 중심 | 박스 중심 |
+|---|---|---|---|---|---|---|---|
+| Step 5 `Never` / `Rarely` / `Sometimes` / `Often` / `Almost always` | 1 | 44 | 20 | 12 | 12 | 22 | 22 |
+| **Step 5 `Haven't had the chance to see this yet`** (muted) | **2** | **57** | 40 | **17** | **0** | **37** | **28.5** |
+| Step 2 `Quiet, gentle stories — bedtime-style, slow pace` | 2 | **44** | 40 | **2** | **2** | 22 | 22 |
+| Step 2 `A bit of adventure, but nothing too intense` | 2 | 44 | 40 | 2 | 2 | 22 | 22 |
+| Step 2 `They love a wild ride — big feelings, big action` | 2 | 44 | 40 | 2 | 2 | 22 | 22 |
+
+목표:
+
+| 줄 수 | 박스 높이 | 상단 = 하단 여백 | 라디오 원 |
+|---|---|---|---|
+| 1 | **44** (변화 없음) | **12 / 12** (변화 없음) | 박스 세로 중앙 (변화 없음) |
+| 2 | **64** (hug) | **12 / 12** | 박스 세로 중앙 |
+| 3 | **84** (hug) | **12 / 12** | 박스 세로 중앙 |
+
+#### ② 원인 — 파일:줄
+
+| # | 위치 | 내용 |
+|---|---|---|
+| **원인 A** (모든 2줄 행) | `packages/ui/src/field/RadioGroup.css:31–34` | `.haru-radio-group__option` 에 **`padding-block` 선언이 없다**. `padding-inline: var(--space-4)` 만 있고, 세로 여백을 `min-block-size: var(--radio-row-height)`(44) + `align-items: center` **에만 의존**한다. 라벨 2줄(40) 이 44 안에 "겨우" 들어가 상하 2px 만 남고, 박스가 **hug 하지 않는다**. 3줄(60)이면 박스가 44 를 넘으며 상하 여백이 **0** 이 된다 |
+| **원인 B** (Step 5 비채점 행 전용) | `apps/web/src/features/onboarding-survey/onboarding.css:52–56` | `.haru-survey-options .haru-radio-group__option--muted { margin-block-start: --space-4; **padding-block-start: var(--space-4);** border-block-start: 1px solid var(--color-divider); }` — 구분선 간격을 **행 박스 안쪽 padding 으로** 그렸다. 그 16px 이 콘텐츠 영역을 위로 밀어 **상 17 / 하 0** 의 비대칭을 만들고, `align-items: center` 가 라디오 원을 "padding 을 뺀 영역"의 중앙(37)에 두어 **박스 중심(28.5)보다 8.5px 아래**로 내린다 |
+
+- **`--list-row-height-min`(가값 `P-18`, 56)은 이 결함과 무관하다.** 이 박스는 `RadioGroup variant="card"` 이고 `--radio-row-height`(= `--size-touch-min` 44)를 쓴다. `--list-row-height-min` 은 `ListRow`(`packages/ui/src/list/List.css:47`) 전용이다.
+- **컴포넌트 특정**: 문제의 박스는 **`RadioGroup variant="card"`** 다 (`ListRow` 아님). Step 5 = `CapabilityItemsStep.tsx:84`, Step 2 = `ChoiceQuestionList`.
+- **고정 높이가 아니라 `min-block-size`** 다. 박스는 자라기는 하되(57) **여백 규칙이 없어서** 자란 만큼이 전부 위쪽으로 몰린다.
+- **카드(부모)는 정상이다.** `SurveyQuestionCard` 는 고정 높이가 없고(§5.3 "고정 높이 546 을 만들지 않는다"), 2줄 옵션이 들어간 상태에서 덱 앞 카드 높이 **678px** 로 실제로 늘어났다. 내용이 넘치지 않는다.
+
+#### ③ 수정 명세 — 토큰만
+
+```
+packages/ui/src/field/RadioGroup.css   .haru-radio-group__option
+  + padding-block: var(--space-3);      /* 12 — 1행 20 + 24 = 44 = 기존 렌더와 동일 */
+    min-block-size: var(--radio-row-height);   /* 유지 — 터치 타깃 44 (§9.3) */
+    align-items: center;                        /* 유지 */
+```
+
+- **1행 렌더는 1px 도 바뀌지 않는다**: `max(44, 20 + 12 + 12)` = 44. 2행은 `max(44, 40 + 24)` = **64**, 3행은 **84** — 여백은 항상 12 / 12.
+- 이 패턴은 **`ListRow` 가 이미 쓰고 있다** (`List.css:47–48` `min-block-size` + `padding-block: var(--space-3)`). 같은 규칙으로 맞추는 정정이다.
+- **신규 토큰 0건.**
+
+```
+apps/web/src/features/onboarding-survey/onboarding.css   .haru-survey-options .haru-radio-group__option--muted
+  - padding-block-start: var(--space-4);
+  - border-block-start: 1px solid var(--color-divider);
+  + position: relative;
+  + margin-block-start: calc(var(--space-4) * 2 + var(--border-hairline));
+  + /* 구분선은 행 박스 바깥에 그린다 — 행 안쪽 padding 을 건드리면 세로 중앙이 깨진다 */
+  + ::before { content:''; position:absolute; inset-inline:0;
+  +            inset-block-start: calc(-1 * var(--space-4));
+  +            block-size: var(--border-hairline);
+  +            background-color: var(--color-divider); }
+```
+
+- 구분선 위·아래 간격은 **`--space-4`(16) 그대로** 유지한다 — C13-08 의 "위치(구분선 + 간격)로 구분" 의도를 바꾸지 않는다.
+- 부수 효과: 구분선이 **둥근 pill 의 윗변**이 아니라 **옵션 목록 폭의 가로선**으로 그려진다 (의도한 모습).
+
+| 신규 토큰 (선택) | Tier | 값 | 비고 |
+|---|---|---|---|
+| `--border-hairline` | 2 (semantic) | `1px` | 코드베이스가 이미 `1px solid var(--color-divider)` 를 여러 곳에서 쓴다. **추가하지 않고 리터럴 `1px` 을 유지해도 된다** — border width 는 §6 의 "임의 수치 금지" 대상이 아니다. development-agent 판단에 맡긴다 |
+
+#### ④ 라디오 원의 세로 정렬 — **박스 세로 중앙 (첫 줄 기준 아님)**
+
+- **Figma 근거**: `179:1790` ellipse y=14 h=15 → 중심 21.5 = 행 `179:1789` 높이 43 의 정확한 중앙. **Figma 에는 2줄 옵션이 없다** (`179:1789`~`179:1801` 전부 1줄).
+- 따라서 2줄 이상의 정렬은 **Figma 확인 불가**다. 1줄에서 중앙인 규칙을 그대로 연장해 **`align-items: center` 유지 = 박스 세로 중앙**으로 명세한다 (`RECOMMENDED` — 사용자 화면 인상과도 일치).
+- ②의 수정으로 "박스 중심"과 "콘텐츠 영역 중심"이 같아지므로, 비채점 행에서 원이 8.5px 내려가 보이던 현상이 사라진다.
+
+#### ⑤ 영향 범위 — `RadioGroup` 사용처 **4곳 + gallery 1곳**
+
+| 화면 | 변화 |
+|---|---|
+| `/onboarding/capability-items` (Step 5) | 비채점 행 57 → **64**, 여백 17/0 → **12/12**, 원 중심 37 → **32**. 구분선 위치 동일 |
+| `/onboarding/temperament` (Step 2 Q1·Q4) | 2줄 행 **3건** 44 → **64**, 여백 2/2 → **12/12**. 1줄 행 변화 없음 |
+| `/onboarding/child-info` (SelectTrigger → Sheet 내부 `RadioGroup variant="list"`) | 옵션이 전부 1줄 → **변화 없음** |
+| `/onboarding/goals` · `/onboarding/books` | `RadioGroup` 미사용 (Chip / Checkbox) → 변화 없음 |
+| dev gallery `v5-field` (`ComponentsPage.tsx:541–557`) | 옵션이 1줄이면 변화 없음. 구현 시 1행 여부를 확인하고 변하면 baseline 재생성 |
+
+---
+
+### 16.3 결함 3 — 스와이프 덱의 카드 겹침 (`S2-FIX-3`)
+
+#### ① Figma 실측 (2026-10-03 재조회, `179:1770`)
+
+| 레벨 | node | x | y | w | h | bottom | 앞 카드 대비 |
+|---|---|---|---|---|---|---|---|
+| front | `179:1783` | 24 | 164 | 345 | 546 | **710** | — |
+| behind 1 | `179:1782` | 32 | 205 | 329 | 521 | **726** | 폭 −16 (좌우 각 8), 아래로 **+16** |
+| behind 2 | `179:1781` | 38 | 221 | 313 | 521 | **742** | 폭 −32 (좌우 각 8씩 누적), 아래로 **+32** |
+
+- **depth = 3** (앞 1 + 뒤 2). **Y 오프셋 = 레벨당 16**. **좌우 인셋 = 레벨당 각 8** (폭 345 → 329 → 313, 16씩 감소). **scale 변환이 아니라 폭 감소**다.
+- 불투명도·그림자는 Figma 에서 세 장이 동일하다 (fill `rgba(255,255,255,.85)` · radius 30 → `AD-S2-7` 로 토큰 흡수 완료).
+- **현재 토큰 `--deck-inset-x`(8) · `--deck-peek-y`(16) · `--deck-depth`(3) 은 Figma 와 정확히 일치한다. 토큰은 틀리지 않았다.**
+
+#### ② 현재 구현 실측 (393×852, Step 5 1번 문항)
+
+| 요소 | left | right | bottom | 비고 |
+|---|---|---|---|---|
+| `SurveyQuestionCard` 의 `Surface` | 44 | 349 | **756** | ← **Figma 에 없는 네 번째 흰 면** |
+| `.haru-swipe-deck__card--front` | 24 | 369 | **776** | padding 20 · 흰 배경 · radius 28 · glass shadow |
+| `--level-1` | 32 | 361 | **792** | +16 ✔ |
+| `--level-2` | 40 | 353 | **808** | +32 ✔ |
+
+**뒤 카드는 2장 모두 정상 렌더된다.** `behindCount = 2`, 오프셋 16 / 32, 인셋 8 / 16, `z-index` front 1 · behind 0, `overflow` 로 잘리는 지점 없음(`AppShell` 뷰포트가 `AppColumn` **바깥**), 그림자 미절단 확인.
+
+#### ③ 원인 — 파일:줄 (오프셋·overflow·z-index **전부 아님**)
+
+| 위치 | 내용 |
+|---|---|
+| `packages/ui/src/deck/SwipeDeck.css:40–47` | `.haru-swipe-deck__card`(= 앞 카드 **포함**)에 `padding: var(--space-5)` + `background-color: var(--color-surface-strong)` + `border-radius: var(--radius-card)` + `box-shadow: var(--shadow-glass-rest)` + `backdrop-filter` 를 준다 |
+| `apps/web/src/entities/character/SurveyQuestionCard.tsx:39` | 그 안에서 **또 `<Surface fill="strong" radius="card" padding="6">`** 를 렌더한다 |
+
+→ 흰 카드 면이 **4겹**(Surface 756 / front 776 / level-1 792 / level-2 808)으로 쌓이고, 바깥 3겹이 간격 16·16 으로 붙어 **하나의 두꺼운 슬래브**처럼 읽힌다. 사용자가 "뒤 카드가 한 장만 삐져나온다"고 본 것은 이 슬래브의 아래 단 하나다. 내부 여백도 Figma 24 가 아니라 **20 + 24 = 44** 가 된다.
+
+**이것은 승인된 명세 위반이다**:
+- §4.2 "카드 표면 | **뒤 카드** `--color-surface-strong` + `--radius-card`" — 표면은 **뒤 카드 것**이라고 적혀 있다.
+- §5.3 "`SurveyQuestionCard` 카드 | `--color-surface-strong` + `--radius-card`(28) + `--shadow-glass-rest`, padding **`--space-6`**(Figma 24)" — 앞 카드 면은 **`SurveyQuestionCard` 소유**다.
+- Figma `179:1783` 은 **단일 프레임**이고 내부 콘텐츠가 x=24(= `--space-6`)에서 시작한다. **중첩 카드가 없다.**
+
+#### ④ 수정 명세 — 앞 카드 표면 소유권을 `renderItem` 으로 되돌린다
+
+```
+packages/ui/src/deck/SwipeDeck.css
+  - .haru-swipe-deck__card { padding / background-color / border-radius / box-shadow / backdrop-filter }
+  + .haru-swipe-deck__card--behind { padding / background-color / border-radius / box-shadow / backdrop-filter }
+    (@supports · prefers-reduced-transparency fallback 도 --behind 로 이동)
+  .haru-swipe-deck__card--front  →  position / z-index / touch-action / transform / transition / animation 만 남긴다
+```
+
+- `--deck-inset-x` · `--deck-peek-y` · `--deck-depth` · `--level-1/2` 의 `inset-block-end` 계산 · `__stack` 의 `padding-block-end` 는 **하나도 바꾸지 않는다** (Figma 와 이미 일치).
+- `renderItem` 이 **표면을 소유한다**는 계약을 `SwipeDeck` 의 JSDoc 과 §4.2 에 명시한다. `SurveyQuestionCard` 의 `Surface fill="strong" radius="card" padding="6"` 은 **그대로 둔다** → 결과적으로 앞 카드 = Figma `179:1783` (padding 24), 뒤 2장 = `179:1782`/`179:1781`. **흰 면 3겹 = Figma 그대로.**
+- dev gallery `s2-deck`(`Stage2Section.tsx:101–110`)은 `renderItem` 이 `<Text>` 만 반환하므로 **`<Surface fill="strong" radius="card" padding="6">` 로 감싸야** 데모가 유지된다.
+
+#### ⑤ 지켜야 할 회귀 방지 2건 (명세 범위에서 제외)
+
+| 과거 결함 | 지킬 것 |
+|---|---|
+| **`QA-2-001`** — `pointerdown` 에서 pointer capture 를 잡아 마우스 클릭이 전부 죽었다 | **`SwipeDeck.tsx` 의 포인터 핸들러는 건드리지 않는다.** 이번 수정은 **CSS 2개 선택자 + gallery 데모 래핑**뿐이다. 8px 이동 후 capture 하는 현재 동작을 그대로 둔다 |
+| **`QA-1-L1`** — `overflow-y: auto` 가 `overflow-x` 를 강제해 그림자가 직사각형으로 잘렸다 | **`SwipeDeck.css` 에 `overflow` 를 새로 넣지 않는다.** 현재 이 파일에 `overflow` 선언은 0건이고, 수정 후에도 0건이어야 한다. 앞 카드의 `--shadow-glass-rest`(가로 28px 번짐)는 `AppColumn` 바깥의 `AppShell` 뷰포트에서만 잘린다 |
+
+추가로, `--front` 에서 표면을 제거해도 **`backdrop-filter` 로 생기던 쌓임 맥락이 사라진다**. `z-index: 1` 은 명시되어 있으므로 앞/뒤 순서는 유지된다 — 구현 시 `e2e/shadow.spec.ts` 로 확인한다.
+
+#### ⑥ 영향 범위 — `SwipeDeck` 사용처 **2곳**
+
+| 사용처 | 변화 |
+|---|---|
+| `/onboarding/capability-items` (Step 5) | 흰 면 4겹 → **3겹**. 카드 내부 여백 44 → **24**(Figma 일치) → **카드 폭 안의 콘텐츠 폭이 40px 넓어진다**. 문항 텍스트·옵션 줄바꿈이 달라질 수 있다 (16.2 와 함께 baseline 1회 재생성) |
+| dev gallery `s2-deck` | `renderItem` 래핑 추가 — 외형은 현재와 동일하게 유지 |
+| Stage 3 이후 덱 사용 | `renderItem` 이 표면을 소유한다는 계약을 상속한다 |
+
+---
+
+### 16.4 회귀 baseline — 재생성 대상
+
+| baseline | 파일 | 재생성 | 사유 |
+|---|---|---|---|
+| `s2-welcome.png` | `e2e/__screenshots__/darwin/visual.spec.ts/` | **필요** | 16.1 (전체 프레임) |
+| `s2-login.png` | 〃 | **필요** | 16.1 |
+| `s2-signup.png` | 〃 | **필요** | 16.1 — `form` 영역 클립이지만 `flex-1` 이라 높이가 44 줄어든다 |
+| `s2-consent.png` | 〃 | **필요** | 16.1 |
+| `s2-vpc-failed.png` | 〃 | **필요** | 16.1 |
+| `s2-onboarding-intro.png` | 〃 | **필요** | 16.1 (`main` 영역) |
+| `s2-onboarding-saved.png` | 〃 | **필요** | 16.1 + §2.11 비율 재배분 |
+| `s2-onboarding-step5.png` | 〃 | **필요** | 16.1 + 16.2 + 16.3 (3건 전부) |
+| `s2-deck.png` | 〃 | **확인 후 판단** | 16.3 — gallery 데모를 `Surface` 로 감싸면 외형 동일. 1px 이라도 다르면 재생성 |
+| `v5-field.png` | 〃 | **확인 후 판단** | 16.2 — 데모 옵션이 전부 1줄이면 변화 없음 |
+| `s2-home-header.png` | 〃 | 불필요 | `banner` 영역 클립 — 하단 인셋과 무관 |
+| `frame-320/393/600/1024.png` | 〃 | **불필요** | `FramePage` 가 `AppColumn` 을 직접 쓰고 `AppShell`/`StackLayout` 을 쓰지 않는다. **`.haru-app-column` 기본 규칙을 바꾸지 않는 이유가 이것이다** |
+| `frame-320-text-200.png` | `responsive.spec.ts/` | **불필요** | 〃 |
+| `s2-selecttrigger` · `s2-listrow` · `s2-inforow` · `s2-dividerlabel` · `s2-textlink` · `v1`~`v9` | 〃 | 불필요 | 영향 없음 |
+
+**재생성은 1회로 묶는다** — 16.1·16.2·16.3 을 함께 구현한 뒤 `pnpm test:e2e:update` 를 한 번 실행한다.
+`e2e/shadow.spec.ts` · `a11y.spec.ts` · `onboarding.spec.ts` · `app/layouts/__tests__/layouts.test.tsx` · `packages/ui/src/field/__tests__/RadioGroup.test.tsx` · `packages/ui/src/deck/__tests__/SwipeDeck.test.tsx` 는 **통과해야 한다** (수정 대상 아님).
+
+### 16.5 승인이 필요한 항목
+
+| # | 항목 | 판정 | 비고 |
+|---|---|---|---|
+| 1 | 신규 토큰 `--layout-cta-bottom-gap` = 44 | **CONFIRMED (Figma 3프레임 일치)** | 승인 후 `packages/design-tokens` 추가 |
+| 2 | 하단 44 를 `StackLayout` **전 13 route** 에 적용 (CTA 없는 `/settings` · `/` 포함) | **RECOMMENDED** | 화면별 예외를 두면 규칙이 다시 흩어진다 |
+| 3 | 2줄 이상 라디오 행의 라디오 원 = **박스 세로 중앙** | **RECOMMENDED** (Figma 에 2줄 사례 없음 — **확인 불가**) | 1줄 중앙 규칙의 연장 |
+| 4 | `SwipeDeck` 앞 카드 표면 소유권을 `renderItem` 으로 이전 | **CONFIRMED (명세 §4.2·§5.3 + Figma `179:1783`)** | 승인된 명세로의 **복귀**다 |
+| 5 | `--border-hairline` 토큰 추가 여부 | **선택** | 추가하지 않아도 무방 |

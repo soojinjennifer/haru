@@ -1,10 +1,13 @@
 import { z } from 'zod';
 
+import { IdSchema } from '../common/id.js';
 import { OnboardingStepSchema, type OnboardingStep } from '../enums/onboarding-step.js';
 import { OnboardingDraftAnswersSchema, type OnboardingDraftAnswers } from './answers.js';
+import { TOPIC_TAGS_MAX } from './books-and-interests.js';
+import { GROWTH_GOALS_MAX } from './growing-together.js';
 import { TOPIC_TAG_NOT_SURE, TopicTagSchema, GrowthGoalSchema } from './options.js';
 import { SurveyInstrumentSchema } from './survey.js';
-import { ReadAloudBehaviorSchema, StoryComfortSchema } from './temperament.js';
+import { ReadAloudBehaviorSchema, StoryComfortSchema } from './reading-together.js';
 
 /**
  * 온보딩 **instrument** — "어떤 문항이 어떤 단계에 몇 개, 어떤 선택 규칙으로 있는가".
@@ -37,8 +40,15 @@ import { ReadAloudBehaviorSchema, StoryComfortSchema } from './temperament.js';
 /** 온보딩 instrument 식별자 — 질문지 문서 v1.1 기준 (결정 D-A). */
 export const ONBOARDING_INSTRUMENT_CODE = 'onboarding_v1_1';
 
-/** 현재 배포 버전. 문항·선택지가 바뀌면 올린다. */
-export const ONBOARDING_INSTRUMENT_VERSION = '1.1.0';
+/**
+ * 현재 배포 버전. 문항·선택지가 바뀌면 올린다.
+ *
+ * `2.0.0` — 설문 4단계 재구성(2026-10-03). 단계 체계가 바뀌었으므로 major 다.
+ * `code` 는 `onboarding_v1_1` 을 유지한다: 질문지 **문서** 버전은 그대로 v1.1 이고
+ * 단계 재배치는 배치 변경이지 문항 변경이 아니다 (Plan §7.3).
+ * 과거 응답(`1.1.0`)의 step 키 대응은 Backend 요구사항이다 (`P2-BIP-12`).
+ */
+export const ONBOARDING_INSTRUMENT_VERSION = '2.0.0';
 
 /**
  * instrument 참조 — 응답이 **어떤 문항 집합으로** 수집되었는지 남긴다 (구조 제약 ④).
@@ -59,10 +69,11 @@ export type InstrumentRef = z.infer<typeof InstrumentRefSchema>;
  * 여기와 아래 매핑에 한 줄씩 추가하면 되고, **화면 코드는 바뀌지 않는다.**
  */
 export const ChoiceQuestionIdSchema = z.enum([
-  'temperament.story_comfort',
-  'temperament.read_aloud_behavior',
-  'books.topic_tags',
-  'goals.growth_goals',
+  'reading_together.story_comfort',
+  'reading_together.read_aloud_behavior',
+  'books_and_interests.topic_tags',
+  'books_and_interests.owned_books',
+  'growing_together.growth_goals',
 ]);
 
 export type ChoiceQuestionId = z.infer<typeof ChoiceQuestionIdSchema>;
@@ -119,16 +130,32 @@ export const ChoiceQuestionSchema = z
 export type ChoiceQuestion = z.infer<typeof ChoiceQuestionSchema>;
 
 /**
+ * 소개 화면이 안내하는 **소요 시간** — 숫자를 화면·copy 에 박지 않기 위한 슬롯 (`R-03`).
+ * 문항이 바뀌면 서버만 바꾼다 (`P2-BIP-16`).
+ */
+export const OnboardingEstimatesSchema = z.object({
+  /** `About your child` 프로필 입력 (`243:1147` InfoRow). */
+  profileMinutes: z.int().min(1),
+  /** 설문 카드 전체 (`179:1748` InfoRow). */
+  surveyMinutes: z.int().min(1),
+});
+
+export type OnboardingEstimates = z.infer<typeof OnboardingEstimatesSchema>;
+
+/**
  * `GET /v1/onboarding` 이 내려주는 문항 집합 전체.
- * Step 1 은 문항이 아니라 **프로필 입력**이라 여기에 없다 (질문지 "Inputs From Profile Setup").
+ * `child_info` 는 문항이 아니라 **프로필 입력**이라 여기에 없다
+ * (질문지 "Inputs From Profile Setup").
  */
 export const OnboardingInstrumentSchema = z.object({
   code: z.string().min(1),
   version: z.string().min(1),
-  /** Step 2~4 의 선택형 문항. 순서는 `step` → `order` 다. */
+  /** 선택형 문항. 순서는 `step` → `order` 다. */
   questions: z.array(ChoiceQuestionSchema),
-  /** Step 5 역량 문항 (Baseline v1) — 문구까지 응답 값이다. */
+  /** 역량 문항 (Baseline v1) — 문구까지 응답 값이다. */
   survey: SurveyInstrumentSchema,
+  /** 소개 화면 소요 시간 안내 값 (`R-03`). */
+  estimates: OnboardingEstimatesSchema,
 });
 
 export type OnboardingInstrument = z.infer<typeof OnboardingInstrumentSchema>;
@@ -142,10 +169,12 @@ export function instrumentRefOf(instrument: OnboardingInstrument): InstrumentRef
 
 /** 값 schema — 선택지 코드가 저장 가능한 값인지 검증한다. */
 const QUESTION_VALUE_SCHEMAS = {
-  'temperament.story_comfort': StoryComfortSchema,
-  'temperament.read_aloud_behavior': ReadAloudBehaviorSchema,
-  'books.topic_tags': TopicTagSchema,
-  'goals.growth_goals': GrowthGoalSchema,
+  'reading_together.story_comfort': StoryComfortSchema,
+  'reading_together.read_aloud_behavior': ReadAloudBehaviorSchema,
+  'books_and_interests.topic_tags': TopicTagSchema,
+  /** Q5 는 선택지가 **책 id** 다 — 목록은 카탈로그에서 오고 enum 이 아니다. */
+  'books_and_interests.owned_books': IdSchema,
+  'growing_together.growth_goals': GrowthGoalSchema,
 } as const satisfies Record<ChoiceQuestionId, z.ZodType<string>>;
 
 export function choiceQuestionValueSchema(questionId: ChoiceQuestionId): z.ZodType<string> {
@@ -153,7 +182,9 @@ export function choiceQuestionValueSchema(questionId: ChoiceQuestionId): z.ZodTy
 }
 
 /**
- * 기본 문항 구조 — 질문지 v1.1 Q1 · Q4 · Q3 · Q2 를 온보딩 단계에 배치한 것이다.
+ * 기본 문항 구조 — 질문지 v1.1 Q1 · Q4 · Q3 · Q2 를 재구성된 4단계에 배치한 것이다
+ * (`§11.12` · `§11.16`). Q5 는 선택지가 카탈로그 데이터라 여기에 없다 —
+ * `buildOnboardingQuestions()` 가 붙인다.
  *
  * 표시 문구가 없다는 점이 핵심이다. 이 배열은 Trial(서버 요청 0건) 구간의 기본 instrument 와
  * Mock 응답이 **같은 구조**를 쓰도록 하는 단일 출처다.
@@ -163,10 +194,11 @@ export function choiceQuestionValueSchema(questionId: ChoiceQuestionId): z.ZodTy
  *
  * | 문항 | 질문지 | `required` |
  * |---|---|---|
- * | Q1 `temperament.story_comfort` | "Single-select. **Required.**" | `true` |
- * | Q4 `temperament.read_aloud_behavior` | "Single-select. **Required.**" | `true` |
- * | Q3 `books.topic_tags` | "Optional — 'not sure yet' is a valid answer." | `false` |
- * | Q2 `goals.growth_goals` | "**Required** — at least one option must be picked." | `true` |
+ * | Q1 `reading_together.story_comfort` | "Single-select. **Required.**" | `true` |
+ * | Q4 `reading_together.read_aloud_behavior` | "Single-select. **Required.**" | `true` |
+ * | Q3 `books_and_interests.topic_tags` | "Optional — 'not sure yet' is a valid answer." | `false` |
+ * | Q2 `growing_together.growth_goals` | "**Required** — at least one option must be picked." | `true` |
+ * | Q5 `books_and_interests.owned_books` | 선택지가 카탈로그 데이터 → `buildOnboardingQuestions` | `false` |
  *
  * 필수화가 "없는 답"을 강요하지 않는지는 선택지 구성이 보장한다: Q1 은 회피 선택지
  * `depends_on_the_day` 를 갖는다. Q4·Q2 에는 회피 선택지가 없으나, Q4 는 관찰 가능한 행동
@@ -175,8 +207,8 @@ export function choiceQuestionValueSchema(questionId: ChoiceQuestionId): z.ZodTy
  */
 export const ONBOARDING_CHOICE_QUESTIONS: readonly ChoiceQuestion[] = [
   {
-    questionId: 'temperament.story_comfort',
-    step: 'temperament',
+    questionId: 'reading_together.story_comfort',
+    step: 'reading_together',
     order: 1,
     selection: 'single',
     // 질문지 Q1 Required — 회피 선택지 `depends_on_the_day` 가 있다.
@@ -184,8 +216,8 @@ export const ONBOARDING_CHOICE_QUESTIONS: readonly ChoiceQuestion[] = [
     options: StoryComfortSchema.options.map((code) => ({ code })),
   },
   {
-    questionId: 'temperament.read_aloud_behavior',
-    step: 'temperament',
+    questionId: 'reading_together.read_aloud_behavior',
+    step: 'reading_together',
     order: 2,
     selection: 'single',
     // 질문지 Q4 Required.
@@ -193,11 +225,11 @@ export const ONBOARDING_CHOICE_QUESTIONS: readonly ChoiceQuestion[] = [
     options: ReadAloudBehaviorSchema.options.map((code) => ({ code })),
   },
   {
-    questionId: 'books.topic_tags',
-    step: 'books',
+    questionId: 'books_and_interests.topic_tags',
+    step: 'books_and_interests',
     order: 1,
     selection: 'multi',
-    maxSelections: 2,
+    maxSelections: TOPIC_TAGS_MAX,
     // 질문지 Q3 Optional — `not_sure_yet` 자체가 유효한 응답이다.
     required: false,
     options: TopicTagSchema.options.map((code) =>
@@ -205,16 +237,56 @@ export const ONBOARDING_CHOICE_QUESTIONS: readonly ChoiceQuestion[] = [
     ),
   },
   {
-    questionId: 'goals.growth_goals',
-    step: 'goals',
+    questionId: 'growing_together.growth_goals',
+    step: 'growing_together',
     order: 1,
     selection: 'multi',
-    maxSelections: 2,
+    maxSelections: GROWTH_GOALS_MAX,
     // 질문지 Q2 Required — 최소 1개.
     required: true,
     options: GrowthGoalSchema.options.map((code) => ({ code })),
   },
 ];
+
+/**
+ * Q5 — "이미 잘 아는 책" 문항 (질문지 v1.1 Q5, `§11.11`).
+ *
+ * **선택지가 enum 이 아니라 카탈로그 데이터**(책 id + 제목)이므로 고정 배열로 둘 수 없다.
+ * 호출부(Mock·향후 Backend)가 인벤토리를 넘겨 문항을 만든다. 제목은 `label` 로 함께 내려가며
+ * — contracts·화면·copy 모듈 어디에도 책 제목이 없다 (`AC-2R-09`).
+ *
+ * 선택 규칙: **복수·무제한**(`maxSelections` 없음) · **배타 옵션 없음** · **선택 문항**.
+ * 선택지가 2개 미만이면 `null` 을 돌려준다 — 문항이 성립하지 않으므로 카드가 사라지고,
+ * 카드 수는 파생값이라 자동으로 줄어든다 (`owned-books-empty` 상태).
+ */
+export function createOwnedBooksQuestion(options: readonly ChoiceOption[]): ChoiceQuestion | null {
+  if (options.length < 2) return null;
+
+  return {
+    questionId: 'books_and_interests.owned_books',
+    step: 'books_and_interests',
+    order: 2,
+    selection: 'multi',
+    required: false,
+    options: [...options],
+  };
+}
+
+/**
+ * instrument 의 선택형 문항 전체 — 고정 문항 + 카탈로그 기반 Q5.
+ *
+ * 문항 목록을 조립하는 곳을 하나로 둔다. Mock 과 Trial 기본 instrument 가 같은 함수를 쓰므로
+ * 두 경로의 문항 구성이 갈라지지 않는다.
+ */
+export function buildOnboardingQuestions(
+  ownedBookOptions: readonly ChoiceOption[] = [],
+): readonly ChoiceQuestion[] {
+  const ownedBooks = createOwnedBooksQuestion(ownedBookOptions);
+
+  return ownedBooks === null
+    ? ONBOARDING_CHOICE_QUESTIONS
+    : [...ONBOARDING_CHOICE_QUESTIONS, ownedBooks];
+}
 
 /* ── 필수 응답 판정 (instrument 가 소유한다) ────────────────────────────────── */
 
@@ -267,18 +339,20 @@ export function readChoiceAnswer(
   questionId: ChoiceQuestionId,
 ): readonly string[] {
   switch (questionId) {
-    case 'temperament.story_comfort': {
-      const value = answers.temperament?.storyComfort;
+    case 'reading_together.story_comfort': {
+      const value = answers.reading_together?.storyComfort;
       return value === undefined ? [] : [value];
     }
-    case 'temperament.read_aloud_behavior': {
-      const value = answers.temperament?.readAloudBehavior;
+    case 'reading_together.read_aloud_behavior': {
+      const value = answers.reading_together?.readAloudBehavior;
       return value === undefined ? [] : [value];
     }
-    case 'books.topic_tags':
-      return answers.books?.topicTags ?? [];
-    case 'goals.growth_goals':
-      return answers.goals?.growthGoals ?? [];
+    case 'books_and_interests.topic_tags':
+      return answers.books_and_interests?.topicTags ?? [];
+    case 'books_and_interests.owned_books':
+      return answers.books_and_interests?.ownedBooks ?? [];
+    case 'growing_together.growth_goals':
+      return answers.growing_together?.growthGoals ?? [];
   }
 }
 
@@ -309,23 +383,43 @@ export function applyChoiceAnswer(
   codes: readonly string[],
 ): OnboardingDraftAnswers {
   switch (questionId) {
-    case 'temperament.story_comfort':
+    case 'reading_together.story_comfort':
       return {
         ...answers,
-        temperament: { ...answers.temperament, storyComfort: single(StoryComfortSchema, codes) },
+        reading_together: {
+          ...answers.reading_together,
+          storyComfort: single(StoryComfortSchema, codes),
+        },
       };
-    case 'temperament.read_aloud_behavior':
+    case 'reading_together.read_aloud_behavior':
       return {
         ...answers,
-        temperament: {
-          ...answers.temperament,
+        reading_together: {
+          ...answers.reading_together,
           readAloudBehavior: single(ReadAloudBehaviorSchema, codes),
         },
       };
-    case 'books.topic_tags':
-      return { ...answers, books: { ...answers.books, topicTags: multi(TopicTagSchema, codes) } };
-    case 'goals.growth_goals':
-      return { ...answers, goals: { growthGoals: multi(GrowthGoalSchema, codes) } };
+    case 'books_and_interests.topic_tags':
+      return {
+        ...answers,
+        books_and_interests: {
+          ...answers.books_and_interests,
+          topicTags: multi(TopicTagSchema, codes),
+        },
+      };
+    case 'books_and_interests.owned_books':
+      return {
+        ...answers,
+        books_and_interests: {
+          ...answers.books_and_interests,
+          ownedBooks: multi(IdSchema, codes),
+        },
+      };
+    case 'growing_together.growth_goals':
+      return {
+        ...answers,
+        growing_together: { growthGoals: multi(GrowthGoalSchema, codes) },
+      };
   }
 }
 

@@ -14,7 +14,7 @@
  *      단   ④ 세션 만료로 잃은 경우는 /auth/log-in 으로 보낸다 (AC-2-07)
  * 3. 필수 동의 누락                           → /auth/consent
  * 4. VPC pending | failed                    → /auth/verify-parent
- * 5. 온보딩 미완료                            → /onboarding            (이어서 볼 step 은 온보딩 feature 가 정한다)
+ * 5. 온보딩 미완료                            → /onboarding/start      (저장된 draft 가 있으면 그 지점)
  * 6. 온보딩 완료 && 현재 경로가 /auth/*        → /                      (인증 전용 화면이므로)
  * 7. 그 외                                    → allow
  * ```
@@ -46,6 +46,17 @@ export interface GuardOptions {
    * 미인증 리다이렉트 목적지를 `/auth/welcome` → `/auth/log-in` 으로 바꾼다.
    */
   sessionExpired?: boolean;
+  /**
+   * 저장된 로컬 onboarding draft 가 **가리키는 지점의 경로**. draft 가 없으면 `null`.
+   *
+   * 결정 `§11.19` (7-2): 동의 직후 처음 도달하면 프로필 안내(`/onboarding/start`)로 보내고,
+   * 중도 복귀면 **그 지점으로** 보낸다. 두 요구(새 흐름 · resume 경로)를 모두 만족시키기 위해
+   * 규칙 5 의 **목적지만** 세분화한다 — 다른 규칙(미인증 · 동의 누락 · VPC)은 그대로다.
+   *
+   * 값은 호출부(`useGuardDecision`)가 **기존 `OnboardingDraftStore`** 를 읽어 넘긴다.
+   * 이 함수는 저장소를 모른다 (순수 함수 유지 — 결정 `D-5`).
+   */
+  onboardingResumePath?: string | null;
 }
 
 const AUTH_PREFIX = '/auth/';
@@ -101,7 +112,13 @@ export function resolveGuardDecision(
     if (pathname === ROUTES.onboarding.intro) return ALLOW_DECISION;
     if (pathname.startsWith(`${ROUTES.onboarding.intro}/`)) return ALLOW_DECISION;
 
-    return redirectTo(ROUTES.onboarding.intro, pathname);
+    // 중도 복귀면 저장된 지점으로, 처음 도달하면 프로필 안내로 (`§11.19` 7-2).
+    const resume = options.onboardingResumePath;
+
+    return redirectTo(
+      resume === null || resume === undefined ? ROUTES.onboarding.start : resume,
+      pathname,
+    );
   }
 
   // 6. 온보딩까지 끝난 사용자에게 `/auth/*` 는 더 이상 보여 주지 않는다.

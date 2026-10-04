@@ -209,7 +209,9 @@ Scope 확인: `apps/` = `web` 만, `packages/` = `config` · `contracts` · `des
 |---|---|---|---|
 | D-A | **온보딩 선택지 목록의 소유자와 최종 문구** — `LANGUAGE_ENVIRONMENT_CODES` · `READING_ROUTINE_CODES` · `TOPIC_TAG_CODES` · `GROWTH_GOAL_CODES` · 기질 4 축 코드 | PRD §7.2 는 축과 `topic_tags` 예시(동물/탈것/공주/과학)만 확정했다. 나머지는 **RECOMMENDED 최소 목록**으로 `src/onboarding/options.ts` · `temperament.ts` 한 곳에 모아 두었고, 표시 문구는 copy 모듈이 소유한다 | Design Spec §2.10 이 "contracts 확정 후 주입 / NEEDS DECISION" 으로 남긴 항목. 사용자·디자이너 결정 시 **코드 배열만** 교체하면 화면·Mock 이 따라간다 |
 | D-B | 성장 목표(`GROWTH_GOAL_CODES`)가 4 대 역량 라벨과 겹치지 않아야 한다는 규칙 | 겹치지 않는 별도 코드 집합으로 정의 | 최종 목록 확정 시 재확인 |
-| D-C | 각 단계의 **필수/선택** 여부 | Step 1 은 `firstName` · `birthYearMonth` · `gender`(null 허용) · `languageEnvironment` 만 요구하고, Step 2 · 3 · 4 는 전부 선택으로 두었다 (PRD §7.2 "부담 없게 수집", 최소 수집 원칙) | 제품 결정으로 필수화하려면 schema 와 화면 CTA 조건을 함께 바꿔야 한다 |
+| D-C | 각 단계의 **필수/선택** 여부 | Step 1 은 `firstName` · `birthYearMonth` · `gender`(null 허용) 만 요구하고, Step 2 · 3 · 4 는 전부 선택으로 두었다 (PRD §7.2 "부담 없게 수집", 최소 수집 원칙) | 제품 결정으로 필수화하려면 schema 와 화면 CTA 조건을 함께 바꿔야 한다 |
+
+> **`languageEnvironment` 는 선택 사항이다** (사용자 결정 `§11.22`, 2026-10-04 — 이 표가 처음 적었던 "Step 1 필수" 서술을 대체한다. 현행 근거: `stage-2-rework-handoff.md` 부록 D). Backend 요구사항: 서버는 **빈 배열을 거부하면 안 되고**(`.min(1)` 금지) **기본값을 다시 채우면 안 된다** — 사용자의 명시적 해제를 덮어쓴다. 기본값 `['english']` 적용 지점은 **Frontend 제출 경계 한 곳**(`buildSubmitRequest`)이다.
 
 ---
 

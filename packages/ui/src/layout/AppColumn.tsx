@@ -14,6 +14,11 @@ export interface AppColumnProps {
    * Stage 1 에서는 API 만 열어 둔다 (§2.4).
    */
   edgeToEdge?: boolean;
+  /**
+   * 화면 하단 인셋을 `max(safe-bottom, --layout-cta-bottom-gap)`(44) 로 바꾼다 (`S2-FIX-1`).
+   * 기본값 `false` = `--layout-safe-bottom` 만 적용 (웹에서는 0).
+   */
+  bottomGap?: boolean;
   id?: string;
 }
 
@@ -28,6 +33,7 @@ export function AppColumn({
   as = 'div',
   padded = true,
   edgeToEdge = false,
+  bottomGap = false,
   id,
 }: AppColumnProps) {
   return createElement(
@@ -38,6 +44,7 @@ export function AppColumn({
         'haru-app-column',
         padded && !edgeToEdge && 'haru-app-column--padded',
         edgeToEdge && 'haru-app-column--edge-to-edge',
+        bottomGap && 'haru-app-column--bottom-gap',
       ),
     },
     children,

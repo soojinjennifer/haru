@@ -167,7 +167,13 @@ const ENUM_SNAPSHOTS: readonly EnumSnapshot[] = [
   {
     name: 'OnboardingStep',
     options: OnboardingStepSchema.options,
-    expected: ['child_info', 'temperament', 'books', 'goals', 'capability_items'],
+    expected: [
+      'child_info',
+      'reading_together',
+      'books_and_interests',
+      'growing_together',
+      'capability_items',
+    ],
   },
   {
     name: 'OnboardingStatus',

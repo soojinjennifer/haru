@@ -51,8 +51,15 @@ export function IconButton({
   disabled = false,
   type = 'button',
   onPress,
+  'aria-disabled': ariaDisabled,
   ...rest
 }: IconButtonProps) {
+  /**
+   * `aria-disabled` 는 **native `disabled` 와 다르다**: 포커스를 받을 수 있어야 "왜 누를 수
+   * 없는지" 가 스크린리더에 전달된다 (Stage 2 Design Spec §2.6 패턴). 그래서 호출부가 준
+   * 값도 존중한다 — `disabled` 가 우선이고, 없으면 호출부 값을 쓴다.
+   */
+  const blocked = disabled || ariaDisabled === true || ariaDisabled === 'true';
   return (
     <button
       {...rest}
@@ -66,7 +73,7 @@ export function IconButton({
       )}
       aria-label={label}
       disabled={disabled}
-      aria-disabled={disabled || undefined}
+      aria-disabled={blocked || undefined}
       aria-busy={loading || undefined}
       onClick={() => {
         if (loading) return;

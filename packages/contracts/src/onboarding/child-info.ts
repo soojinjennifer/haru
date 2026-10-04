@@ -1,7 +1,11 @@
 import { z } from 'zod';
 
 import { GenderFieldSchema } from '../enums/gender.js';
-import { LanguageEnvironmentSchema, ReadingRoutineSchema } from './options.js';
+import {
+  LanguageEnvironmentSchema,
+  ReadingRoutineSchema,
+  type LanguageEnvironment,
+} from './options.js';
 
 /**
  * 온보딩 Step 1 — 아이 기본 정보.
@@ -21,6 +25,20 @@ export const CHILD_NAME_MAX_LENGTH = 40;
 
 /** 집에서 쓰는 언어 선택 최대 개수 (RECOMMENDED). */
 export const LANGUAGE_ENVIRONMENT_MAX = 5;
+
+/**
+ * 언어 환경 **기본값** — 사용자 결정 2026-10-04: 언어 선택은 **선택 항목**이고, 고르지 않으면
+ * 영어로 본다 (1차 시장 기준).
+ *
+ * 값은 여기 한 곳에서만 정의하고 **적용 지점은 제출 경계 하나**다
+ * (`apps/web/src/features/onboarding-survey/model/submitRequest.ts`).
+ *
+ * schema `.default()` 로 넣지 **않는** 이유: `.default()` 는 parse 가 입력을 조용히 바꾼다.
+ * 그러면 ① 사용자가 **일부러 비운** 선택(빈 배열)을 표현할 수 없고, ② 같은 enum 배열을 쓰는
+ * 읽기 모델(`ChildSchema.languageEnvironment`)과 Mock 응답까지 "비어 있으면 영어" 가 되어
+ * 저장값과 응답값이 달라진다. 기본값은 **보내는 쪽이 눈에 보이게** 채운다.
+ */
+export const DEFAULT_LANGUAGE_ENVIRONMENT: readonly LanguageEnvironment[] = ['english'];
 
 /** `YYYY-MM` 형식 (일 = 1 로 저장된다 — `docs/DATA_MODEL.md` §5 `children.birth_year_month`). */
 export const BIRTH_YEAR_MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -106,6 +124,10 @@ export const ChildInfoAnswersSchema = z.object({
   lastName: z.string().trim().max(CHILD_NAME_MAX_LENGTH).optional(),
   birthYearMonth: BirthYearMonthFormatSchema,
   gender: GenderFieldSchema,
+  /**
+   * **선택 항목**이다 (사용자 결정 2026-10-04). 빈 배열이 정상 값이며, 보내는 쪽이
+   * `DEFAULT_LANGUAGE_ENVIRONMENT` 로 채운다 — `.min(1)` 도 `.default()` 도 두지 않는다.
+   */
   languageEnvironment: z.array(LanguageEnvironmentSchema).max(LANGUAGE_ENVIRONMENT_MAX),
   readingRoutine: ReadingRoutineSchema.optional(),
 });

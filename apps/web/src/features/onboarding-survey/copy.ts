@@ -8,27 +8,24 @@
  * 때문에, 코드가 추가·삭제되면 **컴파일이 깨져** 문구 누락을 배포 전에 잡는다.
  *
  * ── 결정 **D-B** 주의 (approvals §8.2) ──
- * Step 4(함께 키우고 싶은 것)와 프로필 결과(지금 관찰된 신호)는 같은 라벨을 쓰지만
+ * `growing_together`(함께 키우고 싶은 것)와 프로필 결과(지금 관찰된 신호)는 같은 라벨을 쓰지만
  * **서로를 평가하지 않는다.** "목표 대비 달성" · "기대 vs 실제" · 점수 비교 · 미달 표현을
  * 쓰지 않는다. `__tests__/copy-language.test.ts` 가 금칙 표현을 고정한다.
  *
- * ── `S2-COPY-1` (approvals §6 ②) ──
- * Figma `179:1763` "About 3 minutes · 10 cards" / `179:1767` "Swipe each card away" 는
- * 5단계 소개 화면인데 Step 5 만 설명한다. 대체 문구는 **기획 결정 대기**이므로
- * `intro.durationSlot` · `intro.formatSlot` 을 **빈 슬롯(`null`)** 으로 둔다.
- * 그럴듯한 플레이스홀더를 넣지 않는다 — 넣으면 아무도 미결 사실을 눈치채지 못한다.
+ * ── 숫자 리터럴 금지 (`AC-2R-09`) ──
+ * 카드 수 · 소요 시간 · 단계 수 · 선택 상한은 **전부 함수 슬롯**이다. 값은 instrument ·
+ * contracts 상수 · fixture 에서 온다. 이 파일에 숫자를 적지 않는다.
  */
 import type {
   Capability,
-  CaregiverRelationship,
   ChoiceQuestionId,
-  Gender,
-  LanguageEnvironment,
   ReadAloudBehavior,
   ReadingRoutine,
   StoryComfort,
   TopicTag,
 } from '@haru/contracts';
+
+import { childCopy } from '../../shared/copy/child-copy';
 
 /** 질문 문구 1건. `description` 은 선택이다. */
 export interface QuestionCopy {
@@ -36,20 +33,58 @@ export interface QuestionCopy {
   description?: string;
 }
 
+function plural(count: number, singular: string, pluralForm: string): string {
+  return count === 1 ? singular : pluralForm;
+}
+
 export const onboardingCopy = {
-  /** `/onboarding` 소개 — Design Spec §2.8 (Figma `179:1748`). */
+  /**
+   * 소개 화면 2종 — Design Spec §2.2 (`§11.10` 으로 2벌 분리 확정).
+   *
+   * `profile` = `/onboarding/start` (Figma `243:1147`) · `survey` = `/onboarding` (`179:1748`).
+   * 두 화면은 **레이아웃이 같고 copy 만 다르다**.
+   */
   intro: {
-    title: "Let's set up your child's profile",
-    body: 'A few questions about what your read-aloud time looks like today. There are no right answers — what you notice is enough.',
-    /**
-     * `S2-COPY-1` — Figma `179:1763` 대체 문구 **미확정**. 소요 시간·단계 수를 여기에서
-     * 정하지 않는다 (실측 근거 없음). 값이 `null` 이면 해당 InfoRow 를 그리지 않는다.
-     */
-    durationSlot: null as string | null,
-    /** `S2-COPY-1` — Figma `179:1767` 대체 문구 **미확정**. */
-    formatSlot: null as string | null,
-    start: 'Start',
-    resume: 'Pick up where you left off',
+    profile: {
+      /** Figma `243:1156` */
+      title: "Let's set up your child's profile",
+      /** Figma `243:1157` */
+      body: 'A few questions about what your read-aloud time looks like today. There are no right answers — what you notice is enough.',
+      /**
+       * Figma `243:1160` "About 1 minutes" — 숫자는 instrument `estimates` 에서 온다 (`R-03`).
+       * Figma 의 복수형 오타는 옮기지 않는다 (허용 차이 `AD-S2R-02`).
+       */
+      duration: (minutes: number) =>
+        `About ${String(minutes)} ${plural(minutes, 'minute', 'minutes')}`,
+      /** Figma `243:1165` */
+      format: 'Input your answers',
+      /** Figma `243:1167` */
+      cta: 'Start the questions',
+    },
+    survey: {
+      /** Figma `179:1757` — `{name}` 은 보호자가 입력한 아이 이름이다. */
+      title: (childFirstName: string) =>
+        `Hi — before your first night with ${childFirstName}, a few quick questions`,
+      /** 이름을 아직 모를 때 (`missing-prefill`). */
+      titleWithoutName: 'Before your first night together, a few quick questions',
+      /**
+       * Figma `179:1758` 에서 숫자 절(`Ten short questions`)과 기간 절(`in the last two weeks`)을
+       * 제거하고 남은 **Figma 원문**이다 (`S2R-OPEN-1` A — 허용 차이 `AD-S2R-11`).
+       */
+      body: 'No right answers — we just need a starting point.',
+      /** Figma `179:1763` "About 3 minutes · about 10 cards" — 두 숫자 모두 파생값이다. */
+      duration: (minutes: number, cards: number) =>
+        `About ${String(minutes)} ${plural(minutes, 'minute', 'minutes')} · ${String(cards)} ${plural(
+          cards,
+          'card',
+          'cards',
+        )}`,
+      /** Figma `179:1767` */
+      format: 'Swipe each card away to move on',
+      /** Figma `179:1768` */
+      cta: 'Start',
+      resume: 'Pick up where you left off',
+    },
   },
 
   /** Trial · draft 안내 — Design Spec §2.12 (`C13-11`). */
@@ -62,7 +97,7 @@ export const onboardingCopy = {
     dismiss: 'Dismiss',
   },
 
-  /** 위저드 공통 chrome — Design Spec §2.9. */
+  /** 위저드 공통 chrome — Design Spec §3.1 · §3.2. */
   wizard: {
     back: 'Go back',
     next: 'Next',
@@ -71,97 +106,66 @@ export const onboardingCopy = {
     /** 인증 상태의 마지막 CTA. */
     finish: 'Finish',
     progressLabel: 'Onboarding progress',
-    stepOf: (step: number, total: number) => `Step ${String(step)} of ${String(total)}`,
     saveFailedTitle: "We couldn't save that just yet.",
     saveFailedDescription: 'Your answers are still here. We will try again as you continue.',
     /**
-     * 필수 문항이 남아 CTA 를 아직 누를 수 없는 이유 (`S2-ONB-1`, Design Spec §2.9 정식 문구).
-     * `aria-describedby` 로 버튼에 연결한다 — 동의 화면 `blockedReason` 과 같은 패턴이다.
-     *
-     * **계수형이다.** Step 2 는 필수 문항이 2건이라 단수형 "an answer" 가 어느 문항인지
-     * 알려주지 못한다. 개수는 화면이 세지 않고 contracts 의 미응답 판정 결과
-     * (`unansweredRequiredQuestions`) 길이에서 온다. 오류 문구가 아니다 — tone 은 secondary 다.
+     * 필수 문항이 남아 전진할 수 없는 이유 (`S2-ONB-1`). 카드 안쪽 옵션 아래 1행이며
+     * 오류 문구가 아니다 — tone 은 secondary 다 (Design Spec §3.2).
      */
-    requiredBlockedReason: (count: number) =>
-      count === 1
-        ? 'Answer the question above to continue.'
-        : `Answer the ${String(count)} questions above to continue.`,
+    requiredBlockedReason: 'Answer this one to move on.',
   },
 
-  /** 단계 제목 — TopBar. 순서·개수는 contracts `OnboardingStep` 이 정한다. */
+  /**
+   * 단계 제목 — TopBar. 순서·개수는 contracts `OnboardingStep` 이 정한다.
+   * `capability_items` 는 `R-13` 으로 **`Capability`** 다 (허용 차이 `AD-S2R-09`).
+   */
   steps: {
     child_info: 'About your child',
-    temperament: 'Reading together',
-    books: 'Books and interests',
-    goals: 'Growing together',
-    capability_items: 'What you have noticed',
+    reading_together: 'Reading together',
+    books_and_interests: 'Books and interests',
+    growing_together: 'Growing together',
+    capability_items: 'Capability',
   } as const satisfies Record<string, string>,
 
-  /** Step 1 — Design Spec §2.10 Step 1 (`179:1740` + `C13-04`). */
-  childInfo: {
-    childSection: 'ABOUT YOUR CHILD',
-    caregiverSection: 'ABOUT YOU',
-    homeSection: 'AT HOME',
-    firstName: 'First name',
-    lastName: 'Last name',
-    lastNameOptional: 'Optional',
-    birthYear: 'Birth year',
-    birthMonth: 'Birth month',
-    birthPlaceholder: 'Select',
-    ageTagLabel: (years: number, months: number) => `${String(years)}yr ${String(months)}mo`,
-    ageOutOfRange: 'HARU is built for ages 3 to 9 right now.',
-    firstNameRequired: 'Please add a first name so we know what to call them.',
-    birthRequired: 'Please choose a birth year and month.',
-    gender: 'Gender',
-    genderPlaceholder: 'Not selected',
-    relationship: 'Your relationship to this child',
-    relationshipPlaceholder: 'Select',
-    languages: 'Languages you use at home',
-    languagesRequired: 'Please pick at least one language you use at home.',
-    readingRoutine: 'Reading routine',
-    readingRoutineLegend: 'How often you read together',
-  },
+  /** `About your child` — Design Spec §4 (Figma `248:1159`). 문구는 `shared/copy` 가 소유한다. */
+  childInfo: childCopy,
 
-  /** Step 3 책 블록 — Design Spec §2.10 Step 3 (`C13-06`, 결정 D-17). */
+  /** 좋아하는 책 카드 — Design Spec §6.3 (검색 없음 — `§11.13`). */
   books: {
-    favoritesSection: 'BOOKS YOUR CHILD LOVES',
-    favoritesHint: 'Up to 5.',
-    searchLabel: 'Search a book',
-    searchClear: 'Clear',
-    searchLoading: 'Searching books',
-    emptyTitle: 'No match yet.',
-    emptyDescription: 'You can add the title yourself.',
-    addTyped: (query: string) => `Add “${query}” as a title`,
-    limitReached: 'You can pick up to 5.',
+    /** 카드 문항 (`§11.14` — 기존 섹션 라벨을 그대로 문장으로 쓴다, 문구 창작 0건). */
+    favoritesSection: 'Books your child loves',
+    /** 상한을 말한다. 숫자는 contracts `FAVORITE_BOOKS_MAX` 에서 온다. */
+    favoritesHint: (max: number) => `Up to ${String(max)}.`,
+    /** 상한 도달 시 — favorites 는 **거절**한다 (`§11.15` 의도된 차이). */
+    limitReached: (max: number) => `You can pick up to ${String(max)}.`,
+    /** 입력 행의 추가 액션. */
+    addAction: 'Add',
     remove: (title: string) => `Remove ${title}`,
     selectedLabel: 'Books you picked',
-    homeSection: 'BOOKS AT HOME',
-    homeLabel: 'Add a book at home',
-    homeAdd: 'Add',
-    homeListLabel: 'Books at home',
-    searchFailed: "We couldn't search right now.",
-    tryAgain: 'Try again',
   },
 
-  /** Step 5 — Design Spec §2.10 Step 5 (`179:1770` + `C13-08`). */
+  /** 카드 덱 — Design Spec §3 (Figma `179:1770`). */
   survey: {
-    deckLabel: 'Baseline questions',
+    deckLabel: 'Onboarding questions',
     prevQuestion: 'Previous question',
     nextQuestion: 'Next question',
-    questionOf: (index: number, total: number) => `Question ${String(index)} of ${String(total)}`,
+    /** 카드 안쪽 좌상단 통산 카운터 `n / 16` (`R-02`). 숫자는 파생값이다. */
     counter: (index: number, total: number) => `${String(index)} / ${String(total)}`,
+    /** 카드가 바뀔 때 `aria-live` 로 읽히는 문구 (Design Spec §14.3). */
+    cardAnnouncement: (stepTitle: string, index: number, total: number) =>
+      `${stepTitle} · ${String(index)} of ${String(total)}`,
     clearAnswer: 'Clear this answer',
     /** 비채점 6번째 옵션 그룹 하단 caption — 색·위치 외에 텍스트로도 성격을 전한다. */
     notScoredCaption: "This one isn't scored.",
-    /** 아직 응답하지 않은 문항이 남았을 때 CTA 아래에 나오는 사유. */
+    /** 아직 응답하지 않은 문항이 남았을 때 마지막 카드 CTA 위에 나오는 사유. */
     remaining: (count: number) =>
-      count === 1 ? '1 question left.' : `${String(count)} questions left.`,
+      `${String(count)} ${plural(count, 'question', 'questions')} left.`,
     submitFailedTitle: "We couldn't save the profile yet.",
     childLimit: 'This account already has a child profile.',
   },
 
   /**
-   * Step 5 instrument **Trial 대체값** — 가입 전에는 서버 요청이 0건이라(AC-2-27) 문항을
+   * 역량 문항 instrument **Trial 대체값** — 가입 전에는 서버 요청이 0건이라(AC-2-27) 문항을
    * 받아올 수 없다. 그래서 같은 문구를 기기에 두고 기본 instrument 를 조립한다
    * (`model/defaultInstrument.ts`).
    *
@@ -200,23 +204,28 @@ export const onboardingCopy = {
   },
 
   /**
-   * Step 2~4 질문 문구 — **문항 목록·순서는 여기에 없다.** instrument 가 정한다 (구조 제약 ②).
+   * 선택형 질문 문구 — **문항 목록·순서는 여기에 없다.** instrument 가 정한다 (구조 제약 ②).
    * 이 표는 id → 문구 매핑일 뿐이며, instrument 가 `prompt` 를 내려주면 그쪽이 우선한다.
    */
   questions: {
-    'temperament.story_comfort': {
+    'reading_together.story_comfort': {
       prompt: 'When you read to your child, which kinds of stories tend to go best?',
     },
-    'temperament.read_aloud_behavior': {
+    'reading_together.read_aloud_behavior': {
       prompt: 'During read-aloud, what does your child usually do?',
     },
-    'books.topic_tags': {
+    'books_and_interests.topic_tags': {
       prompt: 'What does your child tend to reach for in books?',
       description: 'Pick up to two.',
     },
-    'goals.growth_goals': {
+    /** 질문지 v1.1 Q5 원문 (`§11.11`). 책 제목은 instrument 선택지가 소유한다. */
+    'books_and_interests.owned_books': {
+      prompt: 'Which of these does your child already know well?',
+      description: "Tap any books you've read together more than a few times.",
+    },
+    'growing_together.growth_goals': {
       prompt: 'What would you like to grow together?',
-      // 최소·최대를 함께 말한다 (`S2-ONB-1`, §2.10 Step 4). Chip 그룹은 `role="group"` 이라
+      // 최소·최대를 함께 말한다 (`S2-ONB-1`). 복수 선택 그룹은 `role="group"` 이라
       // `aria-required` 를 쓸 수 없으므로 이 보조 문구가 필수성을 전달한다.
       description: 'Pick at least one, up to two.',
     },
@@ -227,27 +236,32 @@ export const onboardingCopy = {
    * instrument 옵션에 `label` 이 있으면 그쪽이 우선한다 (서버 주도 교체 경로).
    */
   choiceOptions: {
-    'temperament.story_comfort': {
+    'reading_together.story_comfort': {
       quiet_gentle: 'Quiet, gentle stories — bedtime-style, slow pace',
       some_adventure: 'A bit of adventure, but nothing too intense',
       wild_ride: 'They love a wild ride — big feelings, big action',
       depends_on_the_day: 'It really depends on the day or their mood',
     } satisfies Record<StoryComfort, string>,
-    'temperament.read_aloud_behavior': {
+    'reading_together.read_aloud_behavior': {
       sits_and_listens: 'Sits close and listens',
       points_and_touches: 'Wants to point, touch, turn pages',
       acts_it_out: "Acts things out, can't sit still",
       asks_questions: 'Asks lots of questions',
       moves_but_listens: 'Moves around but is clearly listening',
     } satisfies Record<ReadAloudBehavior, string>,
-    'books.topic_tags': {
+    'books_and_interests.topic_tags': {
       narrative: "Characters and stories — what happens, who's in it",
       inquiry: 'How things work, animals, the world around them',
       artistic: 'Colors, art, things that look beautiful or interesting',
       social: 'Books with other kids, families, friendships',
       not_sure_yet: "Honestly not sure yet — they're still figuring it out",
     } satisfies Record<TopicTag, string>,
-    'goals.growth_goals': {
+    /**
+     * Q5 는 라벨 표가 **비어 있다** — 선택지가 책 id 이고 제목은 instrument 의 `label` 로
+     * 내려온다 (`§11.11`: 8권 제목은 Mock fixture 소유, 화면·copy 하드코딩 금지).
+     */
+    'books_and_interests.owned_books': {},
+    'growing_together.growth_goals': {
       emotion_regulation: 'Helping with big feelings — when emotions feel overwhelming',
       self_directed_agency: 'Building their confidence and sense of “I can do it”',
       cognitive_flexibility: "Helping them adjust when things change or don't go their way",
@@ -255,35 +269,10 @@ export const onboardingCopy = {
     } satisfies Record<Capability, string>,
   } as const satisfies Record<ChoiceQuestionId, Record<string, string>>,
 
-  /** Step 1 enum 라벨 — 값은 contracts, 문구는 여기. */
-  genderOptions: {
-    girl: 'Girl',
-    boy: 'Boy',
-    prefer_not_to_say: 'Prefer not to say',
-  } as const satisfies Record<Gender, string>,
-
-  relationshipOptions: {
-    mother: 'Mother',
-    father: 'Father',
-    grandparent: 'Grandparent',
-    babysitter: 'Babysitter',
-    tutor: 'Tutor',
-    therapist: 'Therapist',
-    other: 'Other',
-  } as const satisfies Record<CaregiverRelationship, string>,
-
-  languageOptions: {
-    english: 'English',
-    spanish: 'Spanish',
-    chinese: 'Chinese',
-    korean: 'Korean',
-    vietnamese: 'Vietnamese',
-    tagalog: 'Tagalog',
-    arabic: 'Arabic',
-    french: 'French',
-    other: 'Another language',
-  } as const satisfies Record<LanguageEnvironment, string>,
-
+  /** enum 라벨 — 값은 contracts, 문구는 `shared/copy/child-copy`. */
+  genderOptions: childCopy.genderOptions,
+  relationshipOptions: childCopy.relationshipOptions,
+  languageOptions: childCopy.languageOptions,
   readingRoutineOptions: {
     daily: 'Just about every day',
     few_times_a_week: 'A few times a week',

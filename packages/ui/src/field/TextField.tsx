@@ -25,6 +25,12 @@ export interface TextFieldTrailingAction {
 export interface TextFieldProps {
   /** 항상 보이는 라벨. placeholder 로 대체하지 않는다 (§4.13). */
   label: string;
+  /**
+   * 라벨을 **시각적으로만** 숨긴다 — 접근성 이름은 그대로 `label` 이다.
+   * 바로 옆에 같은 말을 하는 제목이 이미 있어 라벨이 중복될 때만 쓴다
+   * (Stage 2 재구성 Design Spec §6.4 — `placeholder` 를 라벨 대신 쓰지 않기 위한 경로다).
+   */
+  labelHidden?: boolean;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -52,6 +58,7 @@ export interface TextFieldProps {
  */
 export function TextField({
   label,
+  labelHidden = false,
   value,
   onChange,
   placeholder,
@@ -86,7 +93,10 @@ export function TextField({
     >
       <div className="haru-text-field__row">
         <div className="haru-text-field__main">
-          <label className="haru-text-field__label" htmlFor={inputId}>
+          <label
+            className={cx('haru-text-field__label', labelHidden && 'haru-visually-hidden')}
+            htmlFor={inputId}
+          >
             {label}
             {required ? (
               <span className="haru-text-field__required" aria-hidden="true">

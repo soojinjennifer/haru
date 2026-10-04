@@ -13,19 +13,22 @@
 import {
   BASELINE_INSTRUMENT_CODE,
   BASELINE_ITEM_BLUEPRINT,
-  ONBOARDING_CHOICE_QUESTIONS,
+  buildOnboardingQuestions,
   ONBOARDING_INSTRUMENT_CODE,
   ONBOARDING_INSTRUMENT_VERSION,
   OnboardingInstrumentSchema,
   OnboardingStateSchema,
   OnboardingStepSchema,
   SURVEY_ANSWER_VALUES,
+  type ChoiceOption,
   type OnboardingDraftAnswers,
   type OnboardingInstrument,
   type OnboardingState,
   type OnboardingStep,
   type SurveyAnswerValue,
 } from '@haru/contracts';
+
+import { MOCK_BOOKS } from './books';
 
 /** Baseline v1 문항 문구 — 서버가 소유하는 값이다 (AC-2-24: 화면은 응답 값만 표시한다). */
 const BASELINE_PROMPTS: Record<string, string> = {
@@ -53,11 +56,43 @@ const SCALE_LABELS: Record<string, string> = {
 /** Mock instrument 문구 버전. */
 export const MOCK_BASELINE_VERSION = '1.0.0';
 
-export function createOnboardingInstrumentFixture(): OnboardingInstrument {
+/**
+ * 소개 화면 소요 시간 (`R-03`) — Figma `243:1147` "About 1 minutes"(오타) · `179:1748`
+ * "About 3 minutes". 화면은 이 값을 읽기만 한다 (`AC-2R-09`).
+ */
+export const MOCK_ONBOARDING_ESTIMATES = { profileMinutes: 1, surveyMinutes: 3 } as const;
+
+/**
+ * Q5 선택지 — **인벤토리 8권의 id + 제목**이다 (`§11.11`).
+ * 제목은 `label` 로 함께 내려가므로 contracts·화면·copy 모듈에 책 제목이 없다.
+ */
+export function createOwnedBookOptions(): readonly ChoiceOption[] {
+  return MOCK_BOOKS.map((book) => ({ code: book.id, label: book.title }));
+}
+
+export interface OnboardingInstrumentFixtureOptions {
+  /** Q5 선택지. 비우면 Q5 카드가 사라진다 (`owned-books-empty`). */
+  ownedBookOptions?: readonly ChoiceOption[];
+  /** `instrument-v2` — 문항 수가 다른 instrument 를 내려줄 때 쓴다. */
+  questionIds?: readonly string[];
+  version?: string;
+}
+
+export function createOnboardingInstrumentFixture(
+  options: OnboardingInstrumentFixtureOptions = {},
+): OnboardingInstrument {
+  const questions = buildOnboardingQuestions(
+    options.ownedBookOptions ?? createOwnedBookOptions(),
+  ).filter(
+    (question) =>
+      options.questionIds === undefined || options.questionIds.includes(question.questionId),
+  );
+
   return OnboardingInstrumentSchema.parse({
     code: ONBOARDING_INSTRUMENT_CODE,
-    version: ONBOARDING_INSTRUMENT_VERSION,
-    questions: ONBOARDING_CHOICE_QUESTIONS,
+    version: options.version ?? ONBOARDING_INSTRUMENT_VERSION,
+    questions,
+    estimates: MOCK_ONBOARDING_ESTIMATES,
     survey: {
       code: BASELINE_INSTRUMENT_CODE,
       version: MOCK_BASELINE_VERSION,
@@ -78,19 +113,27 @@ export function createOnboardingInstrumentFixture(): OnboardingInstrument {
  * `draft-resume` scenario 가 쓰는 **서버에 저장된** 중도 응답.
  * 가상 아이 이름만 담는다 — 실제 아동 데이터가 아니다.
  */
-export const MOCK_RESUME_STEP: OnboardingStep = 'books';
+export const MOCK_RESUME_STEP: OnboardingStep = 'books_and_interests';
 
 export function createResumeDraftAnswers(): OnboardingDraftAnswers {
   return {
-    child_info: {
-      firstName: 'Nova',
-      birthYearMonth: '2021-04',
-      gender: null,
-      languageEnvironment: ['english'],
-      readingRoutine: 'few_times_a_week',
-    },
-    // Step 2 는 필수 문항 2개(Q1 · Q4)를 모두 갖는다 (`S2-ONB-1`) — `completedSteps` 와 맞춘다.
-    temperament: { storyComfort: 'some_adventure', readAloudBehavior: 'asks_questions' },
+    child_info: createChildInfoDraftAnswers(),
+    // `reading_together` 는 필수 문항 2개(Q1 · Q4)를 모두 갖는다 (`S2-ONB-1`).
+    reading_together: { storyComfort: 'some_adventure', readAloudBehavior: 'asks_questions' },
+  };
+}
+
+/**
+ * `prefilled-child-info` — 가입 화면에서 받아 둔 아이 정보가 있는 상태 (`R-01` · `R-08`).
+ * 가상 데이터이며 실제 아동 데이터가 아니다.
+ */
+export function createChildInfoDraftAnswers(): NonNullable<OnboardingDraftAnswers['child_info']> {
+  return {
+    firstName: 'Nova',
+    birthYearMonth: '2021-04',
+    gender: null,
+    languageEnvironment: ['english'],
+    readingRoutine: 'few_times_a_week',
   };
 }
 
@@ -99,6 +142,8 @@ export interface OnboardingStateFixtureOptions {
   currentStep?: OnboardingStep;
   /** 서버에 저장된 단계 (진행바·"이어서 진행" 판정). */
   completedSteps?: readonly OnboardingStep[];
+  /** instrument 변형 (`owned-books-empty` · `instrument-v2`). */
+  instrument?: OnboardingInstrumentFixtureOptions;
 }
 
 export function createOnboardingStateFixture(
@@ -108,7 +153,7 @@ export function createOnboardingStateFixture(
   const completed = new Set(options.completedSteps ?? []);
 
   return OnboardingStateSchema.parse({
-    instrument: createOnboardingInstrumentFixture(),
+    instrument: createOnboardingInstrumentFixture(options.instrument),
     // 단계 목록은 contracts 가 소유한다 — fixture 가 목록을 다시 쓰지 않는다.
     steps: OnboardingStepSchema.options.map((step) => ({
       step,

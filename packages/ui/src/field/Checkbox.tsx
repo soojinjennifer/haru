@@ -19,6 +19,30 @@ export interface CheckboxProps {
 }
 
 /**
+ * 체크·부분선택 표시 — 색 외에 **형태**로도 상태를 전달한다 (§4 공통 규칙 7).
+ * `Checkbox` 와 `CheckboxGroup variant="card"` 가 같은 마크업을 공유한다 (중복 선언 방지).
+ */
+export function CheckboxMarks() {
+  return (
+    <>
+      <span className="haru-checkbox__mark" aria-hidden="true">
+        <svg viewBox="0 0 16 16" focusable="false">
+          <path
+            d="M3.2 8.4 6.5 11.7 12.8 5.2"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+      <span className="haru-checkbox__dash" aria-hidden="true" />
+    </>
+  );
+}
+
+/**
  * Checkbox — Design Spec §4.14.
  *
  * native `<input type="checkbox">` 를 그대로 쓰고 시각만 대체한다.
@@ -71,19 +95,7 @@ export function Checkbox({
               onChange(event.target.checked);
             }}
           />
-          <span className="haru-checkbox__mark" aria-hidden="true">
-            <svg viewBox="0 0 16 16" focusable="false">
-              <path
-                d="M3.2 8.4 6.5 11.7 12.8 5.2"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-          <span className="haru-checkbox__dash" aria-hidden="true" />
+          <CheckboxMarks />
         </span>
         <span className="haru-checkbox__text">
           <span className="haru-checkbox__label">{label}</span>

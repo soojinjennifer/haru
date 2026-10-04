@@ -24,6 +24,23 @@
   block-size: var(--progress-height-md);
 }
 
+/*
+ * 구간 분할 track (Stage 2 재구성 §3.3) — 구간 사이 간격으로 앱 배경이 비친다.
+ * 각 구간은 독립 track + fill 이며 `flex-grow` 가 비율을 표현한다 (단위 없는 비율이라
+ * spacing 토큰 대상이 아니다).
+ */
+.haru-progress__segments {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--space-0-5);
+  min-inline-size: 0;
+}
+
+.haru-progress__segments .haru-progress__track {
+  flex-basis: 0;
+}
+
 .haru-progress__fill {
   block-size: 100%;
   inline-size: var(--progress-fill-size, 0%);

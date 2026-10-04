@@ -91,12 +91,18 @@ describe('나이 범위 경계 (AC-2-22 · C-10)', () => {
 });
 
 describe('필수 · 선택 (결정 D-C · D-1 · C-7)', () => {
-  it('이름 · 생년월 · 언어 환경만 필수다', () => {
+  it('이름 · 생년월만 필수다', () => {
     expect(validateChildInfo(form({ firstName: '   ' }), NOW).errors.firstName).toBeDefined();
     expect(validateChildInfo(form({ birthYear: '' }), NOW).errors.birthYearMonth).toBeDefined();
-    expect(
-      validateChildInfo(form({ languageEnvironment: [] }), NOW).errors.languageEnvironment,
-    ).toBeDefined();
+  });
+
+  /** 사용자 결정 2026-10-04 — 언어는 선택이고 미선택의 기본값은 영어다. */
+  it('언어를 전부 해제해도 검증이 막지 않는다 (선택 항목)', () => {
+    const result = validateChildInfo(form({ languageEnvironment: [] }), NOW);
+
+    expect(Object.keys(result.errors)).toStrictEqual([]);
+    expect(result.answers).not.toBeNull();
+    expect(result.answers?.languageEnvironment).toStrictEqual([]);
   });
 
   it('`lastName` 은 비어 있어도 통과하고, 빈 값은 payload 에 키로도 남지 않는다 (D-1)', () => {
@@ -141,7 +147,49 @@ describe('중도 저장 payload (FR-03)', () => {
 
     expect(partial.firstName).toBe('No');
     expect('birthYearMonth' in partial).toBe(false);
-    expect(partial.languageEnvironment).toStrictEqual([]);
+  });
+
+  /**
+   * `QA-2R-009` 회귀 — 빈 언어 배열은 **키 자체가 없어야** 한다. 키가 있으면 언어 입력이 없는
+   * 가입 화면의 저장이 병합에서 Trial 의 선택을 지운다 (`saveChildDraft`).
+   */
+  it('언어를 고르지 않았으면 `languageEnvironment` 키를 넣지 않는다 (`QA-2R-009`)', () => {
+    const partial = partialChildInfoAnswers(form({ languageEnvironment: [] }));
+
+    expect('languageEnvironment' in partial).toBe(false);
+  });
+
+  it('언어를 골랐으면 그대로 담는다', () => {
+    const partial = partialChildInfoAnswers(form({ languageEnvironment: ['english', 'korean'] }));
+
+    expect(partial.languageEnvironment).toStrictEqual(['english', 'korean']);
+  });
+
+  /**
+   * `gender` 는 언어와 **다르게** 둔다: `null` 은 빈 값이 아니라 "미응답" 이라는 선택이고
+   * (C-7) 제출 판정도 `gender === undefined` 만 누락으로 본다. 성별을 다루는 화면은 저장값을
+   * 폼으로 되살리므로 병합에서 사라지지 않는다.
+   */
+  it('성별 미응답은 키를 유지한다 (`null` 이 의미 있는 값 — C-7)', () => {
+    const partial = partialChildInfoAnswers(form({ gender: null }));
+
+    expect('gender' in partial).toBe(true);
+    expect(partial.gender).toBeNull();
+  });
+
+  /**
+   * 사용자 결정 2026-10-04 — 아직 고른 적이 없으면(키 없음) 영어를 **미리 선택해 보여준다**.
+   * 사용자가 직접 해제한 상태(빈 배열)는 그대로 둔다.
+   */
+  it('언어 키가 없으면 영어가 기본 선택이고, 빈 배열은 해제 상태로 유지된다', () => {
+    expect(childInfoFormFrom({ firstName: 'Nova' }, undefined).languageEnvironment).toStrictEqual([
+      'english',
+    ]);
+    expect(
+      childInfoFormFrom({ firstName: 'Nova', languageEnvironment: [] }, undefined)
+        .languageEnvironment,
+    ).toStrictEqual([]);
+    expect(childInfoFormFrom(undefined, undefined).languageEnvironment).toStrictEqual(['english']);
   });
 
   it('저장된 응답에서 폼 초기값을 되만든다', () => {

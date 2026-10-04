@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
-import { BooksAnswersSchema } from './books.js';
+import { BooksAndInterestsAnswersSchema } from './books-and-interests.js';
 import { ChildInfoAnswersSchema } from './child-info.js';
-import { GoalsAnswersSchema } from './goals.js';
+import { GrowingTogetherAnswersSchema } from './growing-together.js';
 import { CapabilityItemsAnswersSchema } from './survey.js';
-import { TemperamentAnswersSchema } from './temperament.js';
+import { ReadingTogetherAnswersSchema } from './reading-together.js';
 
 /**
  * `PUT /v1/onboarding/steps/:step` 요청 — 단계 기준 discriminated union.
@@ -17,9 +17,18 @@ import { TemperamentAnswersSchema } from './temperament.js';
  */
 export const SaveOnboardingStepRequestSchema = z.discriminatedUnion('step', [
   z.object({ step: z.literal('child_info'), answers: ChildInfoAnswersSchema.partial() }),
-  z.object({ step: z.literal('temperament'), answers: TemperamentAnswersSchema.partial() }),
-  z.object({ step: z.literal('books'), answers: BooksAnswersSchema.partial() }),
-  z.object({ step: z.literal('goals'), answers: GoalsAnswersSchema.partial() }),
+  z.object({
+    step: z.literal('reading_together'),
+    answers: ReadingTogetherAnswersSchema.partial(),
+  }),
+  z.object({
+    step: z.literal('books_and_interests'),
+    answers: BooksAndInterestsAnswersSchema.partial(),
+  }),
+  z.object({
+    step: z.literal('growing_together'),
+    answers: GrowingTogetherAnswersSchema.partial(),
+  }),
   z.object({ step: z.literal('capability_items'), answers: CapabilityItemsAnswersSchema }),
 ]);
 

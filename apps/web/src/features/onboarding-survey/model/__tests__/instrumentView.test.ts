@@ -19,17 +19,17 @@ function questionOf(id: string): ChoiceQuestion {
 
 describe('문구 해석 순서 (구조 제약 ①)', () => {
   it('instrument 에 문구가 없으면 copy 모듈에서 가져온다', () => {
-    const resolved = resolveQuestion(questionOf('goals.growth_goals'));
+    const resolved = resolveQuestion(questionOf('growing_together.growth_goals'));
 
-    expect(resolved?.prompt).toBe(onboardingCopy.questions['goals.growth_goals'].prompt);
+    expect(resolved?.prompt).toBe(onboardingCopy.questions['growing_together.growth_goals'].prompt);
     expect(resolved?.options[0]?.label).toBe(
-      onboardingCopy.choiceOptions['goals.growth_goals'].emotion_regulation,
+      onboardingCopy.choiceOptions['growing_together.growth_goals'].emotion_regulation,
     );
   });
 
   it('instrument 가 문구를 내려주면 그것이 이긴다 (서버 주도 교체 경로)', () => {
     const resolved = resolveQuestion({
-      ...questionOf('goals.growth_goals'),
+      ...questionOf('growing_together.growth_goals'),
       prompt: 'Server-owned prompt',
       options: [
         { code: 'emotion_regulation', label: 'Server label' },
@@ -43,7 +43,7 @@ describe('문구 해석 순서 (구조 제약 ①)', () => {
 
   it('문구를 해석할 수 없는 선택지는 렌더하지 않는다 (사용자에게 코드를 보이지 않는다)', () => {
     const resolved = resolveQuestion({
-      ...questionOf('goals.growth_goals'),
+      ...questionOf('growing_together.growth_goals'),
       options: [{ code: 'emotion_regulation' }, { code: 'brand_new_code_without_label' }],
     });
 
@@ -52,7 +52,7 @@ describe('문구 해석 순서 (구조 제약 ①)', () => {
 
   it('선택지 문구를 모두 해석할 수 없으면 문항 자체를 그리지 않는다', () => {
     const resolved = resolveQuestion({
-      ...questionOf('goals.growth_goals'),
+      ...questionOf('growing_together.growth_goals'),
       options: [{ code: 'unknown_a' }, { code: 'unknown_b' }],
     });
 
@@ -62,11 +62,11 @@ describe('문구 해석 순서 (구조 제약 ①)', () => {
 
 describe('단계별 문항 (구조 제약 ②)', () => {
   it('`order` 순으로 돌려준다', () => {
-    const questions = questionsForStep(DEFAULT_ONBOARDING_INSTRUMENT, 'temperament');
+    const questions = questionsForStep(DEFAULT_ONBOARDING_INSTRUMENT, 'reading_together');
 
     expect(questions.map((question) => question.questionId)).toStrictEqual([
-      'temperament.story_comfort',
-      'temperament.read_aloud_behavior',
+      'reading_together.story_comfort',
+      'reading_together.read_aloud_behavior',
     ]);
   });
 
@@ -75,16 +75,16 @@ describe('단계별 문항 (구조 제약 ②)', () => {
       {
         ...DEFAULT_ONBOARDING_INSTRUMENT,
         questions: [
-          { ...questionOf('temperament.read_aloud_behavior'), order: 1 },
-          { ...questionOf('temperament.story_comfort'), order: 2 },
+          { ...questionOf('reading_together.read_aloud_behavior'), order: 1 },
+          { ...questionOf('reading_together.story_comfort'), order: 2 },
         ],
       },
-      'temperament',
+      'reading_together',
     );
 
     expect(questions.map((question) => question.questionId)).toStrictEqual([
-      'temperament.read_aloud_behavior',
-      'temperament.story_comfort',
+      'reading_together.read_aloud_behavior',
+      'reading_together.story_comfort',
     ]);
   });
 
@@ -99,10 +99,10 @@ describe('단계별 문항 (구조 제약 ②)', () => {
         ...DEFAULT_ONBOARDING_INSTRUMENT,
         questions: [
           ...ONBOARDING_CHOICE_QUESTIONS,
-          { ...questionOf('goals.growth_goals'), step: 'temperament', order: 9 },
+          { ...questionOf('growing_together.growth_goals'), step: 'reading_together', order: 9 },
         ],
       },
-      'temperament',
+      'reading_together',
     );
 
     expect(questions).toHaveLength(3);

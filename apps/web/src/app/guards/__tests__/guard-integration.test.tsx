@@ -52,7 +52,8 @@ describe('Guard 판정 — Mock me scenario 별 착지 경로', () => {
     ['me:consent-missing', ROUTES.auth.consent],
     ['me:vpc-pending', ROUTES.auth.verifyParent],
     ['me:vpc-failed', ROUTES.auth.verifyParent],
-    ['me:onboarding-incomplete', ROUTES.onboarding.intro],
+    // 로컬 draft 가 없으므로 프로필 안내로 간다 (`§11.19` 7-2).
+    ['me:onboarding-incomplete', ROUTES.onboarding.start],
   ])('%s → %s', async (scenario, expected) => {
     const { bundle, wrapper: Wrapper } = createHarness({
       scenarios: [scenario],

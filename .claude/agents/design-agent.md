@@ -23,7 +23,7 @@ model: opus
   - fileKey: `YWWu3AFEJpRxvw0T5klq0k`
   - Page `8:2` "Design Guide" — Foundations(Colors/Typography/HARU Material), HARU Components, iOS 26 Components
   - Page `16:2` "MVP_KeyScreen_V.2" — Home/Session/Library/Report 화면(section `31:204`), Signup & Baseline survey(section `179:1700`)
-- PRD v1.4 (`docs/source/HARU_PRD_v1.4.md`) = Functional Source of Truth
+- PRD v1.4 (`docs/source/HARU_PRD_v1.5.md`) = Functional Source of Truth
 - `docs/FIGMA_SCREEN_MAP.md`, `docs/COMPONENT_MAP.md`, `docs/DESIGN_SYSTEM.md`, `docs/DESIGN_TOKEN_MAP.md`, `docs/FRONTEND_IMPLEMENTATION_PLAN.md`
 - plan-agent가 작성한 Stage Plan (`docs/plans/stage-N-plan.md`)
 

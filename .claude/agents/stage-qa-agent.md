@@ -35,7 +35,7 @@ Bash는 검증 명령 실행(typecheck, lint, test, build, 로컬 dev 서버 기
 
 ## 2. 검증 기준
 
-1. 최신 PRD (`docs/source/HARU_PRD_v1.4.md`)
+1. 최신 PRD (`docs/source/HARU_PRD_v1.5.md`)
 2. 승인된 Stage Plan (`docs/plans/stage-N-plan.md`)의 In Scope 요구사항과 Acceptance Criteria
 3. 승인된 Design Spec (`docs/design/stage-N-design-spec.md`) 및 Figma
 4. `docs/ARCHITECTURE.md`, `docs/API_CONTRACTS.md`, `docs/FRONTEND_IMPLEMENTATION_PLAN.md`

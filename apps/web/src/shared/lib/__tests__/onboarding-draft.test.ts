@@ -26,8 +26,11 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const DRAFT: OnboardingDraft = {
   schemaVersion: ONBOARDING_DRAFT_SCHEMA_VERSION,
   instrument: { code: ONBOARDING_INSTRUMENT_CODE, version: ONBOARDING_INSTRUMENT_VERSION },
-  currentStep: 'books',
-  answers: { child_info: { firstName: 'Nova' }, goals: { growthGoals: ['emotion_regulation'] } },
+  currentStep: 'books_and_interests',
+  answers: {
+    child_info: { firstName: 'Nova' },
+    growing_together: { growthGoals: ['emotion_regulation'] },
+  },
   updatedAt: new Date(NOW).toISOString(),
 };
 
@@ -49,9 +52,11 @@ describe('저장 · 복원 (AC-2-20)', () => {
 
     const result = store.read();
     expect(result.discarded).toBeNull();
-    expect(result.draft?.currentStep).toBe('books');
+    expect(result.draft?.currentStep).toBe('books_and_interests');
     expect(result.draft?.answers.child_info?.firstName).toBe('Nova');
-    expect(result.draft?.answers.goals?.growthGoals).toStrictEqual(['emotion_regulation']);
+    expect(result.draft?.answers.growing_together?.growthGoals).toStrictEqual([
+      'emotion_regulation',
+    ]);
   });
 
   it('저장된 값이 없으면 draft 도 폐기 사유도 없다', () => {
@@ -112,7 +117,7 @@ describe('폐기 시점 ③④⑤ (AC-2-30)', () => {
     const { store } = makeStore({
       [ONBOARDING_DRAFT_STORAGE_KEY]: JSON.stringify({
         ...DRAFT,
-        answers: { goals: { growthGoals: ['not_a_capability'] } },
+        answers: { growing_together: { growthGoals: ['not_a_capability'] } },
       }),
     });
 

@@ -32,9 +32,17 @@ export const ROUTES = {
   },
 
   onboarding: {
-    /** 소개 화면 — `2-ONBOARDING`. */
+    /**
+     * 설문 소개 화면 (Figma `179:1748`) — 프로필 입력이 끝난 뒤 **카드 단계 앞**에 온다.
+     * 경로 문자열은 `/onboarding` 그대로 유지한다 (`ONBOARDING_STEP_SLUGS` 의 부모 경로다).
+     */
     intro: '/onboarding',
-    /** 위저드 — `2-ONBOARDING`. `:step` = `child-info` · `temperament` · `books` · `goals` · `capability-items`. */
+    /** 프로필 입력 소개 (Figma `243:1147`, `R-12`) — 동의 직후 첫 화면이다. */
+    start: '/onboarding/start',
+    /**
+     * 위저드 — `:step` = `child-info` · `reading-together` · `books-and-interests` ·
+     * `growing-together` · `capability-items`.
+     */
     step: '/onboarding/:step',
     saved: '/onboarding/saved',
   },
@@ -45,12 +53,15 @@ export const ROUTES = {
   notFound: '*',
 } as const;
 
-/** 온보딩 위저드 step slug — PLANNING §9.2 확정 (`2-ONBOARDING` 이 화면을 만든다). */
+/**
+ * 온보딩 위저드 step slug — 배열 **순서가 contracts `OnboardingStep` 순서와 같다**
+ * (`model/steps.ts` 가 index 로만 연결한다). 설문 재구성(2026-10-03)으로 3건이 rename 됐다.
+ */
 export const ONBOARDING_STEP_SLUGS = [
   'child-info',
-  'temperament',
-  'books',
-  'goals',
+  'reading-together',
+  'books-and-interests',
+  'growing-together',
   'capability-items',
 ] as const;
 

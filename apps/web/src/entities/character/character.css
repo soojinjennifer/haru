@@ -76,3 +76,22 @@
 .haru-survey-eyebrow {
   text-transform: uppercase;
 }
+
+/*
+ * SurveyQuestionCard — 재구성 Design Spec §3.5 (Figma `179:1783` · `179:1804`).
+ *
+ * 해제 버튼은 Figma 에서 카드 **패딩 영역에 겹쳐** 있다 (x292 y12, 38×38). counter 와 같은
+ * flex row 에 두면 행 높이가 16 → 38 이 되어 카드가 22px 높아지므로 흐름에서 빼낸다.
+ * DOM 순서는 counter 앞이지만 시각 위치는 우상단이며, 읽기 순서에 영향을 주지 않는다
+ * (카드 제목이 `aria-labelledby` 로 먼저 전달된다).
+ */
+.haru-survey-card {
+  position: relative;
+}
+
+.haru-survey-card__clear {
+  position: absolute;
+  /* Figma 12 / 15 → 스케일 흡수 (12). */
+  inset-block-start: var(--space-3);
+  inset-inline-end: var(--space-3);
+}

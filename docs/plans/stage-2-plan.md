@@ -2,7 +2,7 @@
 
 Status: APPROVED (2026-09-25, user)
 Based on:
-- PRD v1.4 — `docs/source/HARU_PRD_v1.4.md` (FR-01 · FR-02 · FR-03 · FR-04 · FR-05 · FR-06 · FR-24, §6.2 · §7.1 · §7.2 · §7.3 · §7.8 · §11 NFR 프라이버시·최소 수집·접근성·보안, §12.1)
+- PRD v1.4 — `docs/source/HARU_PRD_v1.5.md` (FR-01 · FR-02 · FR-03 · FR-04 · FR-05 · FR-06 · FR-24, §6.2 · §7.1 · §7.2 · §7.3 · §7.8 · §11 NFR 프라이버시·최소 수집·접근성·보안, §12.1)
 - Baseline Survey v1 — `docs/source/HARU_Developmental_Baseline_Survey_v1.docx.md` (Step 5 문항 원문 · 척도 · 비채점 응답)
 - Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` — page `16:2` MVP_KeyScreen_V.2 (`179:1700` Signup & Baseline survey, `26:21` Home 헤더), page `8:2` Design Guide (node 목록 §15.7)
 - Scope — `CLAUDE.md` Development Scope, `docs/source/prompts/01-stage0-1-1-frontend-scope.md`

@@ -13,6 +13,7 @@ import {
   ListGroup,
   ListRow,
   SelectTrigger,
+  Surface,
   SwipeDeck,
   Text,
   TextLink,
@@ -95,14 +96,22 @@ function SwipeDeckSection() {
     <Section
       id="s2-deck"
       title="24. SwipeDeck"
-      note="depth 3 · Pointer Events + transform (scroll-snap 미사용 — D-9). 버튼·키보드가 1급 경로"
+      note="depth 3 · Pointer Events + transform (scroll-snap 미사용 — D-9). 앞 카드 표면은 renderItem 소유 (S2-FIX-3)"
     >
       <Stage>
         <SwipeDeck
           items={cards}
           index={index}
           onIndexChange={setIndex}
-          renderItem={(card) => <Text variant="headline">{card}</Text>}
+          /*
+            앞 카드의 표면은 **`renderItem` 이 소유한다** (`S2-FIX-3`): `SwipeDeck` 은 뒤 카드만
+            면을 그리므로, 여기에서 감싸지 않으면 데모 카드가 배경 없이 보인다.
+          */
+          renderItem={(card) => (
+            <Surface fill="strong" radius="card" padding="6">
+              <Text variant="headline">{card}</Text>
+            </Surface>
+          )}
           label={copy.deckLabel}
           prevLabel={copy.deckPrev}
           nextLabel={copy.deckNext}

@@ -2,7 +2,7 @@
 
 Status: APPROVED (2026-09-18, user) — 승인 체크포인트 통과. §16 D-1~D-10 결과는 `docs/decisions/stage-1-approvals.md` §1 (D-1~D-10 전부 O 승인, §16.1 버전 표 포함). Stage 1-A 구현 후 추가 결정(S1A-1~S1A-4, 2026-09-19)도 같은 문서 §2 에 기록되어 있다.
 Based on:
-- PRD v1.4 — `docs/source/HARU_PRD_v1.4.md` (FR-25, §11 NFR 접근성·프라이버시·보안, §13 공통 상태)
+- PRD v1.4 — `docs/source/HARU_PRD_v1.5.md` (FR-25, §11 NFR 접근성·프라이버시·보안, §13 공통 상태)
 - Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` — page `8:2` Design Guide, page `16:2` MVP_KeyScreen_V.2 (node 목록은 §15)
 - Scope — `CLAUDE.md` Development Scope, `docs/source/prompts/01-stage0-1-1-frontend-scope.md`
 - 승인 문서 — `PLANNING.md` (APPROVED 2026-09-14, Rev 6) §5 Stage 1 · §9 · §10 · §11, `docs/decisions/stage-0-approvals.md` (§1 결정 · §3 D-01~D-04 · §4 P-01~P-16 · §6 L-01~L-07), `docs/ARCHITECTURE.md`, `docs/API_CONTRACTS.md`, `docs/DATA_MODEL.md`, `docs/DESIGN_SYSTEM.md`, `docs/DESIGN_TOKEN_MAP.md`, `docs/COMPONENT_MAP.md`, `docs/FIGMA_SCREEN_MAP.md`, `docs/FRONTEND_IMPLEMENTATION_PLAN.md` §1.0–§1.7

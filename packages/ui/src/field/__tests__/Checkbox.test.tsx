@@ -95,3 +95,86 @@ describe('CheckboxGroup', () => {
     expect(screen.getByRole('alert').textContent).toBe('Accept the required consents.');
   });
 });
+
+/**
+ * `variant="card"` — Stage 2 재구성 Design Spec §3.6 · §8.1 (`C-13 ①` 승인).
+ * Q2 · Q3 · Q5 세 문항이 이 하나의 variant 를 공유한다.
+ */
+describe('CheckboxGroup (variant=card)', () => {
+  const options = [
+    { value: 'narrative', label: 'Characters and stories' },
+    { value: 'inquiry', label: 'How things work' },
+    { value: 'not_sure_yet', label: 'Not sure yet', exclusive: true },
+  ] as const;
+
+  function renderCard(values: readonly string[] = [], onToggle = () => {}) {
+    return render(
+      <CheckboxGroup
+        legend="What does your child reach for?"
+        variant="card"
+        options={options}
+        values={values}
+        onToggle={onToggle}
+      />,
+    );
+  }
+
+  it('renders one native checkbox per option inside a named group', () => {
+    renderCard();
+
+    expect(screen.getByRole('group', { name: 'What does your child reach for?' })).toBeTruthy();
+    expect(screen.getAllByRole('checkbox')).toHaveLength(options.length);
+  });
+
+  it('reports the toggled value and reflects selection', () => {
+    const onToggle = vi.fn();
+    renderCard(['inquiry'], onToggle);
+
+    expect(screen.getByRole('checkbox', { name: 'How things work' })).toHaveProperty(
+      'checked',
+      true,
+    );
+
+    fireEvent.click(screen.getByText('Characters and stories'));
+    expect(onToggle).toHaveBeenCalledWith('narrative');
+  });
+
+  it('renders exclusive options last with the separator modifier (§3.7)', () => {
+    renderCard();
+
+    const rows = document.querySelectorAll('.haru-checkbox-group__option');
+    const last = rows[rows.length - 1];
+
+    expect(rows).toHaveLength(options.length);
+    expect(last?.textContent).toBe('Not sure yet');
+    expect(last?.classList.contains('haru-checkbox-group__option--separated')).toBe(true);
+    // 배타가 아닌 행에는 구분선이 붙지 않는다.
+    expect(rows[0]?.classList.contains('haru-checkbox-group__option--separated')).toBe(false);
+  });
+
+  it('does not put `aria-required` on the group — `role="group"` 에서 무효다 (§15)', () => {
+    render(
+      <CheckboxGroup
+        legend="Pick some"
+        variant="card"
+        required
+        options={options}
+        values={[]}
+        onToggle={() => {}}
+      />,
+    );
+
+    expect(document.querySelectorAll('[aria-required]')).toHaveLength(0);
+  });
+
+  it('keeps the children API for the consent group (variant=plain)', () => {
+    render(
+      <CheckboxGroup legend="Consents">
+        <Checkbox checked={false} onChange={() => {}} label="Terms of Service" />
+      </CheckboxGroup>,
+    );
+
+    expect(screen.getByRole('checkbox', { name: 'Terms of Service' })).toBeTruthy();
+    expect(document.querySelectorAll('.haru-checkbox-group__option')).toHaveLength(0);
+  });
+});

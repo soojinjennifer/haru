@@ -2,7 +2,7 @@
 
 Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (Rev 6: #33 · C-19 반영)
 Decision log: `docs/decisions/stage-0-approvals.md` — 이 문서와 다르면 결정 기록이 우선한다.
-Based on: PRD v1.4 (`docs/source/HARU_PRD_v1.4.md`), Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` (node 확인: design-agent `docs/FIGMA_SCREEN_MAP.md` · `docs/COMPONENT_MAP.md` · `docs/DESIGN_SYSTEM.md` · `docs/DESIGN_TOKEN_MAP.md` · `docs/FRONTEND_IMPLEMENTATION_PLAN.md`, DRAFT 2026-09-14), `CLAUDE.md` Development Scope 및 `.claude/rules/*.md` (Frontend-only 개정, 2026-09-14), `docs/source/prompts/01-stage0-1-1-frontend-scope.md` (사용자 지시 원문), `docs/ARCHITECTURE.md` · `docs/DATA_MODEL.md` · `docs/API_CONTRACTS.md` (DRAFT Rev 5, 2026-09-14), `docs/decisions/stage-0-technical-research.md`
+Based on: PRD v1.4 (`docs/source/HARU_PRD_v1.5.md`), Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` (node 확인: design-agent `docs/FIGMA_SCREEN_MAP.md` · `docs/COMPONENT_MAP.md` · `docs/DESIGN_SYSTEM.md` · `docs/DESIGN_TOKEN_MAP.md` · `docs/FRONTEND_IMPLEMENTATION_PLAN.md`, DRAFT 2026-09-14), `CLAUDE.md` Development Scope 및 `.claude/rules/*.md` (Frontend-only 개정, 2026-09-14), `docs/source/prompts/01-stage0-1-1-frontend-scope.md` (사용자 지시 원문), `docs/ARCHITECTURE.md` · `docs/DATA_MODEL.md` · `docs/API_CONTRACTS.md` (DRAFT Rev 5, 2026-09-14), `docs/decisions/stage-0-technical-research.md`
 Author: plan-agent (2026-09-14)
 
 라벨: `CONFIRMED` / `RECOMMENDED` / `NEEDS DECISION` (ARCHITECTURE.md 머리말 참조)
@@ -94,7 +94,7 @@ Stage 1 구현은 사용자의 명시적 승인 전까지 시작하지 않는다
 | FR-18 | 하이라이트 오디오 클립 자동 추출 | P0 | **5 (계약) → 7** | S5: 계약·fixture만. S7: 클립 재생·만료 표시 (Mock signed URL) | 클립 추출·저장·만료 (AP, DR) — PENDING |
 | FR-19 | 보상 — **출석체크 스티커** 지급 | P0 | **4** | 완료 시 출석 스티커 표시 (Mock `stickerAward`), 재진입 시 중복 표시 없음 | 멱등 지급·저장 (AC, DR) |
 | FR-20 | 서재 (증정·보유, 직접 등록, 읽은 책 히스토리, 책별 Prompt) | P1 | **3** | 목록·필터·책 상세 시트·책별 Prompt·히스토리(Mock) | 라이브러리·히스토리 조회 (AC, DR) |
-| FR-21 | 세션별 녹음 삭제·전체 삭제 요청 | P0 | **4 (로컬 기반) → 8** | S4: LocalRecordingStore 삭제 API (세션 녹음 삭제·로그아웃 정리용). S8: 데이터 관리 UI (보관 정책 안내·세션별 삭제·전체 삭제 요청·진행 상태), 로그아웃/삭제 시 로컬·캐시 정리 — **Stage 8 CONFIRMED (사용자 결정 2026-09-14, C-15)**. 동의 철회 대신 탈퇴·전체 삭제 요청만 제공 (C-4) | Storage 객체 삭제·cascade·audit·삭제 SLA (DR, BH, EC) — PENDING |
+| FR-21 | 세션별 녹음 삭제·전체 삭제 요청 | P0 | **4 (로컬 기반) → 8** | S4: LocalRecordingStore 삭제 API (세션 녹음 삭제·로그아웃 정리용). S8: 데이터 관리 UI (보관 정책 안내·세션별 삭제·전체 삭제 요청·진행 상태), 로그아웃/삭제 시 로컬·캐시 정리 — **Stage 8 CONFIRMED (사용자 결정 2026-09-14, C-15)**. **미가입 기기에 남은 아이 정보 draft 삭제 경로 포함 (`QA-2R-004` — 미가입 사용자는 로그아웃 경로가 없어 현재 삭제 UI 가 0건)**. 동의 철회 대신 탈퇴·전체 삭제 요청만 제공 (C-4) | Storage 객체 삭제·cascade·audit·삭제 SLA (DR, BH, EC) — PENDING |
 | FR-22 | 초기 20권 라이브러리·증정 신청·구매 링크 | P0 | **3** | 큐레이션 목록·증정 신청·배송 상태·구매 링크 UX | 카탈로그 운영, 신청·배송 처리, 배송지 저장 위치(NEEDS DECISION) (DR, BH) |
 | FR-23 | 보유 책 직접 입력·자유 선택 세션 | P0 | **3 (+4)** | S3: 등록 폼 (검색 결과 없음 → 제목 입력). S4: 해당 책으로 세션 시작 | 책 저장, DB 외 책 범용 Prompt (DR) |
 | FR-24 | Trial 시작 후 가입 전환 | P1 | **2** | Trial = 기기 로컬 draft만 (가입 전 온보딩 응답) → 프로필 저장 시 가입 → 동의(C-2) → `POST /v1/onboarding/submit`. 다른 기기 이어하기·익명 계정 없음 — CONFIRMED (사용자 결정 2026-09-14, C-12) | 없음 (익명 계정 방식 미채택, C-12). 제출 시 동의 확인만 (AR) |
@@ -280,10 +280,11 @@ FR ID가 없는 화면 요구사항:
 - **Goal**: Frontend 전체 회귀·접근성·반응형 검증, 이월 기능 구현, Mock 데모 웹 프리뷰 배포, 누적 PENDING 항목의 Handoff 문서화, 그리고 **STOP**.
 - **In Scope** (CONFIRMED (사용자 결정 2026-09-14, C-15 · C-18)): FR-25(전체 반응형 QA), 모든 NFR의 Frontend 부분 회귀·접근성 감사, Mock 시나리오 전체 회귀, 이월 기능, Mock 웹 프리뷰 배포, Backend Handoff Package.
 - **이월 기능 (C-15)**: 필수 = FR-21 데이터 관리 UI (P0 — 보관 정책 안내·세션별 녹음 삭제·전체 삭제 요청), 탈퇴(§7.8). 동의 이력 보기 = 선택 기능 (C-19, 미구현 시 QA FAIL 아님 — 시간 여유 시 읽기 전용 목록, PRD 화면 요구 없음). 설정 목록에 추가 (C-16). **동의 철회 = MVP 제외** (C-4, 법무 L-03).
+- **이월 기능 추가분 (`QA-2R-004`)**: **미가입 기기에 남은 아이 정보 삭제 경로 필요.** `R-01`(2026-10-03)로 가입 화면에서 받은 이름·생년월·성별이 `OnboardingDraftStore`(로컬)에 저장되는데, 가입을 완료하지 않고 이탈한 사용자는 **로그아웃 경로가 없어 이 값을 지울 UI 가 0건**이다 (인증 사용자는 `useSignOut` 이 정리한다). 데이터 관리 UI 범위에 "이 기기에 저장된 입력 지우기" 를 포함한다. 근거: `docs/qa/stage-2-rework-qa-report.md` `QA-2R-004` · `docs/qa/stage-2-rework-handoff.md` 부록 A-6-3 · `rules/architecture.md` §9.
 - **웹 프리뷰 (C-18)**: Mock 모드 웹 빌드를 정적 호스팅에 배포 (시연·Backend Developer 인계용, 실제 아동 데이터 없음). 호스팅 서비스는 Stage 8 Plan에서 확인. 앱 테스트 빌드(TestFlight·Play)·Backend 배포 제외.
 - **Deliverables**
   - [FE] WCAG AA 감사 수정 (D-01 수용 범위 제외, 남은 가값 목록 기록), 반응형 QA(320/393/600/1024 + 텍스트 200% + reduced-motion), Mock 시나리오 포함 전체 회귀.
-  - [FE · 이월 기능, C-15] 데이터 관리(보관 정책 안내·세션별 녹음 삭제·전체 삭제 요청·진행 상태), 탈퇴, 로그아웃/삭제 시 로컬 녹음·캐시 정리. (동의 이력 보기 읽기 전용 목록은 Deliverable 아님 — 선택 기능 (C-19, 미구현 시 QA FAIL 아님))
+  - [FE · 이월 기능, C-15] 데이터 관리(보관 정책 안내·세션별 녹음 삭제·전체 삭제 요청·진행 상태), 탈퇴, 로그아웃/삭제 시 로컬 녹음·캐시 정리. **미가입 기기의 로컬 아이 정보 draft 삭제 경로 포함 (`QA-2R-004`)**. (동의 이력 보기 읽기 전용 목록은 Deliverable 아님 — 선택 기능 (C-19, 미구현 시 QA FAIL 아님))
   - [FE · 배포, C-18] Mock 모드 웹 프리뷰 정적 배포 (Secret·실데이터 없음 확인).
   - **Handoff Package 7종**: `docs/BACKEND_HANDOFF.md`, `docs/API_CONTRACTS.md`(최종), `docs/DATA_REQUIREMENTS.md`(DATA_MODEL 초안 정리), `docs/AUTH_REQUIREMENTS.md`, `docs/RECORDING_UPLOAD_SPEC.md`, `docs/ANALYSIS_PIPELINE_REQUIREMENTS.md`, `docs/ERROR_CODES.md` + **`packages/contracts` 최종 검증**(typecheck·test·문서 일치). 작성 분담은 **rules/workflow.md §5**: plan-agent가 Stage 8 Plan 작성 시 6종(BACKEND_HANDOFF, DATA_REQUIREMENTS, AUTH_REQUIREMENTS, RECORDING_UPLOAD_SPEC, ANALYSIS_PIPELINE_REQUIREMENTS, ERROR_CODES) 초안 작성 → development-agent 완성 + API_CONTRACTS 구현 계약 동기화 → stage-qa-agent 검증.
 - **Mock scenarios**: `success`, `loading`, `empty`, `error`, `retry` + `deletion-processing`, `deletion-already-requested`, `recording-deleted` + Stage 1–7 시나리오 회귀. (`consent-revoked` 는 C-4로 제거됨.)

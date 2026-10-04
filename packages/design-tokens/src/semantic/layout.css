@@ -23,6 +23,17 @@
   --layout-safe-right: env(safe-area-inset-right, 0px);
 
   /*
+   * 화면 **하단 인셋** — 마지막 블록(CTA 등) bottom 에서 화면 bottom 까지의 거리.
+   * Figma 실측 44 (`179:1746` · `179:1814` · `179:1844` · `243:1167`/`179:1768` · `248:1159`
+   * 5프레임 일치, 승인 `D-25` / `stage-3-approvals.md` §11.2 · §11.3-1).
+   *
+   * 홈 인디케이터를 **포함하는** 값이므로 safe-area 와 더하지 않고 `max()` 로 쓴다
+   * (`AppColumn --bottom-gap`). `--space-*` 스케일에 44 가 없고(32 · 40),
+   * `--size-touch-min`(44)은 터치 타깃 의미라 레이아웃 인셋으로 전용하지 않는다.
+   */
+  --layout-cta-bottom-gap: calc(var(--spacing) * 11);
+
+  /*
    * Breakpoint 원천값. Tailwind 는 `@media` 조건을 빌드 시점에 해석하므로
    * theme.css 의 `--breakpoint-md/lg` 는 `var()` 가 아니라 같은 리터럴을 갖는다.
    */

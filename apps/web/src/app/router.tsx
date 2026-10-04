@@ -15,7 +15,12 @@ import { authCopy } from '../features/auth';
 import { consentCopy } from '../features/consent';
 import { HomePage, HomeTopBar } from '../pages/home';
 import { NotFoundPage } from '../pages/not-found/NotFoundPage';
-import { OnboardingIntroPage, OnboardingSavedPage, OnboardingStepPage } from '../pages/onboarding';
+import {
+  OnboardingIntroPage,
+  OnboardingSavedPage,
+  OnboardingStartPage,
+  OnboardingStepPage,
+} from '../pages/onboarding';
 import { SettingsPage, SettingsTopBar } from '../pages/settings';
 import { ROUTES } from '../shared/config/routes';
 
@@ -45,7 +50,8 @@ const DevOverlay = import.meta.env.DEV ? lazy(() => import('../dev/DevOverlay'))
  * | `/auth/reset-password`   | 〃              | 메일 링크 진입 (leading 없음) |
  * | `/auth/consent`          | 〃              | TopBar centered · **leading 없음**(뒤로 갈 수 없는 필수 단계) |
  * | `/auth/verify-parent`    | 〃              | 〃 (VPC 슬롯) |
- * | `/onboarding`            | StackLayout     | 소개 — TopBar 없음 (Trial 허용) |
+ * | `/onboarding`            | StackLayout     | 설문 소개 — TopBar 없음 (Trial 허용) |
+ * | `/onboarding/start`      | StackLayout     | 프로필 입력 소개 (`243:1147`) — TopBar 없음 |
  * | `/onboarding/:step`      | StackLayout     | 위저드 — **TopBar 는 feature 가 렌더**(단계·문항마다 내용이 다르다) |
  * | `/onboarding/saved`      | StackLayout     | 제출 완료 — TopBar 없음 |
  * | `/`                      | StackLayout     | Home skeleton — `HomeTopBar`(워드마크 `26:39` + 설정 `26:44`) |
@@ -187,7 +193,15 @@ export function AppRoutes() {
             </RouteGuard>
           }
         />
-        {/* `saved` 가 `:step` 보다 먼저 와야 slug 로 잡히지 않는다. */}
+        {/* `start` · `saved` 가 `:step` 보다 먼저 와야 slug 로 잡히지 않는다. */}
+        <Route
+          path={ROUTES.onboarding.start}
+          element={
+            <RouteGuard>
+              <OnboardingStartPage />
+            </RouteGuard>
+          }
+        />
         <Route
           path={ROUTES.onboarding.saved}
           element={

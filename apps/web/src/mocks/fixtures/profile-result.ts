@@ -57,6 +57,7 @@ function childFrom(info: ChildInfoAnswers, id: string, createdAt: string) {
     ...(info.readingRoutine === undefined ? {} : { readingRoutine: info.readingRoutine }),
     topicTags: [],
     growthGoals: [],
+    ownedBooks: [],
     createdAt,
   };
 }
@@ -69,8 +70,9 @@ export function createProfileResultFixture(options: ProfileResultFixtureOptions)
 
   const child = {
     ...childFrom(answers.child_info, idFactory.next(), createdAt),
-    topicTags: answers.books.topicTags,
-    growthGoals: answers.goals.growthGoals,
+    topicTags: answers.books_and_interests.topicTags,
+    growthGoals: answers.growing_together.growthGoals,
+    ownedBooks: answers.books_and_interests.ownedBooks,
   };
 
   const persona = options.fallbackPersona === true ? FALLBACK_PERSONA : PERSONA;

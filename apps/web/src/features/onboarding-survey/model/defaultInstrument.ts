@@ -18,7 +18,7 @@
 import {
   BASELINE_INSTRUMENT_CODE,
   BASELINE_ITEM_BLUEPRINT,
-  ONBOARDING_CHOICE_QUESTIONS,
+  buildOnboardingQuestions,
   ONBOARDING_INSTRUMENT_CODE,
   ONBOARDING_INSTRUMENT_VERSION,
   OnboardingInstrumentSchema,
@@ -31,13 +31,26 @@ import { onboardingCopy } from '../copy';
 /** Baseline instrument 문구 버전. contracts 구조 버전과 별개로 움직인다. */
 export const DEFAULT_BASELINE_VERSION = '1.0.0';
 
+/**
+ * Trial 구간 소요 시간 안내값 (`R-03`). 서버 instrument 가 있으면 그 값이 이긴다.
+ * Figma `243:1147` "About 1 minutes"(오타) · `179:1748` "About 3 minutes" 실측.
+ */
+export const DEFAULT_ONBOARDING_ESTIMATES = { profileMinutes: 1, surveyMinutes: 3 } as const;
+
 function buildDefaultInstrument(): OnboardingInstrument {
   const fallback = onboardingCopy.baselineFallback;
 
   return OnboardingInstrumentSchema.parse({
     code: ONBOARDING_INSTRUMENT_CODE,
     version: ONBOARDING_INSTRUMENT_VERSION,
-    questions: ONBOARDING_CHOICE_QUESTIONS,
+    /**
+     * Q5(`books_and_interests.owned_books`)는 선택지가 **책 카탈로그**이고 Trial 구간에는
+     * 서버 요청이 0건이라(AC-2-27) 카탈로그를 받아올 수 없다. 그래서 가입 전에는 Q5 카드가
+     * 없고, 카드 수는 파생값이라 자동으로 하나 줄어든다 (`§11.11` · Design Spec §10-3).
+     * 가입·동의 이후 `GET /v1/onboarding` 이 카탈로그를 포함한 instrument 를 내려준다.
+     */
+    questions: buildOnboardingQuestions(),
+    estimates: DEFAULT_ONBOARDING_ESTIMATES,
     survey: {
       code: BASELINE_INSTRUMENT_CODE,
       version: DEFAULT_BASELINE_VERSION,

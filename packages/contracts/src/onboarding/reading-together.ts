@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * 온보딩 Step 2 — 읽기 상황에서 관찰되는 성향.
+ * 온보딩 `reading_together` 단계 — 읽기 상황에서 관찰되는 성향 (Q1 · Q4).
  *
  * 근거 (**결정 D-A**): `docs/source/HARU_Onboarding_Questionnaire_v1-1.docx.md`
  * "The Questionnaire" **Q1**(자극 편안 범위) · **Q4**(읽어 주는 동안의 모습).
@@ -70,9 +70,9 @@ export const ReadAloudBehaviorSchema = z.enum(READ_ALOUD_BEHAVIOR_CODES);
 
 export type ReadAloudBehavior = z.infer<typeof ReadAloudBehaviorSchema>;
 
-export const TemperamentAnswersSchema = z.object({
+export const ReadingTogetherAnswersSchema = z.object({
   storyComfort: StoryComfortSchema.optional(),
   readAloudBehavior: ReadAloudBehaviorSchema.optional(),
 });
 
-export type TemperamentAnswers = z.infer<typeof TemperamentAnswersSchema>;
+export type ReadingTogetherAnswers = z.infer<typeof ReadingTogetherAnswersSchema>;

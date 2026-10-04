@@ -1,17 +1,27 @@
 /**
- * Stage 2-ONBOARDING e2e — Trial 진입 · 제스처 없는 설문 완주 · 서버 요청 0건.
- * AC-2-19 · AC-2-25 · AC-2-27 + 결정 **D-9**(제스처는 부가 기능) ·
- * **`S2-ONB-1`**(Q1 · Q4 · Q2 필수, Q3 선택 — approvals §9.1).
+ * 온보딩 e2e — 재구성(2026-10-03) 기준. Trial 진입 · 제스처 없는 완주 · 서버 요청 0건 ·
+ * 자동 전진과 복귀 경로.
  *
- * 여기에서만 확인할 수 있는 것: **실제 브라우저의 포커스·키 입력**. jsdom 단위 테스트는
- * 클릭 이벤트까지만 증명한다.
+ * `AC-2R-01`~`AC-2R-09` + `AC-2-25`(키보드 전체 도달) · `AC-2-27`(Trial 요청 0건) +
+ * 결정 **D-9**(제스처는 부가 기능) · `S2-ONB-1`(Q1 · Q4 · Q2 필수, Q3 · Q5 선택).
+ *
+ * 여기에서만 확인할 수 있는 것: **실제 브라우저의 포커스·키 입력·포인터 캡처**.
+ * jsdom 단위 테스트는 합성 이벤트까지만 증명한다.
  */
 import { expect, test, type Page } from '@playwright/test';
 
 import { gotoApp } from './support/gallery';
+import {
+  answerAllCards,
+  cardCounterIndex,
+  DECK_LABEL,
+  expectCardIndex,
+  fillChildInfo,
+} from './support/onboarding';
 
+const FIRST_CARD_PATH = '/onboarding/reading-together';
 const SURVEY_PATH = '/onboarding/capability-items';
-const TOTAL_ITEMS = 10;
+const BASELINE_ITEMS = 10;
 
 /** 서버로 나간 API 요청을 세어 둔다 (Trial 구간은 0건이어야 한다). */
 function trackApiRequests(page: Page): string[] {
@@ -25,98 +35,178 @@ function trackApiRequests(page: Page): string[] {
   return calls;
 }
 
-test.describe('Trial 진입 (AC-2-19 · AC-2-27)', () => {
-  test('소개 화면에서 Step 1 로 들어가고 서버 요청이 0건이다', async ({ page }) => {
+/**
+ * 카드 안쪽 통산 카운터 locator. **분모를 테스트에 적지 않는다** — Trial 15 / 인증+동의 16 으로
+ * 구간에 따라 다르다 (`§11.19` 7-1).
+ */
+function counter(page: Page, index: number) {
+  return page
+    .locator('.haru-swipe-deck__card--front')
+    .getByText(new RegExp(`^${String(index)} / \\d+$`));
+}
+
+test.describe('흐름 (`AC-2R-01` · `AC-2R-11` · `AC-2-27`)', () => {
+  test('소개 2화면을 지나 카드 단계로 들어가고 서버 요청이 0건이다', async ({ page }) => {
     const calls = trackApiRequests(page);
 
-    await gotoApp(page, '/onboarding');
-    await page.getByRole('button', { name: 'Start' }).click();
-
+    await gotoApp(page, '/onboarding/start');
+    await page.getByRole('button', { name: 'Start the questions' }).click();
     await expect(page).toHaveURL(/\/onboarding\/child-info$/);
-    await expect(page.getByText('Step 1 of 5')).toBeVisible();
-    // 가입 전에는 이 기기를 떠나지 않는다는 안내가 보인다 (C13-11).
+
+    // 가입 전에는 이 기기를 떠나지 않는다는 안내가 보인다 (C13-11 · `R-07`).
     await expect(page.getByText('Your answers stay on this device')).toBeVisible();
+
+    await fillChildInfo(page);
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page).toHaveURL(/\/onboarding$/);
+
+    await page.getByRole('button', { name: /^(Start|Pick up where you left off)$/ }).click();
+    await expect(page).toHaveURL(new RegExp(`${FIRST_CARD_PATH}$`));
 
     expect(calls).toEqual([]);
   });
 
-  test('Step 2 필수 문항을 비운 채로는 넘어가지 못한다 (`S2-ONB-1`)', async ({ page }) => {
-    await gotoApp(page, '/onboarding/temperament');
+  test('네 카드 단계가 모두 열리고 제목이 바뀐다', async ({ page }) => {
+    const steps = [
+      ['/onboarding/reading-together', 'Reading together'],
+      ['/onboarding/books-and-interests', 'Books and interests'],
+      ['/onboarding/growing-together', 'Growing together'],
+      ['/onboarding/capability-items', 'Capability'],
+    ] as const;
 
-    const next = page.getByRole('button', { name: 'Next' });
-
-    // native `disabled` 가 아니라 `aria-disabled` 다 — 포커스가 가능해야 이유가 읽힌다 (§2.6).
-    await expect(next).toHaveAttribute('aria-disabled', 'true');
-    await expect(next).toHaveAttribute('aria-describedby', /.+/);
-    // 계수형 문구 — 이 단계는 필수 2건이다 (§2.9).
-    await expect(page.getByText('Answer the 2 questions above to continue.')).toBeVisible();
-
-    await next.focus();
-    await expect(next).toBeFocused();
-
-    // `force` 로 실제 클릭을 강제해도 진행되지 않는다 (핸들러가 막는다).
-    await next.click({ force: true });
-    await expect(page).toHaveURL(/\/onboarding\/temperament$/);
-  });
-
-  test('회피 선택지를 고르면 진행된다 — 없는 답을 강요하지 않는다', async ({ page }) => {
-    await gotoApp(page, '/onboarding/temperament');
-
-    await page.getByRole('radio', { name: 'It really depends on the day or their mood' }).click();
-    await page.getByRole('radio', { name: 'Sits close and listens' }).click();
-
-    const next = page.getByRole('button', { name: 'Next' });
-    await expect(next).not.toHaveAttribute('aria-disabled', 'true');
-
-    await next.click();
-    await expect(page).toHaveURL(/\/onboarding\/books$/);
-  });
-
-  test('Step 3(Q3)은 선택이라 응답 없이 넘어간다', async ({ page }) => {
-    await gotoApp(page, '/onboarding/books');
-
-    await page.getByRole('button', { name: 'Next' }).click();
-    await expect(page).toHaveURL(/\/onboarding\/goals$/);
-  });
-
-  test('Step 4 는 성장 목표를 최소 1개 골라야 넘어간다 (`S2-ONB-1`)', async ({ page }) => {
-    await gotoApp(page, '/onboarding/goals');
-
-    const next = page.getByRole('button', { name: 'Next' });
-    await expect(next).toHaveAttribute('aria-disabled', 'true');
-    await next.click({ force: true });
-    await expect(page).toHaveURL(/\/onboarding\/goals$/);
-
-    await page
-      .getByRole('button', { name: 'Helping with big feelings — when emotions feel overwhelming' })
-      .click();
-    await expect(next).not.toHaveAttribute('aria-disabled', 'true');
-    await next.click();
-    await expect(page).toHaveURL(/\/onboarding\/capability-items$/);
+    for (const [path, title] of steps) {
+      await gotoApp(page, path);
+      await expect(page.getByRole('group', { name: DECK_LABEL })).toBeVisible();
+      /*
+        `banner` landmark 로 찾지 않는다 — 온보딩 TopBar 는 `<main>` **안**에 있어 HTML-AAM
+        상 `banner` role 이 없다 (`QA-2R-008`, 선행 구조). 제목은 `<h1>` 으로 남아 있다.
+      */
+      await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
+    }
   });
 });
 
-test.describe('Step 5 — 제스처 없이 완주한다 (AC-2-25 · D-9 · WCAG 2.5.1)', () => {
+test.describe('카드 단계 — 한 카드 = 한 문항 (`AC-2R-02`)', () => {
+  test('한 번에 문항 하나만 보이고 하단 CTA 가 없다', async ({ page }) => {
+    await gotoApp(page, FIRST_CARD_PATH);
+
+    await expect(page.getByRole('group', { name: DECK_LABEL })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2 })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'Next', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Save profile' })).toHaveCount(0);
+  });
+
+  test('필수 미응답이면 전진 어포던스가 `aria-disabled` 이고 사유가 카드 안에 있다', async ({
+    page,
+  }) => {
+    await gotoApp(page, FIRST_CARD_PATH);
+
+    const nextCard = page.getByRole('button', { name: 'Next question' });
+    await expect(nextCard).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.getByText('Answer this one to move on.')).toBeVisible();
+
+    // `force` 로 실제 클릭을 강제해도 진행되지 않는다 (핸들러가 막는다).
+    await nextCard.click({ force: true });
+    await expect(counter(page, 1)).toBeVisible();
+  });
+
+  test('카운터가 전체 통산이고 단계 경계에서 끊기지 않는다 (`AC-2R-08`)', async ({ page }) => {
+    await gotoApp(page, FIRST_CARD_PATH);
+
+    await expect(counter(page, 1)).toBeVisible();
+
+    const answerAndAdvance = async () => {
+      // 키보드로 답하면 자동 전진이 일어나지 않는다 (§14.3) — 전진 제어가 겹치지 않는다.
+      const option = page.getByRole('radio').first();
+      await option.focus();
+      await page.keyboard.press('Space');
+      await page.getByRole('button', { name: 'Next question' }).click();
+    };
+
+    // Q1 · Q4 는 **둘 다 필수**다 (`S2-ONB-1`) — 답하지 않으면 차단이 정상 동작이다.
+    await answerAndAdvance();
+    await expectCardIndex(page, 2);
+
+    // 단계가 바뀌어도 번호가 이어진다.
+    await answerAndAdvance();
+    await expect(page).toHaveURL(/\/onboarding\/books-and-interests$/);
+    await expectCardIndex(page, 3);
+  });
+
+  test('복수 선택 문항이 체크박스 행이다 (§3.6)', async ({ page }) => {
+    await gotoApp(page, '/onboarding/growing-together');
+
+    await expect(page.getByRole('group', { name: DECK_LABEL })).toBeVisible();
+    await expect(page.getByRole('checkbox').first()).toBeVisible();
+    await expect(page.getByRole('radio')).toHaveCount(0);
+  });
+});
+
+test.describe('자동 전진과 복귀 경로 (§14)', () => {
+  test('단일 선택을 포인터로 고르면 다음 카드로 넘어간다', async ({ page }) => {
+    await gotoApp(page, FIRST_CARD_PATH);
+
+    await page.getByRole('radio').first().click();
+
+    await expect(counter(page, 2)).toBeVisible();
+  });
+
+  test('키보드 선택은 자동 전진하지 않는다 (방향키 탐색을 막지 않는다)', async ({ page }) => {
+    await gotoApp(page, FIRST_CARD_PATH);
+
+    const option = page.getByRole('radio').first();
+    await option.focus();
+    await page.keyboard.press('Space');
+
+    await expect(option).toBeChecked();
+    await expect(counter(page, 1)).toBeVisible();
+  });
+
+  test('★ 돌아온 카드에서는 자동 전진하지 않는다 — 오선택을 고칠 수 있다', async ({ page }) => {
+    await gotoApp(page, FIRST_CARD_PATH);
+
+    await page.getByRole('radio').first().click();
+    await expect(counter(page, 2)).toBeVisible();
+
+    await page.getByRole('button', { name: 'Previous question' }).click();
+    await expect(counter(page, 1)).toBeVisible();
+
+    const corrected = page.getByRole('radio').nth(2);
+    await corrected.click();
+
+    await expect(corrected).toBeChecked();
+    await expect(counter(page, 1)).toBeVisible();
+  });
+
+  test('자동 전진 후 포커스가 새 카드의 첫 옵션으로 간다 (§14.3)', async ({ page }) => {
+    await gotoApp(page, FIRST_CARD_PATH);
+
+    await page.getByRole('radio').first().click();
+    await expect(counter(page, 2)).toBeVisible();
+
+    await expect(page.getByRole('radio').first()).toBeFocused();
+  });
+});
+
+test.describe('역량 문항 — 제스처 없이 완주한다 (`AC-2-25` · D-9 · WCAG 2.5.1)', () => {
   test('키보드만으로 10문항 전부에 도달해 응답한다', async ({ page }) => {
     const calls = trackApiRequests(page);
 
     await gotoApp(page, SURVEY_PATH);
 
-    const deck = page.getByRole('group', { name: 'Baseline questions' });
+    const deck = page.getByRole('group', { name: DECK_LABEL });
     await expect(deck).toBeVisible();
 
     const nextQuestion = page.getByRole('button', { name: 'Next question' });
 
-    for (let index = 0; index < TOTAL_ITEMS; index += 1) {
-      await expect(page.getByText(`${String(index + 1)} / ${String(TOTAL_ITEMS)}`)).toBeVisible();
-
+    for (let index = 0; index < BASELINE_ITEMS; index += 1) {
       // 스와이프를 쓰지 않는다 — 포커스 + Space 로 응답한다.
       const option = deck.getByRole('radio').nth(index % 6);
       await option.focus();
       await page.keyboard.press('Space');
       await expect(option).toBeChecked();
 
-      if (index < TOTAL_ITEMS - 1) {
+      if (index < BASELINE_ITEMS - 1) {
         await nextQuestion.focus();
         await page.keyboard.press('Enter');
       }
@@ -130,20 +220,10 @@ test.describe('Step 5 — 제스처 없이 완주한다 (AC-2-25 · D-9 · WCAG 
     expect(calls).toEqual([]);
   });
 
-  test('이전 문항 버튼으로 되돌아갈 수 있다', async ({ page }) => {
-    await gotoApp(page, SURVEY_PATH);
-
-    await page.getByRole('button', { name: 'Next question' }).click();
-    await expect(page.getByText(`2 / ${String(TOTAL_ITEMS)}`)).toBeVisible();
-
-    await page.getByRole('button', { name: 'Previous question' }).click();
-    await expect(page.getByText(`1 / ${String(TOTAL_ITEMS)}`)).toBeVisible();
-  });
-
   test('비채점 옵션이 별도 안내와 함께 6번째로 놓인다 (C13-08)', async ({ page }) => {
     await gotoApp(page, SURVEY_PATH);
 
-    const deck = page.getByRole('group', { name: 'Baseline questions' });
+    const deck = page.getByRole('group', { name: DECK_LABEL });
     await expect(deck.getByRole('radio')).toHaveCount(6);
     await expect(page.getByText("This one isn't scored.")).toBeVisible();
 
@@ -155,19 +235,39 @@ test.describe('Step 5 — 제스처 없이 완주한다 (AC-2-25 · D-9 · WCAG 
   });
 });
 
+test.describe('좋아하는 책 — 검색 없음 (`§11.13`)', () => {
+  test('검색 입력이 없고 제목 직접 입력으로 담는다', async ({ page }) => {
+    await gotoApp(page, '/onboarding/books-and-interests');
+
+    await expect(page.getByRole('group', { name: DECK_LABEL })).toBeVisible();
+    // Trial 에는 Q5 카탈로그가 없으므로 Q3 다음이 좋아하는 책 카드다.
+    await page.getByRole('button', { name: 'Next question' }).click();
+
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'Books your child loves' }),
+    ).toBeVisible();
+    await expect(page.locator('input[type="search"]')).toHaveCount(0);
+
+    const input = page.getByRole('textbox', { name: 'Books your child loves' });
+    await input.fill('Moonbeam');
+    await page.getByRole('button', { name: 'Add' }).click();
+
+    await expect(page.getByRole('list', { name: 'Books you picked' })).toContainText('Moonbeam');
+  });
+});
+
 /**
  * `QA-2-001` 회귀 방지 — 덱 **안**에서도 마우스·터치가 키보드와 똑같이 동작해야 한다.
  *
- * 이 결함이 지금까지 비어 있던 이유: 위 테스트들이 전부 `focus()` + 키 입력이라
- * **click 의 target 리타깃**을 건드리지 않았다. 원인은 `pointerdown` 시점의
- * `setPointerCapture` 였고, 캡처가 걸리면 후속 `mouseup`·`click` 의 target 이 카드 컨테이너로
- * 바뀌어 카드 안 컨트롤이 입력을 받지 못했다. 세 입력 경로를 모두 여기서 고정한다.
+ * 원인은 `pointerdown` 시점의 `setPointerCapture` 였고, 캡처가 걸리면 후속 `mouseup`·`click`
+ * 의 target 이 카드 컨테이너로 바뀌어 카드 안 컨트롤이 입력을 받지 못했다.
+ * 세 입력 경로를 모두 여기서 고정한다. **`SwipeDeck.tsx` 는 이번 재구성에서 수정하지 않았다.**
  */
 test.describe('세 입력 경로 — 마우스 · 키보드 · 터치 (QA-2-001)', () => {
   test('마우스 클릭으로 덱 안 라디오를 선택하고 다시 해제한다', async ({ page }) => {
     await gotoApp(page, SURVEY_PATH);
 
-    const deck = page.getByRole('group', { name: 'Baseline questions' });
+    const deck = page.getByRole('group', { name: DECK_LABEL });
     const option = deck.getByRole('radio').nth(2);
 
     await option.click();
@@ -175,15 +275,18 @@ test.describe('세 입력 경로 — 마우스 · 키보드 · 터치 (QA-2-001)
 
     // 카드 우상단 `179:1804` — 이것도 카드 **안**이라 같은 결함의 영향을 받았다.
     await page.getByRole('button', { name: 'Clear this answer' }).click();
-    await expect(option).not.toBeChecked();
+    await expect(deck.getByRole('radio').nth(2)).not.toBeChecked();
   });
 
-  test('대조군 — 덱 밖 RadioGroup 도 마우스로 선택된다', async ({ page }) => {
-    await gotoApp(page, '/onboarding/temperament');
+  test('대조군 — 덱 밖 컨트롤(프로필 입력)도 마우스로 동작한다', async ({ page }) => {
+    await gotoApp(page, '/onboarding/child-info');
 
-    const option = page.getByRole('radio').first();
-    await option.click();
-    await expect(option).toBeChecked();
+    // 기본 선택이 아닌 칩을 쓴다 — English 는 기본 선택이라 클릭하면 **해제**된다.
+    const chip = page.getByRole('button', { name: 'Korean' });
+    await expect(chip).toHaveAttribute('aria-pressed', 'false');
+
+    await chip.click();
+    await expect(chip).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('마우스로 끌면 제스처는 그대로 동작한다 (클릭 수정이 스와이프를 막지 않는다)', async ({
@@ -194,6 +297,13 @@ test.describe('세 입력 경로 — 마우스 · 키보드 · 터치 (QA-2-001)
     const card = page.locator('.haru-swipe-deck__card--front');
     const box = await card.boundingBox();
     if (box === null) throw new Error('card not laid out');
+
+    /*
+      `/onboarding/capability-items` 직접 진입은 **통산 1번 카드가 아니다** — 앞 단계 카드 수만큼
+      뒤에서 시작한다 (`R-02` 통산 카운터). 그래서 기대값을 현재 번호에서 파생한다.
+    */
+    const start = await cardCounterIndex(page);
+    if (start === null) throw new Error('card counter not rendered');
 
     const startX = box.x + box.width - 20;
     const y = box.y + box.height / 2;
@@ -206,7 +316,7 @@ test.describe('세 입력 경로 — 마우스 · 키보드 · 터치 (QA-2-001)
     }
     await page.mouse.up();
 
-    await expect(page.getByText(`2 / ${String(TOTAL_ITEMS)}`)).toBeVisible();
+    await expectCardIndex(page, start + 1);
   });
 
   test.describe('터치', () => {
@@ -215,7 +325,7 @@ test.describe('세 입력 경로 — 마우스 · 키보드 · 터치 (QA-2-001)
     test('탭으로 덱 안 라디오를 선택한다', async ({ page }) => {
       await gotoApp(page, SURVEY_PATH);
 
-      const deck = page.getByRole('group', { name: 'Baseline questions' });
+      const deck = page.getByRole('group', { name: DECK_LABEL });
       await deck.locator('label').nth(1).tap();
 
       await expect(deck.getByRole('radio').nth(1)).toBeChecked();
@@ -227,6 +337,9 @@ test.describe('세 입력 경로 — 마우스 · 키보드 · 터치 (QA-2-001)
       const card = page.locator('.haru-swipe-deck__card--front');
       const box = await card.boundingBox();
       if (box === null) throw new Error('card not laid out');
+
+      const start = await cardCounterIndex(page);
+      if (start === null) throw new Error('card counter not rendered');
 
       // Playwright 의 touchscreen 에는 끌기가 없다. 합성 PointerEvent 는 pointerId 가
       // 실제 포인터가 아니라 캡처에서 걸리므로, CDP 로 **진짜 터치 입력**을 보낸다.
@@ -246,7 +359,100 @@ test.describe('세 입력 경로 — 마우스 · 키보드 · 터치 (QA-2-001)
       }
       await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
 
-      await expect(page.getByText(`2 / ${String(TOTAL_ITEMS)}`)).toBeVisible();
+      await expectCardIndex(page, start + 1);
     });
+  });
+});
+
+test.describe('전 카드 완주 — 마지막 카드에만 제출 CTA 가 있다', () => {
+  test('첫 카드부터 끝까지 가면 제출 CTA 가 나온다', async ({ page }) => {
+    await gotoApp(page, FIRST_CARD_PATH);
+
+    await answerAllCards(page);
+
+    await expect(page).toHaveURL(new RegExp(`${SURVEY_PATH}$`));
+    await expect(page.getByRole('button', { name: 'Save profile' })).toBeVisible();
+  });
+});
+
+/**
+ * `QA-2R-009` 회귀 — Trial 에서 고른 **언어 환경**이 가입을 지나도 남아 있어야 한다.
+ *
+ * 가입 화면에는 언어 입력이 없다. 그 화면의 로컬 저장이 언어를 지우면, 동의 직후 Guard 가
+ * 저장된 단계로 되돌리므로(`§11.19` 7-2) 사용자는 `About your child` 를 다시 지나지 않고
+ * 언어가 빠진 채 제출된다 — 알아챌 방법이 없다. 그래서 **브라우저 실측**으로 고정한다.
+ */
+test.describe('Trial → 가입 — 언어 환경 보존 (`QA-2R-009`)', () => {
+  const DRAFT_KEY = 'haru.onboarding.draft.v1';
+
+  async function childInfoDraft(page: Page): Promise<Record<string, unknown> | undefined> {
+    const raw = await page.evaluate(
+      (key: string) => globalThis.localStorage.getItem(key),
+      DRAFT_KEY,
+    );
+    const parsed: { answers?: { child_info?: Record<string, unknown> } } =
+      raw === null ? {} : JSON.parse(raw);
+
+    return parsed.answers?.child_info;
+  }
+
+  async function signUp(page: Page): Promise<void> {
+    await gotoApp(page, '/auth/sign-up?scenario=me:consent-missing');
+    await page.getByLabel('Your name').fill('Sam Rivera');
+    await page.getByLabel('Email').fill('sam@example.com');
+    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('sunny-evening-8');
+    await page.getByRole('button', { name: 'Create account' }).click();
+    await expect(page).toHaveURL(/\/auth\/consent$/);
+  }
+
+  test('고른 언어가 가입을 지나도 draft 에 남아 있다', async ({ page }) => {
+    await gotoApp(page, '/onboarding/start?scenario=me:consent-missing');
+    await page.getByRole('button', { name: 'Start the questions' }).click();
+    await fillChildInfo(page);
+    // 기본 선택(English) 위에 **직접 고른** 값을 얹는다 — 기본값이 되살아난 것과 구분된다.
+    await page.getByRole('button', { name: 'Korean' }).click();
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page).toHaveURL(/\/onboarding$/);
+
+    expect((await childInfoDraft(page))?.['languageEnvironment']).toStrictEqual([
+      'english',
+      'korean',
+    ]);
+
+    await signUp(page);
+
+    const after = await childInfoDraft(page);
+    expect(after?.['languageEnvironment']).toStrictEqual(['english', 'korean']);
+    // 다른 필드도 함께 살아 있어야 한다 (병합이 아니라 덮어쓰기가 되지 않았는지).
+    expect(after?.['gender']).toBe('girl');
+  });
+
+  /**
+   * 사용자 결정 2026-10-04 — 언어는 **선택 항목**이고 영어가 기본 선택이다.
+   * 해제는 가능해야 하고, 해제 상태가 저장소에서 영어로 되살아나면 안 된다.
+   */
+  test('English 가 기본 선택이고, 전부 해제해도 전진이 막히지 않는다', async ({ page }) => {
+    await gotoApp(page, '/onboarding/start?scenario=me:consent-missing');
+    await page.getByRole('button', { name: 'Start the questions' }).click();
+
+    const english = page.getByRole('button', { name: 'English' });
+    await expect(english).toHaveAttribute('aria-pressed', 'true');
+
+    await page.getByLabel('First name').fill('Yuna');
+    await english.click();
+    await expect(english).toHaveAttribute('aria-pressed', 'false');
+
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page).toHaveURL(/\/onboarding$/);
+
+    // 해제 상태는 **빈 배열로** 남는다 (키를 지우면 기본값이 되살아난다).
+    await expect
+      .poll(async () => (await childInfoDraft(page))?.['languageEnvironment'])
+      .toStrictEqual([]);
+
+    await signUp(page);
+
+    // 가입 저장이 해제 상태를 영어로 되돌리지 않는다 (`QA-2R-009` 의 반대 방향).
+    expect((await childInfoDraft(page))?.['languageEnvironment']).toStrictEqual([]);
   });
 });

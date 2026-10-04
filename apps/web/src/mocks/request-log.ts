@@ -20,7 +20,9 @@ export const CHILD_DATA_KEYS = [
   'draftAnswers',
   'childId',
   'child',
-  'temperament',
+  'reading_together',
+  'books_and_interests',
+  'growing_together',
   'capabilityItems',
 ] as const;
 

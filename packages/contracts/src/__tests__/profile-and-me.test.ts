@@ -49,6 +49,7 @@ const child = {
   readingRoutine: 'daily',
   topicTags: ['narrative'],
   growthGoals: ['emotion_regulation'],
+  ownedBooks: [],
   createdAt: '2026-09-25T00:00:00Z',
 };
 

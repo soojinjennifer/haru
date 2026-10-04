@@ -48,8 +48,37 @@ describe('기본 instrument', () => {
 });
 
 describe('Mock 응답과의 구조 일치', () => {
-  it('선택형 문항 id · 순서 · 선택 규칙이 같다', () => {
-    expect(mock.questions).toStrictEqual(DEFAULT_ONBOARDING_INSTRUMENT.questions);
+  /**
+   * Q5(`books_and_interests.owned_books`)만 다르다 — 선택지가 **책 카탈로그**이고 Trial 구간은
+   * 서버 요청이 0건이라 카탈로그를 받아올 수 없다 (`§11.11`). 나머지 문항은 완전히 같아야 한다.
+   */
+  it('선택형 문항 id · 순서 · 선택 규칙이 같다 (Q5 제외)', () => {
+    const withoutOwnedBooks = mock.questions.filter(
+      (question) => question.questionId !== 'books_and_interests.owned_books',
+    );
+
+    expect(withoutOwnedBooks).toStrictEqual(DEFAULT_ONBOARDING_INSTRUMENT.questions);
+  });
+
+  it('Mock 은 Q5 를 카탈로그 기반으로 내려주고 Trial 기본값에는 없다', () => {
+    const owned = mock.questions.find(
+      (question) => question.questionId === 'books_and_interests.owned_books',
+    );
+
+    expect(owned?.options.length).toBeGreaterThan(1);
+    // 제목은 instrument `label` 이 소유한다 — contracts·copy 에 책 제목이 없다.
+    expect(owned?.options.every((option) => option.label !== undefined)).toBe(true);
+    expect(
+      DEFAULT_ONBOARDING_INSTRUMENT.questions.some(
+        (question) => question.questionId === 'books_and_interests.owned_books',
+      ),
+    ).toBe(false);
+  });
+
+  it('소요 시간 안내값(`estimates`)을 양쪽이 모두 갖는다 (`R-03`)', () => {
+    expect(mock.estimates.profileMinutes).toBeGreaterThan(0);
+    expect(mock.estimates.surveyMinutes).toBeGreaterThan(0);
+    expect(DEFAULT_ONBOARDING_INSTRUMENT.estimates).toStrictEqual(mock.estimates);
   });
 
   it('Step 5 문항 코드 · 역량 · 순서가 같다', () => {

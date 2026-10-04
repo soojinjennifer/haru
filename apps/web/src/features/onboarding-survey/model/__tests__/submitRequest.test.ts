@@ -27,8 +27,8 @@ const CHILD_INFO: NonNullable<OnboardingDraftAnswers['child_info']> = {
 
 /** 필수 문항(Q1 · Q4 · Q2) 응답 — `S2-ONB-1`. */
 const REQUIRED_CHOICES: OnboardingDraftAnswers = {
-  temperament: { storyComfort: 'quiet_gentle', readAloudBehavior: 'sits_and_listens' },
-  goals: { growthGoals: ['emotion_regulation'] },
+  reading_together: { storyComfort: 'quiet_gentle', readAloudBehavior: 'sits_and_listens' },
+  growing_together: { growthGoals: ['emotion_regulation'] },
 };
 
 function completeAnswers(
@@ -43,16 +43,16 @@ function completeAnswers(
   return { ...withSurvey, ...overrides };
 }
 
-describe('선택 문항은 비어 있어도 제출된다 (Q3 — `S2-ONB-1` 선택 유지)', () => {
-  it('Step 3 응답이 없으면 빈 배열로 채운다', () => {
+describe('선택 문항은 비어 있어도 제출된다 (Q3 · Q5 · 좋아하는 책)', () => {
+  it('`books_and_interests` 응답이 없으면 세 필드를 빈 배열로 채운다', () => {
     const built = buildSubmitRequest(instrument, completeAnswers(), NOW);
 
     expect(built.ok).toBe(true);
     if (!built.ok) return;
 
-    expect(built.request.answers.books).toStrictEqual({
+    expect(built.request.answers.books_and_interests).toStrictEqual({
       favoriteBooks: [],
-      homeBooks: [],
+      ownedBooks: [],
       topicTags: [],
     });
   });
@@ -62,44 +62,47 @@ describe('필수 문항 (`S2-ONB-1`)', () => {
   it('Q1 이 비어 있으면 Step 2 를 지목한다', () => {
     const built = buildSubmitRequest(
       instrument,
-      completeAnswers(3, { temperament: { readAloudBehavior: 'sits_and_listens' } }),
+      completeAnswers(3, { reading_together: { readAloudBehavior: 'sits_and_listens' } }),
       NOW,
     );
 
     expect(built.ok).toBe(false);
     if (built.ok) return;
-    expect(built.missing).toContain('temperament');
+    expect(built.missing).toContain('reading_together');
   });
 
   it('Q4 가 비어 있으면 Step 2 를 지목한다', () => {
     const built = buildSubmitRequest(
       instrument,
-      completeAnswers(3, { temperament: { storyComfort: 'quiet_gentle' } }),
+      completeAnswers(3, { reading_together: { storyComfort: 'quiet_gentle' } }),
       NOW,
     );
 
     expect(built.ok).toBe(false);
     if (built.ok) return;
-    expect(built.missing).toContain('temperament');
+    expect(built.missing).toContain('reading_together');
   });
 
   it('Q2 가 비어 있으면 Step 4 를 지목한다', () => {
     const built = buildSubmitRequest(
       instrument,
-      completeAnswers(3, { goals: { growthGoals: [] } }),
+      completeAnswers(3, { growing_together: { growthGoals: [] } }),
       NOW,
     );
 
     expect(built.ok).toBe(false);
     if (built.ok) return;
-    expect(built.missing).toContain('goals');
+    expect(built.missing).toContain('growing_together');
   });
 
   it('회피 선택지(`depends_on_the_day`)도 응답으로 인정한다 (approvals §9.1)', () => {
     const built = buildSubmitRequest(
       instrument,
       completeAnswers(3, {
-        temperament: { storyComfort: 'depends_on_the_day', readAloudBehavior: 'asks_questions' },
+        reading_together: {
+          storyComfort: 'depends_on_the_day',
+          readAloudBehavior: 'asks_questions',
+        },
       }),
       NOW,
     );
@@ -112,8 +115,10 @@ describe('필수 문항 (`S2-ONB-1`)', () => {
 
     expect(built.ok).toBe(true);
     if (!built.ok) return;
-    expect(built.request.answers.temperament).toStrictEqual(REQUIRED_CHOICES.temperament);
-    expect(built.request.answers.goals).toStrictEqual({ growthGoals: ['emotion_regulation'] });
+    expect(built.request.answers.reading_together).toStrictEqual(REQUIRED_CHOICES.reading_together);
+    expect(built.request.answers.growing_together).toStrictEqual({
+      growthGoals: ['emotion_regulation'],
+    });
   });
 });
 
@@ -162,5 +167,53 @@ describe('완결성 (AC-2-26)', () => {
 
   it('`not_observed` 만으로도 제출할 수 있다 (결측은 유효한 응답이다 — C-8)', () => {
     expect(buildSubmitRequest(instrument, completeAnswers('not_observed'), NOW).ok).toBe(true);
+  });
+});
+
+/**
+ * 언어 환경 — **선택 항목 + 기본값 영어** (사용자 결정 2026-10-04).
+ * 기본값은 **제출 경계에서만** 채운다 (draft 는 해제 상태를 보존한다 — `childDraft` / `ChildInfoStep`).
+ */
+describe('언어 환경 기본값 (사용자 결정 2026-10-04)', () => {
+  it('전부 해제한 채 제출해도 막히지 않고 `["english"]` 로 채워 보낸다', () => {
+    const built = buildSubmitRequest(
+      instrument,
+      completeAnswers(3, { child_info: { ...CHILD_INFO, languageEnvironment: [] } }),
+      NOW,
+    );
+
+    expect(built.ok).toBe(true);
+    if (!built.ok) return;
+    expect(built.request.answers.child_info.languageEnvironment).toStrictEqual(['english']);
+  });
+
+  it('키 자체가 없어도 누락이 아니다 — 같은 기본값으로 채운다', () => {
+    const { languageEnvironment: _omitted, ...withoutLanguage } = CHILD_INFO;
+    const built = buildSubmitRequest(
+      instrument,
+      completeAnswers(3, { child_info: withoutLanguage }),
+      NOW,
+    );
+
+    expect(built.ok).toBe(true);
+    if (!built.ok) return;
+    expect(built.request.answers.child_info.languageEnvironment).toStrictEqual(['english']);
+  });
+
+  it('고른 언어는 기본값이 덮어쓰지 않는다', () => {
+    const built = buildSubmitRequest(
+      instrument,
+      completeAnswers(3, {
+        child_info: { ...CHILD_INFO, languageEnvironment: ['korean', 'spanish'] },
+      }),
+      NOW,
+    );
+
+    expect(built.ok).toBe(true);
+    if (!built.ok) return;
+    expect(built.request.answers.child_info.languageEnvironment).toStrictEqual([
+      'korean',
+      'spanish',
+    ]);
   });
 });

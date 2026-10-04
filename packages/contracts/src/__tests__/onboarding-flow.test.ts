@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import {
   BASELINE_INSTRUMENT_CODE,
-  BooksAnswersSchema,
+  BooksAndInterestsAnswersSchema,
   CapabilityItemsAnswersSchema,
   CompleteCapabilityItemsAnswersSchema,
   FAVORITE_BOOKS_MAX,
-  GoalsAnswersSchema,
+  OWNED_BOOKS_MAX,
+  GrowingTogetherAnswersSchema,
   ONBOARDING_DRAFT_MAX_AGE_DAYS,
   ONBOARDING_DRAFT_SCHEMA_VERSION,
   OnboardingDraftSchema,
@@ -20,7 +21,7 @@ import {
   ONBOARDING_INSTRUMENT_CODE,
   ONBOARDING_INSTRUMENT_VERSION,
   SurveyInstrumentSchema,
-  TemperamentAnswersSchema,
+  ReadingTogetherAnswersSchema,
   createSubmitOnboardingRequestSchema,
   isOnboardingDraftExpired,
 } from '../index.js';
@@ -66,6 +67,7 @@ const onboardingInstrument = {
   ...instrumentRef,
   questions: ONBOARDING_CHOICE_QUESTIONS,
   survey: instrument,
+  estimates: { profileMinutes: 1, surveyMinutes: 3 },
 };
 
 const completeAnswers = {
@@ -76,16 +78,16 @@ const completeAnswers = {
     languageEnvironment: ['english'],
     readingRoutine: 'daily',
   },
-  temperament: {
+  reading_together: {
     storyComfort: 'some_adventure',
     readAloudBehavior: 'asks_questions',
   },
-  books: {
+  books_and_interests: {
     favoriteBooks: [{ title: 'The Very Hungry Caterpillar' }],
-    homeBooks: [{ title: 'Goodnight Moon' }],
+    ownedBooks: ['22222222-2222-4222-8222-000000000001'],
     topicTags: ['narrative'],
   },
-  goals: { growthGoals: ['emotion_regulation'] },
+  growing_together: { growthGoals: ['emotion_regulation'] },
   capability_items: {
     instrumentCode: BASELINE_INSTRUMENT_CODE,
     answers: ITEM_CODES.map((itemCode) => ({ itemCode, value: 3 as const })),
@@ -152,11 +154,13 @@ describe('CapabilityItemsAnswers — draft vs submit', () => {
   });
 });
 
-describe('Step 2 · 3 · 4 응답', () => {
-  it('기질 2문항은 모두 선택이다 (미응답 허용 — D-C)', () => {
-    expect(TemperamentAnswersSchema.parse({})).toEqual({});
-    expect(TemperamentAnswersSchema.safeParse({ storyComfort: 'very_calm' }).success).toBe(false);
-    expect(TemperamentAnswersSchema.parse({ storyComfort: 'quiet_gentle' }).storyComfort).toBe(
+describe('카드 단계 응답 (reading_together · books_and_interests · growing_together)', () => {
+  it('읽기 성향 2문항은 schema 상 선택이다 (필수는 instrument 가 소유 — `S2-ONB-1`)', () => {
+    expect(ReadingTogetherAnswersSchema.parse({})).toEqual({});
+    expect(ReadingTogetherAnswersSchema.safeParse({ storyComfort: 'very_calm' }).success).toBe(
+      false,
+    );
+    expect(ReadingTogetherAnswersSchema.parse({ storyComfort: 'quiet_gentle' }).storyComfort).toBe(
       'quiet_gentle',
     );
   });
@@ -164,26 +168,68 @@ describe('Step 2 · 3 · 4 응답', () => {
   it('좋아하는 책은 최대 5권이며 bookId 또는 title 중 하나가 필요하다 (PRD §7.2)', () => {
     expect(FAVORITE_BOOKS_MAX).toBe(5);
     expect(
-      BooksAnswersSchema.safeParse({
+      BooksAndInterestsAnswersSchema.safeParse({
         favoriteBooks: Array.from({ length: 6 }, () => ({ title: 'x' })),
-        homeBooks: [],
+        ownedBooks: [],
         topicTags: [],
       }).success,
     ).toBe(false);
     expect(
-      BooksAnswersSchema.safeParse({ favoriteBooks: [{}], homeBooks: [], topicTags: [] }).success,
+      BooksAndInterestsAnswersSchema.safeParse({
+        favoriteBooks: [{}],
+        ownedBooks: [],
+        topicTags: [],
+      }).success,
     ).toBe(false);
     expect(
-      BooksAnswersSchema.safeParse({
+      BooksAndInterestsAnswersSchema.safeParse({
         favoriteBooks: [{ bookId: '2a8b6f7e-9d51-4a0c-8f2e-7c5b1d3e4a90' }],
-        homeBooks: [],
+        ownedBooks: [],
         topicTags: [],
       }).success,
     ).toBe(true);
   });
 
+  it('`homeBooks` 는 제거되었다 — 넣어도 parse 결과에 남지 않는다 (`§11.9`)', () => {
+    const parsed = BooksAndInterestsAnswersSchema.parse({
+      favoriteBooks: [],
+      ownedBooks: [],
+      topicTags: [],
+      homeBooks: [{ title: 'Goodnight Moon' }],
+    });
+
+    expect(Object.keys(parsed).sort()).toStrictEqual(['favoriteBooks', 'ownedBooks', 'topicTags']);
+  });
+
+  it('Q5 `ownedBooks` 는 book id 배열이다 (`§11.11`)', () => {
+    expect(
+      BooksAndInterestsAnswersSchema.safeParse({
+        favoriteBooks: [],
+        ownedBooks: ['22222222-2222-4222-8222-000000000001'],
+        topicTags: [],
+      }).success,
+    ).toBe(true);
+    expect(
+      BooksAndInterestsAnswersSchema.safeParse({
+        favoriteBooks: [],
+        ownedBooks: ['Goodnight Moon'],
+        topicTags: [],
+      }).success,
+    ).toBe(false);
+    expect(
+      BooksAndInterestsAnswersSchema.safeParse({
+        favoriteBooks: [],
+        ownedBooks: Array.from(
+          { length: OWNED_BOOKS_MAX + 1 },
+          (_unused, index) => `22222222-2222-4222-8222-0000000000${String(index + 10)}`,
+        ),
+        topicTags: [],
+      }).success,
+    ).toBe(false);
+  });
+
   it('성장 목표는 0개 선택을 허용한다', () => {
-    expect(GoalsAnswersSchema.parse({ growthGoals: [] }).growthGoals).toEqual([]);
+    expect(GrowingTogetherAnswersSchema.parse({ growthGoals: [] }).growthGoals).toEqual([]);
   });
 });
 
@@ -197,7 +243,7 @@ describe('SaveOnboardingStepRequest — 단계별 discriminated union', () => {
     ).toBe(true);
     expect(
       SaveOnboardingStepRequestSchema.safeParse({
-        step: 'goals',
+        step: 'growing_together',
         answers: { growthGoals: ['not_a_goal'] },
       }).success,
     ).toBe(false);
@@ -205,16 +251,17 @@ describe('SaveOnboardingStepRequest — 단계별 discriminated union', () => {
 
   it('다른 단계의 필드는 parse 결과에서 제거된다 (응답 schema 는 strip — Plan §7.3)', () => {
     const parsed = SaveOnboardingStepRequestSchema.parse({
-      step: 'goals',
+      step: 'growing_together',
       answers: { growthGoals: ['emotion_regulation'], firstName: 'Emma' },
     });
     expect(parsed.answers).toEqual({ growthGoals: ['emotion_regulation'] });
   });
 
   it('중도 저장이므로 부분 응답을 허용한다 (FR-03)', () => {
-    expect(SaveOnboardingStepRequestSchema.safeParse({ step: 'books', answers: {} }).success).toBe(
-      true,
-    );
+    expect(
+      SaveOnboardingStepRequestSchema.safeParse({ step: 'books_and_interests', answers: {} })
+        .success,
+    ).toBe(true);
   });
 
   it('정의되지 않은 단계는 거부한다', () => {
@@ -256,7 +303,7 @@ describe('SubmitOnboardingRequest — C-12', () => {
       }).success,
     ).toBe(true);
 
-    const { goals: _goals, ...withoutGoals } = completeAnswers;
+    const { growing_together: _growingTogether, ...withoutGoals } = completeAnswers;
     expect(
       SubmitOnboardingRequestSchema.safeParse({ instrument: instrumentRef, answers: withoutGoals })
         .success,
@@ -290,7 +337,7 @@ describe('OnboardingDraft — 로컬 전용 (D-3)', () => {
   const draft = {
     schemaVersion: ONBOARDING_DRAFT_SCHEMA_VERSION,
     instrument: instrumentRef,
-    currentStep: 'books',
+    currentStep: 'books_and_interests',
     answers: { child_info: { firstName: 'Emma' } },
     updatedAt: '2026-09-20T00:00:00Z',
   };

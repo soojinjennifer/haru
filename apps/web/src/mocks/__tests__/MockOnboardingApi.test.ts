@@ -55,9 +55,9 @@ function answersWith(value: SurveyAnswerValue): CompleteOnboardingAnswers {
       gender: null,
       languageEnvironment: ['english'],
     },
-    temperament: { storyComfort: 'quiet_gentle', readAloudBehavior: 'sits_and_listens' },
-    books: { favoriteBooks: [], homeBooks: [], topicTags: ['narrative'] },
-    goals: { growthGoals: ['emotion_regulation'] },
+    reading_together: { storyComfort: 'quiet_gentle', readAloudBehavior: 'sits_and_listens' },
+    books_and_interests: { favoriteBooks: [], ownedBooks: [], topicTags: ['narrative'] },
+    growing_together: { growthGoals: ['emotion_regulation'] },
     capability_items: {
       instrumentCode: instrument.survey.code,
       answers: instrument.survey.items.map((item) => ({ itemCode: item.itemCode, value })),
@@ -153,15 +153,17 @@ describe('PUT /v1/onboarding/steps/:step — 중도 저장 (FR-03)', () => {
 
     await api.saveStep({ step: 'child_info', answers: { firstName: 'Nova' } });
     const state = await api.saveStep({
-      step: 'goals',
+      step: 'growing_together',
       answers: { growthGoals: ['cognitive_flexibility'] },
     });
 
     expect(state.draftAnswers.child_info?.firstName).toBe('Nova');
-    expect(state.draftAnswers.goals?.growthGoals).toStrictEqual(['cognitive_flexibility']);
+    expect(state.draftAnswers.growing_together?.growthGoals).toStrictEqual([
+      'cognitive_flexibility',
+    ]);
     expect(state.steps.filter((step) => step.completed).map((step) => step.step)).toStrictEqual([
       'child_info',
-      'goals',
+      'growing_together',
     ]);
   });
 
@@ -170,7 +172,7 @@ describe('PUT /v1/onboarding/steps/:step — 중도 저장 (FR-03)', () => {
 
     await expect(
       api.saveStep({
-        step: 'goals',
+        step: 'growing_together',
         answers: { growthGoals: ['reading_habit'] },
       } as never),
     ).rejects.toBeDefined();
@@ -191,7 +193,7 @@ describe('POST /v1/onboarding/submit', () => {
     const request = submitRequest();
     const without = {
       ...request,
-      answers: { ...request.answers, temperament: { storyComfort: 'quiet_gentle' as const } },
+      answers: { ...request.answers, reading_together: { storyComfort: 'quiet_gentle' as const } },
     };
 
     await expect(api.submit(without, IK)).rejects.toMatchObject({
@@ -204,7 +206,7 @@ describe('POST /v1/onboarding/submit', () => {
     const request = submitRequest();
     const without = {
       ...request,
-      answers: { ...request.answers, goals: { growthGoals: [] } },
+      answers: { ...request.answers, growing_together: { growthGoals: [] } },
     };
 
     await expect(api.submit(without, IK)).rejects.toMatchObject({
@@ -212,14 +214,14 @@ describe('POST /v1/onboarding/submit', () => {
     });
   });
 
-  it('선택 문항(Q3)은 비어 있어도 제출이 통과한다 (`S2-ONB-1` — Q3 는 선택 유지)', async () => {
+  it('선택 문항(Q3 · Q5 · 좋아하는 책)은 비어 있어도 제출이 통과한다', async () => {
     const { api } = makeApi();
     const request = submitRequest();
     const without = {
       ...request,
       answers: {
         ...request.answers,
-        books: { favoriteBooks: [], homeBooks: [], topicTags: [] },
+        books_and_interests: { favoriteBooks: [], ownedBooks: [], topicTags: [] },
       },
     };
 

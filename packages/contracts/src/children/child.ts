@@ -30,6 +30,11 @@ export const ChildSchema = z.object({
   readingRoutine: ReadingRoutineSchema.optional(),
   topicTags: z.array(TopicTagSchema),
   growthGoals: z.array(GrowthGoalSchema),
+  /**
+   * Q5 "이미 잘 아는 책" — 추천 후보 풀에서 제외되는 `book_id` 목록
+   * (질문지 `child.owned_books`, `P2-BIP-13`). 제외 판정은 서버 동작이다.
+   */
+  ownedBooks: z.array(IdSchema),
   createdAt: IsoDateTimeSchema,
 });
 
