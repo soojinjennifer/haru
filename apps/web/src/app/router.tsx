@@ -36,6 +36,7 @@ import { StackLayout } from './layouts/StackLayout';
  * 조건을 상수나 함수 뒤로 감추면 이 제거가 보장되지 않는다.
  */
 const DevGallery = import.meta.env.DEV ? lazy(() => import('../dev/DevGallery')) : null;
+const DevScreens = import.meta.env.DEV ? lazy(() => import('../dev/DevScreens')) : null;
 const DevOverlay = import.meta.env.DEV ? lazy(() => import('../dev/DevOverlay')) : null;
 
 /**
@@ -57,6 +58,7 @@ const DevOverlay = import.meta.env.DEV ? lazy(() => import('../dev/DevOverlay'))
  * | `/`                      | StackLayout     | Home skeleton — `HomeTopBar`(워드마크 `26:39` + 설정 `26:44`) |
  * | `/settings`              | StackLayout     | TopBar centered — 로그아웃 1행 |
  * | `/__dev/ui/*`            | (dev 전용)      | UI gallery — dev 에서만 존재한다 |
+ * | `/__dev/screens`         | (dev 전용)      | 검수용 화면 목록 — dev 에서만 존재한다 |
  * | `*`                      | StackLayout     | NotFound |
  *
  * `/auth/*` 는 화면마다 TopBar 구성이 달라서 **Page 가 직접 `StackLayout` 을 조립**한다
@@ -75,6 +77,16 @@ export function AppRoutes() {
           element={
             <Suspense fallback={null}>
               <DevGallery />
+            </Suspense>
+          }
+        />
+      )}
+      {DevScreens === null ? null : (
+        <Route
+          path="/__dev/screens"
+          element={
+            <Suspense fallback={null}>
+              <DevScreens />
             </Suspense>
           }
         />

@@ -470,3 +470,146 @@
   font-size: var(--text-caption-2);
   word-break: break-all;
 }
+
+/* ===== /__dev/screens — 검수용 화면 목록 ================================== */
+
+.haru-dev-screens__order {
+  margin: 0 0 var(--space-5);
+  padding: var(--space-3);
+  border-radius: var(--radius-surface);
+  border: 1px solid var(--color-status-info-border);
+  background-color: var(--color-status-info-bg);
+  color: var(--color-status-info-fg);
+  font-size: var(--text-footnote);
+  line-height: var(--text-footnote--line-height);
+}
+
+.haru-dev-screens__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--space-8) * 8), 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.haru-dev-screens__item {
+  padding: var(--space-3);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-surface-solid);
+}
+
+/* 모바일에서도 누르기 쉬운 크기 — 제목 전체가 링크다. */
+.haru-dev-screens__link {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--size-touch-min);
+  color: var(--color-fg-primary);
+  font-size: var(--text-subheadline);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+}
+
+.haru-dev-screens__link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.haru-dev-screens__path {
+  margin: 0;
+  font-size: var(--text-caption-1);
+  color: var(--color-fg-secondary);
+  word-break: break-all;
+}
+
+.haru-dev-screens__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+}
+
+.haru-dev-screens__badge {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-surface-subtle);
+  color: var(--color-fg-secondary);
+  font-size: var(--text-caption-2);
+  font-weight: var(--font-weight-medium);
+}
+
+.haru-dev-screens__badge[data-access='open'] {
+  border-color: var(--color-status-success-border);
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success-fg);
+}
+
+.haru-dev-screens__badge[data-access='signed-out'],
+.haru-dev-screens__badge[data-access='auth'] {
+  border-color: var(--color-status-warning-border);
+  background-color: var(--color-status-warning-bg);
+  color: var(--color-status-warning-fg);
+}
+
+.haru-dev-screens__badge[data-access='full'] {
+  border-color: var(--color-status-error-border);
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error-fg);
+}
+
+.haru-dev-screens__hint {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  color: var(--color-fg-tertiary);
+}
+
+.haru-dev-screens__hint-inline {
+  color: var(--color-fg-tertiary);
+}
+
+.haru-dev-screens__plain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  color: var(--color-fg-secondary);
+}
+
+.haru-dev-screens__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.haru-dev-screens__chip {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--size-touch-min);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-surface-subtle);
+  color: var(--color-fg-secondary);
+  font-size: var(--text-footnote);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.haru-dev-screens__chip:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.haru-dev-screens__chip[aria-current='page'] {
+  background-color: var(--color-selected-bg);
+  border-color: var(--color-selected-fg);
+  color: var(--color-selected-fg);
+  font-weight: var(--font-weight-semibold);
+}
