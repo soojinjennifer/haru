@@ -110,6 +110,15 @@ export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) 
 
   const isLastCardStep = step === LAST_STEP;
   const onLastCard = onCardStep && cardIndex === cards.length - 1;
+  /**
+   * 뒤로 가기가 **이전 카드**인가, 설문 **밖**인가 (`S2-FIX-4`).
+   *
+   * 판정은 **통산 번호**로 한다. `cardIndex` 는 단계 안의 번호라 단계마다 0 으로 돌아가고,
+   * 그 값으로 판정하면 2·3·4 단계의 첫 카드에서 라벨이 `Go back` 이 되지만 `handlePrevious`
+   * 는 **이전 단계의 마지막 카드**로 간다 — 16장 중 3장에서 라벨과 동작이 어긋났다 (WCAG 2.4.6).
+   * `globalIndex` 는 1-based 이므로 전체 첫 카드가 1 이다.
+   */
+  const previousIsCard = onCardStep && globalIndex > 1;
   /** 제출 CTA 는 **전체 마지막 카드**에서만 나온다 (§3.2). */
   const showSubmitCta = (onCardStep && isLastCardStep && onLastCard) || !onCardStep;
   const remaining = unansweredCount(wizard.instrument, wizard.answers);
@@ -177,7 +186,7 @@ export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) 
           leading={
             <IconButton
               icon={<Icon name="chevron-left" decorative />}
-              label={onCardStep && cardIndex > 0 ? onboardingCopy.survey.prevQuestion : copy.back}
+              label={previousIsCard ? onboardingCopy.survey.prevQuestion : copy.back}
               variant="plain"
               onPress={handlePrevious}
             />
@@ -240,6 +249,16 @@ export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) 
               같은 경로다 (`handleNextCard`). 덱은 단계 안의 번호만 알아서 이 전환을 할 수 없다.
             */
             onAdvanceStep={handleNextCard}
+            /*
+              카드 옆 이동 버튼 (§18) — TopBar chevron 과 **같은 핸들러**를 내려보낸다.
+              두 경로의 동작이 갈리면 §18.6(비활성 규칙 동일)이 깨지므로 로직을 복제하지 않는다.
+            */
+            onPrevious={handlePrevious}
+            onNextCard={handleNextCard}
+            /* 전체 첫 카드에서는 카드 좌 버튼을 그리지 않는다 (`S2R-OPEN-16`) — 그 경로는 TopBar 몫이다. */
+            canGoPrevious={previousIsCard}
+            nextBlocked={currentCardBlocked}
+            nextDisabled={isLastCardStep && onLastCard}
             missingRequired={wizard.missingRequired}
             {...(announcement === undefined ? {} : { announcement })}
           />

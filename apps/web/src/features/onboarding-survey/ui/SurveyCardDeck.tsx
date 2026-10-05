@@ -20,7 +20,7 @@
  * - `prefers-reduced-motion` 은 슬라이드만 없애고 **대기는 유지**한다 (`SwipeDeck.css` 가 모션을
  *   끄므로 이 파일은 대기만 관리한다).
  */
-import { SwipeDeck } from '@haru/ui';
+import { Icon, IconButton, SwipeDeck } from '@haru/ui';
 import { useCallback, useEffect, useRef } from 'react';
 import type { OnboardingDraftAnswers, OnboardingInstrument } from '@haru/contracts';
 
@@ -56,6 +56,21 @@ export interface SurveyCardDeckProps {
    */
   onAdvanceStep: () => void;
   /**
+   * 카드 옆 이동 버튼의 핸들러 — **TopBar chevron 과 같은 함수**다 (§18.6 · `§11.23`).
+   * 덱이 자체 로직을 갖지 않는 이유: 두 경로가 갈리는 순간 비활성 규칙과 단계 전환이 어긋난다.
+   */
+  onPrevious: () => void;
+  onNextCard: () => void;
+  /**
+   * 카드 좌 버튼을 그릴지 (`S2R-OPEN-16`). 전체 첫 카드에서는 `false` 다 — 거기에서의 뒤로
+   * 가기는 설문 **밖**으로 나가는 동작이고, 카드에 붙은 `<` 는 "카드 사이 이동" 으로 읽힌다.
+   */
+  canGoPrevious: boolean;
+  /** 현재 카드가 필수 미응답 — 전진이 막힌다. `aria-disabled` + dim (`S2R-OPEN-15`). */
+  nextBlocked: boolean;
+  /** 덱 전체의 마지막 카드 — native `disabled` (§18.6). */
+  nextDisabled: boolean;
+  /**
    * 카드 전환을 알리는 문구 — `{단계 제목} · {n} of N` (§14.3 · §15).
    * `SwipeDeck` 의 `aria-live` 영역이 이 값을 읽는다. 라이브 영역을 두 개 두지 않는다.
    */
@@ -71,6 +86,11 @@ export function SurveyCardDeck({
   index,
   onIndexChange,
   onAdvanceStep,
+  onPrevious,
+  onNextCard,
+  canGoPrevious,
+  nextBlocked,
+  nextDisabled,
   missingRequired,
   announcement,
 }: SurveyCardDeckProps) {
@@ -217,7 +237,7 @@ export function SurveyCardDeck({
   }
 
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} className="haru-survey-deck">
       <SwipeDeck
         items={cards}
         index={index}
@@ -231,7 +251,59 @@ export function SurveyCardDeck({
         }
         /* 이전/다음 버튼은 TopBar 에 있다 (Figma `179:1772`/`179:1775`). 덱 안에 중복 배치하지 않는다. */
         controls="none"
+        /*
+          제스처를 **래퍼에서** 듣게 한다. 아래 카드 옆 이동 버튼이 카드 모서리에 반씩 걸쳐
+          있어서(§18.2) 기본 설정(앞 카드가 제스처 표면)이면 그 44px 띠에서 시작한 끌기를
+          버튼이 삼킨다 — 사용자 지시("카드 스와이프 동작은 그대로 두고")가 깨진다.
+          래퍼는 카드와 버튼을 **모두** 포함하므로 둘 다 산다: 움직이면 제스처, 제자리에서
+          떼면 버튼 클릭 (`SwipeDeck` 의 `SWIPE_SLOP_PX` 규칙 그대로 — `QA-2-001`).
+        */
+        gestureSurfaceRef={containerRef}
       />
+
+      {/*
+        카드 옆 이동 버튼 — Design Spec §18 (Figma `256:1226` · `256:1230`).
+
+        **기능을 더하는 것이 아니라 이미 있는 경로를 카드 옆에 한 번 더 그린다** (§18.0).
+        그래서 세 가지를 지킨다.
+        - `<SwipeDeck>` 의 **다음 형제**다 → `z-index` 선언 없이 DOM 순서로 카드 위에 칠해진다 (§18.4).
+        - 포인터 전용 보조 어포던스다 → `aria-hidden` + `tabIndex={-1}`. 접근성 트리의 이전/다음은
+          TopBar 1쌍뿐이다 (§18.7 — WCAG 3.2.4 는 같은 기능에 같은 라벨을 요구하므로 라벨을
+          다르게 해서 2쌍을 노출하는 것은 오답이다). `aria-hidden` 만 주면 axe `aria-hidden-focus` 위반이다.
+        - 라벨·핸들러·비활성 규칙이 TopBar 와 **같다** (§18.6). 문구도 기존 것을 그대로 쓴다.
+
+        위치는 `onboarding.css` 가 소유한다 — 세로는 **앞 카드 중앙**이고 고정 offset 이 아니다 (§18.3).
+      */}
+      {canGoPrevious ? (
+        <div className="haru-survey-deck__nav haru-survey-deck__nav--prev">
+          <IconButton
+            icon={<Icon name="chevron-left" decorative />}
+            label={copy.prevQuestion}
+            variant="glass"
+            aria-hidden="true"
+            tabIndex={-1}
+            onPress={onPrevious}
+          />
+        </div>
+      ) : null}
+
+      <div className="haru-survey-deck__nav haru-survey-deck__nav--next">
+        <IconButton
+          icon={<Icon name="chevron-right" decorative />}
+          label={copy.nextQuestion}
+          variant="glass"
+          aria-hidden="true"
+          tabIndex={-1}
+          /*
+            필수 미응답은 native `disabled` 가 아니라 `aria-disabled` 다 (결정 D-3 · §3.2) —
+            포커스를 잃으면 "왜 누를 수 없는지" 를 읽을 수 없다. 시각적 dim 은 `onboarding.css`
+            가 **이 버튼에만** 준다 (`S2R-OPEN-15`).
+          */
+          aria-disabled={nextBlocked ? true : undefined}
+          disabled={nextDisabled}
+          onPress={onNextCard}
+        />
+      </div>
     </div>
   );
 }

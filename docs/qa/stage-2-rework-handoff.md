@@ -808,3 +808,220 @@ pnpm test:e2e        PASS — **140 passed / 0 failed** (단독 실행)
 ## D-9. `BACKEND_INTEGRATION_PENDING` 추가 항목
 
 - **언어 환경은 선택 필드다.** 서버는 `child_info.languageEnvironment` 의 **빈 배열을 거부하지 않아야** 하며, `.min(1)` 제약을 넣지 않는다. 미선택 기본값(`DEFAULT_LANGUAGE_ENVIRONMENT = ['english']`)은 **보내는 쪽이 채운다** — 서버가 또 채우면 사용자의 명시적 해제를 덮어쓴다. Stage 8 `DATA_REQUIREMENTS.md` 기록 대상.
+
+---
+
+# E. 설문 카드 좌우 이동 버튼 + `S2-FIX-4` (2026-10-05, development-agent)
+
+근거: `docs/decisions/stage-3-approvals.md` **§11.23**(결정 정본) · `docs/design/stage-2-onboarding-rework-design-spec.md` **§18**(구현 명세).
+**기능 추가가 아니다.** TopBar `<` `>` 는 이미 동작했고(실측 `3/15 → 4/15 → 3/15`), 자동 전진이 없는 복수 선택·입력 카드에서 그 경로가 카드에서 멀어 보이지 않았다 — **발견 가능성**을 고친 변경이다.
+
+## E-1. 구현한 항목
+
+| ID | 내용 | 결과 |
+|---|---|---|
+| §18 | 카드 좌우 이동 버튼 — 기존 `IconButton variant="glass"` · TopBar 와 **같은 핸들러**(`handlePrevious`·`handleNextCard`) | 구현 |
+| §18.2 | 가로 = 버튼 **중심이 카드 세로 모서리** | 56개 상태 실측 **편차 0.0px** |
+| §18.3 | 세로 = **앞 카드 중앙** (덱 peek 보정 포함) | 카드 높이 213~712 전 구간 **편차 0.0px** |
+| §18.7 | 카드 버튼은 포인터 전용 — `aria-hidden="true"` + `tabIndex={-1}` | 구현 (Tab 30회 실주행 검증) |
+| `S2-FIX-4` | TopBar leading 라벨 판정을 **통산 번호**로 교체 | 구현 |
+| `S2R-OPEN-16` | 전체 첫 카드에서 카드 좌 버튼 **미렌더** | 구현 |
+| `S2R-OPEN-15` | 필수 미응답 시 다음 버튼 dim — **카드 버튼에만** 가둠 | 구현 |
+
+**신규 토큰 0건 · 신규 문구 0건 · `packages/ui` 변경 0건 · `SwipeDeck.tsx`/`SwipeDeck.css` 미수정 · `z-index` 선언 0건 · 신규 `overflow`/`clip-path`/`contain` 0건.**
+
+## E-2. 변경 파일
+
+| 파일 | 변경 |
+|---|---|
+| `apps/web/src/features/onboarding-survey/ui/SurveyCardDeck.tsx` | 래퍼에 `haru-survey-deck` + `<SwipeDeck>` **다음 형제**로 `IconButton` 2개. 핸들러·비활성 플래그는 전부 prop |
+| `apps/web/src/features/onboarding-survey/ui/OnboardingWizard.tsx` | `previousIsCard`(통산 번호 판정) 파생 → TopBar leading 라벨 + 덱 prop. 핸들러 **복제 0건** |
+| `apps/web/src/features/onboarding-survey/onboarding.css` | `.haru-survey-deck` · `.haru-survey-deck__nav{,--prev,--next}` + `aria-disabled` dim (이 버튼으로 한정) |
+| `e2e/onboarding.spec.ts` | 회귀 7종 추가 + 기존 4건의 `Go back` → `Previous question` (= `S2-FIX-4` 의 직접 결과) + 드래그 시작점 조정 1건 |
+
+## E-3. `S2-FIX-4` — 원인
+
+`cardIndex` 는 **단계 안의 번호**다. 2·3·4 카드 단계의 첫 카드에서 `cardIndex === 0` 이라 라벨이 `Go back` 이 되지만, `handlePrevious` 는 `previousStep` + `requestReturnTo` 로 **이전 단계의 마지막 카드**로 간다 — 16장 중 3장에서 라벨과 동작이 어긋났다 (WCAG 2.4.6).
+수정: 판정을 통산 번호(`globalIndex`, 1-based)로 바꿔 `onCardStep && globalIndex > 1` 이면 `Previous question`. **조건 1줄 · 신규 문구 0건.** 같은 값이 카드 좌 버튼 렌더 조건(`S2R-OPEN-16`)이기도 해서 두 경로가 갈릴 수 없다.
+
+## E-4. `S2R-OPEN-15` — 영향 범위 조사와 격리
+
+`IconButton.css` 의 `:disabled` 규칙에 `[aria-disabled='true']` 를 더하는 방식은 **번진다**. 조사 결과 현재 `aria-disabled` 를 쓰는 `IconButton` 은 1곳이지만 그 1곳이 **같은 화면의 TopBar trailing chevron**(`OnboardingWizard.tsx`)이고, 공유 규칙이므로 앞으로 생기는 모든 `aria-disabled` IconButton 에 자동 적용된다 (`Chip`·`Button` 은 각자 규칙이라 무관).
+→ 승인된 §3.2 동작(TopBar 는 시각 변화 없음)을 바꾸게 되므로 **카드 버튼에만 가뒀다**:
+
+```css
+.haru-survey-deck__nav .haru-icon-button[aria-disabled='true']:not(:disabled) {
+  opacity: var(--opacity-disabled);
+  cursor: default;
+}
+```
+
+`IconButton` 은 `className` 을 받지 않으므로(`NativeButtonProps` 의 Omit 목록) 버튼마다 래퍼 `div` 를 두고 그 안쪽만 겨냥했다. **native `disabled` 로 바꾸지 않았다** — 포커스를 잃으면 사유를 읽을 수 없다 (결정 D-3). `pointer-events` 도 막지 않는다 (누름을 막는 것은 `handleNextCard` 의 조기 반환이다).
+실측: 필수 미응답 카드에서 카드 우 버튼 `opacity` **0.5**, 그 외 **1**. 같은 화면 TopBar chevron 은 변화 없음.
+
+## E-5. 실측 (Playwright, 4개 폭 × 전 카드 = 56개 상태)
+
+| 항목 | 결과 |
+|---|---|
+| 세로 중앙 편차 (버튼 중심 − 앞 카드 중심) | **전부 0.0px** |
+| 가로 편차 (버튼 중심 − 카드 세로 모서리) | **전부 0.0px** |
+| 덱 래퍼 높이 − 앞 카드 높이 | **전부 32.0px** (= `(--deck-depth − 1) × --deck-peek-y`, 보정이 실제로 작동) |
+| 카드 높이 범위 | **213 ~ 712** (최단 = favorites 선택 0건, 최장 = 320px 역량 문항) |
+| 320px 버튼 bbox | 좌 `[5, 43]` · 우 `[277, 315]` — 뷰포트(0~320) 안, 가로 스크롤 0 |
+| 600px(앱 컬럼 480 중앙 정렬) | 좌 `[65, 103]` · 우 `[497, 535]` — 컬럼과 함께 이동 |
+
+**명세 수치와의 차이(보고)**: Design Spec §5.3 의 카드 높이 분포는 `235 ~ 638` 이나 실측은 `213 ~ 712` 다. 세로 중앙 규칙은 전 구간에서 성립하므로 구현에 영향은 없고, **고정 offset(251)이면 깨진다는 §18.3 의 결론은 더 강해진다**(최단 카드가 235 가 아니라 213 이다).
+
+## E-6. 회귀 테스트 7종 — **수정 전 FAIL 확인 포함**
+
+| # | 테스트 | 수정 전 | 수정 후 |
+|---|---|---|---|
+| 1 | Q3(복수 선택)·favorites 카드에서 **카드 우 버튼으로 전진** | **FAIL** (버튼 없음) | PASS |
+| 2 | 카드 좌 버튼으로 **이전 카드** | **FAIL** (버튼 없음) | PASS |
+| 3 | 전체 첫 카드에 **좌 버튼 없음**(우 버튼은 있음, TopBar `Go back` 은 있음) | **FAIL** — `locator('.haru-survey-deck__nav--next .haru-icon-button')` Expected 1 / Received 0 | PASS |
+| 4 | 2·3·4 단계 첫 카드의 TopBar leading = **`Previous question`** | **FAIL** — `/onboarding/books-and-interests` 에서 `Previous question` not found (= `Go back` 이었다) | PASS |
+| 5 | 카드 버튼이 **탭 순서에 없고**(Tab 30회 실주행) **AT 에 없다** | **FAIL** (버튼 없음) | PASS |
+| 6 | **최단(213)·최장(626~712) 카드 모두** 버튼이 카드 세로 중앙 ±2px, 카드 안 | **FAIL** (버튼 없음) | PASS |
+| 7 | 320px 에서 뷰포트 밖 X, 옵션 행과 교차 X | **FAIL** (버튼 없음) | PASS |
+
+1·3·4 는 지시대로 **수정 전 FAIL 을 실제로 확인**했다 (3·4 는 위 표의 단언 메시지가 증거다).
+
+## E-7. 검증 (**8/8 PASS**)
+
+```
+pnpm typecheck       PASS
+pnpm lint            PASS (0 problems)
+pnpm test            PASS — Test Files 101 / Tests 1103
+pnpm lint:boundaries PASS — no dependency violations (460 modules, 1544 deps)
+pnpm build           PASS
+pnpm format:check    PASS
+pnpm assert:no-mocks PASS
+pnpm test:e2e        PASS — **154 passed / 0 failed** (단독 실행, 기존 147 + 신규 7)
+```
+
+## E-8. baseline
+
+**재생성한 baseline 0건. 실패한 baseline 0건.**
+설문 5종(`s2-deck-reading-together` · `s2-deck-books-q3` · `s2-deck-books-favorites` · `s2-deck-growing-together` · `s2-deck-capability`)은 `main` **영역 클립**이라 버튼의 바깥 절반이 클립 밖으로 나가고, 남는 안쪽 절반은 74% 흰 glass 가 흰 카드 위에 놓여 색차가 거의 없다. 실측 diff는 **6~12px** 로 `REGION_SNAPSHOT` 허용치(`maxDiffPixels` 20)를 넘지 않아 **전부 PASS** 했다.
+⚠ 그러나 **baseline 이미지에는 새 버튼이 보이지 않는다** (육안 대조 확인). 지시대로 재생성하지 않았으며, 재촬영 여부는 사용자·QA 판단 대상이다.
+
+## E-9. 새로 발견한 문제 (보고 — 임의 처리하지 않음)
+
+1. **카드 모서리 세로 중앙 44px 에서 시작한 스와이프가 동작하지 않았다.** → **§F 에서 해결**(사용자 결정 2026-10-05 "스와이프를 살린다"). 임시로 e2e 시작점을 옮겼던 것은 **되돌렸다**.
+2. **Design Spec §5.3 의 카드 높이 분포(235~638)가 실측(213~712)과 다르다** (E-5).
+3. **axe 가 이 저장소의 e2e 에 연결되어 있지 않다.** `aria-hidden-focus` 는 자동 검사 대상이 아니라서, `aria-hidden` + `tabIndex=-1` 동시 적용과 Tab 실주행을 회귀 테스트로 직접 고정했다.
+
+## E-10. `BACKEND_INTEGRATION_PENDING` 추가 항목
+
+**없음.** §18 · `S2-FIX-4` · `S2R-OPEN-15` · `S2R-OPEN-16` 은 전부 Frontend 표현 계층이며 contract·Mock 변경이 0건이다.
+
+
+---
+
+# F. 카드 버튼 위에서 시작한 스와이프 복구 (2026-10-05, development-agent)
+
+사용자 결정 2026-10-05: **"스와이프를 살린다"** · **"baseline 을 재촬영한다"**.
+근거: 사용자 지시 원문이 *"지금 **카드 스와이프 동작은 그대로 두고**, 버튼을 두어서…"* 이므로, 버튼이 카드 모서리 44px 띠의 제스처를 삼킨 것은 **지시 위반**이다.
+
+재현 (수정 전):
+
+| 시작점 | 결과 |
+|---|---|
+| 모서리 안쪽 −10px (버튼 히트 한가운데) | `6/15 → 6/15` ⛔ |
+| 모서리 −20px | `6/15 → 6/15` ⛔ |
+| 모서리 −60px · 카드 중앙 | `6/15 → 7/15` ✅ |
+
+## F-1. 고른 방식 — `SwipeDeck` 에 `gestureSurfaceRef` 를 연다
+
+```tsx
+// SurveyCardDeck.tsx
+<SwipeDeck … gestureSurfaceRef={containerRef} />
+```
+
+덱이 제스처를 **앞 카드가 아니라 `.haru-survey-deck` 래퍼**에서 듣는다. 래퍼는 카드와 버튼을 **모두** 포함하므로, 버튼 위에서 시작한 포인터도 덱의 제스처 경로를 그대로 탄다.
+
+판정 규칙은 **새로 만들지 않았다** — `SwipeDeck` 이 `QA-2-001` 에서 이미 쓰던 `SWIPE_SLOP_PX`(8) 규칙을 그대로 쓴다:
+
+| 포인터 | 결과 |
+|---|---|
+| 8px 넘게 **움직임** | 덱이 캡처 → **스와이프**. 캡처 때문에 click 은 래퍼로 리타깃되어 버튼이 눌리지 않는다 |
+| **제자리**에서 뗌 | 캡처 없음 → native **click 이 버튼에** 간다 |
+
+### 왜 이 방식인가 (검토한 대안과 트레이드오프)
+
+| 대안 | 기각 이유 |
+|---|---|
+| 버튼을 **앞 카드 안**으로 옮긴다 (`controls="overlay"`) | 앞 카드가 드래그 `transform` 을 받으므로 **버튼이 드래그를 따라 도망간다** — §18.4 "드래그 추종 없음" 위반 |
+| 버튼을 **스택 안**으로 옮긴다 | 앞 카드가 `z-index: 1` 이라 버튼이 카드 **뒤로** 깔린다 → `z-index` 신규 선언 필요, §18.4 "z-index 0건" 위반 |
+| 버튼에 `pointer-events: none` | 클릭도 같이 죽는다 |
+| 합성 `PointerEvent` 를 앞 카드로 재전달 | `setPointerCapture` 와 pointerId 수명에 기대는 취약한 구현 |
+| 제스처 로직을 `SurveyCardDeck` 에 복제 | 임계값·방향·애니메이션이 두 벌이 된다 (명시 금지) |
+
+**트레이드오프 (기록)**
+- 제스처 표면이 카드 → 래퍼로 넓어졌다. 즉 **뒤 카드 peek 띠(아래 32px)와 버튼 바깥 절반**에서도 끌기가 시작된다. 카드에 붙은 영역이라 의도와 어긋나지 않지만, 제스처 **면적이 늘어난 것은 사실**이다.
+- 끌기 뒤의 click 리타깃 대상이 앞 카드 → 래퍼로 바뀌었다. 래퍼는 카드 안 모든 컨트롤의 **조상**이므로 `QA-2-001` 보호는 동일하거나 더 넓다.
+- `SwipeDeck` prop 이 1개 늘었다. **기본 경로(prop 미지정)는 코드 경로가 그대로**다.
+
+## F-2. `SwipeDeck.tsx` — 바꾼 것 / 안 바꾼 것
+
+**열었다.** `SwipeDeck.css` 는 **열지 않았다** (diff 0건, `overflow` 선언 여전히 0건 → `QA-1-L1` 유지).
+
+| 바꾼 것 | 내용 |
+|---|---|
+| prop 추가 | `gestureSurfaceRef?: RefObject<HTMLElement \| null>` (optional — 비파괴적) |
+| 핸들러 시그니처 | `event.currentTarget` 대신 **`surface` 를 인자로** 받는다 (`beginPress`/`trackPress`/`endDrag`). 로직 본문은 동일 |
+| 등록 방식 | `gestureSurfaceRef` 가 있으면 surface 에 native 리스너, 없으면 **기존처럼 앞 카드의 React 핸들러**. 두 경로가 **같은 함수**를 쓴다 (로직 1벌) |
+
+| 안 바꾼 것 |
+|---|
+| `SWIPE_THRESHOLD_RATIO`(0.25) · `SWIPE_THRESHOLD_MIN_PX`(48) · `OVERSCROLL_DAMPING`(4) · `SWIPE_SLOP_PX`(8) |
+| 방향 판정 · exit 애니메이션 · `prefers-reduced-motion` 분기 · `advance()` |
+| 키보드 경로 · `KEY_OWNING_SELECTOR` · `aria-live` · 뒤 카드 렌더 · `controls` |
+| `SwipeDeck.css` (diff 0건) |
+
+`onboarding.css` 에는 `touch-action: pan-y` 1줄을 `.haru-survey-deck` 에 더했다 — 앞 카드와 **같은 값**이라 카드 위 터치 동작은 바뀌지 않고, 버튼 위 터치만 제스처로 인정된다.
+
+## F-3. 회귀 테스트 5종 — 수정 전 FAIL 확인 포함
+
+| # | 테스트 | 수정 전 | 수정 후 |
+|---|---|---|---|
+| 1 | **모서리 −10px(버튼 히트 한가운데)에서 끌면 스와이프** | **FAIL** (`Expected 7 / Received 6`) | PASS |
+| 2 | 모서리 **−20px** 에서 끌면 스와이프 (되돌린 기존 테스트 + 신규 동일 케이스) | **FAIL** (`Expected 7 / Received 6`) | PASS |
+| 3 | 버튼을 **제자리에서** 누르면 클릭 (다음·이전 둘 다) | PASS (이미 동작) | PASS |
+| 4 | 카드 **안** 라디오·체크박스·텍스트 입력·`Add` 버튼 클릭 (`QA-2-001` 가드) | PASS | PASS |
+| 5 | **터치(CDP)** — −10px 에서 밀면 스와이프, 제자리 탭은 클릭 | **FAIL** (`Expected 7 / Received 6`) | PASS |
+
+**★ 기존 테스트 되돌림**: `마우스로 끌면 제스처는 그대로 동작한다` 의 시작점을 **−60px → −20px 으로 복구**했다. 앞 라운드에서 시작점을 옮겨 통과시킨 것은 회귀를 테스트 조정으로 가린 처리였고, 철회한다.
+
+## F-4. baseline 재촬영
+
+`pnpm test:e2e:update`(기본 모드 `changed`)로는 **1건도 갱신되지 않았다** — 기존 baseline 이 허용치(diff 6~12px < 20) 안이라 "실패"가 아니기 때문이다. 그래서 해당 5건에 한해 `--update-snapshots=all` 로 강제 재촬영했다.
+
+재촬영: `s2-deck-reading-together` · `s2-deck-books-q3` · `s2-deck-books-favorites` · `s2-deck-growing-together` · `s2-deck-capability` (**5건**).
+
+**육안 확인 결과: 버튼이 보인다** — 다만 **안쪽 절반만** 보인다. 영역 클립이 `page.locator('main')` 인데 `main` 은 `AppColumn` 의 gutter **안쪽**(= 카드 폭 345)이라, §18.8 이 정리한 대로 버튼의 바깥 절반(gutter 19px)은 구조적으로 클립 밖이다.
+
+**판단: 클립 범위를 바꾸지 않는다.**
+1. `page.locator('main')` 은 §11.2 영역 클립 12건이 공유하는 규약이다. 5건만 바꾸면 "영역 클립" 의 정의가 조용히 갈라진다.
+2. baseline 이 **더 이상 낡지 않았다** — 버튼의 존재·세로 위치·모서리 정렬이 이미 이미지에 기록된다 (최단 카드 `s2-deck-books-favorites` 에서도 세로 중앙에 보인다).
+3. 클립이 빠뜨리는 바깥 절반의 기하는 **수치 회귀 테스트**(중심 편차 0.0px · 320/393/480/600 뷰포트 포함)가 스크린샷보다 강하게 고정하고 있다.
+4. `AppColumn` 으로 넓히면 5건에만 페이지 배경 그라디언트가 들어와 flake 면적이 커진다.
+
+## F-5. 검증 (**8/8 PASS**)
+
+```
+pnpm typecheck       PASS
+pnpm lint            PASS (0 problems)
+pnpm test            PASS — Test Files 101 / Tests 1103
+pnpm lint:boundaries PASS — no dependency violations (460 modules, 1544 deps)
+pnpm build           PASS
+pnpm format:check    PASS
+pnpm assert:no-mocks PASS
+pnpm test:e2e        PASS — **159 passed / 0 failed** (단독 실행, E 라운드 154 + 신규 5)
+```
+
+## F-6. 회귀 가드 확인
+
+- **`QA-2-001` 회귀 없음** — 카드 안 라디오·체크박스·텍스트 입력·`Add` 버튼 마우스 클릭이 전부 동작한다 (전용 테스트 + 기존 `마우스 클릭으로 덱 안 라디오를 선택하고 다시 해제한다` · `대조군` · 터치 탭 전부 PASS). 캡처는 여전히 `SWIPE_SLOP_PX` 이후에만 건다.
+- **`QA-1-L1` 회귀 없음** — `SwipeDeck.css` **diff 0건**, `overflow` 선언 **0건**(남은 1건은 "선언이 없다"는 주석 문장). `onboarding.css` 에도 `overflow` 신규 0건.
+- 유지 확인: 버튼 배치(세로 중앙·모서리 정렬, 실측 편차 0.0px) · `S2-FIX-4` · `S2R-OPEN-15` 격리 · `S2R-OPEN-16` · `aria-hidden`+`tabIndex=-1` · 신규 토큰 0건 · 신규 문구 0건 · 자동 전진/`visited`/포커스/`requestReturnTo` 미변경.

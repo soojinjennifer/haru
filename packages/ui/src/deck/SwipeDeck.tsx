@@ -4,6 +4,7 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  type RefObject,
 } from 'react';
 
 import { IconButton } from '../button/IconButton';
@@ -38,9 +39,33 @@ export interface SwipeDeckProps<TItem> {
   statusLabel?: string;
   depth?: SwipeDeckDepth;
   controls?: SwipeDeckControls;
+  /**
+   * 제스처를 듣는 요소. **기본은 앞 카드**이고, 그 경우 이 prop 을 주지 않는다.
+   *
+   * 앞 카드 위에 **겹쳐 둔 보조 컨트롤**(예: 카드 모서리에 반씩 걸친 이전/다음 버튼)이 있으면
+   * 그 컨트롤이 `pointerdown` 을 가져가 카드의 제스처가 시작되지 않는다. 카드와 그 컨트롤을
+   * **모두 포함하는** 요소의 ref 를 넘기면 덱이 그 요소에서 포인터를 듣는다.
+   *
+   * 제스처 규격(임계값·방향·애니메이션)은 그대로다. 컨트롤의 클릭도 그대로 산다 — 덱은
+   * `SWIPE_SLOP_PX` 를 넘기 전에는 포인터를 **캡처하지 않기** 때문이다 (`QA-2-001` 과 같은
+   * 규칙): 움직이면 제스처, 제자리에서 떼면 클릭이다.
+   *
+   * 이 요소에는 앞 카드와 같은 `touch-action: pan-y` 가 필요하다 (소비자 CSS 책임).
+   */
+  gestureSurfaceRef?: RefObject<HTMLElement | null>;
 }
 
 type Direction = 'next' | 'prev';
+
+/**
+ * 핸들러가 실제로 쓰는 포인터 속성만. React 합성 이벤트와 native `PointerEvent` 가 **둘 다**
+ * 만족하므로 기본 경로(앞 카드의 React 핸들러)와 `gestureSurfaceRef` 경로(native 리스너)가
+ * 같은 코드를 쓴다 — 제스처 로직이 두 벌 생기지 않는다.
+ */
+type PointerLike = Pick<
+  PointerEvent,
+  'pointerType' | 'button' | 'buttons' | 'clientX' | 'pointerId'
+>;
 
 /** 스와이프 확정 임계 — 카드 폭의 25%, 최소 48px. 미만이면 원위치로 되돌아온다 (§4.2 `returning`). */
 const SWIPE_THRESHOLD_RATIO = 0.25;
@@ -92,6 +117,7 @@ export function SwipeDeck<TItem>({
   statusLabel,
   depth = 3,
   controls = 'inline',
+  gestureSurfaceRef,
 }: SwipeDeckProps<TItem>) {
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -146,17 +172,17 @@ export function SwipeDeck<TItem>({
     setExit({ direction, target });
   }
 
-  function onPointerDown(event: ReactPointerEvent<HTMLDivElement>): void {
+  function beginPress(surface: HTMLElement, event: PointerLike): void {
     if (busy || total <= 1) return;
     if (event.pointerType === 'mouse' && event.button !== 0) return;
 
     startXRef.current = event.clientX;
-    widthRef.current = event.currentTarget.getBoundingClientRect().width;
+    widthRef.current = surface.getBoundingClientRect().width;
     pressedPointerRef.current = event.pointerId;
     // 여기서 캡처하지 않는다 (`SWIPE_SLOP_PX` 주석 — 카드 안 컨트롤의 클릭을 지키기 위해).
   }
 
-  function onPointerMove(event: ReactPointerEvent<HTMLDivElement>): void {
+  function trackPress(surface: HTMLElement, event: PointerLike): void {
     if (pressedPointerRef.current !== event.pointerId) return;
     // 캡처가 없는 구간에서 버튼을 떼고 카드 밖에서 놓으면 pointerup 이 오지 않는다. 마우스는
     // pointerId 가 재사용되므로 버튼을 뗀 이동으로 그 상태를 정리한다. (touch·pen 은 암묵적
@@ -174,21 +200,21 @@ export function SwipeDeck<TItem>({
       // 끌기 뒤의 click 은 카드로 리타깃되어 카드 안 컨트롤을 실수로 누르지 않는다.
       draggingRef.current = true;
       setDragging(true);
-      event.currentTarget.setPointerCapture?.(event.pointerId);
+      surface.setPointerCapture?.(event.pointerId);
     }
 
     const blocked = (raw < 0 && !canNext) || (raw > 0 && !canPrev);
     setDragX(blocked ? raw / OVERSCROLL_DAMPING : raw);
   }
 
-  function endDrag(event: ReactPointerEvent<HTMLDivElement>): void {
+  function endDrag(surface: HTMLElement, event: PointerLike): void {
     if (pressedPointerRef.current === event.pointerId) pressedPointerRef.current = null;
     // 끌지 않았다면 평범한 클릭·탭이다. 아무것도 소비하지 않는다.
     if (!draggingRef.current) return;
     draggingRef.current = false;
     setDragging(false);
-    if (event.currentTarget.hasPointerCapture?.(event.pointerId) === true) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
+    if (surface.hasPointerCapture?.(event.pointerId) === true) {
+      surface.releasePointerCapture(event.pointerId);
     }
 
     const threshold = Math.max(widthRef.current * SWIPE_THRESHOLD_RATIO, SWIPE_THRESHOLD_MIN_PX);
@@ -198,6 +224,45 @@ export function SwipeDeck<TItem>({
     if (travelled <= -threshold && canNext) advance('next');
     else if (travelled >= threshold && canPrev) advance('prev');
   }
+
+  /*
+    `gestureSurfaceRef` 가 있으면 제스처를 **그 요소에서** 듣는다 (카드 위에 겹친 컨트롤까지
+    포함하기 위해). 그 요소는 앞 카드의 조상이므로 카드에서 시작한 포인터도 bubbling 으로
+    여기에 온다 — 그래서 이때 앞 카드에는 React 핸들러를 **달지 않는다**(이중 처리 방지).
+    등록 방식은 키보드와 같은 ref + native listener 다 (앞 카드는 index 마다 교체되지만
+    surface 는 수명이 길다).
+  */
+  const gestureRef = useRef({ beginPress, trackPress, endDrag });
+  useEffect(() => {
+    gestureRef.current = { beginPress, trackPress, endDrag };
+  });
+
+  useEffect(() => {
+    const surface = gestureSurfaceRef?.current ?? null;
+    if (surface === null) return undefined;
+
+    const down = (event: PointerEvent): void => {
+      gestureRef.current.beginPress(surface, event);
+    };
+    const move = (event: PointerEvent): void => {
+      gestureRef.current.trackPress(surface, event);
+    };
+    const end = (event: PointerEvent): void => {
+      gestureRef.current.endDrag(surface, event);
+    };
+
+    surface.addEventListener('pointerdown', down);
+    surface.addEventListener('pointermove', move);
+    surface.addEventListener('pointerup', end);
+    surface.addEventListener('pointercancel', end);
+
+    return () => {
+      surface.removeEventListener('pointerdown', down);
+      surface.removeEventListener('pointermove', move);
+      surface.removeEventListener('pointerup', end);
+      surface.removeEventListener('pointercancel', end);
+    };
+  }, [gestureSurfaceRef]);
 
   // 키보드 등록은 JSX 핸들러가 아니라 ref + native listener 로 한다.
   // `role="group"` 컨테이너에 핸들러를 직접 달면 비인터랙티브 요소에 조작을 붙이는 형태가 된다.
@@ -232,6 +297,25 @@ export function SwipeDeck<TItem>({
     (_unused, offset) => offset + 1,
   );
 
+  /** 기본 경로 — 앞 카드가 제스처 표면이다. `gestureSurfaceRef` 가 그 역할을 맡으면 비운다. */
+  const frontCardPointerProps =
+    gestureSurfaceRef === undefined
+      ? {
+          onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => {
+            beginPress(event.currentTarget, event);
+          },
+          onPointerMove: (event: ReactPointerEvent<HTMLDivElement>) => {
+            trackPress(event.currentTarget, event);
+          },
+          onPointerUp: (event: ReactPointerEvent<HTMLDivElement>) => {
+            endDrag(event.currentTarget, event);
+          },
+          onPointerCancel: (event: ReactPointerEvent<HTMLDivElement>) => {
+            endDrag(event.currentTarget, event);
+          },
+        }
+      : {};
+
   return (
     <section
       ref={deckRef}
@@ -264,10 +348,7 @@ export function SwipeDeck<TItem>({
             /* 드래그 오프셋은 디자인 값이 아니라 포인터 위치다 (토큰 대상 아님). */
             style={dragX === 0 ? undefined : { ['--deck-drag-x' as string]: `${String(dragX)}px` }}
             inert={busy}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={endDrag}
-            onPointerCancel={endDrag}
+            {...frontCardPointerProps}
           >
             {renderItem(current, index)}
           </div>
