@@ -1,17 +1,27 @@
 /*
  * HARU Design Tokens — Tier 2 Semantic · Radius
- * 기준: Stage 1 Design Spec §3.2.3 (radius 6단계) · §3.5 흡수표
+ * 기준: Stage 1 Design Spec §3.2.3 · §3.5 흡수표
+ *
+ * **radius 7단계** — Stage 0 `#10-②`("6단계 고정")은 `L-OPEN-09` 결정으로 개정되었다
+ * (`docs/decisions/stage-3-approvals.md` §17.3, Library Design Spec §5.5).
  *
  * 의존 방향: Semantic 은 리터럴 Figma 값만 갖는다 (Primitive 에 radius tier 가 없다).
  * Tailwind 노출: `--radius-*` 네임스페이스 → `@theme` (rounded-card, rounded-pill …).
  *
- * 흡수: Checkbox 7 · 차트 막대 8 → control(8) / Input Line_1 20 · InfoRow 20 · 리포트 24 →
- *       surface(22) / Survey intro 카드 26 · 30 · 32 → card(28) (§3.5, §13.2 ④).
+ * 흡수: Checkbox 7 · 차트 막대 8 · Book List 썸네일 7 → control(8) / Input Line_1 20 ·
+ *       InfoRow 20 · 리포트 24 → surface(22) / Survey intro 카드 26 · 30 · 32 → card(28)
+ *       (§3.5, §13.2 ④).
+ *
+ * **흡수하지 않는 것**: 표지 radius **10**(`ReadingNowCard` 64×90 · Home 카드 58×82)은 8(Δ−2)·
+ * 12(Δ+2) 동점이라 흡수 근거가 없고 현재 정확히 10 으로 렌더되고 있다. Tier 3
+ * `--book-cover-radius-xl: 10px` 가 그 값을 소유한다 (Library Design Spec §5.5).
  */
 
 @theme static {
   --radius-indicator: 4px; /* Figma `88:785` */
   --radius-control: 8px;
+  /* Figma 캐러셀 표지 107×151 `113:1972` — 8(Δ−4)·16(Δ+4) 동점이라 흡수가 성립하지 않는다 */
+  --radius-media: 12px;
   --radius-field: 16px; /* Figma `corner radius/16` */
   --radius-surface: 22px;
   --radius-card: 28px; /* Figma `17:33` --radius-card */

@@ -140,17 +140,24 @@ describe('빌드 산출물 — CSS Variable export (AC-1-11)', () => {
     // (`--carousel-shadow-inset` · `--carousel-shadow-inset-block-end`).
     // Visual Gap 3차 결정(approvals §13)으로 2종 추가 → 132
     // (`--home-chip-icon-color` `A-23`-icon · `--bubble-content-max-lines` `W-5`).
-    expect(manifest.counts['component']).toBe(132);
+    // Library 1라운드에서 19종 추가 · 1종 제거 → 150 (Library Design Spec §5.2 `LT-3`~`LT-14`
+    // + §8.1 inset 레시피 2종. 제거는 `--activity-card-cover-radius` — 간격 토큰 오용을
+    // `--book-cover-radius-xl` 로 통합했고 **값 10 은 그대로**라 렌더 변화가 0 이다).
+    expect(manifest.counts['component']).toBe(150);
     // 2026-09-22 가값 승인 (stage-1-approvals §9) 후 남은 항목 = P-01 · P-02 · P-04 · P-05 · P-16.
     // Stage 3 에서 P-23(--color-prompt-tag-fg) 신설 (stage-3-approvals §9.2 ⑫).
+    // Library 1라운드: **P-05 해제**(scrim 이 Figma 실측값이 되었다 — `L-NEW-09`) ·
+    // **P-24 신설**(`--color-fg-tertiary` = ink-400, §20.4).
     expect(Object.keys(manifest.provisionalByItem).sort()).toEqual([
       'P-01',
       'P-02',
       'P-04',
-      'P-05',
       'P-16',
       'P-23',
+      'P-24',
     ]);
-    expect(manifest.counts['provisional']).toBe(42);
+    // 42 − 1 — `--color-scrim` 의 주석이 사라졌다. `--color-fg-tertiary` 는 P-01 → P-24 로
+    // **소속만** 바뀌어 총 개수에 영향이 없다.
+    expect(manifest.counts['provisional']).toBe(41);
   });
 });

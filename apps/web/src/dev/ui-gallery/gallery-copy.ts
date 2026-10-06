@@ -121,6 +121,26 @@ export const galleryCopy = {
     textLinkExternalHint: 'Opens in a new tab',
   },
 
+  /** Library 1라운드 토대 (Library Design Spec §3.1 · §3.5 · §4.1). */
+  stage3Library: {
+    sectionCurated: 'Our curated shelf',
+    sectionFavorites: 'Favorites',
+    sectionFinished: 'Finished together',
+    sectionReadingNow: 'Reading now',
+    seeAll: 'See all',
+    readingNowMeta: '3 of 5 nights',
+    coverTitle: 'The Most Magnificent Idea',
+    coverAuthor: 'Ashley Spires',
+    coverPlaceholderNote:
+      'No cover art here — the placeholder shows title initials and carries no label.',
+    listLabel: 'Sample book list',
+    rowMeta: '3 sessions · finished Apr 2',
+    rowRating: 'Rated 4.5',
+    rowUnratedTitle: 'Grumpy Monkey: Play All Day',
+    rowMetaUnrated: '1 session · finished Mar 28',
+    rowEntryTitle: 'Add a book you own',
+  },
+
   a11y: {
     focusTourTitle: 'Focus order',
     touchTargetTitle: 'Touch targets',

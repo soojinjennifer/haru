@@ -11,9 +11,9 @@ import {
 } from '../common/index.js';
 
 describe('Error Code Catalogue (API_CONTRACTS §1.2)', () => {
-  it('코드는 28 종이고 중복이 없다', () => {
-    expect(ERROR_CODES).toHaveLength(28);
-    expect(new Set(ERROR_CODES).size).toBe(28);
+  it('코드는 29 종이고 중복이 없다', () => {
+    expect(ERROR_CODES).toHaveLength(29);
+    expect(new Set(ERROR_CODES).size).toBe(29);
   });
 
   it('TRIAL_ACCOUNT_RESTRICTED 가 없다 (C-12 — 익명 Trial 계정 미채택)', () => {
@@ -28,7 +28,7 @@ describe('Error Code Catalogue (API_CONTRACTS §1.2)', () => {
       expect(status).toBeGreaterThanOrEqual(400);
       expect(status).toBeLessThan(600);
     }
-    expect(Object.keys(ERROR_CODE_HTTP_STATUS)).toHaveLength(28);
+    expect(Object.keys(ERROR_CODE_HTTP_STATUS)).toHaveLength(29);
   });
 
   it('대표 코드의 status 가 문서 표와 일치한다', () => {

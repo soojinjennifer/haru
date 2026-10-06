@@ -1,16 +1,27 @@
 /*
- * ListGroup / ListRow — Stage 2 Design Spec §4.3 (Figma `163:2145` 실측)
+ * ListGroup / ListRow — Stage 2 Design Spec §4.3 (Figma `163:2145`)
+ *                       + Library Design Spec §3.4 · §3.5 (Figma `30:140` · `30:141` 실측)
  *
  * 좌우 여백(16)은 그룹이 갖고 행은 세로 여백만 갖는다. 구분선은 행 사이에만 1px.
  * 행 높이는 최소값만 정하고 고정하지 않는다 (텍스트 200% reflow — §10).
+ *
+ * ── 기본값 정규화 (`L-NEW-06` · `L-NEW-07`, `stage-3-approvals.md` §20.2 · §20.3) ──
+ * Stage 2 는 Figma symbol `163:2145` 에 컨테이너가 없어 면·그림자·제목 타이포를 **추정**했다.
+ * 실근거는 화면 사본 `30:140` / `30:141` 에 있고 값이 다르다:
+ *   면      90% (`--color-surface-strong`)  → **74% (`--color-surface-glass`)** `get_variable_defs`
+ *   그림자  3겹 (`--shadow-glass-rest`)     → **1겹 (`--shadow-bubble`)**        Effect Style 인스턴스
+ *   제목    13 (`--text-footnote`)          → **15 (`--text-subheadline`)**      원문 `text-[14px]`
+ * 사용자가 "지금 함께 정규화" 를 택했으므로 **변형을 만들지 않고 기본값을 고친다**
+ * (그래서 Library 전용 `tone="glass"` · `titleVariant` 가 불필요해진다).
+ * 파급: Settings(`SettingsMenu`) · 온보딩 즐겨찾는 책 목록(`FavoriteBooksCard`) · dev gallery.
  */
 
 .haru-list-group {
   box-sizing: border-box;
   padding-inline: var(--space-4);
   border-radius: var(--radius-surface);
-  background-color: var(--color-surface-strong);
-  box-shadow: var(--shadow-glass-rest);
+  background-color: var(--color-surface-glass);
+  box-shadow: var(--shadow-bubble);
   backdrop-filter: blur(var(--material-blur-md));
 }
 
@@ -72,8 +83,8 @@
 
 .haru-list-row__title {
   font-family: var(--font-sans);
-  font-size: var(--text-footnote);
-  line-height: var(--text-footnote--line-height);
+  font-size: var(--text-subheadline);
+  line-height: var(--text-subheadline--line-height);
   font-weight: var(--font-weight-semibold);
   color: var(--color-fg-primary);
 }
@@ -92,6 +103,64 @@
   align-items: center;
   /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
   color: var(--color-fg-secondary);
+}
+
+/* ===== media 슬롯 — Library Design Spec §3.5 (Figma `30:141` 썸네일 34×48) ==========
+ * 행 높이 74 = padding 13·13(→12 흡수) + 썸네일 48. **최소값**이며 내용이 늘면 커진다
+ * (`AD-S3-17`). media 가 없는 행은 그대로 56 이다. */
+
+.haru-list-row__media {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.haru-list-row--media .haru-list-row__content {
+  min-block-size: var(--book-list-row-height-min);
+}
+
+/*
+ * 제목 1줄 고정 — Figma 가 1줄로 그린다. 320px 에서 메타 2열이 겹치지 않게 **제목만** 줄인다
+ * (`stage-3-approvals.md` §20.2 — "평점은 줄이지 않는다").
+ *
+ * `R-SHADOW-1` 근거 주석: 이 `overflow` 는 **텍스트 말줄임 전용 클립**이고 상자 안에 그림자
+ * 요소가 없다 (텍스트 노드뿐이다). `.haru-text--truncate-1` 과 같은 범주이며 스크롤
+ * 컨테이너를 만들지 않는다 → 그림자 inset 설계가 필요하지 않다.
+ */
+.haru-list-row--media .haru-list-row__title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== meta 슬롯 — 보조 1행의 **우측** 값 (`Rated 4.5`) ========================
+ * 좌측 메타와 같은 줄에서 `space-between` 으로 양끝 정렬한다. `meta` 가 없으면 이 래퍼를
+ * 만들지 않으므로 기존 `subtitle` 전용 행의 DOM·레이아웃이 그대로다. */
+
+.haru-list-row__meta-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+/*
+ * 좁은 폭에서는 **좌측 메타가 줄바꿈**한다 — 말줄임하지 않는다.
+ * `stage-3-approvals.md` §20.2 는 "제목만 말줄임 · 평점은 줄이지 않는다" 를 정했고, 좌측 메타의
+ * `{n} sessions · finished {date}` 를 잘라내면 **날짜 정보가 사라진다**. 행 높이는 최소값이라
+ * 늘어나도 된다 (`AD-S3-17` — 최소 74, 내용에 따라 증가).
+ */
+.haru-list-row__meta-row .haru-list-row__subtitle {
+  min-inline-size: 0;
+}
+
+.haru-list-row__meta {
+  flex: 0 0 auto;
+  font-family: var(--font-sans);
+  /* provisional: P-24 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-tertiary);
 }
 
 /* ===== hover / pressed =================================================== */

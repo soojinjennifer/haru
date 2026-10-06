@@ -1,5 +1,5 @@
 /**
- * `MockLibraryApi` — `★ Save` Mock 계약 (`docs/API_CONTRACTS.md` §3.7, approvals §12.8 · §12.10).
+ * `MockLibraryApi` — 서재 Mock 계약 (`docs/API_CONTRACTS.md` §3.7 + Library Plan §7.5 · §8).
  *
  * 검증하는 것
  *  - **contracts parse**: 요청·응답 양쪽이 schema 를 통과한다 (`rules/architecture.md` §4).
@@ -9,7 +9,14 @@
  *  - **결정성**: 같은 key 를 두 번 불러도 같은 응답 바이트다.
  *  - **Privacy**: 요청 로그에 아동 데이터 키가 없다.
  */
-import { SavedBookSchema } from '@haru/contracts';
+import {
+  GiftRequestListResponseSchema,
+  GiftRequestSchema,
+  LibraryBookSchema,
+  LibraryListResponseSchema,
+  LibraryOverviewSchema,
+  SavedBookSchema,
+} from '@haru/contracts';
 import { describe, expect, it } from 'vitest';
 
 import { createImmediateTimer, isHaruApiError } from '../../shared/api/helpers';
@@ -39,15 +46,253 @@ function libraryApi(scenario: string) {
 }
 
 describe('scenario 목록 (API_CONTRACTS §5.4 catalogue)', () => {
-  it('공통 4종 + offline + `book-saved` 다 — `empty` 는 없다 (상태 설정이라 빈 결과가 없다)', () => {
+  /*
+   * Library 1라운드에서 **`empty` 가 들어온다** — 저장/해제만 있던 시절에는 "빈 결과" 가
+   * 없었지만(상태 설정), 이제 이 그룹이 서재 **목록 조회**를 함께 다룬다 (Plan §8.1).
+   * `favorites-empty` 가 특히 중요하다 — **저장 전 기본 상태**이고 가장 흔한 실제 상태다.
+   */
+  it('공통 5종 + offline + Library 특화 12종이다', () => {
     expect([...LIBRARY_SCENARIO_KEYS]).toStrictEqual([
       'success',
       'loading',
+      'empty',
       'error',
       'retry',
       'offline',
+      'favorites-empty',
+      'finished-empty',
+      'curated-empty',
+      'reading-now-none',
+      'shelf-partial',
+      'unrated',
+      'user-entered-book',
+      'gift-pending',
+      'gift-duplicate',
+      'paged',
       'book-saved',
+      'unsave',
     ]);
+  });
+});
+
+describe('overview — 화면 1회 조회 (P3-BIP-18)', () => {
+  it('`success` 는 4섹션을 채워 돌려주고 schema 를 통과한다', async () => {
+    const { api } = libraryApi('success');
+    const overview = await api.getOverview({ childId: CHILD_ID });
+
+    expect(LibraryOverviewSchema.safeParse(overview).success).toBe(true);
+    expect(overview.sections.map((section) => section.key)).toStrictEqual([
+      'curated',
+      'favorites',
+      'finished',
+    ]);
+    expect(overview.readingNow).not.toBeNull();
+  });
+
+  it('캐러셀이 3-up × 3페이지를 그릴 수 있다 (dots 는 `ceil(items / 3)` 파생)', async () => {
+    const { api } = libraryApi('success');
+    const overview = await api.getOverview({ childId: CHILD_ID });
+    const curated = overview.sections.find((section) => section.key === 'curated');
+
+    expect(curated?.items).toHaveLength(9);
+  });
+
+  it('`reading-now-none` 은 `readingNow` 를 비운다 (블록 미렌더 경로)', async () => {
+    const { api } = libraryApi('reading-now-none');
+    const overview = await api.getOverview({ childId: CHILD_ID });
+
+    expect(overview.readingNow).toBeNull();
+    // 나머지 섹션은 그대로 남는다 — "섹션은 사라지지 않는다".
+    expect(overview.sections).toHaveLength(3);
+  });
+
+  it('⭐ `favorites-empty` 는 Favorites 만 0건이다 (저장 전 기본 상태)', async () => {
+    const { api } = libraryApi('favorites-empty');
+    const overview = await api.getOverview({ childId: CHILD_ID });
+    const byKey = new Map(overview.sections.map((section) => [section.key, section.items.length]));
+
+    expect(byKey.get('favorites')).toBe(0);
+    expect(byKey.get('curated')).toBeGreaterThan(0);
+    expect(byKey.get('finished')).toBeGreaterThan(0);
+  });
+
+  it.each([
+    ['finished-empty', 'finished'],
+    ['curated-empty', 'curated'],
+  ] as const)('`%s` 는 %s 만 0건이다', async (scenario, key) => {
+    const { api } = libraryApi(scenario);
+    const overview = await api.getOverview({ childId: CHILD_ID });
+    const byKey = new Map(overview.sections.map((section) => [section.key, section.items.length]));
+
+    expect(byKey.get(key)).toBe(0);
+    expect([...byKey.values()].filter((count) => count > 0).length).toBeGreaterThan(0);
+  });
+
+  it('`empty` 는 전체 0건이다 — 3섹션 안내가 동시에 뜬다', async () => {
+    const { api } = libraryApi('empty');
+    const overview = await api.getOverview({ childId: CHILD_ID });
+
+    expect(overview.readingNow).toBeNull();
+    expect(overview.sections.every((section) => section.items.length === 0)).toBe(true);
+  });
+
+  it('`shelf-partial` 은 캐러셀 1권이다 (Figma 에 없는 상태)', async () => {
+    const { api } = libraryApi('shelf-partial');
+    const overview = await api.getOverview({ childId: CHILD_ID });
+
+    expect(overview.sections.find((section) => section.key === 'curated')?.items).toHaveLength(1);
+  });
+
+  it('`unrated` 는 평점을 비운다 (행 우측 메타 비움 — L-OPEN-22)', async () => {
+    const { api } = libraryApi('unrated');
+    const overview = await api.getOverview({ childId: CHILD_ID });
+    const finished = overview.sections.find((section) => section.key === 'finished');
+
+    expect(finished?.items.every((item) => item.averageRating === null)).toBe(true);
+  });
+
+  it('`user-entered-book` 은 `book: null` + 제목만 있는 행을 섞는다', async () => {
+    const { api } = libraryApi('user-entered-book');
+    const overview = await api.getOverview({ childId: CHILD_ID });
+    const finished = overview.sections.find((section) => section.key === 'finished');
+    const entered = finished?.items.find((item) => item.book === null);
+
+    expect(entered?.userEnteredTitle).not.toBeUndefined();
+  });
+
+  it('`gift-pending` 은 증정 대기 행을 섞는다 (상태는 표식이 아니라 데이터다)', async () => {
+    const { api } = libraryApi('gift-pending');
+    const overview = await api.getOverview({ childId: CHILD_ID });
+    const finished = overview.sections.find((section) => section.key === 'finished');
+
+    expect(finished?.items.some((item) => item.ownership === 'gift_pending')).toBe(true);
+  });
+
+  it('진행률은 서버 값이다 — fixture 가 `progressRatio` 를 직접 담는다', async () => {
+    const { api } = libraryApi('success');
+    const overview = await api.getOverview({ childId: CHILD_ID });
+
+    expect(overview.readingNow?.readingProgress?.progressRatio).toBe(0.552);
+    expect(overview.readingNow?.readingProgress?.plannedNights).toBe(5);
+  });
+
+  it('두 번 불러도 응답 바이트가 같다 (결정성 — 주입 clock 상대 오프셋)', async () => {
+    const first = await libraryApi('success').api.getOverview({ childId: CHILD_ID });
+    const second = await libraryApi('success').api.getOverview({ childId: CHILD_ID });
+
+    expect(JSON.stringify(second)).toBe(JSON.stringify(first));
+  });
+
+  it('`error` 는 Error Envelope 을 던지고 `offline` 은 네트워크 오류다', async () => {
+    await expect(libraryApi('error').api.getOverview({ childId: CHILD_ID })).rejects.toSatisfy(
+      (error: unknown) => isHaruApiError(error) && error.code === 'INTERNAL_ERROR',
+    );
+    await expect(libraryApi('offline').api.getOverview({ childId: CHILD_ID })).rejects.toSatisfy(
+      (error: unknown) => !isHaruApiError(error),
+    );
+  });
+
+  it('`retry` 는 1회차만 실패한다', async () => {
+    const { api } = libraryApi('retry');
+    await expect(api.getOverview({ childId: CHILD_ID })).rejects.toBeDefined();
+
+    expect((await api.getOverview({ childId: CHILD_ID })).sections).toHaveLength(3);
+  });
+});
+
+describe('목록 — "See all" · 더 보기 (L-OPEN-21)', () => {
+  it('요청 query 가 contracts schema 를 통과하고 limit 기본값이 채워진다', async () => {
+    const { api, requestLog } = libraryApi('success');
+    const page = await api.getList({ childId: CHILD_ID, query: { filter: 'saved' } });
+
+    expect(LibraryListResponseSchema.safeParse(page).success).toBe(true);
+    expect(requestLog.entries().at(-1)?.payload).toMatchObject({ filter: 'saved', limit: 20 });
+  });
+
+  it('잘못된 filter 는 요청 단계에서 거부된다 (contracts error)', async () => {
+    const { api } = libraryApi('success');
+
+    await expect(
+      // @ts-expect-error — 잘못된 filter 를 **런타임에서** 거부하는지 보는 테스트다.
+      api.getList({ childId: CHILD_ID, query: { filter: 'nope' } }),
+    ).rejects.toBeDefined();
+  });
+
+  it('`paged` 는 `nextCursor` 를 주고 2페이지에서 끝난다', async () => {
+    const { api } = libraryApi('paged');
+    const first = await api.getList({ childId: CHILD_ID, query: { filter: 'curated' } });
+
+    expect(first.nextCursor).not.toBeNull();
+
+    const second = await api.getList({
+      childId: CHILD_ID,
+      query: { filter: 'curated', cursor: first.nextCursor ?? '' },
+    });
+
+    expect(second.nextCursor).toBeNull();
+    expect(second.items.length).toBeGreaterThan(0);
+  });
+
+  it('쿼리 축과 표시 축이 1:1 이 아니다 — `saved` 는 Favorites 를 돌려준다', async () => {
+    const { api } = libraryApi('success');
+    const page = await api.getList({ childId: CHILD_ID, query: { filter: 'saved' } });
+
+    expect(page.items.every((item) => item.saved)).toBe(true);
+  });
+});
+
+describe('직접 등록 (FR-23) · 증정 (FR-22)', () => {
+  const mutation = { idempotencyKey: '88888888-8888-4888-8888-888888888888' };
+
+  it('bookId 로 등록하면 `LibraryBook` 이 돌아온다', async () => {
+    const { api } = libraryApi('success');
+    const added = await api.addOwnBook(
+      { childId: CHILD_ID, body: { target: { bookId: BOOK } } },
+      mutation,
+    );
+
+    expect(LibraryBookSchema.safeParse(added).success).toBe(true);
+    expect(added.source).toBe('library_add');
+  });
+
+  it('제목만으로 등록하면 `book: null` + `userEnteredTitle` 이다', async () => {
+    const { api } = libraryApi('success');
+    const added = await api.addOwnBook(
+      { childId: CHILD_ID, body: { target: { title: 'Moonbeam' } } },
+      mutation,
+    );
+
+    expect(added.book).toBeNull();
+    expect(added.userEnteredTitle).toBe('Moonbeam');
+  });
+
+  it('증정 목록이 schema 를 통과한다', async () => {
+    const { api } = libraryApi('success');
+    const page = await api.getGiftRequests({ childId: CHILD_ID });
+
+    expect(GiftRequestListResponseSchema.safeParse(page).success).toBe(true);
+    expect(page.items.length).toBeGreaterThan(0);
+  });
+
+  it('증정 신청은 `requested` 로 시작한다', async () => {
+    const { api } = libraryApi('success');
+    const created = await api.createGiftRequest(
+      { childId: CHILD_ID, body: { bookId: BOOK } },
+      mutation,
+    );
+
+    expect(GiftRequestSchema.safeParse(created).success).toBe(true);
+    expect(created.status).toBe('requested');
+  });
+
+  it('`gift-duplicate` 는 `GIFT_REQUEST_DUPLICATE` 다', async () => {
+    const { api } = libraryApi('gift-duplicate');
+
+    await expect(
+      api.createGiftRequest({ childId: CHILD_ID, body: { bookId: BOOK } }, mutation),
+    ).rejects.toSatisfy(
+      (error: unknown) => isHaruApiError(error) && error.code === 'GIFT_REQUEST_DUPLICATE',
+    );
   });
 });
 
@@ -186,14 +431,29 @@ describe('Privacy — 요청 로그', () => {
     expect(JSON.stringify(requestLog.entries())).not.toContain(CHILD_ID);
   });
 
-  it('두 endpoint 가 모두 기록된다', async () => {
+  it('모든 endpoint 가 기록된다', async () => {
     const { api, requestLog } = libraryApi('success');
+    await api.getOverview({ childId: CHILD_ID });
+    await api.getList({ childId: CHILD_ID, query: { filter: 'saved' } });
+    await api.getGiftRequests({ childId: CHILD_ID });
     await api.saveBook({ childId: CHILD_ID, body: { target: { bookId: BOOK } } });
     await api.unsaveBook({ childId: CHILD_ID, bookId: BOOK });
 
     expect(requestLog.entries().map((entry) => entry.operation)).toStrictEqual([
+      'GET /v1/children/:childId/library/overview',
+      'GET /v1/children/:childId/library',
+      'GET /v1/children/:childId/gift-requests',
       'PUT /v1/children/:childId/saved-books',
       'DELETE /v1/children/:childId/saved-books/:bookId',
     ]);
+  });
+
+  it('읽기 호출에도 `childId` 가 payload 로 새지 않는다', async () => {
+    const { api, requestLog } = libraryApi('success');
+    await api.getOverview({ childId: CHILD_ID });
+    await api.getList({ childId: CHILD_ID, query: { filter: 'history' } });
+
+    expect(findChildDataKeys(requestLog.entries())).toStrictEqual([]);
+    expect(JSON.stringify(requestLog.entries())).not.toContain(CHILD_ID);
   });
 });

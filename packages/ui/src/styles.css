@@ -46,6 +46,7 @@
 @import './dialog/Dialog.css';
 @import './deck/SwipeDeck.css';
 @import './list/List.css';
+@import './section/SectionHeader.css';
 @import './list/InfoRow.css';
 @import './divider/DividerWithLabel.css';
 @import './link/TextLink.css';

@@ -1124,3 +1124,312 @@ Figma 를 택한 결과 PRD 에 없는 요구가 확정됐다. **`D-24` 절차**
 | 320px | 표지 3-up 이 성립하지 않는다 (3×107=321 > content 272). 비례 축소안이 `RECOMMENDED` 로 올라와 있다 |
 | 진입점 | `/library/add` · `/library/gift-requests` 진입점이 Figma 에 **없다** → `C-13` 절차 (현행 `LibraryFooterActions` 는 Figma 근거 없는 명세) |
 | 상태 화면 | Loading/Skeleton · Empty · Error/Offline/Retry 가 Figma 에 없다 → `#22` 에 따라 **명세 우선** 권고 |
+
+## 16. Library 미결 항목 결정 — 1차 (2026-10-06, user)
+
+`docs/plans/stage-3-library-plan.md` 가 올린 `L-OPEN-01`~`22` 중 **4건**이 결정됐다.
+
+| ID | 항목 | 결정 | 권고와 일치 |
+|---|---|---|---|
+| **`L-OPEN-01`** | 기준 화면 합성 | **L-1 기준 + `Reading now` 합성** | ✅ |
+| **`L-OPEN-12`** | `/library/add` · `/library/gift-requests` 진입점 | **design-agent 가 명세한다** (`C-13` ②) | ✅ |
+| **`L-OPEN-18`** | `averageRating` 집계 범위 | **우리 아이 평점만** (자기 아이가 세션에서 남긴 평점의 평균) | ✅ |
+| **`L-OPEN-06`** | 시트 scrim 값 | **Figma 값(`rgba(0,0,0,0.34)`)으로 전역 교체** | ❌ 권고는 "현행 유지" |
+
+### 16.1 `L-OPEN-01` — 섹션 순서 확정
+
+**`Reading now` → `Our curated shelf` → `Favorites` → `Finished together`**
+
+근거(plan-agent 실측): L-1 의 세 섹션 위에 `Reading now` 블록(20 + 16 + 118 = 154, 다음 간격 16 → **+170**)을 얹으면
+**L-2 content 자식의 실측 y 8개(`0/36/170/206/438/474/706/742`)가 전부 일치**한다.
+즉 합성은 창작이 아니라 **L-2 의 기하에 L-1 의 라벨(`Favorites`)·"See all" 집합·4행 목록을 둔 것**이다.
+
+- content `x=24 w=345 y=66` · 제목 행 h40 · Frame15 @y56 h **1039**(869+170) · Frame15→탭바 **32** · 섹션 간격 전부 **16**
+- 세 섹션 모두 **"See all" 을 가진다** (L-1 기준 — `163:1626`·`163:1634`·`145:680`)
+- `My Saved`(L-2 `145:1156`) 는 **채택하지 않는다** (`L-D1` 이 `Favorites` 를 택했다)
+- 허용 차이 신규 등록 대상: `AD-L-01`(Reading now 추가) · `AD-L-02`(My Saved 미채택) · `AD-L-03`(슬롯 3·5 See all 유지) · `AD-L-04`(목록 4행) · `AD-L-05`(L-3 미사용) — **등록은 design-agent 가 spec 에 반영한 뒤**
+
+### 16.2 `L-OPEN-12` — 진입점은 design-agent 명세
+
+- Figma L-1~L-3 **어디에도 버튼·링크가 없다**. `FR-22`(증정 요청)·`FR-23`(책 추가)는 **PRD P0** 이므로 디자이너 판을 기다리면 **Stage 3 완료가 막힌다**
+- **`C-13` ② 를 택한다** — design-agent 가 명세하고, 나중에 디자이너 Figma 가 도착하면 그것에 맞춘다
+- 현행 spec 의 `LibraryFooterActions`(`design-spec.md:386`)는 **Figma 근거가 없는 명세**임이 확인됐다. 이 결정으로 **명세로서 정당화되지만**, 형태는 design-agent 가 다시 설계한다
+
+### 16.3 `L-OPEN-18` — 평점은 "우리 아이 평점만"
+
+- **전체 사용자 평균을 쓰지 않는다.** 카탈로그 전역 평균은 다른 가정과의 비교를 끌어들여 `rules/frontend.md` §8(진단·판정·비교 표현 금지)과 충돌한다
+- Backend 요구(`P3-BIP-16`)에 **모집단 = 해당 Child 의 세션 평점으로 한정**을 명시한다. 표본 최소치·소수 자리·null 처리는 여전히 Backend 결정 대기
+- `averageRating: null`(unrated)이면 meta 를 비우고 좌측 정렬을 유지한다 (`L-OPEN-22` 권고 — 별도 확정 필요)
+
+### 16.4 `L-OPEN-06` — scrim 전역 교체 (영향이 Library 밖으로 나간다)
+
+**사용자가 Orchestrator 권고("현행 유지")를 기각하고 Figma 값을 택했다.** 최우선 규칙에 일관된 선택이다.
+
+- `--color-scrim` 을 현행 `#29293a3b`(불투명도 .231) → **Figma 실측 `rgba(0,0,0,0.34)`** 로 교체한다. 블러 없음
+- ⚠️ **영향 범위가 Library 를 넘는다**: **Stage 2·3 의 기존 Sheet 5종이 전부 어두워진다**. Library 전용 토큰으로 분리하지 않는다(같은 역할에 두 값이 공존하는 것을 피한다)
+- **따라오는 작업**:
+  1. 해당 5종의 **시각 baseline 재검증·재생성** — `R-BASELINE-1` ⑤ 에 따라 diff 를 원인별로 분해하고 **scrim 외의 변화가 섞이면 멈춘다**
+  2. scrim 위 라벨 **대비 재확인** — 어두워지면 대비는 올라가므로 기존 가값(`P-03`·`P-11`)이 완화될 수 있다. 완화되면 가값 목록을 갱신한다
+  3. 색이 `#29293a`(남색 기운) → `#000000`(순검정)으로 **색조도 바뀐다**. 단순 불투명도 조정이 아님을 기록한다
+
+## 17. Library 미결 항목 결정 — 2차 (2026-10-06, user)
+
+| ID | 항목 | 결정 | 권고와 일치 |
+|---|---|---|---|
+| **`L-OPEN-14`** | 보유·증정(`ownership`) 표식 | **구분 표식 없이 간다** | ❌ 권고는 "design-agent 명세" |
+| **`L-OPEN-03`** | "See all" 시트 ActionBar (`type=shelf`) | **Figma 대로 포함** (`AD-S3-19` 철회) | ✅ |
+| **`L-OPEN-09`** | `--radius-media: 12px` | **신설** (radius 6단계 → **7단계**) | ✅ |
+| **`L-OPEN-07`** | `Finished together` 목록 상자 면·그림자 | **Figma 대로** (74% + `--shadow-bubble`) | ✅ |
+
+### 17.1 `L-OPEN-14` — 구분 표식을 만들지 않는다
+
+**사용자가 Orchacestrator 권고를 기각했다.** Figma 에 없는 UI 를 만들지 않는 쪽(최우선 규칙 #2)을 택한 것이다.
+
+- 화면의 표시 축은 **`curated` / `favorites` / `finished` 3개뿐**이다. `owned` / `gifted` 구분은 **목록에 표식으로 드러내지 않는다**
+- **따라오는 영향**: 사용자는 목록에서 **증정받은 책과 직접 보유한 책을 구별할 수 없다**. 이것은 수용된 결과다
+- `D-7` 의 "보유책 · 증정책" 중 **표시 측면은 범위에서 빠진다**. 단 **`FR-22` 증정 요청 기능 자체는 `/library/gift-requests` 화면으로 유지**된다 (`L-OPEN-12` 로 design-agent 명세) — 표식이 없다는 것과 기능이 없다는 것은 다르다
+- Contract 의 `BookOwnershipSchema` 는 **그대로 둔다** (데이터는 존재하고, 표시만 하지 않는다). 나중에 표식이 필요해지면 토큰·컴포넌트만 추가하면 된다
+
+### 17.2 `L-OPEN-03` — 시트 ActionBar 를 Figma 대로 넣는다
+
+- Figma `163:1898`(`Prompt Card/Home` 변형 `type=shelf`)에 **헤더 + Book List + `Button/card`(★ Save + Start Session)** 가 실재하고, **L-3 에 실제 인스턴스**가 있다
+- 현행 `design-spec.md:758` 의 "폐기" 처리와 `AD-S3-19`(ActionBar 제거)는 **Figma 에 있는 것을 빼는** 건이었다 → **`AD-S3-19` 철회**
+- ⚠️ 시트의 `Start Session` 도 **`D-3` 에 따라 비활성(`aria-disabled`)** 이다 (approvals §13.10 — 실제 세션 시작은 Stage 4). Home 카드와 동일하게 처리한다
+- `★ Save` 는 Home 과 같은 `SaveButton` 을 쓴다 (`G-14` 저장 상태 포함)
+
+### 17.3 `L-OPEN-09` — `--radius-media: 12px` 신설 (Stage 0 `#10-②` 변경)
+
+- Figma 표지 radius 가 **7 / 10 / 12** 3종인데 현행 스케일은 8 다음이 16 이다. **12 는 8(Δ−4)·16(Δ+4) 어느 쪽으로도 동점**이라 자동 흡수가 성립하지 않는다
+- **radius 스케일을 6단계 → 7단계로 확장**한다. Stage 0 `#10-②`("radius 6단계 고정")를 이 결정으로 **개정**한다
+- 7 / 10 의 처리(별도 토큰인지 `--radius-media` 로 흡수인지)는 design-agent 가 실측 근거로 제안한다
+
+### 17.4 `L-OPEN-07` — 목록 상자를 Figma 대로 (⚠️ `R-SHADOW-1` 재산정 필수)
+
+- Figma: 면 **74%** + **`--shadow-bubble`**(1겹) ↔ 현행 `ListGroup`: 90% + `--shadow-glass-rest`(3겹)
+- **Figma 를 따른다.** `ListGroup` 에 `tone="glass"` 류 변형을 추가하되, 기존 사용처의 외형은 바꾸지 않는다
+- ⚠️ **그림자 번짐이 3겹 → 1겹으로 줄어든다**: 아래 **77 → 약 10**. `.claude/rules/frontend.md` `R-SHADOW-1` ③ 에 따라 **추정하지 말고 픽셀 프로브로 실측**해 inset 을 다시 산정한다
+- 이 변경은 Home 의 트랙 inset(상 24 / 하 80)과 **무관하다** — Home 카드는 여전히 3겹 `--shadow-glass-rest` 다. **두 값을 섞지 않는다**
+
+## 18. Library 미결 항목 결정 — 3차 (2026-10-06, user)
+
+### 18.1 권고 일괄 채택 8건
+
+사용자가 **"전부 권고대로"** 로 일괄 승인했다. 각 항목의 근거는 `docs/plans/stage-3-library-plan.md` §5·§6 에 있다.
+
+| ID | 결정 |
+|---|---|
+| `L-OPEN-02` | `Selected` 변형(`113:1991`) **구현하지 않는다** — 어느 화면에도 인스턴스가 없어 "Figma 에 있는 것을 빼는" 건이 아니다 |
+| `L-OPEN-05` | Book List divider 는 **모든 행 사이**에 둔다 (컴포넌트 `163:2145` 기준. 화면 사본이 2개를 잃은 것으로 보인다) |
+| `L-OPEN-11` | 320px 는 **표지 비례 축소** — content × 107/345 → 320 에서 **84.3**, 480 컬럼에서 **134**. Figma 그리드가 퍼센트 기반(35.06%/69.25%)이라는 실측 근거. **캡션 타이포는 축소하지 않는다** |
+| `L-OPEN-13` | 상태 화면(Loading/Skeleton · Empty · Error/Offline/Retry)은 **design-agent 명세** (`C-13` ② · Stage 0 `#22` 명세 우선) |
+| `L-OPEN-15` | `Favorites` 캐러셀 캡션 2행 = **`LibraryBook.capability`(역량명)**, 없으면 저자명. Figma `145:779` 가 `113:1994`(curated)와 **override 0건 동일 인스턴스**라 저장 책의 캡션을 정의하지 않는다 |
+| `L-OPEN-19` | "See all" 은 **세 섹션 모두** (L-1 기준 유지) |
+| `L-OPEN-21` | `Finished together` 는 **4행 고정 + "See all" 전체 목록**. 섹션 안 "Show more" 를 **만들지 않는다** (최우선 규칙 #2) |
+| `L-OPEN-22` | `averageRating: null`(unrated) 이면 **meta 를 비우고 좌측 정렬 유지** |
+
+### 18.2 `L-OPEN-08` · `L-OPEN-10` — 연한 회색은 Figma 유지 + 가값 등록
+
+- `--color-fg-tertiary` 를 **`--haru-ink-400`(`#9aabaa`)** 으로 재매핑한다. 현재 tertiary 가 secondary 와 **같은 `ink-500`** 이라 Figma 의 3단계 회색을 표현할 수 없고, 재매핑 없이는 화면 코드가 raw HEX 를 쓰게 되어 `rules/frontend.md` §6 위반이다
+- 이 색의 앱 배경 위 대비는 **1.56~2.23:1** 로 **WCAG AA(4.5:1) 미달**이다. 사용처: `See all` · 역량 캡션 · 행 메타 · chevron
+- **결정: Figma 값을 유지하고 가값(provisional)으로 등록한다.** 2026-09-22 `P-02` 결정("접근성 미달 값도 Figma 를 따르되 `provisional` 표시를 남겨 나중에 토큰 값만 바꾼다")과 **같은 방식**이다
+- 기존 `P-01`(`#7d9291`, 2.58:1)과 **다른 새 사례**이므로 **새 가값 ID 를 부여**한다. 토큰 정의에 `provisional` 주석을 남기고, 디자이너 확인을 병행 요청한다
+- 가값 재제시는 Stage 0 `#10-4` 절차에 따라 **항목별로** 한다
+
+### 18.3 `L-OPEN-16` · `L-OPEN-17` — 진행률은 서버가 직접 준다
+
+- Figma 진행 바 채움이 **132/239 = 55.2%** 인데 표시 문구는 **`3 of 5 nights`(60%)** 다. **산식이 일치하지 않는다**
+- **결정: 서버가 `progressRatio` 를 명시 전달하고 Frontend 는 받은 비율만 그린다.** 프론트에서 회차로 계산하지 않는다
+- **계획 회차(`plannedNights`, 위 예시의 `5`)의 출처가 PRD·Figma 어느 문서에도 없다.** 값이 없으면 **회차 문구를 생략**한다 (nullable). 그 텍스트는 **비대화형**이다
+- `P3-BIP-17` 에 다음을 Backend 요구로 명시한다: `progressRatio` 산식 · `plannedNights` 출처 · "Reading now" 대상 책 **선정 규칙**
+
+### 18.4 `L-OPEN-20` — 저장/해제 API 응답은 **현행 유지**
+
+**사용자가 plan-agent 권고(`SavedBook` → `LibraryBook` 전환)를 기각했다.**
+
+- `PUT`/`DELETE …/saved-books` 응답 타입을 **바꾸지 않는다**
+- 근거: 전환은 **Home 의 `SaveButton` 경로를 건드린다** (`MockLibraryApi`·`useToggleSavedBook`·`saved-book.test.ts`). Home 은 방금 재구현·검증을 마쳤고(커밋 `9173b2b`) 회귀 위험을 다시 들이지 않는다
+- **대가**: Library 는 저장/해제 후 **캐시를 직접 갱신하지 못하고 목록을 다시 불러와야 한다**. 이것은 수용된 결과다
+- `P3-BIP-15`(해제 표면이 생겨 `DELETE` 경로가 처음 실사용된다)는 그대로 유지된다
+
+### 18.5 `L-OPEN-04` — 오버레이는 Figma 대로 떠 있는 카드
+
+- **Figma 대로** 구현한다: **좌우 inset 14 · radius 28(전체 모서리) 의 떠 있는 카드**. 현행 `Sheet`(전폭 하단 고정)에 **변형을 추가**하며 **기존 사용처의 외형은 바꾸지 않는다**
+- **세로 앵커는 내용 높이에 맞춘다.** Figma 내부가 어긋나 있어(L-2 하단 **37** ↔ L-3 하단 **4**) 고정값을 고를 근거가 없었는데, **시트 높이가 내용에 따라 정해지고 아래 여백만 고정**이면 두 화면의 차이가 **내용 분량 차이로 설명된다**
+- 아래 여백 고정값은 design-agent 가 실측 근거로 제안한다. 두 값(37 · 4) 중 하나를 그대로 쓰는 것이 아니다
+- ⚠️ 떠 있는 카드가 되면 **그림자가 좌우·하단으로 번진다**. `R-SHADOW-1` 에 따라 **inset 과 클리핑 박스를 함께 설계**한다 — `AppColumn` 안쪽 `overflow-*` 금지 규칙의 예외는 현재 `Carousel` 1건뿐이므로, 시트가 `overflow` 를 필요로 하면 **별도 승인 대상**이다
+
+---
+
+## 19. Library 결정 완료 — `L-OPEN-01`~`22` 전건 처리 (2026-10-06)
+
+`docs/plans/stage-3-library-plan.md` 가 올린 미결 **22건 전부**가 §16·§17·§18 에서 결정됐다.
+**사용자가 Orchestrator 권고를 기각한 것은 4건**이다 (`L-OPEN-06` scrim 전역교체 · `L-OPEN-14` 표식 없이 · `L-OPEN-20` 응답 현행유지 · 그리고 §15 의 `L-D2`·`L-D3`).
+
+### 19.1 design-agent 가 받을 선행 작업 (구현 전 필수)
+
+1. **`R-SHADOW-1` inset 재산정 2건** — ① `L-OPEN-07` 목록 상자(3겹 → 1겹, 아래 77 → 약 10) ② `L-OPEN-04` 떠 있는 시트. **추정 금지, 픽셀 프로브 실측**
+2. **scrim 전역 교체의 파급** (`L-OPEN-06`) — Stage 2·3 기존 Sheet **5종** baseline 재검증. `R-BASELINE-1` ⑤ 에 따라 diff 를 원인별로 분해하고 **scrim 외 변화가 섞이면 멈춘다**
+3. **radius 7단계 개정** (`L-OPEN-09`) — Stage 0 `#10-②` 개정 반영. 7 / 10 의 처리 방식 제안
+4. **새 가값 ID 부여** (`L-OPEN-08`·`10`) — `#9aabaa` 대비 1.56~2.23:1. `P-01` 과 별개 사례
+5. **`AD-S3-*` 재정리** — `AD-S3-4` **무효 삭제**(+ `design-spec.md:383`·`:1286` 수정) · `AD-S3-6`·`AD-S3-7`·`AD-S3-8` **무효** · `AD-S3-19` **철회** · `:386` `LibraryFooterActions` 근거 보정 · 신규 `AD-L-01`~`05` 등록
+6. **`AD-S3-5` 보완** — 역량 표시 라벨이 Figma 캡션보다 길어 **11px 1줄에 안 들어간다** → 줄바꿈/말줄임 규칙 명세 필요
+
+### 19.2 PRD 수정 대상 누적 (적용은 승인 후 `D-24` 절차)
+
+| ID | 내용 |
+|---|---|
+| `LN-1` | 책 단위 평점 (PRD `FR-12` 는 세션 단위) — **"우리 아이 평점만"** 으로 범위 확정 (§16.3) |
+| `LN-2` | 다회차 읽기 진행 — `progressRatio` 는 **서버 전달**, `plannedNights` 는 **nullable** (§18.3) |
+| `LN-3` | 책 저장(favorite) 및 그 표면 `Favorites` |
+| `LN-6` | PRD §6.1:270 하단 탭이 *"서재·세션·리포트 3탭"* — 확정 구조는 Library / Home(중앙) / Progress (`#15`·`D-02`) |
+| `LN-7` | PRD §6.1:276 서재 설명에 `Favorites`·`Reading now`·평점이 없다 |
+
+`LN-4`(역량 캡션 이름) · `LN-5`(항목별 세션 시작) 는 **여전히 미결**이다.
+
+### 19.3 신규 `BACKEND_INTEGRATION_PENDING`
+
+`P3-BIP-16`(책 평점 집계 — **모집단 = 해당 Child 세션 평점으로 한정**) · `P3-BIP-17`(다회차 진행 — `progressRatio` 산식·`plannedNights` 출처·"Reading now" 선정 규칙) · `P3-BIP-18`(서재 섹션 1회 조회) · `P3-BIP-19`(표지 에셋 교체 게이트 — **Stage 8 배포 전 필수**, `L-D4`)
+
+### 19.4 ⚠️ §16.4 정정 — scrim 교체의 파급을 Orchestrator 가 잘못 적었다 (2026-10-06)
+
+§16.4 와 §19.1 ② 에 Orchestrator 가 적은 두 전제가 **사실이 아니다.** design-agent 가 지적하고 Orchestrator 가 코드로 직접 확인했다.
+
+| §16.4 의 서술 | 실제 (검증 방법) |
+|---|---|
+| *"Stage 2·3 의 기존 Sheet 5종이 전부 어두워진다"* | **그 5종은 전부 미구현이다.** `ReadingContextSheet`·`LibraryShelfSheet`·`BookDetailSheet` 파일이 존재하지 않는다 (`find` 결과 없음). `P-05` 대장의 5종은 **설계 목록**이었다 |
+| *"해당 5종의 시각 baseline 재검증·재생성"* | **재생성 대상 0건.** `e2e/visual.spec.ts` 에 `sheet`·`dialog`·`scrim` 문자열이 **0건**이다 — **열린 Sheet/Dialog/Scrim 을 담은 baseline 이 없다**. `R-BASELINE-1` ⑤ 의 적용 대상 자체가 없다 |
+| *"기존 가값 `P-03`·`P-11` 이 완화될 수 있다"* | **둘 다 scrim 과 무관하다.** `stage-0-approvals.md:104` **`P-03` = focus ring `--color-focus-ring`**(2026-09-22 확정) · `:112` **`P-11` = glass·tinted 표면 위 `text-button`(#5e7370) 4.18–4.48:1**. **scrim 의 가값은 `:106` `P-05`**("디자이너 대기") 다 |
+| *"어두워지면 대비는 올라간다"* | **반대다.** `Scrim` 은 자식 없는 `aria-hidden` 장식 레이어이고 **scrim 위에 직접 올라가는 텍스트·아이콘이 없다**. 콘텐츠는 그 위 **90% 흰 시트 면**에 있으므로, scrim 이 어두워지면 면이 미세하게 어두워져 시트 면 위 본문(`#4a5f5c`) 대비가 **6.50 → 6.29** (상단) 로 **내려간다**. AA 여유 1.6 이상 |
+
+**실제 scrim 렌더 지점** (`--color-scrim` 참조점은 `Sheet.tsx:59` · `Dialog.tsx:62` **2곳뿐**, 컴포넌트 코드 변경 0):
+`SignUpForm` `SelectTrigger` 시트 3 + `ChildInfoStep` 4 + `SettingsMenu` `ConfirmDialog` 1 = **8 인스턴스 / 2화면 + 설정**
+
+**결론**: `L-OPEN-06`(scrim 전역 교체) 결정 자체는 **유효하다.** 파급이 Orchestrator 가 적은 것보다 **작다**. 다만 **회귀 감시가 비어 있다**:
+→ `s3-sheet-scrim` · `s3-dialog-scrim` baseline **신규 추가 권고** (승인 필요 — design-agent 가 지금 추가하지 않았다)
+→ **`L-NEW-09`**: `P-05` 의 근거가 "DESIGN_TOKEN_MAP 제안" → **"Figma 실측"** 으로 바뀌므로 **가값 해제 제안**
+
+### 19.5 ⚠️ §17.4 정정 — inset 적용 위치
+
+§17.4 는 `L-OPEN-07` 의 inset 을 `Finished together` 목록 상자에 거는 것으로 읽혔으나, **적용 위치가 다르다.**
+
+- **페이지 위의 `Finished together` 목록에는 inset 이 필요 없다.** 스크롤 컨테이너가 `AppShell` 뷰포트(**앱 컬럼 바깥**, 뷰포트 전폭)라 **클립 선이 화면 밖**이다 (`R-SHADOW-1` ④)
+- **inset 이 실제로 필요한 곳은 `LibraryShelfSheet` 안**이다 — `.haru-sheet__content { overflow-y: auto }`(기존 선언)가 "See all" 전체 목록을 스크롤하면서 `ListGroup` 그림자를 자른다
+- **`L-OPEN-04` 떠 있는 시트 자신에게도 inset 이 필요 없다** — `createPortal(document.body)` + `position: fixed` 이고 조상에 `transform`/`filter`/`contain` 이 없어 `useBodyScrollLock` 의 overflow 가 fixed 를 클립하지 않는다. 393 에서 좌우 번짐 50 중 36 이 뷰포트 밖으로 나가지만 **클립 선이 화면 가장자리**라 보이지 않는다 (Figma 도 393 프레임에서 같은 양이 잘린다)
+
+**실측값** (빌드된 앱 CSS 로 측정 — `packages/design-tokens/dist/index.css` 는 `@theme static` 소스 번들이라 브라우저가 무시하므로 그 파일로 재면 `boxShadow: none` 이 나온다. **측정 함정으로 기록**):
+
+| 그림자 | 아래 | 위 | 좌우 | 비고 |
+|---|---|---|---|---|
+| `--shadow-glass-rest` (3겹) | **78** | **22** | **50** | 기록값(하 77 / 상 22)과 세로 ≤1px 일치 → **방법 검정됨** |
+| `--shadow-bubble` (1겹) | **10** | **0** | **4** | §17.4 의 "약 10" 예상 적중. 1겹이라 누락할 겹이 없다 |
+| `--shadow-cover` | 20 | 8 | 14 | 캐러셀용 |
+
+보정 레시피 실증: 보정 없으면 `overflow-y:auto` 안 자식의 아래·우측 Δ 프로파일이 **전부 0**(완전 클립), 보정(`padding: 0 4 10 4` + 음수 margin + border-box 크기 가산) 후 아래 **10** · 우측 **4** **완전 복원**.
+
+### 19.6 ⚠️ `L-NEW-08` — 기존 그림자 기록의 임계값이 섞여 있다
+
+`--shadow-glass-rest` 의 **좌우 기록 `28~32` 는 Δ≥8 기준**이고, **세로 기록 `77/22` 는 Δ≥1 기준**이다. **같은 Δ≥1 에서 좌우는 50** 이다.
+→ Home 가로 트랙의 가로 여유가 기록보다 작게 잡혀 있다. 다만 **gutter(24) bleed 로 뷰포트까지 밀어내 보이는 클립은 없다** → **즉시 결함은 아니다.**
+→ 기록을 정정하고, Home 가로 트랙 여유는 **재검토 대상**으로 남긴다. 임계값을 명시하지 않은 그림자 수치는 앞으로 쓰지 않는다.
+
+## 20. Library Plan · Design Spec 승인 + `L-NEW-*` 결정 (2026-10-06, user)
+
+### 20.1 승인
+
+- **`docs/plans/stage-3-library-plan.md` APPROVED (2026-10-06, user)**
+- **`docs/design/stage-3-library-design-spec.md` APPROVED (2026-10-06, user)**
+- 승인에 **`L-NEW-01` 표지 캐러셀 `overflow-x` 예외**가 포함된다 — `AppColumn` 안쪽 `overflow-*` 금지의 **두 번째 예외**(첫 번째는 Home 가로 트랙). 조건: ① 그림자 보호 구조(`R-SHADOW-1` ②) ② **세로·가로 양축 픽셀 프로브 회귀 테스트**(`R-SHADOW-1` ⑥) ③ 근거 주석
+- → development-agent 구현 단계로 진행한다
+
+### 20.2 `L-NEW-*` 결정
+
+| ID | 항목 | 결정 | 권고와 일치 |
+|---|---|---|---|
+| `L-NEW-02` | `ReadingNowCard` `overflow: clip` | **clip 을 걸지 않는다** — 표지 그림자를 살리고 Figma 와의 차이를 허용 차이로 등록 | ✅ |
+| **`L-NEW-06`·`L-NEW-07`** | `ListGroup`·`ListRow` **기본값**이 Figma 와 다름 | **지금 함께 정규화한다** | ❌ 권고는 "다음 라운드" |
+| `L-NEW-09` + 감시 | scrim | **감시 baseline 신규 추가 + `P-05` 가값 해제** | ✅ |
+| `L-NEW-03` | 떠 있는 시트 아래 여백 | **`calc(var(--space-3-5) + var(--layout-safe-bottom))`** = 14 + safe-area | ✅ |
+| `L-NEW-04` | `type=shelf` 하단 padding | **13 → 16** (`--activity-card-pad-bottom` 재사용, Δ+3) | ✅ |
+| `L-NEW-05` | 표지 합성 연출 | **Figma 대로** — 캐러셀 = 베이스 + 베이크된 제목 + 표지 opacity 80, Book List 썸네일 = 틸 그라데이션 + 표지 opacity 60 → `AD-L-08` | ✅ |
+| 320px | Book List 메타 2열 겹침 | **제목만 말줄임**(`min-inline-size:0` + `line-clamp:1`), **평점은 줄이지 않는다** | ✅ |
+| 문구 | 진입점·상태 화면 영어 문구 | **design-agent 제안대로** | ✅ |
+
+### 20.3 ⚠️ `L-NEW-06`·`L-NEW-07` 을 지금 고치는 것의 파급
+
+**사용자가 Orchestrator 권고("다음 라운드")를 기각하고 지금 정규화를 택했다.**
+
+원인: **Stage 2 가 Figma 실제 노드를 보지 않고 추정으로 기본값을 정했다.**
+- `L-NEW-06` `ListGroup` 기본 면·그림자 — Stage 2 가 **90% + `--shadow-glass-rest`** 를 `RECOMMENDED`("symbol 에 컨테이너가 없음")로 **추측**했는데, 실근거 `30:140` 은 **74% + 1겹**이다 (`get_variable_defs` 확인)
+- `L-NEW-07` `ListRow` 기본 title — Stage 2 가 텍스트 **높이 17** 로 `13`(`footnote`)을 추정했으나 실제 `font-size` 는 **14** 다 (`text-[14px]` 원문 확인). §3.3 흡수표는 `14 → subheadline`(15) CONFIRMED
+
+**따라오는 작업**:
+1. **Stage 2 Settings 화면의 시각 baseline 이 바뀐다.** `R-BASELINE-1` ⑤ 에 따라 **diff 를 원인별로 분해**하고, 정규화 외의 변화가 섞이면 **멈춘다**
+2. `ListGroup` 그림자가 3겹 → 1겹으로 바뀌면 **Settings 쪽 번짐도 아래 78 → 10 으로 줄어든다.** 기존에 그림자 공간을 확보해둔 곳이 있으면 함께 조정
+3. 이 정규화는 **Library 변형(`tone="glass"`)을 불필요하게 만들 수 있다** — 기본값이 Figma 와 같아지면 변형이 필요 없다. development-agent 가 판단해 보고한다
+
+### 20.4 신규 가값 `P-24` — 연한 회색 대비 (AA 미달 7 사용처)
+
+`L-OPEN-08`·`L-OPEN-10` 결정(§18.2)의 구체화다. `P-01`~`P-23` 이 전부 소비되어 **`P-24`** 를 부여한다.
+
+| 사용처 | 유효 배경 | 최악 대비 |
+|---|---|---|
+| `See all` 12px · 캐러셀 캡션 11px · `3 of 5 nights` 12px | 앱 배경 직접 | **1.56** |
+| Book List 메타 11.5px · `Rated 4.5` · chevron 15px | glass 74% 위 | 2.15 |
+| `ReadingNowCard` 메타 11.5px | strong 90% 위 | 2.30 |
+| 시트 안 Book List 메타 | 시트 90% over scrim .34 | 2.16 |
+
+**최악 1.56:1 ~ 최선 2.38:1 — 전부 AA(4.5) 및 대형 텍스트 기준(3.0) 미달.** chevron 의 비텍스트 기준(3.0) 미달도 포함한다 (단 행 전체가 버튼이고 접근성 이름이 책 제목이라 chevron 단독으로 전달하는 정보는 없다).
+토큰 정의에 `/* provisional: P-24 */` 주석 + dev gallery `provisionalItems.ts` 등재. 재제시는 Stage 0 `#10-4` 절차.
+
+### 20.5 `LN-4` 보강 — Figma 자신이 역량 이름을 일관되게 쓰지 않는다
+
+design-agent 가 이번 패스에서 새로 발견했다:
+- 캐러셀 `113:1975`/`1980`/`1985` = **`Emotion` / `Resilience` / `Confidence`**
+- **`ReadingNowCard` `145:1149` = `Self-Direction`** (= Stage 0 `#14` 의 표시 라벨 그 자체)
+
+→ `AD-S3-5`(역량 캡션을 4대 역량 표시 라벨로 교체)의 **근거가 강해진다**. `LN-4` 자체는 **여전히 미결**이다.
+
+## 21. Library 1라운드(토대) 완료 + 후속 결정 (2026-10-07)
+
+구현: `docs/qa/stage-3-library-r1-handoff.md`. Orchestrator 독립 검증 — 8개 명령 전부 통과, `test:e2e` **191 passed / 0 failed**.
+
+### 21.1 `ListGroup`·`ListRow` 변형을 만들지 않았다 (채택)
+
+`L-NEW-06`·`L-NEW-07` 정규화로 **기본값 == Library 값**이 되어 `tone="glass"`·`titleVariant` 가 가리킬 차이가 사라졌다.
+변형을 남기면 *"기본값은 틀렸고 Library 만 맞다"* 는 잘못된 전제를 코드에 고정한다. Settings·온보딩도 **같은 Figma 심볼 `163:2145`** 를 쓰므로 정규화가 그쪽에도 옳은 값이다. 가드 테스트가 변형 부활을 막는다.
+그림자 공간을 미리 확보해 둔 곳은 **없었다** (`--carousel-shadow-inset*` 은 Home 가로 트랙 전용) → 조정 불필요.
+
+### 21.2 재생성 baseline 4건 — 원인 전부 규명 (`R-BASELINE-1` ⑤·⑥ 준수)
+
+| baseline | 원인 |
+|---|---|
+| `v9-text` · `v8-color-semantic` | `LT-1` — `#7d9291` → `#9aabaa`. **Δ 29/25/25 가 색 변화와 정확히 일치** |
+| `s2-listrow` | `L-NEW-06`·`L-NEW-07`. 위쪽 그림자 소멸(glass-rest 위 22 → bubble 위 0) 포함 |
+| `s2-deck-books-favorites` | 〃 + 그림자 번짐 축소(아래 78→10, 좌우 50→4) |
+
+**`+4px` 를 추정으로 적지 않고 런타임 토글로 재현했다**: 2행 제목이 폭 100.86px 에서 2줄로 접히고 line-height 18 → 20 → `(20−18)×2 = +4`. 1·3·4행은 `min-block-size: 56` 또는 trailing(IconButton 38)이 높이를 정해 불변.
+→ **설명되지 않는 클러스터 0건.** Orchestrator 확인: **Home baseline 7종은 변경 0** (`--book-cover-radius-xl` 10 = 구 `--space-2-5` 10 → 렌더 변화 없음).
+
+신규 baseline 5건: **`s3-sheet-scrim` · `s3-dialog-scrim`**(§19.4 의 감시 공백을 메움) · `s3-section-header` · `s3-book-cover` · `s3-list-media`. 둘 다 `settle()` + `hideDevPanel` 적용.
+
+### 21.3 결정 — Book List 좌측 메타 (2026-10-07, user)
+
+320px 에서 좌측 메타(`4 sessions · finished May 2`)가 우측 `Rated 4.5` 와 겹친다. §20.2 는 "제목만 말줄임 · 평점은 유지"만 정했고 **좌측 메타는 미정**이었다.
+
+**결정: 좌측 메타는 자르지 않고 줄바꿈한다.** 자르면 `finished {date}` 가 사라진다. 320px 에서만 행 높이가 늘고 `AD-S3-17` 이 그 증가를 허용한다. **평점은 줄이지 않는다**(§20.2 유지).
+
+### 21.4 기록 정정 — Plan §7.2 `BookPrompts` 필드 목록이 낡았다
+
+Plan §7.2 가 `BookPrompts` 에 **`coachingLine`** 을 적고 있으나, 그 필드는 **approvals §12.14 로 삭제**됐다 (`ActivityCardOption.coachingLine`·`PromptSet.coachingLine` 제거, `coachingNote` 로 대체).
+구현은 되살리지 않고 **`{ bookId, promptSet }`**(`PromptSet` 재사용)으로 했다 — 올바른 판단이다. **Plan §7.2 를 수정 대상으로 기록한다.**
+
+### 21.5 ⚠️ 기존 공백 — dev gallery 가값 목록에 `P-18`~`P-23` 이 없다
+
+`P-23`(`--color-prompt-tag-fg`) 등 **Home 라운드에서 만든 가값이 dev gallery `provisionalItems.ts` 에 등재되지 않았다.** Library 범위 밖이라 1라운드가 고치지 않았다 (옳은 판단).
+
+→ **가값 재제시(Stage 0 `#10-4`) 전에 반드시 메운다.** 목록이 불완전하면 항목별 재제시 자체가 성립하지 않는다. 이번에 추가된 **`P-24`** 는 등재됐다.
+
+### 21.6 dev Scenario Panel 넘침 수정 (범위 내 처리)
+
+library 시나리오 키가 6 → 18 로 늘어 패널이 뷰포트를 벗어나 `scenarios.spec.ts` 가 실패했다. 본문을 `max-block-size: 60dvh` + `overflow-y: auto` 로 바꿨다.
+dev 전용이고 상자 안에 그림자 요소가 없어 `R-SHADOW-1` 대상이 아니다 (근거 주석 포함). **Production 영향 0** (`assert:no-mocks` 통과).

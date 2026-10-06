@@ -2,9 +2,21 @@
  * `/__dev/ui/a11y` — focus 순회 · 터치 타깃 오버레이 · 대비 값 표시 (Design Spec §11-5 · §9.3 · §9.4).
  *
  * 수치는 문서에서 옮겨 적지 않고 **실제 렌더 결과에서 측정**한다.
- * 그래야 가값(P-01 · P-02 · P-03 · P-11) 승인 자료가 토큰 값과 어긋나지 않는다 (Plan §17-3).
+ * 그래야 가값(P-01 · P-02 · P-03 · P-11 · **P-24**) 승인 자료가 토큰 값과 어긋나지 않는다
+ * (Plan §17-3). `B-3` 은 Library `LT-1` 재매핑으로 **P-01 → P-24** 로 소속이 바뀌었다.
  */
-import { Button, Checkbox, Chip, Icon, IconButton, Surface, Tag, Text, TextField } from '@haru/ui';
+import {
+  Button,
+  Checkbox,
+  Chip,
+  Icon,
+  IconButton,
+  SectionHeader,
+  Surface,
+  Tag,
+  Text,
+  TextField,
+} from '@haru/ui';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { galleryCopy } from './gallery-copy';
@@ -46,7 +58,7 @@ const CONTRAST_PAIRS: readonly ContrastPair[] = [
     foreground: '--color-fg-tertiary',
     background: '--color-surface-solid',
     threshold: 4.5,
-    marker: '가값 P-01',
+    marker: '가값 P-24',
   },
   {
     id: 'C-1',
@@ -230,6 +242,18 @@ function TouchTargets() {
               onChange={() => undefined}
               type="password"
               trailingAction={{ label: galleryCopy.components.fieldShow, onPress: () => undefined }}
+            />
+            {/*
+              Library `SectionHeader` 의 "See all" — 시각 39×14 로 44 에 **미달**이며
+              `::after` 로만 hit area 를 넓힌다 (Library Design Spec §9.2). 여기에 두어
+              `e2e/a11y.spec.ts` 의 전수 검사가 실제 렌더에서 44 를 확인하게 한다.
+            */}
+            <SectionHeader
+              title={galleryCopy.stage3Library.sectionFavorites}
+              action={{
+                label: galleryCopy.stage3Library.seeAll,
+                onPress: () => undefined,
+              }}
             />
           </Stack>
         </Stage>

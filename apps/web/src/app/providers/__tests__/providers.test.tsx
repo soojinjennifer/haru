@@ -32,6 +32,7 @@ const stubClients: ApiClients = {
   },
   books: {
     search: () => Promise.reject(new Error('not used in this test')),
+    getPrompts: () => Promise.reject(new Error('not used in this test')),
   },
   home: {
     getSummary: () => Promise.reject(new Error('not used in this test')),
@@ -41,6 +42,11 @@ const stubClients: ApiClients = {
     selectOption: () => Promise.reject(new Error('not used in this test')),
   },
   library: {
+    getOverview: () => Promise.reject(new Error('not used in this test')),
+    getList: () => Promise.reject(new Error('not used in this test')),
+    addOwnBook: () => Promise.reject(new Error('not used in this test')),
+    getGiftRequests: () => Promise.reject(new Error('not used in this test')),
+    createGiftRequest: () => Promise.reject(new Error('not used in this test')),
     saveBook: () => Promise.reject(new Error('not used in this test')),
     unsaveBook: () => Promise.reject(new Error('not used in this test')),
   },

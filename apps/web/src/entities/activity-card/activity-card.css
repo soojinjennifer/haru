@@ -170,15 +170,17 @@
   line-height: var(--activity-card-book-author-line);
 }
 
-/* 표지는 Figma `85:536` 규격 — 58×82, radius 10, drop + inset highlight */
+/* 표지는 Figma `85:536` 규격 — 58×82, radius 10, drop + inset highlight.
+ * radius 토큰은 `--book-cover-radius-xl`(10) 이다 — 구 `--activity-card-cover-radius`
+ * (`var(--space-2-5)` = 간격 토큰 오용) 를 같은 값으로 대체했다 (Library `LT-4`). */
 .haru-activity-card__book .haru-book-cover {
   block-size: var(--activity-card-book-size);
-  border-radius: var(--activity-card-cover-radius);
+  border-radius: var(--book-cover-radius-xl);
   box-shadow: var(--activity-card-cover-shadow);
 }
 
 .haru-activity-card__book .haru-book-cover img {
-  border-radius: var(--activity-card-cover-radius);
+  border-radius: var(--book-cover-radius-xl);
 }
 
 /* ===== 3행 — Prompt 목록 (block-size 186, pill 4개) ====================== */

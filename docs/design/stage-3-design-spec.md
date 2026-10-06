@@ -380,10 +380,12 @@ TabLayout
 └ BottomTabBar
 ```
 
-- ★ **Figma 는 섹션 제목을 "Our curated shelf" / "Finished together" / "Finished together" 로 두 번 중복**한다(`163:1633` · `30:139`). 두 번째 캐러셀은 내용상 **보유 책**이므로 제목을 바꾼다 → §11.3 `AD-S3-4`. 세 섹션은 FR-20의 `gifted` / `owned` / `history` 필터에 1:1 대응한다.
-- 캡션 "Emotion" / "Resilience" / "Confidence" → **4대 역량 표시 라벨**로 교체 (#14, M-13) → §11.3 `AD-S3-5`.
-- "Rated 4.5" · "Reading now · 3 of 5 nights" · "My Saved" 는 **렌더하지 않는다** (`CONFIRMED (D-7)`) → `AD-S3-6`·`AD-S3-7`·`AD-S3-8`.
-- `/library/add` · `/library/gift-requests` 진입점이 Figma 에 없다 → `LibraryFooterActions` 는 **명세**다.
+> ⚠️ **이 절(§2.7)과 §2.8 의 Library 구조는 `docs/design/stage-3-library-design-spec.md` 가 대체한다** (2026-10-06, approvals §14~§19). 아래 위 ASCII 트리와 "Books you own" 표기는 **낡은 것이며 구현 근거가 아니다.**
+
+- ★ **정정 (approvals §14.1, Orchestrator 가 Figma 로 직접 검증)** — L-1 `30:74` 의 섹션 제목은 **중복이 아니다**: `163:1625` `Our curated shelf` · **`163:1633` `Favorites`** · `30:139` `Finished together` **세 개가 전부 다르다**. 제목이 중복된 프레임은 L-1 이 아니라 **L-3 `163:1669`** 다 (`163:1684`·`163:1688`). 따라서 이 문서가 적었던 "두 번 중복" 은 **사실이 아니며**, 그 전제로 등록된 `AD-S3-4`("Books you own")는 **무효·삭제**다. Figma 문구는 **`Favorites`** 이고 **"Books you own" 은 Figma 에 없는 문구**(최우선 규칙 #2 위반)였다. 섹션은 FR-20 의 `gifted`/`owned`/`history` 필터와 1:1 대응하지 **않는다** — 표시 축은 `curated`/`favorites`/`finished` 3개이고 `owned`/`gifted` 는 표식으로 드러내지 않는다 (`L-OPEN-14`).
+- 캡션 "Emotion" / "Resilience" / "Confidence" → **4대 역량 표시 라벨**로 교체 (#14, M-13) → §11.3 `AD-S3-5`. **보완**: 표시 라벨이 Figma 캡션보다 길어 11px 1줄에 들어가지 않는다 → 줄바꿈·말줄임 규칙은 `stage-3-library-design-spec.md` §6.3 이 정한다.
+- **정정 (approvals §15)** — `Rated 4.5`(`L-D3`) · `Reading now`(`L-D2`) 는 **Figma 대로 구현한다**. `My Saved`(L-2 `145:1156`)는 채택하지 않고 L-1 의 **`Favorites`**(`L-D1`)를 쓴다. 따라서 `AD-S3-6`·`AD-S3-7`·`AD-S3-8` 은 **무효**이며 `AD-L-02` 로 대체된다. `D-7` 의 "평점·Reading now·My Saved 미구현" 은 이 결정들로 뒤집혔다 (approvals §15.1).
+- `/library/add` · `/library/gift-requests` 진입점이 Figma 에 없다 → **`C-13` ② 로 design-agent 가 명세한다** (`L-OPEN-12`, approvals §16.2). 이 결정으로 명세 자체는 정당화되지만 **`LibraryFooterActions`(Button + TextLink) 라는 형태는 Figma 근거가 없어 폐기**하고, `stage-3-library-design-spec.md` §7 의 `LibraryEntryActions`(`ListGroup` + `ListRow` ×2) 로 다시 설계했다.
 
 ### 2.8 `/library` LibraryShelfSheet ("See all") — Figma `163:1669` · `163:1807`
 
@@ -394,7 +396,7 @@ Scrim (--color-scrim, 가값 P-05)
     └ (하단 고정 없음 — 행 탭 → BookDetailSheet 로 교체 전환)
 ```
 
-- Figma 의 시트 하단 ActionBar(Save / Start Session)는 **책이 선택된 상태**의 표현이다. Stage 3에서는 행 선택이 곧 `BookDetailSheet` 전환이므로 시트 자체에는 ActionBar 를 두지 않는다 → §11.3 `AD-S3-19`.
+- ~~Figma 의 시트 하단 ActionBar(Save / Start Session)는 **책이 선택된 상태**의 표현이다. Stage 3에서는 행 선택이 곧 `BookDetailSheet` 전환이므로 시트 자체에는 ActionBar 를 두지 않는다.~~ → **철회 (approvals §17.2, `L-OPEN-03`)**. `163:1898`(`type=shelf`)에 헤더 + Book List + `Button/card`(★ Save + Start Session)가 실재하고 L-3 에 실제 인스턴스가 있다. **Figma 대로 ActionBar 를 넣는다** → `AD-S3-19` **철회**. 시트의 `Start Session` 도 `D-3` 에 따라 비활성(`aria-disabled`)이다 (approvals §13.10). 규격은 `stage-3-library-design-spec.md` §4.6.
 - 스크롤은 시트 내부가 아니라 **시트 본문 자체가 늘어나고 바깥 스크롤 컨테이너가 스크롤**한다 (§0.4 overflow 금지 규칙). 시트 최대 높이는 §9.
 - **열림 상태는 `/library` 가 소유**한다. Mock 전용 route 는 같은 상태를 외부에서 열어주는 **진입점**일 뿐이며, route 가 제거돼도 "See all" 경로가 그대로 동작해야 한다 (`CONFIRMED (D-17)` · §1.2).
 
@@ -1283,11 +1285,11 @@ Stage 3 고유 규칙:
 | **AD-S3-1** | 카드 Prompt = **접힌 상태 3개 + 확장**, **개수 상한 없음** (Figma 는 변형마다 고정 개수: `86:438` 5 · `163:2648` 4 · `86:512` 2 · `86:482` 3) | `CONFIRMED (N-2, approvals §6·§6.1)` — 표시 개수와 상한을 분리했다 (§5.1.1) | **pill 개수 차이 전부 허용** + 그에 따른 카드 높이 차이 **상한 없음**(기존 "±96px" 폐기). pill 높이·gap·순서 차이는 불허. **Figma 대조는 접힌 상태로만** 한다 (§11.2) |
 | **AD-S3-2** | 역량 배지에 **" Day" suffix 없음**, `163:2650` "Emotion Day  Day" → **"Emotion Regulation"** | 오타 M-13 + `D-5`(카드마다 다른 역량)로 "오늘의 X Day" 의미 소멸 (§5.2) | 라벨 **문구 비교 제외**. 배지 위치·색·높이 차이는 불허 |
 | **AD-S3-3** | 카드 ActionBar 가 **흐름의 마지막 요소** (Figma `163:2648` 은 Prompt 위에 겹침) | Figma 고정 프레임(377)의 **overflow 결함**. 겹침을 그대로 옮길 수 없다 (§5.1) | ActionBar 세로 위치 차이 허용. 좌우 정렬·버튼 크기 차이는 불허 |
-| **AD-S3-4** | `/library` 2번째 섹션 제목 **"Finished together" → "Books you own"** | Figma 가 같은 제목을 2번 쓴다(`163:1633` · `30:139`). 내용상 보유 책 섹션 (§2.7) | 문구 비교 제외 |
-| **AD-S3-5** | `BookShelfItem` 캡션 **"Emotion"/"Resilience"/"Confidence" → #14 표시 라벨** | `CONFIRMED (#14)` — 뒤 2개는 4대 역량에 없는 이름 (M-13) | 문구 비교 제외. 캡션 위치·크기 차이는 불허 |
-| **AD-S3-6** | **"Rated 4.5" 미렌더** (`163:2108` 등 4곳) | `CONFIRMED (D-7)` — PRD 근거 없음(G-04) | 행 우측 meta 영역 **전체 차이 허용** |
-| **AD-S3-7** | **"Reading now · 3 of 5 nights" 카드 미렌더** (`145:1141`) | `CONFIRMED (D-7)` | 해당 블록 전체 차이 허용 |
-| **AD-S3-8** | **"My Saved"·"Save"(★) 미렌더** (`86:383` 좌측 버튼) | `CONFIRMED (D-7)` — 북마크 개념 없음 | ActionBar 좌측 슬롯 차이 허용 |
+| ~~**AD-S3-4**~~ | ~~`/library` 2번째 섹션 제목 "Finished together" → "Books you own"~~ | **무효 — 삭제 (approvals §14.1)**. 전제("제목 중복")가 **사실이 아니다**. `163:1633` 의 텍스트는 **`Favorites`** 이고, 중복은 L-3 `163:1669` 에만 있다. "Books you own" 은 **Figma 에 없는 문구**였다 | **없음 — 이 허용 차이는 존재하지 않는다.** 구현 문구는 `Favorites` 이며 차이가 아니다 |
+| **AD-S3-5** | `BookShelfItem` 캡션 **"Emotion"/"Resilience"/"Confidence" → #14 표시 라벨** + **라벨이 길어 11px 1줄에 안 들어간다** | `CONFIRMED (#14)` — 뒤 2개는 4대 역량에 없는 이름 (M-13). **보완 (approvals §19.1 ⑥)**: `Emotion Regulation`(19자) · `Cognitive Flexibility`(21자) · `Intrinsic Motivation`(20자) 은 11px 에서 열 폭 107 을 넘는다 (Figma 원본은 7–10자 / 43–60px). Figma 는 `whitespace-nowrap` 1줄이다 | 문구 비교 제외 + **캡션 행 수 1 → 2 허용**(블록 높이 +13). 줄바꿈·말줄임 규칙은 `stage-3-library-design-spec.md` §6.3 이 정하고, **캡션의 x·폰트 크기·색 차이는 불허** |
+| ~~**AD-S3-6**~~ | ~~"Rated 4.5" 미렌더~~ | **무효 (approvals §15, `L-D3`)** — **Figma 대로 렌더한다**. 집계 범위는 "우리 아이 평점만"(`L-OPEN-18`), unrated 는 meta 를 비운다(`L-OPEN-22`) | **없음.** 규격 `stage-3-library-design-spec.md` §4.5 |
+| ~~**AD-S3-7**~~ | ~~"Reading now · 3 of 5 nights" 카드 미렌더~~ | **무효 (approvals §15, `L-D2`)** — **Figma 대로 구현한다**(`145:1145`, 345×118 r24, 표지 64×90 r10, 진행 바). `progressRatio` 는 서버가 직접 준다(`L-OPEN-16`), `plannedNights` 는 nullable(`L-OPEN-17`) | **없음.** 규격 §4.2. 합성으로 블록이 추가되는 차이는 **`AD-L-01`** 이 받는다 |
+| ~~**AD-S3-8**~~ | ~~"My Saved"·"Save"(★) 미렌더~~ | **무효** — `★ Save` 는 approvals §12.2 로 이미 무효(구현됨), `My Saved` 는 `L-D1`(`Favorites` 채택)으로 해소 | **없음.** `My Saved` 섹션을 쓰지 않는 차이는 **`AD-L-02`** 가 받는다 |
 | **AD-S3-9** | 상단 chip **"12-day / 115 Min" → "{n} this week"** | `CONFIRMED (D-6)` (§5.7) | 문구·아이콘 비교 제외. 칩 위치·높이 차이는 불허 |
 | **AD-S3-10** | Home 이 **스크롤 페이지**이고 캐릭터 위에 덱이 얹힌다 (`26:21` 은 카드 미배치 852 고정 프레임) | `C13-14 (명세)` — 카드를 넣을 자리가 Figma에 없다 (M-30) | **레이아웃 전체 차이 허용**. 비교는 §11.2 영역 클립으로 수행 |
 | **AD-S3-11** | compact 카드의 **빈 라벨 pink 배지 → 역량 라벨** | `86:512` 의 배지가 라벨 없는 placeholder | 문구 차이 허용, 배지 폭 차이 허용 |
@@ -1298,7 +1300,7 @@ Stage 3 고유 규칙:
 | **AD-S3-16** | 카드·시트의 **"Start Session" `disabled`** | `CONFIRMED (D-3)` | 버튼 **상태(색·투명도)** 차이만 허용. 문구·위치·크기 차이는 불허 |
 | **AD-S3-17** | `ListRow` 높이 74 → **최소 74, 내용에 따라 증가** | 200% 텍스트 reflow (고정 높이 금지, DESIGN_SYSTEM §11.2) | 행 높이 **+∞**(축소는 불허) |
 | **AD-S3-18** | `26:21` 의 **`88:909`(66×27) 미렌더** | 역할을 특정할 수 없는 무명 프레임 | 해당 요소 차이 허용 |
-| **AD-S3-19** | `LibraryShelfSheet` 에 **ActionBar 없음** (`163:1669` 에는 Save/Start Session 있음) | 시트는 목록이고 선택은 `BookDetailSheet` 가 받는다 (§2.8) | 시트 하단 블록 차이 허용 |
+| ~~**AD-S3-19**~~ | ~~`LibraryShelfSheet` 에 ActionBar 없음~~ | **철회 (approvals §17.2, `L-OPEN-03`)** — `163:1898` `type=shelf` 에 `Button/card`(★ Save + Start Session)가 실재하고 L-3 에 인스턴스가 있다. **Figma 에 있는 것을 빼는** 건이었다 | **없음.** ActionBar 를 Figma 대로 넣는다 (§4.6). 시트의 `Start Session` 비활성은 **`AD-S3-16`**(`D-3`) 이 이미 받는다 |
 | **AD-S3-20** | 캐러셀 **열 수 항상 3** (폭에 따라 아이템이 작아진다) | `PageIndicator` 페이지 수·`aria-live` 문구의 폭 독립성 (§9-2) | 320px 에서 아이템 폭 **82.7** 까지 축소 허용 |
 | **AD-S3-21** | 카드 padding **18 → `--space-5`(20)**, 칩 padding-inline **14 → `--space-3`(12)**, Prompt↔ActionBar **9 → `--space-2`(8)** | 토큰 스케일 흡수 (#10-②) | 각 **±2px** |
 | **AD-S3-22** | 카드에 **Prompt 확장 트리거 1행 추가** (Figma 전 변형에 없는 요소) | `CONFIRMED (N-2)` — 확장 구조 자체가 사용자 결정이다 | 트리거 행의 **존재 자체**와 그에 따른 접힌 카드 높이 **+≈28px** 허용. 위치(Prompt 목록 아래·ActionBar 위)·정렬 차이는 불허. **확장 상태는 Figma 대조 대상이 아니다** |
@@ -1306,6 +1308,22 @@ Stage 3 고유 규칙:
 
 | **AD-S3-24** | `phase` 와 `pageRef` 가 **동시에 있을 때 배지 2개**를 렌더 (Figma 는 pill 당 1개만 보여준다) | **`CONFIRMED (approvals §9.2 ⑪, 2026-10-03)`** — Figma `86:438` 5개 pill 이 각각 `PRE` / `POST` / `P.6` ×3 으로 **동시 표시 예시를 한 번도 두지 않았다**. 이는 **공백이지 충돌이 아니다**(`N-1` 과 같은 성격)이므로 `RECOMMENDED` 가 아니라 확정 규칙이다. contract 는 두 필드를 **독립 optional 로 유지**한다 (§5.4.1) | 배지 **개수 차이(1 → 2)와 그에 따른 질문 텍스트 폭 감소** 허용. 순서(phase → pageRef)·gap·높이 차이는 불허 |
 | **AD-S3-25** | Home 캐릭터 에셋 픽셀 밀도 **≥600px 브레이크포인트에서 1.77x** (2x 미만) | `CONFIRMED (D-13, approvals §7.1 — C 안)`. 투명 원본 최대치가 **933×1659** 이고 480 컬럼 표시 폭 528 의 2x = 1056 에 **123px 부족**하다. 디자이너 재추출(A)·표시 폭 축소(B)를 선택하지 않았다 | **≥600px 에서 밀도 1.77x 허용**. **393px 뷰포트(표시 폭 441)는 2.12x 로 충족**이므로 허용 대상이 아니다. QA 는 `PASS (accepted: D-13)` 로 판정한다. 캐릭터의 **크기·위치·bleed·aspect 차이는 불허** |
+
+
+#### Library 신규 허용 차이 `AD-L-01`~`AD-L-08` (2026-10-06)
+
+근거·치수는 **`docs/design/stage-3-library-design-spec.md`** 에 있다. `AD-L-01`~`AD-L-05` 는 approvals §16.1 이 등록 대상으로 지정한 항목이고, `AD-L-06`~`AD-L-08` 은 이 라운드에서 **design-agent 가 추가로 발견**해 **승인 대기**인 항목이다.
+
+| ID | 차이 | 원인 | 허용 범위 | 상태 |
+|---|---|---|---|---|
+| **AD-L-01** | L-1 `30:74` 에 없던 **`Reading now` 블록(170pt)을 맨 위에 추가** | `CONFIRMED (L-D2, approvals §15 · §16.1)` — 합성 기준 화면. L-2 content 자식 y 8개(`0/36/170/206/438/474/706/742`)가 전부 일치해 **창작이 아니라 L-2 의 기하** | 섹션 전체가 **아래로 +170** 이동. Frame15 높이 869 → **1039**. 블록 내부 기하 차이는 불허 | 등록 |
+| **AD-L-02** | L-2 의 **`My Saved` 섹션(`145:1156`)을 채택하지 않고** L-1 의 **`Favorites`**(`163:1632`)를 쓴다 | `CONFIRMED (L-D1, approvals §15)` — `163` 세션 편집이 포함된 L-1 이 더 나중 의도이고, 사용자 지시 문구("Library 의 favorites")와 이름이 일치한다 | 슬롯 5 **제목 문구 차이**(`My Saved` → `Favorites`) 허용. 위치·크기·"See all" 유무 차이는 `AD-L-03` 이 받는다 | 등록 |
+| **AD-L-03** | 슬롯 3·5 헤더의 **"See all" 을 유지**한다 (L-2 에는 없다) | 기준 화면 = L-1 (`163:1626`·`163:1634` 실재). `L-OPEN-19` = **세 섹션 모두** | 슬롯 3·5 에 **액션 1개 추가** 허용 (x=306 w=39, L-1 과 동일 좌표). 그 밖의 차이는 불허 | 등록 |
+| **AD-L-04** | 슬롯 8 `Finished together` 목록을 **4행**으로 둔다 (L-2 는 2행) | 기준 화면 = L-1(`30:140` 4행 297). `L-OPEN-21` = **4행 고정 + "See all" 전체 목록**, 섹션 안 "Show more" 는 **만들지 않는다** | 행 수 2 → **4**(블록 149 → 297) 허용. 행 내부 기하 차이는 불허 | 등록 |
+| **AD-L-05** | **L-3 `163:1669` 를 기준 화면으로 쓰지 않는다** | approvals §14.1 — L-3 의 섹션 제목 중복("Finished together" ×2)은 **`163:1633` 이 `Favorites` 로 편집되기 전 사본의 아티팩트**다 `[추정]` | L-3 **base 레이어 전체**를 대조 대상에서 제외. L-3 의 **오버레이**(`163:1807`+`163:2347`)는 제외 대상이 **아니다**(`L-OPEN-03`·`L-OPEN-04` 근거) | 등록 |
+| **AD-L-06** | `/library` 하단에 **`LibraryEntryActions` 블록 추가**(`ListGroup` 2행, **섹션 제목 없음**) | `C13 ② (L-OPEN-12, approvals §16.2)` — `FR-22`·`FR-23` 은 PRD P0 인데 진입점이 Figma L-1~L-3 **어디에도 없다**. 디자이너 판을 기다리면 Stage 3 가 막힌다 | 블록의 **존재 자체**와 그에 따른 페이지 높이 **+129**(간격 16 + 행 56×2 + divider 1) 허용. 디자이너 Figma 가 도착하면 교체한다 | **승인 대기** |
+| **AD-L-07** | 상태 화면(**Skeleton · 섹션별 Empty · Error · Offline · Retry**) | `C13 ② (L-OPEN-13)` + Stage 0 `#22`(공통 상태 화면은 명세 우선) — Figma 에 **전부 없다** | 해당 상태 화면 **전체 차이 허용**. `success` 상태의 기하 차이는 불허 | **승인 대기** |
+| **AD-L-08** | 표지 에셋이 **단일 이미지**다 (Figma 는 **합성**: 캐러셀 = 베이스 이미지 + 제목 텍스트 + `asset/book-cover` **opacity 80**, Book List 썸네일 = 틸 그라데이션 + 표지 **opacity 60**) | Figma 의 합성은 **임시 표지 에셋의 연출**이며 `coverUrl` 1장을 받는 `BookCover` 로는 재현되지 않는다. `L-D4`(Stage 8 배포 전 표지 교체) 로 어차피 사라진다 | 표지 **내부 질감·불투명도·베이크된 제목 차이 허용**. 표지 **크기·radius·그림자·위치 차이는 불허** | **승인 대기** |
 
 - Stage 1 `AD-1`~`AD-10`, Stage 2 `AD-S2-1`~`AD-S2-19` 는 **그대로 적용**된다.
 

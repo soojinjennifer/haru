@@ -15,13 +15,20 @@
  * 접근성: `alt` 는 **"{제목} by {저자}"** 다. `ListRow` 처럼 제목이 이미 텍스트로 있는 자리에서는
  * `decorative` 로 `alt=""` 를 쓴다 (중복 읽기 방지). 장식이 기본값이 아니다.
  *
- * 크기는 Stage 3 Home 이 쓰는 `md`(58) 하나다. `sm`·`lg` 토큰은 **서재 화면이 나오는 시점**에
- * 추가한다 (`D-14` — 해당 화면의 컴포넌트가 나올 때 만든다).
+ * | size | 규격 | 어디 |
+ * |---|---|---|
+ * | `sm` | 34×48 | Book List 행 썸네일 (`30:142`·`163:2101`) |
+ * | `md` | 58×(aspect) | Home Activity Card (`85:536`) |
+ * | `lg` | 퍼센트 폭 · 비 107/151 | 서재 캐러셀 (`113:1972`) |
+ * | `xl` | 64×90 | `ReadingNowCard` (`145:1146`) |
+ *
+ * `lg` 는 폭을 갖지 않는다 — **호출 측 퍼센트 그리드가 폭을 정하고** 이 컴포넌트는 비만 지킨다
+ * (Library Design Spec §5.2 `LT-3`·`LT-5`).
  */
 import { Text } from '@haru/ui';
 import { useState } from 'react';
 
-export type BookCoverSize = 'md';
+export type BookCoverSize = 'sm' | 'md' | 'lg' | 'xl';
 
 export interface BookCoverProps {
   title: string;

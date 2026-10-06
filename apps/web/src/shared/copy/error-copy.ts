@@ -121,6 +121,10 @@ export const ERROR_COPY: Readonly<Record<ErrorCode, ErrorMessage>> = {
     title: 'Request already in progress',
     description: 'There is already an open request for this book.',
   },
+  BOOK_ALREADY_OWNED: {
+    title: 'Already in your library',
+    description: 'This book is already on your shelf.',
+  },
   DELETION_ALREADY_REQUESTED: {
     title: 'Deletion already requested',
     description: 'Your earlier request is still being processed.',

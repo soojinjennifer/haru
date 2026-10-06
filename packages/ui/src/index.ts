@@ -155,6 +155,11 @@ export type { DividerWithLabelProps } from './divider/DividerWithLabel';
 export { TextLink } from './link/TextLink';
 export type { TextLinkProps, TextLinkTone } from './link/TextLink';
 
+/* ===== Stage 3 Library 신규 1종 (Library Design Spec §4.1) ================== */
+
+export { SectionHeader } from './section/SectionHeader';
+export type { SectionHeaderAction, SectionHeaderProps } from './section/SectionHeader';
+
 /* 스크롤 컨테이너 context — 결정 D-13 (AppShell 이 ref 를 제공한다). */
 export { ScrollContainerProvider, useScrollContainerRef } from './layout/ScrollContainerContext';
 export type { ScrollContainerProviderProps } from './layout/ScrollContainerContext';

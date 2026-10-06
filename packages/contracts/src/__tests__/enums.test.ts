@@ -6,6 +6,7 @@ import {
   AnalysisJobStatusSchema,
   AnalysisOutcomeSchema,
   BookOwnershipSchema,
+  BookSourceSchema,
   CapabilitySchema,
   CaregiverRelationshipSchema,
   CompletedReasonSchema,
@@ -17,6 +18,8 @@ import {
   GenderFieldSchema,
   GenderSchema,
   GiftRequestStatusSchema,
+  LibraryFilterSchema,
+  LibrarySectionKeySchema,
   NotificationKindSchema,
   OnboardingStatusSchema,
   OnboardingStepSchema,
@@ -38,7 +41,10 @@ import {
  * enum 값 스냅샷 — `docs/API_CONTRACTS.md` §2.1 · §2.2 표와 **정확히** 일치해야 한다
  * (Stage 1 Plan §11.6 AC-1-31 "enum 값 스냅샷 23종" → Stage 2 Plan §11.8 AC-2-47 로 **26종**
  * → Stage 3 Plan §7.1 로 **29종**: `AgeBand` · `PromptKind` 는 §2.2 표에 없던 추가분(보고 ④),
- * `PromptPhase` 는 **D-8** 승인으로 신설되었다).
+ * `PromptPhase` 는 **D-8** 승인으로 신설되었다
+ * → Library 1라운드 Plan §7.3 으로 **32종**: `LibrarySectionKey`(표시 축) ·
+ * `LibraryFilter`(쿼리 축) · `BookSource` 신설. `GiftRequestStatus` 는 **이미 존재**해 신규가
+ * 아니다 — 전수 대조가 "enum 신규" 로 잘못 적은 것을 `L-OPEN` 정정에서 바로잡았다).
  * 값·순서를 바꾸려면 문서를 함께 갱신한다.
  */
 interface EnumSnapshot {
@@ -224,11 +230,43 @@ const ENUM_SNAPSHOTS: readonly EnumSnapshot[] = [
     options: PromptPhaseSchema.options,
     expected: ['pre', 'post'],
   },
+  // Library 1라운드 추가 (Library Plan §7.3) — 3 종
+  {
+    name: 'LibrarySectionKey',
+    options: LibrarySectionKeySchema.options,
+    expected: ['curated', 'favorites', 'finished'],
+  },
+  {
+    name: 'LibraryFilter',
+    options: LibraryFilterSchema.options,
+    expected: ['owned', 'gifted', 'history', 'saved', 'curated'],
+  },
+  {
+    name: 'BookSource',
+    options: BookSourceSchema.options,
+    expected: ['onboarding_favorite', 'library_add', 'gift_program', 'card_save'],
+  },
 ];
 
 describe('enums — API_CONTRACTS §2 값 스냅샷', () => {
-  it('Stage 3 까지 확정된 enum 은 29 종이다', () => {
-    expect(ENUM_SNAPSHOTS).toHaveLength(29);
+  it('Library 1라운드까지 확정된 enum 은 32 종이다', () => {
+    expect(ENUM_SNAPSHOTS).toHaveLength(32);
+  });
+
+  /*
+   * `GiftRequestStatus` 는 Stage 2 에서 이미 등재됐다 — Library 가 **다시 선언하지 않는다**.
+   * `BookOwnership` 의 `favorite_only` 도 이미 있다 (`L-D1` 저장 축).
+   */
+  it('Library 가 기존 enum 을 다시 선언하지 않는다', () => {
+    expect(GiftRequestStatusSchema.options).toHaveLength(6);
+    expect(BookOwnershipSchema.options).toContain('favorite_only');
+  });
+
+  /* 표시 축과 쿼리 축은 **1:1 이 아니다** (`L-OPEN-14`) — 같은 enum 으로 합치지 않는다. */
+  it('LibrarySectionKey 와 LibraryFilter 는 서로 다른 축이다', () => {
+    expect(LibrarySectionKeySchema.safeParse('saved').success).toBe(false);
+    expect(LibraryFilterSchema.safeParse('favorites').success).toBe(false);
+    expect(LibrarySectionKeySchema.safeParse('reading_now').success).toBe(false);
   });
 
   it.each(ENUM_SNAPSHOTS)('$name 의 값과 순서가 문서와 일치한다', ({ options, expected }) => {

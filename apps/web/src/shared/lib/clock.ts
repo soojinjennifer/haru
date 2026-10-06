@@ -61,6 +61,18 @@ export function clockDate(clock: Clock): Date {
 }
 
 /**
+ * 기준 시각에서 `deltaMs` 만큼 옮긴 ISO 8601 UTC 문자열 (`IsoDateTimeSchema` 형식).
+ *
+ * fixture 가 "3일 전" 같은 **상대 시각**을 만들 때 쓴다 — 주입 clock 이 고정이면 결과 바이트가
+ * 항상 같다. Mock 소스에서 `new Date(` 를 직접 쓰면 결정성 검사
+ * (`__tests__/mock-source-rules.test.ts`)에 걸리므로 변환 지점을 여기 하나로 모은다
+ * (`clockDate` 와 같은 이유).
+ */
+export function shiftedIso(clock: Clock, deltaMs: number): string {
+  return new Date(clock.now() + deltaMs).toISOString();
+}
+
+/**
  * epoch → **로컬 기준** 달력 날짜 (`YYYY-MM-DD`).
  *
  * `toISOString()` 을 쓰지 않는다 — UTC 로 바뀌면서 자정 근처에서 하루가 어긋난다.

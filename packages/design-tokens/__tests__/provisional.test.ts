@@ -9,11 +9,19 @@
  * 2026-09-22 승인으로 **P-03 · P-06 · P-07 · P-08 · P-09 · P-11 · P-12 · P-13 · P-14 · P-15**
  * 10 항목이 현재 값 그대로 확정되어 `provisional` 주석을 제거했다(값 변경 없음).
  * 남은 가값은 **P-01 · P-02 · P-04 · P-05 · P-16** 5 항목이었고, Stage 3 에서
- * **P-23**(`--color-prompt-tag-fg` — Prompt 단계·페이지 배지 흰 라벨 1.72:1)이 신설되어
- * **6 항목**이다 (`stage-3-approvals.md` §9.2 ⑫ · Stage 3 Design Spec §6.4).
+ * **P-23**(`--color-prompt-tag-fg` — Prompt 단계·페이지 배지 흰 라벨 1.72:1)이 신설되었다
+ * (`stage-3-approvals.md` §9.2 ⑫ · Stage 3 Design Spec §6.4).
+ *
+ * Library 1라운드(2026-10-06, `stage-3-approvals.md` §20.2 · §20.4)에서 두 건이 바뀐다.
+ *   - **`P-05` 해제** — scrim 근거가 "TOKEN_MAP 제안값" → **"Figma 실측값"**(7점 최소제곱)이
+ *     되었다. 값은 `#29293a3b` → `rgb(0 0 0 / 0.34)` 로 **바뀌며** 주석을 제거한다 (`L-NEW-09`).
+ *   - **`P-24` 신설** — `--color-fg-tertiary` = `#9aabaa`(`--haru-ink-400` 재매핑).
+ *     대비 1.56–2.38:1 로 AA·대형 기준 모두 미달이다. `P-01`(`#7d9291`)과 **다른 사례**라
+ *     거기에 흡수하지 않는다.
+ * → 남은 가값은 **P-01 · P-02 · P-04 · P-16 · P-23 · P-24** 6 항목이다.
  * P-10 은 토큰이 아니라 화면 명세이므로 대상이 아니다.
  *
- * 아래 EXPECTED 는 §3.6 위치표에서 남은 5 항목만 옮긴 것이다.
+ * 아래 EXPECTED 는 §3.6 위치표에서 남은 항목만 옮긴 것이다.
  * 토큰을 추가·이동하거나 확정 항목에 주석을 되돌리면 이 테스트가 실패한다.
  */
 
@@ -23,9 +31,11 @@ import { collectDeclarations } from '../scripts/token-sources.mjs';
 
 /** Design Spec §3.6 중 **가값으로 남은** P 항목의 토큰 이름과 선언 파일. */
 const EXPECTED: Record<string, { file: string; tokens: string[] }[]> = {
-  'P-01': [
-    { file: 'src/semantic/color.css', tokens: ['--color-fg-secondary', '--color-fg-tertiary'] },
-  ],
+  /*
+   * `--color-fg-tertiary` 는 **P-24** 로 옮겨 갔다 (`LT-1` 재매핑 — 색과 대비가 달라
+   * 같은 사례로 묶을 수 없다). P-01 에는 `--color-fg-secondary` 만 남는다.
+   */
+  'P-01': [{ file: 'src/semantic/color.css', tokens: ['--color-fg-secondary'] }],
   'P-02': [
     {
       file: 'src/semantic/color.css',
@@ -80,7 +90,8 @@ const EXPECTED: Record<string, { file: string; tokens: string[] }[]> = {
       ],
     },
   ],
-  'P-05': [{ file: 'src/semantic/color.css', tokens: ['--color-scrim'] }],
+  /* `P-05`(scrim) 는 Figma 실측으로 **해제**되었다 — `CONFIRMED_2026_10_06` 를 보라. */
+  'P-24': [{ file: 'src/semantic/color.css', tokens: ['--color-fg-tertiary'] }],
   /*
    * Stage 3 신설 — `stage-3-approvals.md` §9.2 ⑫ · Design Spec §6.4.
    * `P-02`(역량 색 4종 위 흰 라벨)에 **흡수하지 않는다**: 대상이 Prompt 배지 전용이고
@@ -112,9 +123,16 @@ const CONFIRMED_2026_09_22 = [
   'P-15',
 ];
 
+/**
+ * Library 1라운드 해제 (`stage-3-approvals.md` §20.2 `L-NEW-09`).
+ * 앞의 10건과 달리 **값이 함께 바뀐 확정**이다 — 근거가 제안값에서 Figma 실측값이 되었다.
+ */
+const CONFIRMED_2026_10_06 = ['P-05'];
+
 /** 확정 항목이 달려 있던 토큰 — 주석 제거 후에도 토큰 자체는 그대로 있어야 한다. */
 const CONFIRMED_TOKENS: Record<string, string[]> = {
   'P-03': ['--color-focus-ring', '--focus-ring-width', '--focus-ring-offset'],
+  'P-05': ['--color-scrim'],
   'P-06': ['--z-base', '--z-sticky', '--z-tabbar', '--z-sheet', '--z-dialog', '--z-toast'],
   'P-07': [
     '--motion-duration-instant',
@@ -153,29 +171,45 @@ const actualPairs = declarations
   .map((d) => `${d.provisional} ${d.file} ${d.name}`)
   .sort();
 
+const REMAINING = ['P-01', 'P-02', 'P-04', 'P-16', 'P-23', 'P-24'];
+
 describe('provisional 주석 ↔ 남은 가값 목록 (AC-1-12 · approvals §9)', () => {
-  it('항목이 6건이다 (P-01 · P-02 · P-04 · P-05 · P-16 · P-23)', () => {
+  it('항목이 6건이다 (P-01 · P-02 · P-04 · P-16 · P-23 · P-24)', () => {
     const items = [...new Set(declarations.map((d) => d.provisional).filter(Boolean))].sort();
-    expect(items).toEqual(['P-01', 'P-02', 'P-04', 'P-05', 'P-16', 'P-23']);
+    expect(items).toEqual(REMAINING);
     expect(items).toHaveLength(6);
   });
 
   it('EXPECTED 표 자체가 남은 6 항목만 담는다 (표를 늘려 검사를 우회하지 못한다)', () => {
-    expect(Object.keys(EXPECTED).sort()).toEqual(['P-01', 'P-02', 'P-04', 'P-05', 'P-16', 'P-23']);
-    for (const item of CONFIRMED_2026_09_22) {
+    expect(Object.keys(EXPECTED).sort()).toEqual(REMAINING);
+    for (const item of [...CONFIRMED_2026_09_22, ...CONFIRMED_2026_10_06]) {
       expect(EXPECTED[item]).toBeUndefined();
     }
   });
 
-  it('2026-09-22 확정 10건에는 주석이 없다 (되돌아오면 실패)', () => {
+  it('확정 11건에는 주석이 없다 (되돌아오면 실패)', () => {
+    const confirmed = [...CONFIRMED_2026_09_22, ...CONFIRMED_2026_10_06];
     const regressed = declarations
-      .filter((d) => d.provisional !== null && CONFIRMED_2026_09_22.includes(d.provisional))
+      .filter((d) => d.provisional !== null && confirmed.includes(d.provisional))
       .map((d) => `${d.provisional} ${d.file} ${d.name}`)
       .sort();
     expect(regressed).toEqual([]);
   });
 
-  it('확정 10건의 토큰은 주석만 사라지고 선언은 그대로 있다 (값 변경 없음 확인)', () => {
+  it('P-05 는 Figma 실측값으로 확정되었다 (값이 함께 바뀐 해제)', () => {
+    const byName = new Map(declarations.map((d) => [d.name, d]));
+    expect(byName.get('--color-scrim')?.value).toBe('rgb(0 0 0 / 0.34)');
+    expect(byName.get('--color-scrim')?.provisional).toBeNull();
+  });
+
+  it('P-24 는 P-01 과 다른 토큰에 붙는다 (흡수하지 않는다)', () => {
+    const byName = new Map(declarations.map((d) => [d.name, d]));
+    expect(byName.get('--color-fg-tertiary')?.provisional).toBe('P-24');
+    expect(byName.get('--color-fg-secondary')?.provisional).toBe('P-01');
+    expect(byName.get('--color-fg-tertiary')?.value).toBe('var(--haru-ink-400)');
+  });
+
+  it('확정 항목의 토큰 선언은 사라지지 않는다 (주석만 제거)', () => {
     const byName = new Map(declarations.map((d) => [d.name, d]));
     for (const [item, tokens] of Object.entries(CONFIRMED_TOKENS)) {
       for (const token of tokens) {

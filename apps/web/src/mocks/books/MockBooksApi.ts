@@ -1,16 +1,21 @@
 /**
- * `MockBooksApi` — `GET /v1/books/search` 의 Mock Adapter (결정 **D-17** 최소 범위).
+ * `MockBooksApi` — `GET /v1/books/search` (결정 **D-17** 최소 범위) +
+ * `GET /v1/books/:bookId/prompts` (Library Plan §7.5 · §8, FR-20) 의 Mock Adapter.
  *
- * Plan §8.1 `books` 그룹. Stage 2 는 공통 5종만 쓴다 (`user-entered-book` 등은 Stage 3).
+ * Plan §8.1 `books` 그룹.
  *
  * | key | 동작 |
  * |---|---|
- * | `success` | 제목 부분 일치 결과 |
+ * | `success` | 제목 부분 일치 결과 / 책별 Prompt 세트 |
  * | `loading` | 주입 timer 로 지연 후 성공 |
- * | `empty` | `items: []` → 화면이 **제목 직접 입력** 경로를 연다 (AC-2-23) |
+ * | `empty` | `items: []` → 화면이 **제목 직접 입력** 경로를 연다 (AC-2-23). Prompt 조회에는
+ *   **적용하지 않는다** — 빈 Prompt 세트는 contract 가 금지한다(`questions.min(1)`) |
  * | `error` | `INTERNAL_ERROR` Error Envelope |
  * | `retry` | 1회차 실패 → 2회차부터 성공 |
  * | `offline` | `NetworkError` |
+ *
+ * Prompt 세트는 **Home 카드와 같은 fixture**(`createPromptSetFixture`)를 쓴다 — 같은 책의
+ * Prompt 가 화면마다 달라 보이면 안 된다. `bookId` 를 seed 로 넣어 책마다 결정적으로 다르다.
  *
  * **검색어는 아동 데이터가 아니다** — 보호자가 입력한 책 제목이다. 그래도 요청 사실과
  * 본문을 기록해 AC-2-13 전수 검사에 포함시킨다.
@@ -18,9 +23,11 @@
  * 시간·ID·지연은 전부 주입받는다.
  */
 import {
+  BookPromptsResponseSchema,
   HaruApiError,
   SearchBooksRequestSchema,
   SearchBooksResponseSchema,
+  type BookPromptsResponse,
   type ErrorCode,
   type SearchBooksRequestInput,
   type SearchBooksResponse,
@@ -39,6 +46,8 @@ import type { ApiRequestOptions } from '../../shared/api/health-api';
 import type { Clock } from '../../shared/lib/clock';
 import type { IdFactory } from '../../shared/lib/idFactory';
 import { createBookSearchFixture, createEmptyBookSearchFixture } from '../fixtures/books';
+import { findLibraryBook } from '../fixtures/library';
+import { createPromptSetFixture } from '../fixtures/prompt-sets';
 import type { RequestLog } from '../request-log';
 import { consumeAttempt, type ScenarioGroupDefinition, type ScenarioStore } from '../scenarios';
 
@@ -63,6 +72,20 @@ export const booksScenarioGroup: ScenarioGroupDefinition<BooksScenarioKey> = {
 export const BOOKS_LOADING_DELAY_MS = 1_500;
 
 const OPERATION = 'GET /v1/books/search';
+const PROMPTS_OPERATION = 'GET /v1/books/:bookId/prompts';
+
+/** 책마다 다른 역량을 결정적으로 고른다 — 같은 `bookId` 는 항상 같은 세트를 받는다. */
+const PROMPT_CAPABILITIES = [
+  'emotion_regulation',
+  'self_directed_agency',
+  'cognitive_flexibility',
+  'intrinsic_motivation',
+] as const;
+
+function capabilityFor(bookId: string): (typeof PROMPT_CAPABILITIES)[number] {
+  const sum = [...bookId].reduce((total, char) => total + (char.codePointAt(0) ?? 0), 0);
+  return PROMPT_CAPABILITIES[sum % PROMPT_CAPABILITIES.length] ?? 'emotion_regulation';
+}
 
 export interface MockBooksApiDeps {
   store: ScenarioStore;
@@ -119,6 +142,54 @@ export function createMockBooksApi(deps: MockBooksApiDeps): BooksApi {
 
         default:
           return results();
+      }
+    },
+
+    async getPrompts(
+      request: { bookId: string; childId: string },
+      options: ApiRequestOptions = {},
+    ) {
+      // 경로·query 파라미터는 payload 로 남기지 않는다 — `MockHomeApi` 주석 참조.
+      void request.childId;
+      requestLog?.record(PROMPTS_OPERATION, { bookId: request.bookId });
+
+      const scenario = store.resolve(booksScenarioGroup);
+      const attempt = consumeAttempt(store, booksScenarioGroup.group, options.signal);
+
+      function prompts(): BookPromptsResponse {
+        if (findLibraryBook(request.bookId) === undefined) {
+          fail('RESOURCE_NOT_FOUND', 'Unknown book.');
+        }
+
+        return parseResponse(
+          BookPromptsResponseSchema,
+          {
+            bookId: request.bookId,
+            promptSet: createPromptSetFixture(
+              request.bookId.slice(-4),
+              capabilityFor(request.bookId),
+            ),
+          },
+          { operation: PROMPTS_OPERATION, direction: 'response' },
+        );
+      }
+
+      switch (scenario) {
+        case 'loading':
+          return withDelay(timer, BOOKS_LOADING_DELAY_MS, prompts, options.signal);
+
+        case 'error':
+          return fail('INTERNAL_ERROR', 'Mock book prompts failed.');
+
+        case 'retry':
+          return attempt === 1 ? fail('INTERNAL_ERROR', 'Mock book prompts failed.') : prompts();
+
+        case 'offline':
+          throw new NetworkError('Mock adapter is offline.');
+
+        // `empty` 는 적용하지 않는다 — 빈 Prompt 세트는 contract 가 금지한다.
+        default:
+          return prompts();
       }
     },
   };

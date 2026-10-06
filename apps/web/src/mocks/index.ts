@@ -215,8 +215,20 @@ export {
   libraryScenarioGroup,
   LIBRARY_SCENARIO_KEYS,
   LIBRARY_LOADING_DELAY_MS,
+  LIBRARY_OVERVIEW_LOADING_DELAY_MS,
 } from './library/MockLibraryApi';
 export type { LibraryScenarioKey } from './library/MockLibraryApi';
+export {
+  createAddedBookFixture,
+  createGiftRequestFixture,
+  createGiftRequestListFixture,
+  createLibraryListFixture,
+  createLibraryOverviewFixture,
+  findLibraryBook,
+  LIBRARY_LIST_NEXT_CURSOR,
+  SHELF_BOOKS,
+} from './fixtures/library';
+export type { LibraryListFixtureOptions, LibraryOverviewShape } from './fixtures/library';
 export { DECK_BOOKS, findDeckBook, resolveSaveTarget } from './fixtures/saved-books';
 export { createActivityCardFixture, MOCK_ACTIVITY_CARD_ID } from './fixtures/activity-cards';
 export type { ActivityDeckShape } from './fixtures/activity-cards';

@@ -119,6 +119,13 @@
   /* ===== ListRow / ListGroup — Stage 2 Design Spec §4.3 (Figma `163:2145`) ===
    * Figma 74 는 media 행 값이다. basic 행은 56 (터치 44 이상). */
   --list-row-height-min: 56px;
+  /* `LT-11` — Book List 행(`30:141`·`163:2100`) 74 = padding 13·13 + 썸네일 48.
+   * 최소 높이이며 내용이 늘면 커진다 (`AD-S3-17`). */
+  --book-list-row-height-min: 74px;
+  /* `LT-14` — 진입점 행(`AD-L-06`)은 media 가 없어 74 가 아니라 기본 행 높이 56 이다.
+   * `--list-row-height-min` 과 **같은 값**이지만 Tier 3 → Tier 3 참조는 이 Tier 의
+   * 의존 규칙(Component → Semantic 만)에 어긋나므로 리터럴로 둔다. */
+  --library-entry-row-height-min: 56px;
 
   /* ===== SwipeDeck — Stage 2 Design Spec §4.2 (Figma `179:1781–1783` 실측) ===
    * 레벨마다 좌우 각 8 안쪽, 아래로 16 더 보인다. depth 는 Figma 카드 3장. */
@@ -126,12 +133,24 @@
   --deck-peek-y: var(--space-4); /* Figma 아래로 레벨당 16 */
   --deck-depth: 3; /* Figma `179:1781–1783` 카드 3장 */
 
-  /* ===== BookCover — Stage 3 Design Spec §5.3 · §6.2 (entities 전용) =======
+  /* ===== BookCover — Stage 3 Design Spec §5.3 · §6.2 + Library §5.2 (entities 전용) ===
    * aspect 는 실측 58×83(0.6988) · 34×48(0.7083) 을 ±1.2% 로 흡수한 값이다.
    * 원본 비율 편차는 `object-fit: cover` 가 흡수한다 (`QA-2-004` 재발 방지, D-13 ③).
-   * `--book-cover-w-sm`(34) · `lg`(캐러셀 열 폭)은 **서재 화면이 생길 때** 추가한다. */
+   *
+   * `lg`(캐러셀)는 폭이 **퍼센트**(열 폭 31.0145%)라 px 토큰을 두지 않고 호출 측 그리드가
+   * 정한다 — 비만 `--library-shelf-cover-aspect` 로 고정한다 (`LT-5`). */
   --book-cover-aspect: 7 / 10;
+  --book-cover-w-sm: 34px; /* `LT-3` — Figma `30:142`·`163:2101` 34×48 */
   --book-cover-w-md: 58px; /* Figma `85:610` */
+  --book-cover-w-xl: 64px; /* `LT-3` — Figma `145:1146` 64×90 */
+  --book-cover-h-xl: 90px; /* `LT-3` — 64×90 은 7/10 과 어긋나므로 높이를 직접 둔다 */
+  /* `LT-4` — 표지 radius 10. semantic radius 스케일(8 / 12)과 **동점**이라 흡수하지 않는다.
+   * `ReadingNowCard` 64×90 (`145:1146`) 과 Home 카드 58×82 (`85:536`) 가 같은 값을 쓴다.
+   * (구 `--activity-card-cover-radius: var(--space-2-5)` = 간격 토큰 오용을 대체한다.) */
+  --book-cover-radius-xl: 10px;
+  /* `LT-5` — 캐러셀 표지 107×151 = 0.7086. `--book-cover-aspect`(0.7) 로는 152.86 이 되어
+   * 캐러셀 블록이 2px 커지고 아래 섹션 y 가 밀린다. */
+  --library-shelf-cover-aspect: 107 / 151;
 
   /* ===== PromptPill — Stage 3 Design Spec §5.4 · §5.4.1 · §6.2 (entities 전용) =
    * 높이는 **최소값**이다. 내용이 넘치면 늘어난다 (고정 높이 금지 — §9).
@@ -200,7 +219,7 @@
   --activity-card-title-size: 26px; /* Cardtitle 행 */
   --activity-card-book-size: 82px;
   --activity-card-book-gap: var(--space-3-5); /* 14 */
-  --activity-card-cover-radius: var(--space-2-5); /* Figma 10 */
+  /* 표지 radius 는 `--book-cover-radius-xl` 가 소유한다 (`LT-4` 정규화 — 값 10 그대로). */
   --activity-card-cover-shadow: var(--shadow-cover);
   --activity-card-flip-size: var(--size-icon-lg); /* 24 */
   --activity-card-flip-color: var(--color-icon-flip);
@@ -219,8 +238,42 @@
   --activity-card-note-pad-block: 13px; /* Figma `I86:482;86:246` text y=13 (`V-12`) */
   --activity-card-note-pad-inline: var(--space-3); /* Figma 12 */
 
+  /* ===== Library — BookShelfCarousel (Library Design Spec §3.3) ===========
+   * 선언 gap 8 ↔ 실측 dots y=207(192 + 15) 불일치의 원인은 `확인 불가`다.
+   * **실측 207** 을 구현한다 → gap 은 `--space-4`(16, Δ+1 흡수). */
+  --library-shelf-block-size: 216px; /* `LT-6` — Figma `113:1992` 345×216 */
+  --library-shelf-indicator-gap: var(--space-4); /* `LT-6` — 실측 15 → 16 흡수 */
+  --library-shelf-item-gap: var(--space-2); /* `LT-10` — Figma 표지→제목→캡션 각 7 → 8 흡수 */
+
+  /* ===== Library — ReadingNowCard (Library Design Spec §3.2) ============== */
+  /* `LT-8` — 텍스트 4요소 사이 gap 3. 스케일은 2(`--space-0-5`)·4(`--space-1`) 로 **동점**이고
+   * 2 로 흡수하면 텍스트 열이 3px 줄어 카드 118 과 어긋난다. */
+  --reading-now-text-gap: 3px;
+  /* `LT-9` — 진행 바 높이 7. `--progress-height-sm`(6)·`md`(8) 양쪽 Δ1 **동점**이라
+   * `ProgressBar` 에 도메인 size 를 추가하지 않고 Library CSS 가 track 높이만 override 한다. */
+  --reading-now-progress-height: 7px;
+
+  /* ===== SectionHeader (Library Design Spec §3.1 · §9.2) ================== */
+  /* `LT-13` — 시각 39×14 인 "See all" 의 hit area 만 44 로 넓힌다 (`IconButton::before` 선례). */
+  --section-header-action-hit: var(--size-touch-min);
+
   /* ===== Sheet / Dialog / Toast / Skeleton (Figma 없음 → 명세, §13.1) ==== */
   --sheet-radius-top: var(--radius-card);
+  /* `LT-7` — `variant="inset-card"`: Figma `145:1085`·`163:2347` 가 **둘 다 x=14** 로 띄워져
+   * 있다 (`L-OPEN-04`). 아래 여백은 좌우와 같은 14 + safe-area (`L-NEW-03`, §20.2) —
+   * Figma 의 세로 값 4.11 / 37.22 는 어떤 규칙으로도 설명되지 않아 어느 쪽도 승격하지 않는다. */
+  --sheet-inset-inline: var(--space-3-5); /* 14 */
+  --sheet-inset-block-end: calc(var(--space-3-5) + var(--layout-safe-bottom));
+  --sheet-inset-radius: var(--radius-card); /* 28 — 네 모서리 전부 */
+  --sheet-inset-pad: var(--space-4-5); /* 18 — Figma 헤더·본문 padding */
+  /*
+   * `R-SHADOW-1` — `.haru-sheet__content { overflow-y: auto }` 안의 `ListGroup`
+   * (`--shadow-bubble` 1겹) 그림자 자리. **픽셀 프로브 실측**: 아래 10 · 위 0 · 좌우 4
+   * (Library Design Spec §8.1 ①). 산술 검산: offset +6 blur 4 → 아래 10 / 위 −2→0 / 좌우 ±4.
+   * 추정값이 아니다 — 겹을 전부 합산하고 Δ≥1 프로파일로 쟀다.
+   */
+  --sheet-content-shadow-inset-block-end: 10px;
+  --sheet-content-shadow-inset-inline: 4px;
   --dialog-radius: var(--radius-card);
   --toast-radius: var(--radius-surface);
   --skeleton-radius: var(--radius-control);

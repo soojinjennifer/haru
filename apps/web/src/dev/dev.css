@@ -132,6 +132,15 @@
   gap: var(--space-3);
 }
 
+/*
+ * `BookCover size="lg"` 는 폭을 갖지 않는다 — 서재 캐러셀의 **퍼센트 열**이 폭을 정한다
+ * (Library Design Spec §3.3 열 폭 31.0145%). gallery 는 그 열 하나를 흉내 내 비만 확인한다.
+ * dev 전용 평문 CSS 이며 Production 에는 들어가지 않는다.
+ */
+.haru-dev-shelf-column {
+  inline-size: 31%;
+}
+
 .haru-dev-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(calc(var(--space-8) * 5), 1fr));
@@ -446,11 +455,24 @@
   outline-offset: var(--focus-ring-offset);
 }
 
+/*
+ * dev 전용 — scenario key 가 늘어나면 패널이 **뷰포트 위로 넘쳐** 위쪽 그룹을 누를 수 없다.
+ * Library 1라운드에서 `library` 그룹이 6 → 18 키가 되면서 실제로 막혔고
+ * (`scenarios.spec.ts` 가 "element is outside of the viewport" 로 실패했다) 그래서 본문을
+ * 스크롤 상자로 만든다.
+ *
+ * `R-SHADOW-1` 근거 주석: 이 상자 **안에는 drop shadow 요소가 없다** — key 버튼은 border 와
+ * 면만 쓴다. 패널의 그림자(`--shadow-rest`)는 이 상자 **바깥**(`.haru-dev-panel`)에 있어
+ * 잘리지 않는다. 따라서 그림자 inset 설계가 필요하지 않다.
+ */
 .haru-dev-panel__body {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   margin-block-start: var(--space-2);
+  max-block-size: 60dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .haru-dev-panel__group {

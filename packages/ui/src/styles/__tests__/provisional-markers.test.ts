@@ -15,15 +15,34 @@ import { describe, expect, it } from 'vitest';
 
 const UI_SRC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
-/** 2026-09-22 확정 — 주석이 있으면 안 된다 (stage-1-approvals §9.1). */
-const CONFIRMED = ['P-03', 'P-06', 'P-07', 'P-08', 'P-09', 'P-11', 'P-12', 'P-13', 'P-14', 'P-15'];
+/**
+ * 확정 — 주석이 있으면 안 된다.
+ * 2026-09-22 10건 (stage-1-approvals §9.1) + 2026-10-06 **`P-05`**(scrim — 근거가 Figma
+ * 실측값이 되어 해제, stage-3-approvals §20.2 `L-NEW-09`).
+ */
+const CONFIRMED = [
+  'P-03',
+  'P-05',
+  'P-06',
+  'P-07',
+  'P-08',
+  'P-09',
+  'P-11',
+  'P-12',
+  'P-13',
+  'P-14',
+  'P-15',
+];
 
 /**
- * 디자이너 대기 유지 항목 (stage-1-approvals §9.2) + Stage 2 신규 `P-17`.
+ * 디자이너 대기 유지 항목 (stage-1-approvals §9.2) + Stage 2 신규 `P-17` +
+ * Library 1라운드 신규 **`P-24`**.
  * `P-17` = TextField `trailingAction` 이 밑줄 없이 색만으로 구분되는 상태
- * (결정 `D-14`, stage-2-approvals §4). 디자이너 결정 전까지 주석이 남아 있어야 한다.
+ * (결정 `D-14`, stage-2-approvals §4).
+ * `P-24` = `--color-fg-tertiary`(`#9aabaa`) 대비 1.56–2.38:1 — Book List 메타·`See all` 등
+ * (stage-3-approvals §20.4). 디자이너 결정 전까지 주석이 남아 있어야 한다.
  */
-const REMAINING = ['P-01', 'P-02', 'P-04', 'P-05', 'P-16', 'P-17'];
+const REMAINING = ['P-01', 'P-02', 'P-04', 'P-16', 'P-17', 'P-24'];
 
 const MARKER_RE = /provisional:\s*(P-\d{2})/g;
 
@@ -47,7 +66,7 @@ describe('packages/ui CSS 의 provisional 주석 (approvals §9)', () => {
     expect(markers.length).toBeGreaterThan(0);
   });
 
-  it('확정 10건은 하나도 남아 있지 않다 (되돌아오면 실패)', () => {
+  it('확정 11건은 하나도 남아 있지 않다 (되돌아오면 실패)', () => {
     const regressed = markers
       .filter((marker) => CONFIRMED.includes(marker.item))
       .map((marker) => `${marker.item} ${marker.file}`)
@@ -64,5 +83,15 @@ describe('packages/ui CSS 의 provisional 주석 (approvals §9)', () => {
   it('남아 있는 항목은 디자이너 대기 6건 안에만 있다', () => {
     const items = [...new Set(markers.map((marker) => marker.item))].sort();
     expect(items.filter((item) => !REMAINING.includes(item))).toEqual([]);
+  });
+
+  /** Library 1라운드 — 3차 회색이 붙은 자리를 고정한다 (`LT-1` 재매핑 범위). */
+  it('P-24 가 Book List 메타와 SectionHeader CSS 에 등록되어 있다', () => {
+    expect(
+      markers
+        .filter((marker) => marker.item === 'P-24')
+        .map((marker) => marker.file)
+        .sort(),
+    ).toEqual(['list/List.css', 'section/SectionHeader.css', 'section/SectionHeader.css']);
   });
 });

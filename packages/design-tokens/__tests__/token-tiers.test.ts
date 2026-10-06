@@ -133,15 +133,34 @@ describe('Tier 2 — Semantic (Design Spec §3.2)', () => {
     expect(byName.get('--breakpoint-lg')?.value).toBe(byName.get('--bp-lg')?.value);
   });
 
-  it('radius 는 6단계다 (§3.2.3)', () => {
+  /*
+   * **7단계** — Stage 0 `#10-②`("6단계 고정")은 `L-OPEN-09` 결정으로 개정되었다
+   * (`stage-3-approvals.md` §17.3). 추가는 `--radius-media`(12) 한 건이다.
+   * 표지 10 은 여기에 넣지 않는다 — 8·12 동점이라 흡수 근거가 없고, Tier 3
+   * `--book-cover-radius-xl` 가 현재 렌더값 10 을 그대로 보존한다 (Library Design Spec §5.5).
+   */
+  it('radius 는 7단계다 (§3.2.3 개정 — L-OPEN-09)', () => {
     expect(semantics.filter((d) => d.name.startsWith('--radius-')).map((d) => d.name)).toEqual([
       '--radius-indicator',
       '--radius-control',
+      '--radius-media',
       '--radius-field',
       '--radius-surface',
       '--radius-card',
       '--radius-pill',
     ]);
+    expect(byName.get('--radius-media')?.value).toBe('12px');
+  });
+
+  /*
+   * `LT-1` — Figma Library 의 3단계 회색. 재매핑 전에는 secondary 와 **같은** `ink-500` 이었다.
+   * `LT-12` — scrim 은 Figma 실측값(7점 최소제곱)이다. 남색 기운(`#29293a`)이 아니라 순검정이다.
+   */
+  it('Library 색 결정 2건이 반영되어 있다 (LT-1 · LT-12)', () => {
+    expect(byName.get('--color-fg-tertiary')?.value).toBe('var(--haru-ink-400)');
+    expect(byName.get('--haru-ink-400')?.value).toBe('#9aabaa');
+    expect(byName.get('--color-fg-secondary')?.value).toBe('var(--haru-ink-500)');
+    expect(byName.get('--color-scrim')?.value).toBe('rgb(0 0 0 / 0.34)');
   });
 
   it('사용자 확정값(2026-09-20)이 반영되어 있다', () => {
@@ -179,8 +198,20 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
    * Visual Gap 3차 결정(2026-10-06, approvals §13)에서 **2종 추가** → 132.
    *  - `--home-chip-icon-color`     (`A-23`-icon — Figma `50:161` 채움색)
    *  - `--bubble-content-max-lines` (`W-5` — 주 문구 4줄 상한)
+   *
+   * Library 1라운드(`LT-3`~`LT-14` + §8.1 inset 레시피)에서 **19종 추가 · 1종 제거** → 150.
+   *  추가: `--book-cover-w-sm` · `-w-xl` · `-h-xl` · `--book-cover-radius-xl` ·
+   *        `--library-shelf-cover-aspect` · `--library-shelf-block-size` ·
+   *        `--library-shelf-indicator-gap` · `--library-shelf-item-gap` ·
+   *        `--reading-now-text-gap` · `--reading-now-progress-height` ·
+   *        `--book-list-row-height-min` · `--library-entry-row-height-min` ·
+   *        `--section-header-action-hit` · `--sheet-inset-inline` · `--sheet-inset-block-end` ·
+   *        `--sheet-inset-radius` · `--sheet-inset-pad` ·
+   *        `--sheet-content-shadow-inset-block-end` · `--sheet-content-shadow-inset-inline`
+   *  제거: `--activity-card-cover-radius` (간격 토큰 오용 → `--book-cover-radius-xl` 로 통합,
+   *        **값 10 동일이므로 렌더 변화 0**)
    */
-  it('Tier 3 토큰 132개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset)', () => {
+  it('Tier 3 토큰 150개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset + Library 1라운드)', () => {
     expect(components.map((d) => d.name).sort()).toEqual(
       [
         '--button-height-md',
@@ -241,11 +272,24 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
         '--radio-dot-size',
         '--radio-row-height',
         '--list-row-height-min',
+        '--book-list-row-height-min',
+        '--library-entry-row-height-min',
         '--deck-inset-x',
         '--deck-peek-y',
         '--deck-depth',
         '--book-cover-aspect',
+        '--book-cover-w-sm',
         '--book-cover-w-md',
+        '--book-cover-w-xl',
+        '--book-cover-h-xl',
+        '--book-cover-radius-xl',
+        '--library-shelf-cover-aspect',
+        '--library-shelf-block-size',
+        '--library-shelf-indicator-gap',
+        '--library-shelf-item-gap',
+        '--reading-now-text-gap',
+        '--reading-now-progress-height',
+        '--section-header-action-hit',
         '--prompt-pill-height-min',
         '--prompt-pill-pad-block',
         '--prompt-pill-pad-inline',
@@ -293,7 +337,6 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
         '--activity-card-title-size',
         '--activity-card-book-size',
         '--activity-card-book-gap',
-        '--activity-card-cover-radius',
         '--activity-card-cover-shadow',
         '--activity-card-flip-size',
         '--activity-card-flip-color',
@@ -312,6 +355,12 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
         '--activity-card-note-pad-block',
         '--activity-card-note-pad-inline',
         '--sheet-radius-top',
+        '--sheet-inset-inline',
+        '--sheet-inset-block-end',
+        '--sheet-inset-radius',
+        '--sheet-inset-pad',
+        '--sheet-content-shadow-inset-block-end',
+        '--sheet-content-shadow-inset-inline',
         '--dialog-radius',
         '--toast-radius',
         '--skeleton-radius',

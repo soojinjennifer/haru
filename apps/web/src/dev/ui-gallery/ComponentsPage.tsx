@@ -42,6 +42,7 @@ import { useState } from 'react';
 
 import { galleryCopy } from './gallery-copy';
 import { Stage2Section } from './Stage2Section';
+import { Stage3LibrarySection } from './Stage3LibrarySection';
 import { Row, Section, Stack, Stage, SubHead } from './primitives';
 import { TabBarDemo } from './TabBarDemo';
 
@@ -815,6 +816,7 @@ export function ComponentsPage() {
       <BubbleSection />
       <OverlaySection />
       <Stage2Section />
+      <Stage3LibrarySection />
     </>
   );
 }

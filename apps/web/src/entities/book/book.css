@@ -16,8 +16,39 @@
   border-radius: var(--radius-control);
 }
 
+/* ===== size — Library Design Spec §5.2 `LT-3`·`LT-4`·`LT-5` ==============
+ * `sm`  34×48  Book List 썸네일 (`30:142`·`163:2101`) — radius 7 → control(8) 흡수, 그림자 없음
+ * `md`  58×82  Home 카드 표지 (`85:536`) — radius·그림자는 `activity-card.css` 가 덮는다
+ * `lg`  퍼센트 폭, 비 107/151  캐러셀 표지 (`113:1972`) — radius 12(`--radius-media`)
+ * `xl`  64×90  `ReadingNowCard` 표지 (`145:1146`) — radius 10(`--book-cover-radius-xl`)
+ *
+ * `lg` 의 폭은 **퍼센트 그리드가 정한다** (열 폭 31.0145%) — px 토큰을 두지 않고 `100%` 로
+ * 받는다. 비는 `--book-cover-aspect`(0.7) 로 흡수하면 151 → 152.86 이 되어 캐러셀 블록이
+ * 2px 커지므로 전용 비 토큰을 쓴다 (`LT-5`).
+ */
+
+.haru-book-cover--sm {
+  inline-size: var(--book-cover-w-sm);
+}
+
 .haru-book-cover--md {
   inline-size: var(--book-cover-w-md);
+}
+
+.haru-book-cover--lg {
+  inline-size: 100%;
+  aspect-ratio: var(--library-shelf-cover-aspect);
+  border-radius: var(--radius-media);
+  box-shadow: var(--shadow-cover);
+}
+
+/* 64×90 은 7/10 과 어긋나므로 두 변을 직접 둔다 (`aspect-ratio` 를 끈다). */
+.haru-book-cover--xl {
+  inline-size: var(--book-cover-w-xl);
+  block-size: var(--book-cover-h-xl);
+  aspect-ratio: auto;
+  border-radius: var(--book-cover-radius-xl);
+  box-shadow: var(--shadow-cover);
 }
 
 .haru-book-cover img {
@@ -26,6 +57,15 @@
   block-size: 100%;
   border-radius: var(--radius-control);
   object-fit: cover;
+}
+
+/* 이미지도 상자와 같은 radius 를 갖는다 — `object-fit` 이 잘라내므로 clip 박스가 필요 없다. */
+.haru-book-cover--lg img {
+  border-radius: var(--radius-media);
+}
+
+.haru-book-cover--xl img {
+  border-radius: var(--book-cover-radius-xl);
 }
 
 /* 표지 없음 / 로드 실패 — pastel 면 + 제목 이니셜. 판정 문구를 넣지 않는다. */

@@ -469,3 +469,80 @@ test.describe('Home baseline (audit §11.12)', () => {
     await expect(page).toHaveScreenshot('s3-tabbar-bottom.png', { ...REGION_SNAPSHOT, clip });
   });
 });
+
+/**
+ * scrim 감시 baseline — **신규 추가** (`stage-3-approvals.md` §19.4 · §20.2 `L-NEW-09`).
+ *
+ * `--color-scrim` 이 Library `LT-12` 로 `#29293a3b`(남색 기운 23%) → `rgb(0 0 0 / 0.34)`
+ * (Figma 실측 순검정 34%)로 바뀌었다. 그런데 이 저장소에는 **열린 Sheet / Dialog / Scrim 을
+ * 담은 baseline 이 한 장도 없었다** — `visual.spec.ts` 에 `sheet`·`dialog`·`scrim` 문자열이
+ * 0건이었고 `s2-selecttrigger` 는 **닫힌** 트리거 행만 찍는다. 즉 scrim 값이 깨져도 잡는
+ * 테스트가 없었다. 그 공백을 여기에서 메운다.
+ *
+ * 찍는 자리는 **지금 실제로 scrim 을 렌더하는 지점**이다 (`--color-scrim` 참조점은
+ * `Sheet.tsx` · `Dialog.tsx` 2곳뿐이고, 화면에서는 `SelectTrigger` 시트 7 인스턴스와
+ * `SettingsMenu` `ConfirmDialog` 1 = 8 인스턴스가 전부다).
+ *
+ * `R-BASELINE-1` 준수
+ *   ① 스냅샷 전에 **`settle()`** 을 부른다 — 시트·다이얼로그는 `translateY`/fade 모션이 있어
+ *      정착 전 프레임을 담으면 `s2-vpc-failed` 와 같은 사고가 난다. 두 화면 모두
+ *      **클라이언트 이동**(가입 후 / 로그인 후)으로 들어오므로 `gotoApp` 의 settle 을 거치지
+ *      않는 경로다.
+ *   ② dev Scenario Panel 은 이 파일의 `beforeEach` 가 가린다 (`hideDevPanel`).
+ *   전체 프레임이므로 `FRAME_SNAPSHOT` 을 쓴다 — scrim 은 뷰포트 전체를 덮는 레이어이고
+ *   영역 클립으로는 "뒤 배경이 얼마나 어두워졌는가" 가 그림에 들어오지 않는다.
+ */
+test.describe('scrim baseline (L-NEW-09 감시 — 신규)', () => {
+  test('s3-sheet-scrim — SelectTrigger 시트가 열린 상태 (전체 프레임)', async ({ page }) => {
+    await gotoApp(page, '/auth/sign-up');
+
+    // `SelectTrigger` 는 Sheet 안 RadioGroup 으로 값을 고른다 (Stage 2 §4.1).
+    await page.getByRole('button', { name: /Birth year/ }).click();
+
+    const sheet = page.getByRole('dialog');
+    await expect(sheet).toBeVisible();
+    await expect(sheet.getByRole('radio').first()).toBeVisible();
+    // 시트 진입 모션(translateY 100% → 0)이 끝난 뒤에 찍는다 (`R-BASELINE-1` ①).
+    await settle(page);
+
+    await expect(page).toHaveScreenshot('s3-sheet-scrim.png', {
+      fullPage: false,
+      ...FRAME_SNAPSHOT,
+    });
+  });
+
+  test('s3-dialog-scrim — 로그아웃 ConfirmDialog 가 열린 상태 (전체 프레임)', async ({ page }) => {
+    await logInToHome(page);
+
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await expect(page).toHaveURL(/\/settings$/);
+
+    await page.getByRole('button', { name: 'Log out', exact: true }).click();
+
+    const dialog = page.getByRole('alertdialog');
+    await expect(dialog).toBeVisible();
+    // destructive 라 초기 포커스가 Cancel 이다 — 포커스가 정해진 뒤에 찍는다.
+    await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeFocused();
+    await settle(page);
+
+    await expect(page).toHaveScreenshot('s3-dialog-scrim.png', {
+      fullPage: false,
+      ...FRAME_SNAPSHOT,
+    });
+  });
+});
+
+/**
+ * Library 1라운드 Shared UI baseline — dev gallery 영역 클립 (`D-12` `0.002 / 20`).
+ *
+ * 서재 **화면**은 2라운드다. 여기서 고정하는 것은 **토대 컴포넌트의 구현 스냅샷**이며
+ * Figma 와의 판정은 화면이 생긴 뒤 QA 가 한다.
+ */
+test.describe('Library 1라운드 컴포넌트 baseline (영역 클립)', () => {
+  for (const id of ['s3-section-header', 's3-book-cover', 's3-list-media'] as const) {
+    test(id, async ({ page }) => {
+      await gotoStable(page, GALLERY.components);
+      await expect(demo(page, id)).toHaveScreenshot(`${id}.png`, REGION_SNAPSHOT);
+    });
+  }
+});

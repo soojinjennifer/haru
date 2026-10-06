@@ -31,6 +31,27 @@
   block-size: 100dvh;
 }
 
+/* ===== inset-card — Library Design Spec §3.7–§3.9 (`L-OPEN-04` · `L-NEW-03`) ====
+ * Figma `145:1085`(L-2) · `163:2347`(L-3) 가 **둘 다 x=14** 로 띄워져 있다. 세로 값은
+ * 4.11 / 37.22 로 어떤 규칙으로도 설명되지 않아(`확인 불가`) 어느 쪽도 승격하지 않고
+ * **좌우와 같은 14 + safe-area** 를 쓴다 (사용자 결정 `L-NEW-03`).
+ *
+ * 시트 **자신에게는 그림자 inset 이 필요 없다** (Design Spec §8.1 ②): `createPortal(body)` +
+ * `position: fixed` 이고 조상에 `transform`/`filter`/`contain` 이 없어 body 의 overflow 가
+ * 이것을 클립하지 않는다. 393 에서 좌우 번짐 50 중 36 이 뷰포트 밖으로 나가지만 잘리는 선이
+ * **화면 가장자리**라 보이지 않는다 (`R-SHADOW-1` ④ — Figma 도 393 프레임에서 같은 양이 잘린다).
+ */
+.haru-sheet--inset-card {
+  inset-inline: var(--sheet-inset-inline);
+  inset-block-end: var(--sheet-inset-block-end);
+  /* 앱 컬럼(480) 안에서도 좌우 14 를 유지한다. */
+  max-inline-size: calc(var(--layout-app-max-width) - 2 * var(--sheet-inset-inline));
+  /* 상단 40 은 scrim 이 반드시 보이도록 남긴다 (Design Spec §3.9). */
+  max-block-size: calc(100dvh - var(--space-10) - var(--sheet-inset-block-end));
+  padding: var(--sheet-inset-pad);
+  border-radius: var(--sheet-inset-radius);
+}
+
 .haru-sheet__grabber {
   /* Figma `88:960` — 36×4 (grabber 전용 규격값) */
   inline-size: 36px;
@@ -47,9 +68,29 @@
   gap: var(--space-3);
 }
 
+/*
+ * `R-SHADOW-1` 근거 주석 — 이 `overflow-y: auto` 는 **기존 선언**이다 (Stage 2). 시트 본문이
+ * 뷰포트보다 길 때 스크롤해야 하므로 회피할 수 없다 (`R-SHADOW-1` ①).
+ */
 .haru-sheet__content {
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/*
+ * 본문 안의 drop shadow 자리 (`R-SHADOW-1` ②) — **픽셀 프로브 실측값**이다
+ * (`--shadow-bubble` 1겹: 아래 10 · 위 0 · 좌우 4. Library Design Spec §8.1 ①).
+ * 추정하지 않았고 겹을 전부 합산했다 — 1겹이라 누락할 겹이 없으며 산술(offset 6 + blur 4)과
+ * 일치한다. 위쪽은 0 이라 inset 이 없다.
+ *
+ * `box-sizing: border-box` 이므로 음수 margin 으로 **레이아웃 점유와 scrollable overflow 를
+ * 되돌린다** — content box 가 그대로 유지되고 헤더·본문 간격이 움직이지 않는다.
+ */
+.haru-sheet__content--shadow-inset {
+  padding-block-end: var(--sheet-content-shadow-inset-block-end);
+  padding-inline: var(--sheet-content-shadow-inset-inline);
+  margin-block-end: calc(-1 * var(--sheet-content-shadow-inset-block-end));
+  margin-inline: calc(-1 * var(--sheet-content-shadow-inset-inline));
 }
 
 /* ===== 모션 (§9.1) — enter translateY(100%) → 0, exit 반대 ============== */

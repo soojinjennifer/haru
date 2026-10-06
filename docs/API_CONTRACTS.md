@@ -72,6 +72,7 @@ Author: plan-agent (2026-09-14)
 | `REPORT_NOT_READY` | 409 | 생성 중/지연 | FR-16, §13 |
 | `PDF_NOT_READY` | 409 | PDF 생성 중 | FR-17 |
 | `GIFT_REQUEST_DUPLICATE` | 409 | 같은 책 진행 중 신청 존재 | FR-22 |
+| `BOOK_ALREADY_OWNED` | 409 | 이미 서재에 있는 책을 다시 등록 (`POST …/library/books`) — **구현됨** (Library Plan §7.4) | FR-23 |
 | `DELETION_ALREADY_REQUESTED` | 409 | | FR-21 |
 | `IDEMPOTENCY_KEY_REUSED` | 422 | 동일 key 다른 body | — |
 | `RATE_LIMITED` | 429 | | 기술 요구사항 |
@@ -126,8 +127,9 @@ Author: plan-agent (2026-09-14)
 | `ReportStatus` | `in_progress, generating, published, deferred, delayed` | FR-16, §13 |
 | `ActivityOptionKind` | `book, reread_book, conversation_only` | §7.4, §13 |
 | `BookOwnership` | `owned, gifted, gift_pending, favorite_only` | FR-20/22/23 |
-| `BookSource` (Stage 3) | `onboarding_favorite, library_add, gift_program, card_save` | `docs/DATA_MODEL.md` §7 `child_books.source` — **RECOMMENDED**. `card_save` = `★ Save` 로 행이 처음 생기는 경로 (§3.7.3, approvals §12.8 `A-9`). ~~`onboarding_home_list`~~ 는 **제거** — 온보딩 `homeBooks` 가 삭제되었다 (approvals §11.9) |
-| `LibraryFilter` (Stage 3) | `owned, gifted, history, saved` | §4 Stage 3 서재 쿼리 파라미터 — **RECOMMENDED**. `saved` = Figma `145:1157` "My Saved" 표면 (§3.7.3). Library 라운드에서 사용 |
+| `BookSource` (Stage 3) | `onboarding_favorite, library_add, gift_program, card_save` | `docs/DATA_MODEL.md` §7 `child_books.source` — **구현됨**. 화면은 이 값을 **표식으로 드러내지 않는다** (`L-OPEN-14`). `card_save` = `★ Save` 로 행이 처음 생기는 경로 (§3.7.3, approvals §12.8 `A-9`). ~~`onboarding_home_list`~~ 는 **제거** — 온보딩 `homeBooks` 가 삭제되었다 (approvals §11.9) |
+| `LibraryFilter` (Stage 3) | `owned, gifted, history, saved, curated` | §4 Stage 3 서재 **쿼리 축** — **구현됨**. `saved` = Figma `145:1157` "My Saved" 표면 (§3.7.3). `curated` 는 "See all" 시트가 큐레이션 전체 목록을 받기 위해 Library 라운드에서 추가됐다 |
+| `LibrarySectionKey` (Stage 3) | `curated, favorites, finished` | 서재 **표시 축** — Figma 섹션 제목 3개 `[실측 30:74 · 145:1141]`. `reading_now` 는 `sections[]` 가 아니라 `LibraryOverview.readingNow` 단일 필드라 여기 없다. ⚠ 표시 축과 쿼리 축은 **1:1 이 아니다** (`L-OPEN-14`) |
 | `GiftRequestStatus` | `requested, approved, shipped, delivered, cancelled, rejected` | FR-22, §13 |
 | `CaregiverRelationship` | `mother, father, grandparent, babysitter, tutor, therapist, other` | §3.1, §7.2 |
 | `OnboardingStep` | `child_info, temperament, books, goals, capability_items` | 5단계 구성·순서 **CONFIRMED (사용자 결정 2026-09-14, C-9)** — PRD §7.2 / 식별자 문자열 **RECOMMENDED** |
@@ -708,13 +710,14 @@ Home 상단 설정 아이콘(`26:44`) → 설정 목록. Stage 2는 `/` Home ske
 | GET | `/v1/children/:childId/home` | — | `HomeSummary` (todayCard, sessionsThisWeek, **characterLine**, lastHighlightLine?, activeSession?) — **`streakDays` 삭제 · `characterLine` 추가 (CONFIRMED 2026-10-02, `stage-3-approvals.md` §8.5 ①·④)**. `characterLine` 은 **약 120자 이내** 요구 — schema 제약 아님, §3.8 (`P3-BIP-16`) | ONBOARDING_INCOMPLETE | FR-07, §6.1, §7.4 보조 요소 |
 | GET | `/v1/children/:childId/activity-cards/today` | — | `ActivityCard` (date, options[3]{kind, book, reason, coachingLine, **capability**, **promptPreview[]**}) — **`targetCapability` 없음 (D-22)** — **`options[].capability` = D-5 · `options[].promptPreview` = D-4 (CONFIRMED 2026-09-29, §3)**. 상세 §3.6 | ONBOARDING_INCOMPLETE | FR-07 (2초 내 로딩 NFR) |
 | POST | `/v1/activity-cards/:cardId/selection` | `SelectActivityOption` (optionId, readingContext, customTime?) | `ActivityCardSelection` (option, promptSet{questions(**`.min(1)`, 상한 없음 — D-21**), coachingLine, followUps}) | RESOURCE_NOT_FOUND | FR-07 책 선택 후 Prompt, FR-08 |
-| GET | `/v1/children/:childId/library` | `?filter=owned\|gifted\|history` cursor | `Paginated<LibraryBook>` | — | FR-20, FR-22 |
-| POST | `/v1/children/:childId/library/books` (IK) | `AddOwnBook` (bookId \| title+author) | `LibraryBook` | VALIDATION_FAILED | FR-23, §8.1 |
-| PUT | `/v1/children/:childId/saved-books` | `SaveBook` (`target` = bookId \| title+author) | `LibraryBook` (`saved=true`) | RESOURCE_NOT_FOUND, VALIDATION_FAILED | **Figma `★ Save` — approvals §12.8 `A-9`**. PRD 근거 없음(FR-20 범위 밖) → Figma 우선 + 사용자 결정. 설계 §3.7. **IK 불필요**(PUT = 상태 설정, 멱등) |
-| DELETE | `/v1/children/:childId/saved-books/:bookId` | — | 204 | RESOURCE_NOT_FOUND | 저장 해제. **Home 버튼이 토글인지는 `G-13` NEEDS DECISION** — 해제 표면은 Library 라운드 |
-| GET | `/v1/books/:bookId/prompts?childId=` | — | `BookPrompts` (promptSets for age band) — 각 `Prompt` 는 **`phase`·`pageRef`(optional)** 를 포함할 수 있다 (§3.6, D-8) | — | FR-20 "책별 Prompt 보기" |
+| GET | `/v1/children/:childId/library/overview` | — | `LibraryOverview` = `{ readingNow: LibraryBook \| null, sections: { key: LibrarySectionKey, items: LibraryBook[], hasMore }[] }` — **화면 1회 조회 (구현됨)**. 섹션 4개가 한 화면에 동시에 뜨므로 섹션별 호출을 하지 않는다 (`P3-BIP-18`) | CHILD_NOT_FOUND | FR-20, §6.1 |
+| GET | `/v1/children/:childId/library` | `?filter=owned\|gifted\|history\|saved\|curated` cursor | `Paginated<LibraryBook>` — "See all" 시트와 더 보기 | VALIDATION_FAILED, CHILD_NOT_FOUND | FR-20, FR-22 |
+| POST | `/v1/children/:childId/library/books` (IK) | `AddOwnBook` = `{ target }` — **`SaveBookTarget` 재사용** (bookId \| title+author) | `LibraryBook` | VALIDATION_FAILED, IDEMPOTENCY_KEY_REUSED, (BOOK_ALREADY_OWNED) | FR-23, §8.1 |
+| PUT | `/v1/children/:childId/saved-books` | `SaveBook` (`target` = bookId \| title+author) | **`SavedBook`** (`saved=true`) — `LibraryBook` 전환을 검토했으나 **현행 유지**가 사용자 결정이다 (`L-OPEN-20`, `stage-3-approvals.md` §18.4). 그 대가로 저장/해제 후 `libraryKeys.overview` 를 무효화하고 재조회한다 | RESOURCE_NOT_FOUND, VALIDATION_FAILED | **Figma `★ Save` — approvals §12.8 `A-9`**. PRD 근거 없음(FR-20 범위 밖) → Figma 우선 + 사용자 결정. 설계 §3.7. **IK 불필요**(PUT = 상태 설정, 멱등) |
+| DELETE | `/v1/children/:childId/saved-books/:bookId` | — | **`SavedBook`** (`saved=false`) — 위와 같은 이유로 현행 유지 (`L-OPEN-20`) | RESOURCE_NOT_FOUND | 저장 해제 (`G-13` 토글) |
+| GET | `/v1/books/:bookId/prompts?childId=` | — | `BookPromptsResponse` = `{ bookId, promptSet }` — **`PromptSet` 재사용**(중복 선언 금지). 세트 단위 `coachingLine` 은 §12.14 로 삭제되었고 코칭 노트는 **`Prompt.coachingNote`**(질문 1개당 1개)다. 각 `Prompt` 는 `phase`·`pageRef`(optional)를 포함할 수 있다 (§3.6, D-8) | RESOURCE_NOT_FOUND | FR-20 "책별 Prompt 보기" |
 | POST | `/v1/children/:childId/gift-requests` (IK) | `CreateGiftRequest` = **`{ bookId }` 만 — 배송지 필드 없음 (CONFIRMED 2026-10-02, §8 D-15)** | `GiftRequest` | GIFT_REQUEST_DUPLICATE | FR-22, §13. 배송지 수집·저장은 운영·법무 결정 후 별도 Stage (`P3-BIP-06`) |
-| GET | `/v1/children/:childId/gift-requests` | — | `GiftRequest[]` | — | §13 배송 상태 서재 확인 |
+| GET | `/v1/children/:childId/gift-requests` | — | `Paginated<GiftRequest>` | CHILD_NOT_FOUND | §13 배송 상태 서재 확인 |
 | GET | `/v1/notification-preferences` | — | `NotificationPreferences` | — | FR-08, §7.8. **Contract 정의 유지** — D-18(2026-10-02, §8.4)은 **알림 설정 화면만** Stage 3 제외이며 contract 는 삭제하지 않는다 |
 | PUT | `/v1/notification-preferences` | `UpdateNotificationPreferences` | `NotificationPreferences` | — | FR-08, §7.8 |
 | POST | `/v1/push-devices` | `RegisterPushDevice` (platform, token) | `PushDevice` | — | FR-08 |
@@ -886,6 +889,14 @@ apps/web/src/
 | `gift-duplicate` | — | `GIFT_REQUEST_DUPLICATE` | gift-requests | 3 | — |
 | `user-entered-book` | — | DB 외 직접 등록 책 포함 (범용 Prompt) | library, books | 3 | — |
 | `book-saved` | — | 대상 책이 **이미 저장된 상태**(`LibraryBook.saved=true`) → 재저장이 같은 응답을 돌려주는 멱등성(§3.7.3)과 (`G-14` ⓑ 채택 시) 초기 표시 검증 | library, saved-books, activity-cards | 3 | — |
+| `unsave` | — | 저장 해제 성공 (`G-13` 토글) → `libraryKeys.overview` 무효화·재조회 | library, saved-books | 3 | — |
+| **`favorites-empty`** | — | `Favorites` 섹션만 0건, 나머지 정상. **저장 전 기본 상태 = 가장 흔한 실제 상태** — 섹션이 사라지지 않고 안내가 뜬다 | library (overview) | 3 | — |
+| `finished-empty` | — | `Finished together` 만 0건 | library (overview) | 3 | — |
+| `curated-empty` | — | 큐레이션만 0건 (운영 데이터 공백 — `P3-BIP-04`) | library (overview) | 3 | — |
+| `reading-now-none` | — | `LibraryOverview.readingNow = null` → **블록 전체 미렌더 + 간격 회수**. 유일한 "섹션 사라짐" 예외이며 그 화면이 Figma `30:74`(L-1) 에 실재한다 | library (overview) | 3 | — |
+| `shelf-partial` | — | 캐러셀 항목 1권 (Figma 는 항상 3-up 이라 1~2권 레이아웃이 **없다** — `L-OPEN-13`) | library (overview) | 3 | — |
+| `unrated` | — | `LibraryBook.averageRating = null` → 행 **우측 메타를 비우고** 좌측 정렬 유지 (`L-OPEN-22`). Figma 에 unrated 상태가 없다 | library (overview, list) | 3 | — |
+| `paged` | — | `nextCursor` 가 있는 2페이지 — "See all" 시트의 추가 로드 (`L-OPEN-21`) | library (list) | 3 | — |
 | `push-permission-denied` | — | platform mock: OS push 권한 거부 | push-devices (platform adapter) | 3 | `os-permission-denied` |
 | `invalid-transition` | — | `SESSION_INVALID_TRANSITION` → 서버(Mock) 상태 재동기화 | sessions, reflections (completed 이전 제출) | 4 | — |
 | `mic-permission-denied` | — | RecorderAdapter mock 권한 거부 → 권한 안내·대화만 하기 | sessions (RecorderAdapter mock) | 4 | — |

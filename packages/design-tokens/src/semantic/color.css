@@ -17,8 +17,15 @@
   --color-fg-strong: var(--haru-ink-800);
   /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
   --color-fg-secondary: var(--haru-ink-500);
-  /* provisional: P-01 (docs/decisions/stage-0-approvals.md §4) */
-  --color-fg-tertiary: var(--haru-ink-500);
+  /*
+   * Figma Library 는 **3단계 회색**을 쓴다 — primary `#4a5f5c` / secondary `#7d9291` /
+   * tertiary **`#9aabaa`** (`163:1626` See all · `113:1975` 캐러셀 캡션 · `30:141` 행 메타).
+   * 그래서 secondary 와 같은 `ink-500` 을 가리키던 것을 `ink-400` 으로 재매핑한다
+   * (Library Design Spec §5.2 `LT-1`). 대비 1.56–2.38:1 — AA·대형 기준 모두 미달이며
+   * `P-01` 과 **별개 사례**다 (색이 다르고 대비가 한 단계 더 낮다).
+   */
+  /* provisional: P-24 (docs/decisions/stage-0-approvals.md §4) */
+  --color-fg-tertiary: var(--haru-ink-400);
   /* WCAG 1.4.3 disabled 면제 — ink-500 에 --opacity-disabled 를 합성한다 */
   --color-fg-disabled: color-mix(
     in srgb,
@@ -98,8 +105,13 @@
   --color-rating-empty: var(--haru-ink-600-a18);
 
   /* ===== Scrim =========================================================== */
-  /* provisional: P-05 (docs/decisions/stage-0-approvals.md §4) */
-  --color-scrim: #29293a3b;
+  /*
+   * Figma 실측 — L-1(비오버레이) ↔ L-2/L-3(오버레이) 동일 좌표 7점 최소제곱으로 풀었다
+   * (`145:1450` · `163:1807`, Library Design Spec §3.10 `[픽셀]`). 블러 없음.
+   * 가값 `P-05` 는 근거가 "TOKEN_MAP 제안값" → **"Figma 실측값"** 이 되어 해제되었다
+   * (`L-NEW-09`, `docs/decisions/stage-3-approvals.md` §20.2).
+   */
+  --color-scrim: rgb(0 0 0 / 0.34);
 
   /* ===== Focus =========================================================== */
   --color-focus-ring: var(--haru-ink-700);

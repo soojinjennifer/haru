@@ -167,13 +167,21 @@ describe('세션 만료 2회 실패 → /auth/log-in (AC-2-07)', () => {
       saveStep: () => Promise.reject(new Error('not used')),
       submit: () => Promise.reject(new Error('not used')),
     },
-    books: { search: () => Promise.reject(new Error('not used')) },
+    books: {
+      search: () => Promise.reject(new Error('not used')),
+      getPrompts: () => Promise.reject(new Error('not used')),
+    },
     home: { getSummary: () => Promise.reject(new Error('not used')) },
     activities: {
       getTodayCard: () => Promise.reject(new Error('not used')),
       selectOption: () => Promise.reject(new Error('not used')),
     },
     library: {
+      getOverview: () => Promise.reject(new Error('not used')),
+      getList: () => Promise.reject(new Error('not used')),
+      addOwnBook: () => Promise.reject(new Error('not used')),
+      getGiftRequests: () => Promise.reject(new Error('not used')),
+      createGiftRequest: () => Promise.reject(new Error('not used')),
       saveBook: () => Promise.reject(new Error('not used')),
       unsaveBook: () => Promise.reject(new Error('not used')),
     },

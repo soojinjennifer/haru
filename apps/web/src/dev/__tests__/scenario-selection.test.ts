@@ -190,8 +190,7 @@ describe('DEV_SCENARIO_GROUPS — Catalogue 준수 (AC-1-40)', () => {
 
   /**
    * Stage 3 이 쓰는 특화 key (Plan §8.2 — 전부 Catalogue 기존 값, **신규 key 0건**).
-   * `offline-cached-card` · `gift-*` · `user-entered-book` · `push-permission-denied` 는
-   * 해당 화면이 들어오는 단계에서 등록한다.
+   * `offline-cached-card` · `push-permission-denied` 는 해당 화면이 들어오는 단계에서 등록한다.
    */
   const CATALOGUE_STAGE_3 = [
     'session-already-active',
@@ -201,6 +200,23 @@ describe('DEV_SCENARIO_GROUPS — Catalogue 준수 (AC-1-40)', () => {
     // Home 재구현 — `★ Save` (`API_CONTRACTS.md` §5.4 catalogue 에 등재된 key).
     // `conversation-only-option` 은 그 옵션이 폐지되면서 사라졌다 (approvals §12.12).
     'book-saved',
+    /*
+     * Library 1라운드 (Library Plan §8.2). **섹션별 EMPTY 가 핵심**이다 —
+     * `favorites-empty` 는 "저장 전 기본 상태" 로 가장 흔한 실제 상태다.
+     * `shelf-partial` · `unrated` · `reading-now-none` · `favorites-empty` 는
+     * **Figma 에 없는 상태**라 Mock 이 유일한 검증 수단이다 (Design Spec §7.4).
+     */
+    'favorites-empty',
+    'finished-empty',
+    'curated-empty',
+    'reading-now-none',
+    'shelf-partial',
+    'unrated',
+    'user-entered-book',
+    'gift-pending',
+    'gift-duplicate',
+    'paged',
+    'unsave',
   ];
 
   it('패널이 다루는 그룹은 health · home · activity-cards · library · __states 다', () => {

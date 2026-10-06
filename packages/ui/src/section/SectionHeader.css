@@ -1,0 +1,77 @@
+/*
+ * SectionHeader — Library Design Spec §3.1 (Figma `163:1624` · `163:1632` · `30:138` · `145:1142`)
+ *
+ * 박스 h20 · `space-between` · **baseline 정렬**. 높이는 고정하지 않는다 (20 은 결과값).
+ * 제목 17/Bold(`headline` 기본 semibold → override) · 우측 슬롯 12/Medium `fg-tertiary`.
+ */
+
+.haru-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.haru-section-header__title {
+  margin: 0;
+  min-inline-size: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-headline);
+  line-height: var(--text-headline--line-height);
+  /* Figma `163:1625` Bold 700 — `headline` 기본 weight(semibold) 를 덮는다 */
+  font-weight: var(--font-weight-bold);
+  color: var(--color-fg-primary);
+}
+
+/* ===== action 모드 — `<button>` (Figma `163:1626` 12/Medium `#9aabaa`) ==== */
+
+.haru-section-header__action {
+  /* hit area 를 겹쳐 놓기 위한 기준 상자. 시각 크기는 바꾸지 않는다. */
+  position: relative;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  font-weight: var(--font-weight-medium);
+  /* provisional: P-24 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-tertiary);
+  cursor: pointer;
+}
+
+/*
+ * 터치 타깃 44 (§9.2) — 시각 39×14 를 **그대로 두고** hit area 만 넓힌다
+ * (`IconButton::before` 선례, 리터럴 없음).
+ *   세로: (16 − 44) / 2 = −14 → 16 + 28 = 44
+ *   가로: 텍스트 폭과 무관하게 `min-inline-size: 44`
+ * 겹침 검사(Design Spec §9.2): 위아래 각 15 확장 < 헤더 간격 16 → 이웃 인터랙티브 요소와
+ * 겹치지 않는다.
+ */
+.haru-section-header__action::after {
+  content: '';
+  position: absolute;
+  inset-block: calc((var(--text-caption-1--line-height) - var(--section-header-action-hit)) / 2);
+  inset-inline-start: 50%;
+  translate: -50%;
+  inline-size: 100%;
+  min-inline-size: var(--section-header-action-hit);
+}
+
+.haru-section-header__action--disabled {
+  color: var(--color-fg-disabled);
+  cursor: default;
+}
+
+/* ===== meta 모드 — 비대화형 `<span>` (Figma `145:1144` `3 of 5 nights`) === */
+
+.haru-section-header__meta {
+  flex: 0 0 auto;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  font-weight: var(--font-weight-medium);
+  /* provisional: P-24 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-tertiary);
+}

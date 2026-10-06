@@ -13,7 +13,7 @@ export interface ScrimProps {
 }
 
 /**
- * Scrim — Design Spec §4.21 (`--color-scrim`, `가값 P-05`).
+ * Scrim — Design Spec §4.21 (`--color-scrim` — Figma 실측값, `P-05` 해제).
  *
  * 장식 레이어이므로 접근성 트리에 넣지 않는다. 닫기 기능은 Sheet/Dialog 의
  * `Esc` · 닫기 버튼과 **중복** 제공되는 보조 수단이다(키보드 단독 사용자는 Esc 를 쓴다).
