@@ -16,6 +16,12 @@
   /* 중앙 탭 버튼이 탭바 위로 올라오는 높이 (Figma `140:2983` top=-35) */
   /* 사용자 승인 2026-09-20 (Design Spec §13.3 S1-D3) */
   --layout-tabbar-center-overhang: 35px;
+  /*
+   * 탭바 하단 ↔ 화면 하단 간격. Figma `26:21` 852 − (766 + 70) = **16**.
+   * safe-area 와 `max()` 가 아니라 **합**이다 — iOS 홈 인디케이터 영역 위에 Figma 의
+   * 16px 가 그대로 남아야 한다 (`A-6` ⓐ, audit §11.2).
+   */
+  --layout-tabbar-bottom-gap: 16px;
 
   --layout-safe-top: env(safe-area-inset-top, 0px);
   --layout-safe-bottom: env(safe-area-inset-bottom, 0px);

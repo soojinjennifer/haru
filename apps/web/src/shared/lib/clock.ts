@@ -59,3 +59,15 @@ export function createSteppedClock(startEpochMs: number, stepMs: number): Clock 
 export function clockDate(clock: Clock): Date {
   return new Date(clock.now());
 }
+
+/**
+ * epoch → **로컬 기준** 달력 날짜 (`YYYY-MM-DD`).
+ *
+ * `toISOString()` 을 쓰지 않는다 — UTC 로 바뀌면서 자정 근처에서 하루가 어긋난다.
+ */
+export function toCalendarDate(epochMs: number): string {
+  const date = new Date(epochMs);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${String(date.getFullYear())}-${month}-${day}`;
+}

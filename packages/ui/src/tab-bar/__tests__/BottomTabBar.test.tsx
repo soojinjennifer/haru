@@ -58,6 +58,50 @@ describe('BottomTabBar', () => {
     expect(screen.getByRole('link', { name: 'Library' }).getAttribute('href')).toBe('/library');
   });
 
+  /*
+    `X-1` (2026-10-06) — `<a>` 의 기본 이동을 막지 않으면 SPA 이동과 겹쳐 전체 리로드가 난다.
+    ⚠ 이 단위 테스트는 `defaultPrevented` 와 `onSelect` 호출만 본다. jsdom 은 기본 이동을
+    **수행하지 않으므로** 리로드 자체는 재현되지 않는다 — 회귀 방어선은 `e2e/tabs.spec.ts` 다.
+  */
+  it('prevents the browser default on a plain left click so the router owns navigation (X-1)', () => {
+    const onSelect = vi.fn();
+    const withHref = items.map((item) => ({ ...item, href: `/${item.key}` }));
+    render(<BottomTabBar items={withHref} activeKey="home" onSelect={onSelect} />);
+
+    // `fireEvent` 는 preventDefault 되면 false 를 돌려준다.
+    const notCancelled = fireEvent.click(screen.getByRole('link', { name: 'Library' }));
+
+    expect(notCancelled).toBe(false);
+    expect(onSelect).toHaveBeenCalledWith('library');
+  });
+
+  it.each([
+    ['metaKey', { metaKey: true }],
+    ['ctrlKey', { ctrlKey: true }],
+    ['shiftKey', { shiftKey: true }],
+    ['altKey', { altKey: true }],
+    ['middle button', { button: 1 }],
+  ])('leaves link semantics intact for %s clicks (§6.2)', (_label, init) => {
+    const onSelect = vi.fn();
+    const withHref = items.map((item) => ({ ...item, href: `/${item.key}` }));
+    render(<BottomTabBar items={withHref} activeKey="home" onSelect={onSelect} />);
+
+    const notCancelled = fireEvent.click(screen.getByRole('link', { name: 'Library' }), init);
+
+    // 기본 동작을 브라우저에 넘기고, 현재 탭은 이동시키지 않는다.
+    expect(notCancelled).toBe(true);
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it('still selects on a plain click when no href is injected (button branch)', () => {
+    const onSelect = vi.fn();
+    render(<BottomTabBar items={items} activeKey="home" onSelect={onSelect} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Library' }));
+
+    expect(onSelect).toHaveBeenCalledWith('library');
+  });
+
   it('always shows the label next to the icon (PRD §11 텍스트 의존 최소화)', () => {
     const { container } = render(
       <BottomTabBar items={items} activeKey="home" onSelect={() => {}} />,

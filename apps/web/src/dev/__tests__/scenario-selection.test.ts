@@ -20,6 +20,9 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
   it('아무것도 없으면 전 그룹이 기본값이다', () => {
     expect(resolveSelection(DEV_SCENARIO_GROUPS, {})).toStrictEqual({
       health: 'success',
+      home: 'success',
+      'activity-cards': 'success',
+      library: 'success',
       __states: 'success',
     });
   });
@@ -46,6 +49,9 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
   it('그룹을 생략한 wildcard 는 전 그룹에 적용된다', () => {
     expect(resolveSelection(DEV_SCENARIO_GROUPS, { search: '?scenario=error' })).toStrictEqual({
       health: 'error',
+      home: 'error',
+      'activity-cards': 'error',
+      library: 'error',
       __states: 'error',
     });
   });
@@ -55,7 +61,13 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
       search: '?scenario=health:retry,__states:empty',
     });
 
-    expect(selection).toStrictEqual({ health: 'retry', __states: 'empty' });
+    expect(selection).toStrictEqual({
+      health: 'retry',
+      home: 'success',
+      'activity-cards': 'success',
+      library: 'success',
+      __states: 'empty',
+    });
   });
 
   it('그룹에 없는 key 는 그룹 기본값으로 떨어진다 (health 에는 empty 가 없다)', () => {
@@ -82,7 +94,13 @@ describe('serializeSelection / withGroupKey', () => {
   });
 
   it('직렬화 → 재해석이 같은 선택을 만든다 (URL 공유 재현성)', () => {
-    const selection = { health: 'retry', __states: 'error' };
+    const selection = {
+      health: 'retry',
+      home: 'error',
+      'activity-cards': 'books-exhausted',
+      library: 'retry',
+      __states: 'error',
+    };
     const restored = resolveSelection(DEV_SCENARIO_GROUPS, {
       search: `?scenario=${serializeSelection(selection)}`,
     });
@@ -167,17 +185,38 @@ describe('persistSelection', () => {
 });
 
 describe('DEV_SCENARIO_GROUPS — Catalogue 준수 (AC-1-40)', () => {
-  /** `docs/API_CONTRACTS.md` §5.4 machine key 중 Stage 1 에서 쓰는 것. */
-  const CATALOGUE_STAGE_1 = ['success', 'loading', 'empty', 'error', 'retry', 'offline'];
+  /** `docs/API_CONTRACTS.md` §5.4 machine key 중 공통 6종. */
+  const CATALOGUE_COMMON = ['success', 'loading', 'empty', 'error', 'retry', 'offline'];
 
-  it('패널이 다루는 그룹은 health 와 __states 다', () => {
-    expect(DEV_SCENARIO_GROUPS.map((group) => group.group)).toStrictEqual(['health', '__states']);
+  /**
+   * Stage 3 이 쓰는 특화 key (Plan §8.2 — 전부 Catalogue 기존 값, **신규 key 0건**).
+   * `offline-cached-card` · `gift-*` · `user-entered-book` · `push-permission-denied` 는
+   * 해당 화면이 들어오는 단계에서 등록한다.
+   */
+  const CATALOGUE_STAGE_3 = [
+    'session-already-active',
+    'reread-option',
+    'books-exhausted',
+    'onboarding-incomplete',
+    // Home 재구현 — `★ Save` (`API_CONTRACTS.md` §5.4 catalogue 에 등재된 key).
+    // `conversation-only-option` 은 그 옵션이 폐지되면서 사라졌다 (approvals §12.12).
+    'book-saved',
+  ];
+
+  it('패널이 다루는 그룹은 health · home · activity-cards · library · __states 다', () => {
+    expect(DEV_SCENARIO_GROUPS.map((group) => group.group)).toStrictEqual([
+      'health',
+      'home',
+      'activity-cards',
+      'library',
+      '__states',
+    ]);
   });
 
   it('모든 key 가 Catalogue machine key 다 (deprecated alias 없음)', () => {
     for (const group of DEV_SCENARIO_GROUPS) {
       for (const key of group.keys) {
-        expect(CATALOGUE_STAGE_1).toContain(key);
+        expect([...CATALOGUE_COMMON, ...CATALOGUE_STAGE_3]).toContain(key);
       }
     }
   });

@@ -1,18 +1,30 @@
 /*
- * SpeechBubble — Design Spec §4.20 (Figma `88:721`)
- * padding 16/14, radius 22, tail 16×16 을 -45° 회전해 12 만큼 겹친다.
+ * SpeechBubble — Design Spec §4.20 (Figma `50:176` `Bubble` type=Type2, Home 인스턴스 `261:1293`)
+ *
+ * 실측 (2026-10-05 Home 재대조)
+ *   본체 303×60.73 · radius 22 · `glass-fill-strong` · `HARU/Shadow Rest`
+ *   주 문구  left/right 16, top 14, SF Pro Semibold 15 / 20
+ *   보조 문구 left 16, top 39, SF Pro Regular 12 / normal, 보조 색, nowrap
+ *   tail     22.49 × 16.35 @ left 76.32%, 본체 아래로 8, radius 3,
+ *            내부 사각형을 −36.02° 회전 + skewX 17.97°
+ *
+ * 높이를 고정하지 않는다 — 문구가 길어지면 본체가 늘어나고 tail 은 하단에 붙어 따라 내려간다.
  */
 
 .haru-bubble {
   position: relative;
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bubble-gap);
   box-sizing: border-box;
   max-inline-size: 100%;
   padding-inline: var(--bubble-padding-x);
-  padding-block: var(--bubble-padding-y);
+  padding-block-start: var(--bubble-padding-block-start);
+  padding-block-end: var(--bubble-padding-block-end);
   border-radius: var(--bubble-radius);
   background-color: var(--color-surface-strong);
-  box-shadow: var(--shadow-rest);
+  /* Figma `261:1293` 인스턴스는 drop **1겹** + inset 2겹만 그린다 (`V-10`). */
+  box-shadow: var(--bubble-shadow);
   color: var(--color-fg-primary);
 }
 
@@ -22,30 +34,98 @@
   gap: var(--space-1-5);
 }
 
+/* 보조 한 줄 (Figma `I261:1293;50:173`) — 값이 없으면 소비자가 렌더하지 않는다. */
+.haru-bubble__hint {
+  font-size: var(--bubble-hint-size);
+  /* Figma 는 이 줄만 `line-height: normal` 이다 (본문 22 를 상속하면 박스가 8 커진다). */
+  line-height: normal;
+  /* Figma `I261:1293;50:173` 는 `whitespace-nowrap` 이다 — 한 줄로 둔다 (`V-9`). */
+  white-space: nowrap;
+  color: var(--color-fg-secondary);
+}
+
 .haru-bubble--align-center {
   text-align: center;
 }
 
+/* ===== 주 문구 줄 수 상한 (`W-5` — approvals §13.3) ========================
+ * 버블은 **1~4줄 가변**이다. 고정 높이가 아니며 4줄을 넘는 분량만 말줄임으로 흡수한다.
+ * 줄 수는 Tier 3 `--bubble-content-max-lines` 가 정한다 (근거는 토큰 주석).
+ *
+ * `-webkit-box` 는 이 클램프의 **유일한 상호운용 경로**다 (표준 `line-clamp` 단축은 아직
+ * 폭넓게 쓸 수 없다). `display` 를 바꾸므로 `gap` 이 죽는다 — 그래서 자식 간 간격은
+ * `--space-1-5` 를 `margin` 으로 되돌려 유지한다. 보조 한 줄(`hint`)은 `content` 바깥이라
+ * 영향을 받지 않는다.
+ *
+ * `R-SHADOW-1` (rules/frontend.md §6-1) 점검: 이 `overflow` 박스 **안에는 그림자 요소가 없다**.
+ * 버블 그림자(`--bubble-shadow`)와 tail 은 바깥 `.haru-bubble` 이 그리므로 클립되지 않는다.
+ * 그래서 shadow inset 을 두지 않는다.
+ */
+.haru-bubble--clamp .haru-bubble__content {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--bubble-content-max-lines);
+  line-clamp: var(--bubble-content-max-lines);
+  overflow: hidden;
+}
+
+.haru-bubble--clamp .haru-bubble__content > * + * {
+  margin-block-start: var(--space-1-5);
+}
+
+/* ===== 닫기 버튼 (Figma 에 없음 — 사용자 지시 2026-10-05) ===================
+ * 절대 배치라 본체 기하(303 · radius 22 · tail 위치·돌출)를 전혀 건드리지 않는다.
+ * 대신 글자가 버튼 밑으로 들어가지 않도록 **오른쪽 padding 만** 버튼 폭만큼 넓힌다.
+ * 터치 타깃 44×44 는 `IconButton` 의 `::before` 확장이 이미 보장한다 (§9.3).
+ */
+.haru-bubble--dismissible {
+  padding-inline-end: calc(var(--icon-button-size) + var(--bubble-dismiss-inset));
+}
+
+.haru-bubble__dismiss {
+  position: absolute;
+  inset-block-start: var(--bubble-dismiss-inset);
+  inset-inline-end: var(--bubble-dismiss-inset);
+  display: inline-flex;
+}
+
 /* ===== tail ==============================================================
- * 본체와 같은 배경의 정사각형을 회전해 붙인다. 겹침 = tail 크기의 3/4 (Figma 12/16).
+ * 바깥 상자는 Figma 의 tail 박스(22.49 × 16.35)이고, 그 안의 정사각형을 회전·skew 해
+ * 뾰족한 끝을 만든다. 정사각형 변 = `hypot(박스/2)` 로 Figma 가 생성한 식과 같다.
  */
 .haru-bubble__tail {
   position: absolute;
-  inline-size: var(--bubble-tail-size);
-  block-size: var(--bubble-tail-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--bubble-tail-inline-size);
+  block-size: var(--bubble-tail-block-size);
+}
+
+.haru-bubble__tail::before {
+  content: '';
+  inline-size: var(--bubble-tail-shape-size);
+  block-size: var(--bubble-tail-shape-size);
+  border-radius: var(--bubble-tail-radius);
   background-color: var(--color-surface-strong);
-  /* Figma `88:762` — tail radius 3 (hairline 규격값, 대응 토큰 없음) */
-  border-radius: 3px;
-  transform: rotate(-45deg);
+  transform: rotate(var(--bubble-tail-rotate)) skewX(var(--bubble-tail-skew));
 }
 
 .haru-bubble--tail-bottom-right .haru-bubble__tail {
-  inset-block-end: calc(var(--bubble-tail-size) / -4);
-  inset-inline-end: var(--bubble-padding-x);
+  inset-block-end: calc(-1 * var(--bubble-tail-overhang));
+  inset-inline-start: var(--bubble-tail-start);
+}
+
+/* 좌측 tail 은 같은 도형의 좌우 대칭이다 (Figma 에 변형이 없으므로 기하를 새로 만들지 않는다). */
+.haru-bubble--tail-bottom-left .haru-bubble__tail {
+  inset-block-end: calc(-1 * var(--bubble-tail-overhang));
+  inset-inline-end: var(--bubble-tail-start);
+  scale: -1 1;
 }
 
 .haru-bubble--tail-top-center .haru-bubble__tail {
-  inset-block-start: calc(var(--bubble-tail-size) / -4);
+  inset-block-start: calc(-1 * var(--bubble-tail-overhang));
   inset-inline-start: 50%;
-  margin-inline-start: calc(var(--bubble-tail-size) / -2);
+  margin-inline-start: calc(var(--bubble-tail-inline-size) / -2);
+  scale: 1 -1;
 }

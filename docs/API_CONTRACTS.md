@@ -126,6 +126,8 @@ Author: plan-agent (2026-09-14)
 | `ReportStatus` | `in_progress, generating, published, deferred, delayed` | FR-16, §13 |
 | `ActivityOptionKind` | `book, reread_book, conversation_only` | §7.4, §13 |
 | `BookOwnership` | `owned, gifted, gift_pending, favorite_only` | FR-20/22/23 |
+| `BookSource` (Stage 3) | `onboarding_favorite, library_add, gift_program, card_save` | `docs/DATA_MODEL.md` §7 `child_books.source` — **RECOMMENDED**. `card_save` = `★ Save` 로 행이 처음 생기는 경로 (§3.7.3, approvals §12.8 `A-9`). ~~`onboarding_home_list`~~ 는 **제거** — 온보딩 `homeBooks` 가 삭제되었다 (approvals §11.9) |
+| `LibraryFilter` (Stage 3) | `owned, gifted, history, saved` | §4 Stage 3 서재 쿼리 파라미터 — **RECOMMENDED**. `saved` = Figma `145:1157` "My Saved" 표면 (§3.7.3). Library 라운드에서 사용 |
 | `GiftRequestStatus` | `requested, approved, shipped, delivered, cancelled, rejected` | FR-22, §13 |
 | `CaregiverRelationship` | `mother, father, grandparent, babysitter, tutor, therapist, other` | §3.1, §7.2 |
 | `OnboardingStep` | `child_info, temperament, books, goals, capability_items` | 5단계 구성·순서 **CONFIRMED (사용자 결정 2026-09-14, C-9)** — PRD §7.2 / 식별자 문자열 **RECOMMENDED** |
@@ -501,6 +503,113 @@ export const ActivityCardOptionSchema = z.object({
 | **선택 후 `promptSet`** | `POST …/selection` 의 `ActivityCardSelection.promptSet` 은 그대로 유지된다 (선택 전 preview ↔ 선택 후 set 은 별개 필드) |
 | **`promptSet.questions` 길이** (**D-21**) | `promptPreview` 와 **동일 규칙** — `.min(1)`, **상한 없음**, Frontend `slice` 금지. "책별 최소 6개 · 제시 2~3개"(PRD §8.2)는 **Backend 생성 정책**이며 **Frontend 검증 조건이 아니다** (Stage 3 Plan `P3-BIP-03`) |
 
+### 3.7 `★ Save` — Saved Book (Stage 3 Home 재대조 신규, `A-9`)
+
+> 근거: Figma `I86:438;86:383;117:973` = `Button/White` **87×45** (아이콘 14×13 + 라벨 `Save`, 레이어명 `Save to my shelf`). 같은 ActionBar 가 Library 시트 `163:2347` · Book Select `145:1085` 에도 있고, 저장 결과 표면은 `145:1157` **"My Saved"** 다.
+> 사용자 결정: **"현재 카드를 Library 의 favorites 에 저장한다"** (`docs/decisions/stage-3-approvals.md` §12.8 `A-9`, 2026-10-05). 이 결정으로 `D-7` 의 **`★ Save` 제외 부분만** 무효가 되고, 평점(`averageRating`) · reading plan 제외는 **그대로 유효**하다 (approvals §12.9).
+> 이 절은 **설계 수준**이다. 구현으로 확정된 contract 반영은 development-agent 소관이다 (`rules/workflow.md` §5).
+
+#### 3.7.1 온보딩 `favoriteBooks` 와 같은 데이터인가 — **판정: 다른 데이터, 같은 집계 표면**
+
+| 비교축 | 온보딩 `favoriteBooks` (`BooksAndInterestsAnswers`) | `★ Save` |
+|---|---|---|
+| 의미 | **아이가 이미 좋아하는 책** — 설문 응답(과거/기지의 사실) | **이 추천을 나중에 쓰겠다** — 보호자의 선택 행위(미래 의도) |
+| 소유 | `onboarding_answers.books_and_interests` = **제출된 설문 스냅샷**. 수정 경로는 프로필 갱신(Stage 6) | `child_books` 행 = 서재 데이터. 수정 경로는 Library |
+| 상한 | **최대 5** (`FAVORITE_BOOKS_MAX`, PRD §7.2 Step 3 "최대 5권" = 설문 instrument 제약) | **상한 없음** (RECOMMENDED) — Figma `Save` 버튼에 카운터·상한 표시·상한 안내가 **없다** |
+| 모양 | `bookId` optional + `title` optional (검색이 없어 제목만 들어올 수 있다 — approvals §11.13) | 카탈로그 책은 `bookId`, 보호자 직접 입력 옵션은 `userEnteredBook{title, author?}` |
+| 소비자 | cold-start 추천 state vector (`P3-BIP-02`) | 서재 표시 + (향후) 추천 신호 |
+
+**판정 (RECOMMENDED — 승인 필요)**: **재사용하지 않는다.** 근거는 다음 4가지다.
+
+1. **스냅샷 오염** — Home 의 Save 가 `favoriteBooks` 를 쓰면 **제출 완료된 설문 응답을 사후에 고쳐 쓴다.** cold-start state vector 의 출처 추적이 깨지고, 온보딩 응답 수정은 Stage 6(프로필 갱신) 범위다.
+2. **상한 충돌** — 5권째 이후 Save 가 `VALIDATION_FAILED` 로 막힌다. 그 상한을 알리는 UI 가 **Figma 에 없으므로** 최우선 규칙 2(없는 것을 만들지 않는다)에 걸리거나, 아무 반응 없는 버튼이 된다.
+3. **의미 충돌** — "이미 좋아하는 책"과 "저장해 둔 추천"은 추천 엔진이 **다르게 소비해야 하는 신호**다. 한 배열에 합치면 Backend 가 둘을 구분할 수 없다.
+4. **기존 모델이 이미 분리를 전제한다** — `child_books.source` 에 **`onboarding_favorite`** 값이 있다. 즉 온보딩 favorites 는 서재로 **파생되어 들어오는 입력**이고, 서재가 집계 표면이라는 설계가 이미 있다.
+
+**같은 표면에서 만난다**: 둘 다 `child_books` → `LibraryBook` 으로 나타난다. `★ Save` 는 **새 테이블을 만들지 않고** `child_books` 에 **`saved` 축을 추가**한다.
+`ownership`(`owned`·`gifted`·`gift_pending`·`favorite_only`)에 값을 더해 표현하지 **않는다** — 보유 중인 책도 저장될 수 있어 **두 축이 독립**이고, `favorite_only` 를 재사용하면 "아이가 좋아하는 책"과 "보호자가 저장한 책"이 다시 섞인다.
+
+#### 3.7.2 무엇을 저장하는가 — **선택된 옵션의 책** (RECOMMENDED)
+
+Figma 버튼은 **카드(옵션) 의 ActionBar** 안에 있고, 같은 ActionBar 가 책 1권만 보여 주는 Library 시트·Book Select 에도 동일하게 쓰인다. 저장 결과 표면 `145:1157` 도 **"My Saved" = 책 목록**이다.
+
+| 선택지 | 판단 |
+|---|---|
+| **책을 저장한다** (RECOMMENDED) | Figma 의 결과 표면(책 목록)과 일치. 기존 `child_books` 로 표현된다. 신규 도메인 0 |
+| 카드/옵션을 저장한다 (저장된 추천) | **채택하지 않는다** — `activity_card_options` 를 가리키는 새 도메인이 필요하고, 카드는 **하루 단위로 사라지는 자원**(`UNIQUE(child_id, card_date)`)이라 저장된 항목이 만료된다. 그 만료 UX 가 Figma 에 없다 |
+
+**책이 없는 옵션**: `kind=conversation_only` 는 `book`·`userEnteredBook` 둘 다 없다 → **저장 대상이 없다.** Figma 에 그 카드의 ActionBar 변형이 없으므로 **NEEDS DECISION** (버튼 비활성 / 미렌더 — §6 `G-12`).
+
+#### 3.7.3 Schema (설계 — 구현 확정은 development-agent)
+
+```ts
+// packages/contracts/src/library/saved-book.ts (설계안)
+export const SaveBookTargetSchema = z.union([
+  z.object({ bookId: IdSchema }),
+  z.object({ title: z.string().trim().min(1).max(BOOK_TITLE_MAX_LENGTH),
+             author: z.string().trim().min(1).max(120).optional() }),
+]);                                   // AddOwnBookRequest 와 같은 판별 구조 — 중복 선언이 아니라 공용화 대상
+
+export const SaveBookRequestSchema = z.object({ target: SaveBookTargetSchema });
+
+// 응답은 신규 타입을 만들지 않고 LibraryBook 을 돌려준다 (서재 목록 갱신에 그대로 쓰인다)
+// LibraryBookSchema 에 필드 2개 추가 (비파괴):
+//   saved: z.boolean()
+//   savedAt: IsoDateTimeSchema.nullable()
+```
+
+| 항목 | 규격 | 라벨 |
+|---|---|---|
+| Endpoint | `PUT /v1/children/:childId/saved-books` (저장) · `DELETE /v1/children/:childId/saved-books/:bookId` (해제) | RECOMMENDED |
+| 응답 | `LibraryBook` (저장으로 행이 새로 생길 수 있으므로 **생성·갱신 모두 같은 표현**을 돌려준다) | RECOMMENDED |
+| 멱등성 | `PUT` = **자원 상태 설정**이므로 같은 책을 다시 저장해도 **같은 응답·같은 `savedAt`** 을 돌려준다. `POST` 가 아니므로 **Idempotency-Key 를 요구하지 않는다** (`POST …/library/books` · `POST …/gift-requests` 와 다른 점) | RECOMMENDED |
+| 중복 저장 | 오류가 아니다. 신규 error code **0건** — `RESOURCE_NOT_FOUND`(없는 `bookId`) · `VALIDATION_FAILED` 만 쓴다. Error Code 28종 유지 | **CONFIRMED (28종 유지 원칙)** / 매핑 RECOMMENDED |
+| 해제(토글) | **contract 는 양방향을 지원한다**(`PUT`/`DELETE`). 다만 **Home 버튼이 토글인지는 Figma 근거가 없다** — `Button/White` 에 saved(채움) 변형이 없다 → **NEEDS DECISION** (§6 `G-13`) | **NEEDS DECISION** |
+| `LibraryFilter` | `owned`·`gifted`·`history` + **`saved`** 추가 (RECOMMENDED) — "My Saved" 표면이 이 필터로 성립한다. Library 라운드에서 사용 | **RECOMMENDED** |
+| `BookSource` | `onboarding_favorite`·`library_add`·`gift_program` + **`card_save`** 추가 (RECOMMENDED) — Save 로 행이 처음 생기는 경로를 `library_add`(보호자가 보유 책을 등록, FR-23)와 구분한다 | **RECOMMENDED** |
+
+#### 3.7.4 초기 상태 표시 — 미해결 (`G-14`)
+
+`ActivityCardOption` 에는 `saved` 가 없다. 그래서 **어제 저장한 책이 오늘 카드에서 저장 안 된 것처럼 보인다.**
+
+| 선택지 | 영향 |
+|---|---|
+| **ⓐ 서버 상태를 반영하지 않는다** (fire-and-forget + Toast, RECOMMENDED) | Figma 에 saved 변형이 없으므로 최우선 규칙에 가장 가깝다. contract 변경 0. 단 재방문 시 상태가 보이지 않는다 |
+| ⓑ `ActivityCardOption.saved: boolean` 추가 | 비파괴 확장이지만 **Figma 에 없는 시각 상태**를 만들어야 한다 → 승인 필요. 카드 응답에 서재 조인이 생겨 2초 NFR(`P3-BIP-10`)에 영향 |
+| ⓒ `BookSummary` 에 `saved` 추가 | **채택하지 않는다** — Stage 2 `BookSummary` 불변 원칙(Stage 3 Plan `AC-3-55`) 위반 |
+
+**어느 안이든 해제 경로는 Library 라운드에 있어야 한다** — Home 에만 저장이 있고 해제가 어디에도 없으면 보호자가 자기 데이터를 되돌릴 수 없다.
+
+### 3.8 `HomeSummary.characterLine` 길이 — Backend 요구사항 (`W-5`)
+
+근거: 사용자 결정 2026-10-06 (`docs/decisions/stage-3-approvals.md` §13.3, Visual Gap `W-5`).
+
+| 항목 | 규격 | 라벨 |
+|---|---|---|
+| 필드 | `HomeSummary.characterLine` (`packages/contracts/src/home/summary.ts`) | CONFIRMED |
+| **길이 요구** | 서버는 **약 120자 이내**로 보낸다 | **REQUIREMENT (Backend)** |
+| Schema 제약 | **걸지 않는다.** `z.string().nullable()` 을 유지한다 | **CONFIRMED** |
+| Frontend 동작 | 길이와 무관하게 **4줄에서 말줄임**한다 (`SpeechBubble clampContent`, Tier 3 `--bubble-content-max-lines`) | CONFIRMED |
+
+**왜 Zod `.max()` 를 쓰지 않는가** — `characterLine` 은 **응답** 필드다. 응답에 길이 제약을 걸면
+Backend 가 121자를 보내는 순간 `HomeSummarySchema.parse` 가 던지고 **Home 전체가 빈 화면**이 된다.
+말줄임으로 degrade 하는 것보다 나쁜 실패다. 그래서 제약은 **문서 요구사항으로만** 남기고
+런타임은 UI 가 흡수한다.
+
+**120 의 근거와 그 성격**
+
+| 값 | 성격 |
+|---|---|
+| 캐릭터 **눈 상단 y=183** | **실측** (렌더 픽셀 경계) |
+| 버블 높이 `20n+42`, 본체 하단 `51+높이` → 4줄 **173**(여유 10) / 5줄 **193**(눈을 덮는다) | **실측 기반 계산** |
+| **"1줄 ≈ 30자"** → 4줄 ≈ 120자 | ⚠ **추정** (design-agent 환산, `stage-3-home-figma-audit.md` §21). 폰트·문자 구성에 따라 달라진다 |
+
+즉 **확정된 것은 "4줄을 넘으면 캐릭터 얼굴을 덮는다"** 이고, 120자는 그 4줄을 글자 수로 옮긴
+**가이드 값**이다. Backend 는 120 을 하드 제한이 아니라 **생성 프롬프트의 길이 가이드**로 쓴다.
+
+Stage 8 Handoff 대상: `BACKEND_HANDOFF.md` (`GET /v1/children/:childId/home` 응답 제약) ·
+`ANALYSIS_PIPELINE_REQUIREMENTS.md` (생성 문구 길이 가이드). 추적 ID **`P3-BIP-16`**.
+
 ---
 
 ## 4. Endpoint Groups by Stage
@@ -596,11 +705,13 @@ Home 상단 설정 아이콘(`26:44`) → 설정 목록. Stage 2는 `/` Home ske
 
 | Method | Path | Request | Response | Key errors | PRD |
 |---|---|---|---|---|---|
-| GET | `/v1/children/:childId/home` | — | `HomeSummary` (todayCard, sessionsThisWeek, **characterLine**, lastHighlightLine?, activeSession?) — **`streakDays` 삭제 · `characterLine` 추가 (CONFIRMED 2026-10-02, `stage-3-approvals.md` §8.5 ①·④)** | ONBOARDING_INCOMPLETE | FR-07, §6.1, §7.4 보조 요소 |
+| GET | `/v1/children/:childId/home` | — | `HomeSummary` (todayCard, sessionsThisWeek, **characterLine**, lastHighlightLine?, activeSession?) — **`streakDays` 삭제 · `characterLine` 추가 (CONFIRMED 2026-10-02, `stage-3-approvals.md` §8.5 ①·④)**. `characterLine` 은 **약 120자 이내** 요구 — schema 제약 아님, §3.8 (`P3-BIP-16`) | ONBOARDING_INCOMPLETE | FR-07, §6.1, §7.4 보조 요소 |
 | GET | `/v1/children/:childId/activity-cards/today` | — | `ActivityCard` (date, options[3]{kind, book, reason, coachingLine, **capability**, **promptPreview[]**}) — **`targetCapability` 없음 (D-22)** — **`options[].capability` = D-5 · `options[].promptPreview` = D-4 (CONFIRMED 2026-09-29, §3)**. 상세 §3.6 | ONBOARDING_INCOMPLETE | FR-07 (2초 내 로딩 NFR) |
 | POST | `/v1/activity-cards/:cardId/selection` | `SelectActivityOption` (optionId, readingContext, customTime?) | `ActivityCardSelection` (option, promptSet{questions(**`.min(1)`, 상한 없음 — D-21**), coachingLine, followUps}) | RESOURCE_NOT_FOUND | FR-07 책 선택 후 Prompt, FR-08 |
 | GET | `/v1/children/:childId/library` | `?filter=owned\|gifted\|history` cursor | `Paginated<LibraryBook>` | — | FR-20, FR-22 |
 | POST | `/v1/children/:childId/library/books` (IK) | `AddOwnBook` (bookId \| title+author) | `LibraryBook` | VALIDATION_FAILED | FR-23, §8.1 |
+| PUT | `/v1/children/:childId/saved-books` | `SaveBook` (`target` = bookId \| title+author) | `LibraryBook` (`saved=true`) | RESOURCE_NOT_FOUND, VALIDATION_FAILED | **Figma `★ Save` — approvals §12.8 `A-9`**. PRD 근거 없음(FR-20 범위 밖) → Figma 우선 + 사용자 결정. 설계 §3.7. **IK 불필요**(PUT = 상태 설정, 멱등) |
+| DELETE | `/v1/children/:childId/saved-books/:bookId` | — | 204 | RESOURCE_NOT_FOUND | 저장 해제. **Home 버튼이 토글인지는 `G-13` NEEDS DECISION** — 해제 표면은 Library 라운드 |
 | GET | `/v1/books/:bookId/prompts?childId=` | — | `BookPrompts` (promptSets for age band) — 각 `Prompt` 는 **`phase`·`pageRef`(optional)** 를 포함할 수 있다 (§3.6, D-8) | — | FR-20 "책별 Prompt 보기" |
 | POST | `/v1/children/:childId/gift-requests` (IK) | `CreateGiftRequest` = **`{ bookId }` 만 — 배송지 필드 없음 (CONFIRMED 2026-10-02, §8 D-15)** | `GiftRequest` | GIFT_REQUEST_DUPLICATE | FR-22, §13. 배송지 수집·저장은 운영·법무 결정 후 별도 Stage (`P3-BIP-06`) |
 | GET | `/v1/children/:childId/gift-requests` | — | `GiftRequest[]` | — | §13 배송 상태 서재 확인 |
@@ -722,7 +833,7 @@ apps/web/src/
 | me / consents / auth(AuthGateway) | 2 | `success`, `loading`, `error`, `retry` | `consent-missing`, `consent-version-outdated`, `token-expired`, `provider-cancelled`, `onboarding-incomplete`, `vpc-pending`, `vpc-failed` |
 | onboarding / children profile | 2 | `success`, `loading`, `error`, `retry` | `draft-resume`, `persona-fallback`, `child-limit-reached`, `capability-all-missing` |
 | home / activity-cards | 3 | `success`, `loading`, `empty`, `error`, `retry` | `offline-cached-card`, `conversation-only-option`, `reread-option`, `books-exhausted`, `session-already-active` |
-| library / books / gift-requests | 3 | `success`, `loading`, `empty`, `error`, `retry` | `gift-pending`, `gift-duplicate`, `user-entered-book` |
+| library / books / gift-requests / **saved-books** | 3 | `success`, `loading`, `empty`, `error`, `retry` | `gift-pending`, `gift-duplicate`, `user-entered-book`, **`book-saved`** |
 | notifications / push-devices | 3 | `success`, `loading`, `error`, `retry` | `push-permission-denied` |
 | sessions (create / transitions) | 4 | `success`, `loading`, `error`, `retry` | `invalid-transition`, `session-already-active`, `onboarding-incomplete`, `consent-missing`, `mic-permission-denied`, `recording-interrupted`, `auto-timeout`, `crash-recovered`, `abandoned` |
 | recordings (upload init / tokens / complete) | 4 | `success`, `loading`, `error`, `retry` | **`recording-upload-success`**, **`recording-upload-failure`**, `upload-retry`, `upload-token-expired`, `recording-incomplete`, `offline-queued`, `upload-stalled-48h`, `recording-deleted` (upload-tokens) |
@@ -774,6 +885,7 @@ apps/web/src/
 | `gift-pending` | — | 증정 신청 `gift_pending`·배송 상태 표시 | library, gift-requests | 3 | — |
 | `gift-duplicate` | — | `GIFT_REQUEST_DUPLICATE` | gift-requests | 3 | — |
 | `user-entered-book` | — | DB 외 직접 등록 책 포함 (범용 Prompt) | library, books | 3 | — |
+| `book-saved` | — | 대상 책이 **이미 저장된 상태**(`LibraryBook.saved=true`) → 재저장이 같은 응답을 돌려주는 멱등성(§3.7.3)과 (`G-14` ⓑ 채택 시) 초기 표시 검증 | library, saved-books, activity-cards | 3 | — |
 | `push-permission-denied` | — | platform mock: OS push 권한 거부 | push-devices (platform adapter) | 3 | `os-permission-denied` |
 | `invalid-transition` | — | `SESSION_INVALID_TRANSITION` → 서버(Mock) 상태 재동기화 | sessions, reflections (completed 이전 제출) | 4 | — |
 | `mic-permission-denied` | — | RecorderAdapter mock 권한 거부 → 권한 안내·대화만 하기 | sessions (RecorderAdapter mock) | 4 | — |
@@ -819,7 +931,7 @@ apps/web/src/
 | G-01 | **주간 Progress 지표** (주간 세션 수·총 분·전주 대비 %, 요일별 분, 월 출석 달력, 주별 분, longest streak, % of nights read, 평균 세션 길이) | `31:102`, `110:522` | `ReportOverview` 에 주간 지표 없음 (PRD §7.7은 4주 리포트만) | `GET /v1/children/:childId/progress?weekStart=` → `WeeklyProgress`. 비교·달성률 표현("+18% vs last week", "80% of nights read")은 M-12 copy 결정 필요. 탭 표시 이름 "Progress"는 #15로 확정 (지표 채택과 별개) | NEEDS DECISION (M-10) |
 | G-02 | **홈 누적 읽기 분** ("12-day/115 Min") | `26:40`, `26:43` | `HomeSummary` = `sessionsThisWeek`, `characterLine`, `lastHighlightLine?` — **minutes 없음 · `streakDays` 도 삭제됨** | **채택하지 않음.** `totalMinutes` 미추가 | **CONFIRMED (2026-09-29 §3 D-6 · 2026-10-02 §8.5 ①·④; M-30 해소)** — Home 집계는 "이번 주" 기준(=`/progress` 와 동일 창), Figma "12-day" 연속 일수 미채택, 누적 분 미표시. `streakDays` **삭제**(달성률 언어), `characterLine` **추가**(서버 값만 표시, 없으면 버블 미렌더) |
 | G-03 | **Prompt 단계·페이지 태그** PRE / POST / P.6 | `139:2410–2412`, `163:2648`, `145:1132`, `88:960` | **추가 완료** — `Prompt` = `text`, `kind`, **`phase: 'pre' \| 'post' \| null` (optional)**, **`pageRef: string \| null` (optional)** — §3.6 | 반영 완료. 과거 후보 `'during'`·`pageRef: number` 는 **채택하지 않음** | **CONFIRMED (2026-10-02, §8 · §8.1 D-8; M-29 해소)** — Figma 기준 채택, Plan 권장안 기각. Backend: `phase` 판정 = `P3-BIP-13`, `pageRef` 책별 페이지 앵커 데이터 = `P3-BIP-14` (**콘텐츠 제작 범위** — 큐레이션 20권 페이지 메타 필요) |
-| G-04 | **책 저장 / My Saved, 책 평점, 읽기 진행** ("Save to my shelf", "Rated 4.5", "Reading now · 3 of 5 nights", "Last read Tue · 12 min") | `86:245`, `86:372`, `145:1157`, `109:511`, `145:1141–1152` | 없음 (PRD FR-20 범위 밖) | `LibraryBook.saved` + `PUT/DELETE /v1/children/:childId/library/books/:id/saved`; `LibraryBook.averageRating` (회고 별점 집계인지 정의 필요); reading plan 모델(`targetNights`, `nightsRead`, `lastReadAt`) | **CONFIRMED — 채택하지 않음 (2026-10-01, `stage-3-approvals.md` §7 D-7; M-14 해소)**: 서재는 FR-20·FR-22 의 4기능만. 평점은 저장 위치·집계 규칙이 없고 HARU 의 비판정 톤과 거리가 있어 제외하며, Figma 차이는 **허용 차이로 기록**한다. 재검토는 별도 Stage·승인 |
+| G-04 | **책 저장 / My Saved, 책 평점, 읽기 진행** ("Save to my shelf", "Rated 4.5", "Reading now · 3 of 5 nights", "Last read Tue · 12 min") | `86:245`, `86:372`, `145:1157`, `109:511`, `145:1141–1152` | 없음 (PRD FR-20 범위 밖) | `LibraryBook.saved` + `PUT/DELETE /v1/children/:childId/library/books/:id/saved`; `LibraryBook.averageRating` (회고 별점 집계인지 정의 필요); reading plan 모델(`targetNights`, `nightsRead`, `lastReadAt`) | **부분 재채택 (2026-10-05, approvals §12.8 `A-9`)** — ① **책 저장(`★ Save`)은 채택한다**: Figma `I86:438;86:383;117:973` 에 `Button/White 87×45 ★ Save` 가 실제로 있고(최우선 규칙 3), 사용자 결정은 *"현재 카드를 Library 의 favorites 에 저장한다"* 다 → 설계 **§3.7**. `D-7` 의 `★ Save` 제외 부분과 `AD-S3-8` 은 **무효**. 경로는 §3.7 의 `PUT/DELETE /v1/children/:childId/saved-books` 로 **변경**한다(이 열의 과거 안 `…/library/books/:id/saved` 는 저장 시 행이 아직 없을 수 있어 성립하지 않는다). ② **평점(`averageRating`) · reading plan 은 그대로 미채택** — `D-7` 의 그 부분은 유효하다 (2026-10-01, §7 D-7; M-14). 서재는 FR-20·FR-22 의 4기능 + 저장 축 |
 | G-05 | **덱 카드별 역량** | `163:2648` — 3장이 각각 Self-Direction / Emotion / Intrinsic Motivation | **(b) 채택** — `ActivityCard.options[].capability` **추가**, 카드 단위 `targetCapability` 는 **삭제**(D-22, 2026-10-03 §9) (§3.6) | 반영 완료. §8.3 순환 스케줄 규칙 변경은 **추천 엔진 Backend 요구**(`P3-BIP-02`) | **CONFIRMED (2026-09-29, §3 D-5; M-31 해소)** — Figma 우선 적용, PRD §7.4·§8.3 은 **PRD 수정 대상 §5-2**. `" Day"` suffix 폐기(N-3), "Emotion Day Day"(M-13) 오타 미복제 |
 | G-06 | **회고 칩 정의** | `91:710–714` Engaged / Big feelings / Ask Questions / Stay Focus / Tricky today (on/off) + 별점 `91:693` + 한 줄 입력 `91:716` | `ReflectionFormDefinition` 은 이름만 정의, `SubmitReflection.checks` 값 형태·선택지 미정 | PRD 체크 5종 ↔ 칩 1:1 매핑 후보 (아이 반응↔Engaged, 감정 표현↔Big feelings, 질문 여부↔Ask Questions, 집중 시간↔Stay Focus, 어려웠던 점↔Tricky today). 칩 = boolean인지 항목별 선택지인지, 문구, 자유 후기 별도 카드 여부 결정 후 `ReflectionCheckKey` enum + `checks: Record<ReflectionCheckKey, boolean>` 확정 | NEEDS DECISION (M-15) |
 | G-07 | **Prompt 노출 시점** | 모든 카드 변형이 책 선택 전 Prompt 노출 (`163:2648`, `86:438`, `86:512/545`) | **`options[].promptPreview: Prompt[]` 추가** (선택 전 노출). `SelectActivityOption` 응답의 `promptSet` 은 그대로 유지 — §3.6 | 반영 완료. **길이 상한 없음**(N-2 + **D-21**: `.min(1)` 만, `.max(3)` 없음, Frontend 가 `slice` 하지 않는다 — 표시 개수 3은 cutoff) | **CONFIRMED (2026-09-29 §3 D-4 + 2026-10-01 §6.1 N-2; M-09 해소)** — Figma 우선 적용, PRD FR-07·§7.4·§8.2 는 **PRD 수정 대상 §5-1 · §6.2-4** |
@@ -827,4 +939,6 @@ apps/web/src/
 | G-09 | **녹음 Discard / Submit** | `163:1618`, `163:1620` (용도 불명) | 녹음 폐기 전이 없음 | 채택 시 FR-21 삭제 흐름·동의 정책과 함께 정의 (예: 완료 전 폐기 = `abandoned` + 로컬 삭제, 서버 업로드 없음) | NEEDS DECISION (M-26) |
 | G-10 | **가입 화면 아이 정보** | `179:1740` | 가입 입력에 아이 필드 없음 (`SignUpWithEmailInput`), 아이 정보는 동의 후 온보딩 Step 1 `child_info` (성·이름 두 칸, 성별 선택) — §3.4 | 반영 완료. Figma 가입 화면 수정은 디자이너 요청 | CONFIRMED (사용자 결정 2026-09-14, C-5 · C-6 · C-7; M-28 해소) |
 | G-11 | **리포트 이메일 발송** | `110:861` | 없음 | `NotificationPreferences.reportEmailEnabled`, `NotificationKind.report_email` | NEEDS DECISION (M-11) |
-
+| G-12 | **`conversation_only` 카드의 `★ Save` 대상** | `86:438` ActionBar (대화 전용 변형 **없음**) | `ActivityCardOption.book` · `userEnteredBook` 둘 다 없는 경우 저장 대상이 없다 (§3.7.2) | 버튼 비활성(`aria-disabled`) / 미렌더 / 대화 활동 자체를 저장 — 셋 다 Figma 근거 없음 | **NEEDS DECISION (2026-10-05, `A-9` 후속)** |
+| G-13 | **`★ Save` 가 토글인가** | `117:973` `Button/White` — saved(채움) 변형 **없음** | contract 는 `PUT`/`DELETE` 로 양방향 지원 (§3.7.3) | ⓐ Home 은 저장 전용(1방향) + 해제는 Library ⓑ Home 버튼이 토글 — ⓑ 는 Figma 에 없는 시각 상태가 필요하다 | **NEEDS DECISION (2026-10-05, `A-9` 후속)** |
+| G-14 | **저장 여부의 초기 표시** | — (Figma 에 saved 상태 없음) | `ActivityCardOption` 에 `saved` 없음 → 재방문 시 저장 상태가 보이지 않는다 | ⓐ 반영하지 않음(RECOMMENDED) ⓑ `ActivityCardOption.saved` 추가 ⓒ `BookSummary` 확장(**금지** — `AC-3-55`) — §3.7.4 | **NEEDS DECISION (2026-10-05, `A-9` 후속)** |

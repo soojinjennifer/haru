@@ -1,4 +1,5 @@
 export * from './activity.js';
+export * from './age-band.js';
 export * from './analysis-job.js';
 export * from './analysis-outcome.js';
 export * from './book.js';
@@ -15,6 +16,8 @@ export * from './onboarding-step.js';
 export * from './onboarding-status.js';
 export * from './parent-verification.js';
 export * from './plan.js';
+export * from './prompt-kind.js';
+export * from './prompt-phase.js';
 export * from './reading-context.js';
 export * from './report.js';
 export * from './session-mode.js';

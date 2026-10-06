@@ -69,7 +69,11 @@ describe('ScenarioPanel', () => {
     render(<ScenarioPanel />);
     openPanel();
 
-    expect(screen.getByText('?scenario=health:success,__states:success')).toBeTruthy();
+    expect(
+      screen.getByText(
+        '?scenario=health:success,home:success,activity-cards:success,library:success,__states:success',
+      ),
+    ).toBeTruthy();
   });
 
   it('모든 key 버튼이 44px 이상 터치 타깃 클래스를 쓴다 (dev 도구도 키보드·터치로 쓴다)', () => {

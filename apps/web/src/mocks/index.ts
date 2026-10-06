@@ -16,11 +16,14 @@ import { createSeededIdFactory, type IdFactory } from '../shared/lib/idFactory';
 
 import type { AuthGateway } from '../shared/auth';
 
+import { createMockActivityApi } from './activities/MockActivityApi';
 import { createMockAuthGateway } from './auth/MockAuthGateway';
 import { createMockBooksApi } from './books/MockBooksApi';
 import { createMockConsentApi } from './consent/MockConsentApi';
 import { createMockConsentState, type MockConsentState } from './consent/consentState';
 import { createMockHealthApi } from './health/MockHealthApi';
+import { createMockHomeApi } from './home/MockHomeApi';
+import { createMockLibraryApi } from './library/MockLibraryApi';
 import { createMockMeApi } from './me/MockMeApi';
 import { createMockOnboardingApi } from './onboarding/MockOnboardingApi';
 import { createMockOnboardingState, type MockOnboardingState } from './onboarding/onboardingState';
@@ -120,6 +123,9 @@ export function createMockApiClientsBundle(
       consents: createMockConsentApi({ ...deps, consentState }),
       onboarding: createMockOnboardingApi({ ...deps, consentState, onboardingState }),
       books: createMockBooksApi(deps),
+      home: createMockHomeApi(deps),
+      activities: createMockActivityApi(deps),
+      library: createMockLibraryApi(deps),
     },
   };
 }
@@ -128,12 +134,26 @@ export function createMockApiClients(options: MockApiClientsOptions = {}): ApiCl
   return createMockApiClientsBundle(options).clients;
 }
 
-/** 브라우저 환경(URL · sessionStorage · 빌드 기본값)에서 Mock 을 조립한다. */
-export function createBrowserMockApiClients(envValue: string | undefined): MockApiClientsBundle {
+/**
+ * 브라우저 환경(URL · sessionStorage · 빌드 기본값)에서 Mock 을 조립한다.
+ *
+ * `clock` 은 조립 지점이 넘길 수 있다. **기본값은 `MOCK_EPOCH_MS` 고정 시계**이며 브라우저도
+ * 그대로 쓴다 — 응답 바이트가 실행 시점과 무관하게 같아야 한다 (AC-1-39).
+ *
+ * 그 결과 Mock 데모의 Activity Card 날짜는 **2026-01-01** 이지만 **화면에 전혀 노출되지 않는다** —
+ * `AC-3-11`(지난 날짜 안내 배너)이 폐기되면서 날짜를 표시하는 자리가 사라졌다
+ * (approvals §12.8, audit §16.7 ⓐ). `D-10`(서버 `date` 를 그대로 신뢰, 클라이언트 재판정 금지)은
+ * 그대로 유지된다.
+ */
+export function createBrowserMockApiClients(
+  envValue: string | undefined,
+  clock?: Clock,
+): MockApiClientsBundle {
   return createMockApiClientsBundle({
     search: globalThis.location?.search ?? '',
     panelValue: readScenarioPanelValue(),
     envValue,
+    ...(clock === undefined ? {} : { clock }),
   });
 }
 
@@ -177,6 +197,36 @@ export {
 } from './books/MockBooksApi';
 export type { BooksScenarioKey } from './books/MockBooksApi';
 export {
+  createMockHomeApi,
+  homeScenarioGroup,
+  HOME_SCENARIO_KEYS,
+  HOME_LOADING_DELAY_MS,
+} from './home/MockHomeApi';
+export type { HomeScenarioKey } from './home/MockHomeApi';
+export {
+  createMockActivityApi,
+  activityScenarioGroup,
+  ACTIVITY_SCENARIO_KEYS,
+  ACTIVITY_LOADING_DELAY_MS,
+} from './activities/MockActivityApi';
+export type { ActivityScenarioKey } from './activities/MockActivityApi';
+export {
+  createMockLibraryApi,
+  libraryScenarioGroup,
+  LIBRARY_SCENARIO_KEYS,
+  LIBRARY_LOADING_DELAY_MS,
+} from './library/MockLibraryApi';
+export type { LibraryScenarioKey } from './library/MockLibraryApi';
+export { DECK_BOOKS, findDeckBook, resolveSaveTarget } from './fixtures/saved-books';
+export { createActivityCardFixture, MOCK_ACTIVITY_CARD_ID } from './fixtures/activity-cards';
+export type { ActivityDeckShape } from './fixtures/activity-cards';
+export {
+  createPromptPreviewFixture,
+  createPromptSetFixture,
+  MOCK_CARD_PROMPTS,
+} from './fixtures/prompt-sets';
+export { createHomeSummaryFixture, MOCK_ACTIVE_SESSION_ID } from './fixtures/home';
+export {
   createOnboardingInstrumentFixture,
   createOnboardingStateFixture,
   createResumeDraftAnswers,
@@ -212,6 +262,8 @@ export {
   createMeResponseFixture,
   MOCK_CAREGIVER_ID,
   MOCK_CAREGIVER_DISPLAY_NAME,
+  MOCK_CHILD_FIRST_NAME,
+  MOCK_CHILD_ID,
   MOCK_REQUIRED_CONSENTS,
   MOCK_TIMEZONE,
 } from './fixtures/me';

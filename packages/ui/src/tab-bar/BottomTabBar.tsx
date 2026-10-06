@@ -1,3 +1,5 @@
+import type { MouseEvent } from 'react';
+
 import { Icon, type IconName } from '../icon/Icon';
 import { cx } from '../lib/cx';
 import { Text } from '../text/Text';
@@ -76,21 +78,54 @@ function TabBarLink({
 
   const className = cx('haru-tab-bar__link', 'haru-focus-ring');
   const ariaCurrent = active ? 'page' : undefined;
-  const handleClick = () => {
-    onSelect(item.key);
-  };
 
   // 라우터가 있는 앱은 `href` 를 주입해 링크 의미(새 탭 열기 등)를 유지한다 (§6.2).
   if (item.href === undefined) {
     return (
-      <button type="button" className={className} aria-current={ariaCurrent} onClick={handleClick}>
+      <button
+        type="button"
+        className={className}
+        aria-current={ariaCurrent}
+        onClick={() => {
+          onSelect(item.key);
+        }}
+      >
         {content}
       </button>
     );
   }
 
+  /**
+   * `<a>` 는 **브라우저 기본 이동**을 한다. `onSelect` 가 SPA 이동(`navigate()`)을 하는 앱에서
+   * 기본 이동을 막지 않으면 둘이 **동시에** 일어나 전체 문서 리로드가 된다 — 메모리에만 있는
+   * 세션이 날아가고 Route Guard 가 로그인 화면으로 되돌린다 (`X-1`, 2026-10-06).
+   * 그래서 평범한 왼쪽 클릭은 `preventDefault()` 로 막고 이동을 `onSelect` 에만 맡긴다.
+   *
+   * 단 `href` 를 준 **이유가 링크 의미 유지**(§6.2 — 새 탭 열기 등)이므로, 브라우저가 링크로
+   * 처리해야 하는 클릭은 기본 동작에 넘긴다.
+   *   - 수식 키 — `metaKey`(macOS 새 탭) · `ctrlKey`(Windows·Linux 새 탭) · `shiftKey`(새 창) ·
+   *     `altKey`(다운로드·플랫폼별 동작)
+   *   - 왼쪽 버튼이 아닌 클릭 — `button !== 0` (중클릭 = 새 탭)
+   *
+   * 이 경우 **`onSelect` 도 호출하지 않는다**: 새 탭에서 열면서 현재 탭까지 이동하면 사용자가
+   * 보고 있던 화면이 사라진다.
+   *
+   * 키보드 Enter 는 `button === 0` · 수식 키 없음으로 들어오므로 SPA 이동 경로를 탄다.
+   *
+   * ⚠ `TabBarItem` 에는 `target` · `download` · `rel` 이 **없다**. 나중에 추가한다면 기본 이동이
+   * 의미를 갖는 속성이므로 **아래 예외 판정에도 함께 추가**해야 한다.
+   */
+  const handleLinkClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    const browserHandlesIt =
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0;
+    if (browserHandlesIt) return;
+
+    event.preventDefault();
+    onSelect(item.key);
+  };
+
   return (
-    <a href={item.href} className={className} aria-current={ariaCurrent} onClick={handleClick}>
+    <a href={item.href} className={className} aria-current={ariaCurrent} onClick={handleLinkClick}>
       {content}
     </a>
   );

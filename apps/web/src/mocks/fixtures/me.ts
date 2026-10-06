@@ -28,6 +28,15 @@ export const MOCK_CAREGIVER_DISPLAY_NAME = 'Sam Rivera';
 export const MOCK_TIMEZONE = 'America/Los_Angeles';
 
 /**
+ * 가상 아이 참조 — **온보딩 완료 이후에만** 응답에 담긴다 (AC-2-13: 동의·온보딩 전 구간에
+ * 아동 데이터 0건). `GET /v1/me` 는 first name 만 노출한다 (C-6 — `lastName` 금지).
+ *
+ * Stage 3 의 아동 범위 endpoint(`…/home` · `…/activity-cards/today`)가 이 id 를 쓴다.
+ */
+export const MOCK_CHILD_ID = '44444444-4444-4444-8444-444444444444';
+export const MOCK_CHILD_FIRST_NAME = 'Nova';
+
+/**
  * 현재 정책상 필수 동의 — Mock 기준값. 화면은 이 값을 하드코딩하지 않는다 (AC-2-10).
  *
  * 값은 **동의 문서 fixture 의 `required`** 에서 파생한다 (`fixtures/consent.ts`).
@@ -55,6 +64,7 @@ function defaultGrantedAt(clock: Clock, missing: readonly ConsentType[]): string
 
 export function createMeResponseFixture(clock: Clock, options: MeFixtureOptions = {}): MeResponse {
   const missing = options.missingConsents ?? [];
+  const onboardingStatus = options.onboardingStatus ?? 'completed';
 
   return MeResponseSchema.parse({
     caregiver: {
@@ -69,7 +79,11 @@ export function createMeResponseFixture(clock: Clock, options: MeFixtureOptions 
         options.grantedAt === undefined ? defaultGrantedAt(clock, missing) : options.grantedAt,
     },
     parentVerification: { status: options.parentVerification ?? 'not_required' },
-    onboardingStatus: options.onboardingStatus ?? 'completed',
+    onboardingStatus,
+    // 온보딩이 끝나기 전에는 아이가 없다 — 필드 자체를 담지 않는다.
+    ...(onboardingStatus === 'completed'
+      ? { child: { id: MOCK_CHILD_ID, firstName: MOCK_CHILD_FIRST_NAME } }
+      : {}),
     plan: 'free',
   });
 }

@@ -153,3 +153,60 @@ for (const screen of SCREENS) {
     }
   });
 }
+
+/*
+ * ───────────────────────────────────────────────────────────────────────────
+ * 세로 프로브 — `R-SHADOW-1` #6 (`.claude/rules/frontend.md` §6-1)
+ *
+ * 위 케이스는 **가로만** 봤다. 그래서 Stage 3 가로 트랙의 결함(카드 **하단** 그림자가
+ * 트랙 border box 에 전면 절단)을 잡지 못했다 (approvals §12.15 · audit §22.1).
+ * 원인 구조는 같다: `overflow-x: auto` 를 선언하면 세로도 클리핑 박스가 되는데,
+ * `block-size` + `align-items: flex-end` 때문에 border box 하단 = 카드 하단이라
+ * **그림자 자리가 0px** 이었다.
+ *
+ * 여기서는 카드 **하단 바깥**의 실제 렌더 픽셀을 본다 — 위 케이스와 같은 방식
+ * (`box-shadow` 있음/없음 두 번 렌더 → RGB 채널 차 합 ≥ 8).
+ *
+ * 프로브 x 는 카드 폭의 25% 지점이다 — 가운데(197)에는 dots 가 있다.
+ * 프로브 거리 16px: sticky 하단 바 컨테이너가 카드 하단 **+26** 부터 덮으므로
+ * 그보다 안쪽이어야 실제 배경 위의 그림자를 잰다.
+ */
+const VERTICAL_PROBE_OFFSET_PX = 16;
+
+test.describe('카드 하단 그림자가 가로 트랙 안에서 잘리지 않는다 (R-SHADOW-1 · §12.15)', () => {
+  for (const viewport of VIEWPORTS) {
+    test(`${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+
+      // Home 은 인증이 필요하다. 가로 트랙은 `/` 에만 있다.
+      await page.goto('/auth/log-in', { waitUntil: 'domcontentloaded' });
+      await page.getByLabel('Email').fill('sam@example.com');
+      await page.getByRole('textbox', { name: 'Password', exact: true }).fill('sunny-evening-8');
+      await page.getByRole('button', { name: 'Log in', exact: true }).click();
+
+      const loaded = page.locator('.haru-activity-track:not(.haru-activity-track--skeleton)');
+      await expect(loaded).toBeVisible();
+      await expect.poll(async () => loaded.evaluate((node) => node.clientWidth > 0)).toBe(true);
+      await settle(page);
+
+      const card = await page.locator('.haru-activity-card--front').first().boundingBox();
+      expect(card).not.toBeNull();
+
+      const probeX = Math.round((card?.x ?? 0) + (card?.width ?? 0) * 0.25);
+      const probeY = Math.round((card?.y ?? 0) + (card?.height ?? 0)) + VERTICAL_PROBE_OFFSET_PX;
+
+      const withShadow = await pixelAt(page, probeX, probeY);
+      await page.addStyleTag({
+        content: '.haru-activity-card--front { box-shadow: none !important; }',
+      });
+      await settle(page);
+      const withoutShadow = await pixelAt(page, probeX, probeY);
+
+      const delta = distance(withShadow, withoutShadow);
+      expect(
+        delta,
+        `카드 하단 +${VERTICAL_PROBE_OFFSET_PX}px (${probeX}, ${probeY}) 에서 그림자가 보이지 않는다 (delta ${delta})`,
+      ).toBeGreaterThanOrEqual(MIN_SHADOW_DELTA);
+    });
+  }
+});

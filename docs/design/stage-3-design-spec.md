@@ -1,6 +1,6 @@
 # Stage 3 Design Spec — Home · Activity Card 덱 · Reading Context · Library · Book Selection · 알림 설정
 
-**Status: DRAFT** (작성 2026-09-30, design-agent)
+**Status: APPROVED (2026-10-05, user)** (작성 2026-09-30, design-agent) — 구현은 **Home 먼저, 검수 후 나머지**
 
 **Based on**
 
@@ -42,7 +42,7 @@
 **개정 2026-10-01 (design-agent)** — `docs/decisions/stage-3-approvals.md` **§6 · §6.1 · §6.2** 반영. **N-2 외의 명세는 변경하지 않았다.**
 
 - **N-2 Prompt 노출 규격 재작성** — 이전 명세 "카드 미리보기 **최대 3개 고정**"을 폐기하고 **표시 3개 + 확장(개수 상한 없음)** 으로 바꿨다. 영향 절 = §2.3 · §2.5 · §2.9 · **§5.1.1(신설)** · §5.1 · §5.4 · §6.2 · §7 · §8 · §9 · §10 · §11.2 · §11.3 · §12.3 · §12.5 · §13.3 · §14 · §15.
-- **`Carousel` `overflow-x` 예외 = 조건부 승인** 반영 (§4.2 · §6.2 · §13.1 ② · §14-3). **`padding-block: 24` / `margin-block: -24` 그림자 보호 구조가 승인 조건**이며, 그 구조 없이는 승인이 아니다.
+- **`Carousel` `overflow-x` 예외 = 조건부 승인** 반영 (§4.2 · §6.2 · §13.1 ② · §14-3). **`padding-block` / 음수 `margin-block` 그림자 보호 구조가 승인 조건**이며 (값은 상 24 / 하 80 (`D-REQ-4` 정정) — approvals §12.15), 그 구조 없이는 승인이 아니다.
 - **N-1(서재 3섹션 채택) · N-3(" Day" suffix 폐기) 승인됨** — 두 항목의 **명세 본문은 변경 없음**. §13.3 의 상태 열만 갱신했다.
 
 ---
@@ -669,17 +669,17 @@ ListGroup
 | 페이지 전환 알림 | `aria-live="polite"` — **"Showing {a}–{b} of {n}"** |
 | 자동 재생 | **없음** |
 
-> ★ **`overflow` 예외 = 조건부 승인됨 (2026-10-01, approvals §6)** — 가로 캐러셀은 구현 수단이 셋뿐이고 전부 §0.4("`AppColumn` 안쪽 `overflow-*` 금지")와 충돌한다. **(A)안이 승인되었고, `padding-block: 24` / `margin-block: -24`(= `--carousel-shadow-inset`) 그림자 보호 구조가 승인 조건 자체다.**
+> ★ **`overflow` 예외 = 조건부 승인됨 (2026-10-01, approvals §6)** — 가로 캐러셀은 구현 수단이 셋뿐이고 전부 §0.4("`AppColumn` 안쪽 `overflow-*` 금지")와 충돌한다. **(A)안이 승인되었고, `padding-block` / 음수 `margin-block` 그림자 보호 구조가 승인 조건 자체다.** 값은 상 24 / 하 80 (`D-REQ-4` 정정) — approvals §12.15.
 >
 > **이 보호 구조 없이 `overflow-x` 를 선언하면 승인이 아니다.** 또한 이 예외는 **`Carousel` 1건·가로 축에만** 적용되며, 다른 컴포넌트나 세로 축으로 확장되지 않는다 (Prompt 확장에 세로 스크롤을 쓰지 않는 근거 = §5.1.1 (A)안 기각).
 >
 > | 안 | 내용 | 그림자 클리핑 | 접근성 |
 > |---|---|---|---|
-> | **(A) 승인됨 (조건부)** | `viewport` 에 `overflow-x: auto` + `scroll-snap` **미사용**(#9) + **`padding-block: var(--carousel-shadow-inset)`(24) / `margin-block: calc(-1 * var(--carousel-shadow-inset))`(−24)** 로 세로 그림자를 스크롤 박스 **안에** 넣는다 — **이 두 선언이 승인 조건**이다(`--space-3`(12)로는 부족하다, 아래 참조). 가로 클리핑 지점은 아이템이 실제로 화면 밖으로 나가는 트랙 끝이다 | 세로 **해소**, 가로는 의도된 지점 | 네이티브 스크롤 + `scrollIntoView` 로 포커스 추적이 공짜 |
+> | **(A) 승인됨 (조건부)** | `viewport` 에 `overflow-x: auto` + `scroll-snap` **미사용**(#9) + **`padding-block: var(--carousel-shadow-inset)`(상 24) / `var(--carousel-shadow-inset-block-end)`(하 80) + 음수 `margin-block`** (상 24 / 하 80 (`D-REQ-4` 정정)) 로 세로 그림자를 스크롤 박스 **안에** 넣는다 — **이 두 선언이 승인 조건**이다(`--space-3`(12)로는 부족하다, 아래 참조). 가로 클리핑 지점은 아이템이 실제로 화면 밖으로 나가는 트랙 끝이다 | 세로 **해소**, 가로는 의도된 지점 | 네이티브 스크롤 + `scrollIntoView` 로 포커스 추적이 공짜 |
 > | (B) | `transform` 트랙 + `overflow: hidden` | 세로도 잘림 → 카드 그림자 재발 | 포커스 이동 시 수동 보정 필요 |
 > | (C) | `overflow: clip` + `overflow-clip-margin` | 해소되나 지원 편차 | (B)와 동일 |
 >
-> `--space-3`(12)은 `--shadow-glass-rest` 의 세로 번짐(offset 12 + blur 28 의 가시 범위)을 전부 담지 못한다. **상쇄값은 `--space-6`(24)** 이며 이것이 승인된 값이다 → §6.2 Tier-3 `--carousel-shadow-inset`. **값을 줄이거나 보호 구조를 빼면 승인 범위를 벗어난다** (QA Finding 대상).
+> `--space-3`(12)은 `--shadow-glass-rest` 의 세로 번짐(offset 12 + blur 28 의 가시 범위)을 전부 담지 못한다. **상쇄값은 상 `--space-6`(24) / 하 `80px`** 이다 → §6.2 Tier-3 `--carousel-shadow-inset` + `--carousel-shadow-inset-block-end`. ⚠️ 최초 승인한 대칭 24 는 3겹 중 `0 28px 56px` 를 빠뜨린 계산이었다 (상 24 / 하 80 (`D-REQ-4` 정정)). 실측 아래 77 · 위 22. `border-box` 라 `block-size` 에 **가산** 필수. **값을 줄이거나 보호 구조를 빼면 승인 범위를 벗어난다** (QA Finding 대상).
 
 ### 4.3 `ListRow` 확장 — `media` · `meta` — Figma `163:2145`(+`163:2100`) · `30:141`
 
@@ -1071,7 +1071,7 @@ Stage 3 화면은 Stage 1 §3 + Stage 2 §6.1 의 토큰으로 표현된다. **s
 | **`--prompt-preview-collapsed-count`** | **3** | 카드 접힌 상태 **표시 개수**(§5.1.1). **cutoff 이며 cap 이 아니다** — `promptPreview` 길이 제한이 아니고, 이 토큰으로 배열을 자르지도 않는다(`slice` 금지) | **CONFIRMED (user N-2, approvals §6.1 + `D-21`, §9.1)** |
 | `--carousel-columns` | **3** | Figma 345 트랙에 3열 | **CONFIRMED (Figma)** |
 | `--carousel-gap` | `--space-3` (12) | 위 열 폭 역산 | **RECOMMENDED** |
-| **`--carousel-shadow-inset`** | `--space-6` (24) | §4.2 (A)안의 세로 그림자 상쇄값. `--shadow-glass-rest` 세로 번짐 범위 | **CONFIRMED (approvals §6 — 조건부 승인)**. 이 상쇄값(`padding-block: 24` / `margin-block: -24`)이 **승인 조건 자체**이며, 값을 줄이거나 빼면 승인 범위를 벗어난다 |
+| **`--carousel-shadow-inset`** | `--space-6` (24) — **상단 전용**. 하단은 `--carousel-shadow-inset-block-end` (80px, 상 24 / 하 80 (`D-REQ-4` 정정)) | §4.2 (A)안의 세로 그림자 상쇄값. `--shadow-glass-rest` 세로 번짐 범위 | **CONFIRMED (approvals §6 — 조건부 승인)**. 이 상쇄 구조가 **승인 조건 자체**이며, 보호 구조를 빼거나 실측 번짐(아래 77 · 위 22)보다 줄이면 승인 범위를 벗어난다 |
 | `--toggle-track-w` · `--toggle-track-h` · `--toggle-knob-size` | **가값** | iOS `17:113` 외 근거 없음 | **`가값 (P-20)` — 확정 (`§8.5 ⑤`, 2026-10-02)** |
 | **`--prompt-phase-tag-bg`** | `--haru-palette-cyan` (`#a0ccdd`) | Figma `Pagetag1–3` 3 인스턴스 **동일 배경** 실측 (§5.4.1) | **신규 토큰 제안** |
 | **`--prompt-phase-tag-fg`** | `--haru-white` | 〃 흰 라벨. 대비 **1.72:1** | **신규 토큰 제안** + **`가값 (P-23)` — 신설 확정 (approvals §9.2 ⑫, 2026-10-03)**. `P-02` 에 흡수하지 **않는다** (§6.4) |
@@ -1482,7 +1482,7 @@ design-agent 의 이전 결론("최대 3개 고정", `promptPreview: string[]` 1
 | # | 항목 | 결정 (2026-10-02, user) | 반영 절 |
 |---|---|---|---|
 | ① | `HomeSummary` 캐릭터 버블 문구 필드 부재 | **`characterLine` 필드 추가.** 서버 값만 표시하며 화면에서 생성하지 않는다. 값이 없으면 **버블 미렌더**(규칙 유지) | **§2.2** (정식 명세) |
-| ~~②~~ | `Carousel` 의 `overflow-x` 예외 | **조건부 승인 (2026-10-01, approvals §6)** — (A)안 + `padding-block: 24` / `margin-block: -24`(= `--carousel-shadow-inset`) 그림자 보호 구조가 **승인 조건 자체**다. 이 구조 없이 `overflow-x` 를 쓰면 승인 범위 밖이며, `AppColumn` 안쪽 `overflow-*` 금지의 **유일한 예외**다 | §4.2 · §6.2 · §14-3 |
+| ~~②~~ | `Carousel` 의 `overflow-x` 예외 | **조건부 승인 (2026-10-01, approvals §6)** — (A)안 + `padding-block` / 음수 `margin-block` 그림자 보호 구조가 **승인 조건 자체**다 (값 상 24 / 하 80 (`D-REQ-4` 정정)). 이 구조 없이 `overflow-x` 를 쓰면 승인 범위 밖이며, `AppColumn` 안쪽 `overflow-*` 금지의 **유일한 예외**다 | §4.2 · §6.2 · §14-3 |
 | ③ | 증정 접수 안내 문구 | **잠정 문구를 넣고 사용한다** (approvals §8.2). 예: `Your request is in. We'll reach out with delivery details.` **수치·기한·배송 소요일 금지.** copy 모듈에만 두고 확정 시 값만 교체 | **§2.12** (이전 "비워 둔다" 폐기) |
 | ④ | `StreakChip` → `WeekSummaryChip` · `streakDays` 존치 | **개명 확정 + `HomeSummary.streakDays` 삭제** | **§5.7 · §12.6** · `COMPONENT_MAP.md` §2·§5 |
 | ⑤ | `Toggle` 치수 3종 | **`가값 (P-20)` 으로 진행** — 토큰에 `provisional` 주석, 디자이너 값이 오면 **값만 교체** | **§4.5 · §6.2 · §6.4** |
@@ -1568,7 +1568,7 @@ design-agent 의 이전 결론("최대 3개 고정", `promptPreview: string[]` 1
 
 1. **§2.1 탭바 2곳만 바꾼다** — ① `.haru-app-shell__bar-bottom` 의 `pt-3` → `padding-block-start: var(--layout-tabbar-center-overhang)` ② `.haru-toast-viewport--tabbar` 의 `inset-block-end` 에 `+ var(--layout-tabbar-center-overhang)` 추가. **페이지·`main`·EmptyState 에 탭바 관련 하단 padding 을 추가하지 않는다**(이중 계상 금지).
 2. **기존 시각 baseline 42건은 원칙적으로 유효**하다. `TabLayout` 전체를 렌더하는 gallery baseline 이 있으면 그 1건만 재생성하고 QA 리포트에 근거를 남긴다 (§12.9).
-3. **`AppColumn` 안쪽 `overflow-*` 금지 규칙은 유지**한다. **예외는 `Carousel` 1건뿐이며 조건부 승인**이다(approvals §6): §4.2 (A)안 + **`padding-block: var(--carousel-shadow-inset)` / `margin-block: calc(-1 * var(--carousel-shadow-inset))`**(24) 그림자 보호 구조를 **함께 구현해야 승인 범위 안**이다. 이 구조 없이 `overflow-x` 만 쓰면 승인 위반이다. **이 예외를 다른 컴포넌트·세로 축으로 확장하지 않는다** — Prompt 확장은 `overflow` 없이 구현한다(§5.1.1).
+3. **`AppColumn` 안쪽 `overflow-*` 금지 규칙은 유지**한다. **예외는 `Carousel` 1건뿐이며 조건부 승인**이다(approvals §6): §4.2 (A)안 + **`padding-block` 상 `--carousel-shadow-inset`(24) / 하 `--carousel-shadow-inset-block-end`(80) + 음수 `margin-block`** 그림자 보호 구조를 (상 24 / 하 80 (`D-REQ-4` 정정)) **함께 구현해야 승인 범위 안**이다. 이 구조 없이 `overflow-x` 만 쓰면 승인 위반이다. **이 예외를 다른 컴포넌트·세로 축으로 확장하지 않는다** — Prompt 확장은 `overflow` 없이 구현한다(§5.1.1).
 4. **신규 Shared UI 는 3종 + `ListRow` 확장뿐**이다(§4, `CONFIRMED (D-14)`). **`StatTile`·`TextArea`·`StarRating`·`PromptCarousel`·`SegmentedTabs` 를 만들지 않는다 — 선행 구현 금지**(§5.12). Prompt 단계 배지도 **기존 `Tag(size=xs)` 조합**으로 해결하며 별도 컴포넌트를 만들지 않는다(§5.4.1). `ActivityOptionCard`·`BookCover`·`CapabilityBadge`·`PromptPill`·`CoachingNote`·`GiftStatusTag`·`WeekSummaryChip`·`BookShelfItem`·`BookListRow`·`ReadingContextChip` 은 **`entities/*`(도메인)** 이며 `packages/ui` 에 넣지 않는다.
 5. **`packages/ui` 는 `@haru/contracts` 를 import 하지 않는다.** `Carousel` 아이템·`ListRow` media·`Toggle` 라벨은 전부 props 주입.
 6. **카드 높이를 고정하지 말 것**(§5.1). ActionBar 를 `position: absolute` 로 두면 `163:2648` 의 겹침 결함이 그대로 재현된다.

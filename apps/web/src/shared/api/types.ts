@@ -12,9 +12,12 @@
  * analysis · reports · notifications · data-management) 은 해당 Stage 에서 이 타입에 추가한다.
  * 빈 stub 은 만들지 않는다.
  */
+import type { ActivityApi } from './activity-api';
 import type { BooksApi } from './books-api';
 import type { ConsentApi } from './consent-api';
 import type { HealthApi } from './health-api';
+import type { HomeApi } from './home-api';
+import type { LibraryApi } from './library-api';
 import type { MeApi } from './me-api';
 import type { OnboardingApi } from './onboarding-api';
 
@@ -28,4 +31,10 @@ export interface ApiClients {
   readonly onboarding: OnboardingApi;
   /** Stage 2-ONBOARDING — Step 3 책 검색 최소 범위 (D-17). */
   readonly books: BooksApi;
+  /** Stage 3 — Home 집계 (`GET …/home`, FR-07). */
+  readonly home: HomeApi;
+  /** Stage 3 — Activity Card 조회·선택 (FR-07 · FR-08). */
+  readonly activities: ActivityApi;
+  /** Stage 3 — 서재. Home 재구현 범위는 `★ Save` 뿐이다 (API_CONTRACTS §3.7). */
+  readonly library: LibraryApi;
 }

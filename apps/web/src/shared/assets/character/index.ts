@@ -6,6 +6,7 @@
  * | `hello-heart`      | `179:1704` (232² ellipse)       | 464²     | 232 (lg)  | 2.0x |
  * | `headphones`       | `179:1823` (188² ellipse)       | 376²     | 188 (md)  | 2.0x |
  * | `hello-heart-full` | `163:2529` → `179:1819` 배치    | 614×830  | 307 (w)   | 2.0x |
+ * | `home-character`   | `26:22` (357×442 프레이밍)      | 915×1133 | 357 / 444 | 2.56x / 2.06x |
  *
  * **medallion 계열(`hello-heart` · `headphones`)은 정사각형이 정상이다.** 소스 노드가
  * 지름 232 / 188 의 **원형 ellipse** 이고, 파일에 들어 있는 image fill 비트맵이 각각
@@ -27,13 +28,37 @@
  * 기하(위치·크기)는 교체 전과 동일하다 — 캐릭터 bounds 를 원본 JPEG 에 맞춰 정렬했다.
  */
 import headphones from './headphones.png';
+import homeCharacter from './home-character.png';
 import helloHeartFull from './hello-heart-full.png';
 import helloHeart from './hello-heart.png';
 
 export const CHARACTER_ASSETS = {
   'hello-heart': helloHeart,
   'hello-heart-full': helloHeartFull,
+  'home-character': homeCharacter,
   headphones,
 } as const;
 
 export type CharacterAssetName = keyof typeof CHARACTER_ASSETS;
+
+/**
+ * `home-character` — Stage 3 Home 배경 레이어 (Design Spec §2.2 · §12.10.1,
+ * `CONFIRMED (D-13, stage-3-approvals.md §7.1 — C 안)`).
+ *
+ * **출처는 투명 원본 `Chracter/Haru_Hello_Heart_t 1.png` (933×1659) 하나뿐이다.** 쓰지 않는 것:
+ *  - `Haru_Hello_Heart_t.png`(941 쪽) — 알파가 전부 255 인 **불투명 스크린샷본**
+ *  - Figma `163:2532`(294×373) — **민트 배경이 구워져 있고** 현 에셋보다 해상도가 낮다
+ *  - `벤치마킹/Moodeboard/HARU_Hello_heart.png`(1536×2752) — **다른 생성본**(눈·입·하트가 다르다)
+ *
+ * **2026-10-05 재export — 사용자가 Figma `26:22` 를 수정했다** (approvals §12.3 ⑦ · audit §10.2).
+ * 박스가 `441×560`(aspect **0.7875**) → `357×442`(aspect **0.8077**) 로 바뀌었다. 단순 축소가
+ * 아니라 **재크롭**이므로 기존 에셋을 그대로 쓰면 `object-fit: cover` 가 상하를 11.3px 더
+ * 잘라 발끝을 침범한다.
+ *
+ * 처리: 기존 크롭(915×1162)에서 **상하를 1.21%씩 더 잘라** 915×1133(aspect 0.80759)로 맞췄다.
+ * Figma 가 `26:22` 의 image fill 을 `object-fit: cover` 로 쓰므로, 같은 원본을 같은 규칙으로
+ * 잘라낸 결과가 Figma 렌더와 일치한다. 원본을 다시 샘플링하지 않았다(정보 손실 없음).
+ *
+ * **픽셀 밀도**: 393px 뷰포트(표시 폭 357)에서 **2.56x**, ≥600px 의 480 컬럼(표시 폭 444)에서
+ * **2.06x** 다 — 두 구간 모두 2x 이상이므로 **허용 차이 `AD-S3-25`(1.73x)는 해소되었다**.
+ */

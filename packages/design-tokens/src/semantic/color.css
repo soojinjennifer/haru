@@ -42,6 +42,16 @@
   --color-surface-subtle: var(--haru-mist-50);
   --color-surface-tinted: var(--haru-mist-100);
   --color-surface-note: var(--haru-paper-100);
+  /*
+   * Stage 3 Home 재구현 (Figma 재대조 2026-10-05).
+   * `--color-surface-card` = `color/white/ 82%` — Activity Card **앞면**(`163:2649`). 기존
+   * glass(0.74)·strong(0.90) 어느 쪽도 아니다.
+   * `--color-surface-spring` = `color/spring green/86` — Activity Card **뒷면**(`86:482`).
+   *   값이 `--color-bg-app-mid` 와 같지만 그 토큰은 **배경 gradient 중간 stop** 이라
+   *   의미가 다르다 (`--color-tag-neutral-bg` 와 같은 이유로 분리한다).
+   */
+  --color-surface-card: var(--haru-white-a82);
+  --color-surface-spring: var(--haru-mist-200);
 
   /* ===== Border / Divider ================================================ */
   /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
@@ -61,6 +71,11 @@
   );
   --color-action-secondary-bg: var(--color-surface-glass);
   --color-action-secondary-fg: var(--haru-ink-600);
+  /*
+   * Figma `Button/White` (`117:973` `★ Save`) 면 = `color/white/ 85%`.
+   * `--color-surface-strong`(0.90) 과 **다른 값**이다 — 재사용하면 `V-11` 이 재발한다.
+   */
+  --color-action-white-bg: var(--haru-white-a85);
 
   /* ===== Selection ======================================================= */
   --color-selected-bg: var(--color-action-primary-bg);
@@ -147,6 +162,20 @@
   /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
   --color-capability-motivation-fg: var(--haru-white);
 
+  /* ===== Prompt 단계·페이지 배지 (Stage 3 Design Spec §5.4.1 · §6.2, D-8) =====
+   * Figma `Pagetag1–3` 실측: 3 인스턴스 **동일 배경** `#a0ccdd`(accents/cyan) + 흰 라벨.
+   *
+   * **`--color-capability-flexibility-*` 를 재사용하지 않는다** — 같은 primitive 를 가리키지만
+   * 의미가 다르다. 역량 색 토큰을 Prompt 배지에 쓰면 "cyan = Cognitive Flexibility"(#19)
+   * 규칙이 오염되고, 역량 팔레트를 바꾸면 Prompt 배지까지 따라 바뀐다 (Spec §6.2 분리 근거).
+   *
+   * Tier 3(`--prompt-phase-tag-bg/-fg`)이 이 두 토큰을 참조한다. Tier 3 은 Primitive 를
+   * 직접 참조할 수 없으므로(build-tokens 3-4) **semantic 경유가 유일한 경로**다.
+   */
+  --color-prompt-tag-bg: var(--haru-palette-cyan);
+  /* provisional: P-23 (docs/design/stage-3-design-spec.md §6.4) */
+  --color-prompt-tag-fg: var(--haru-white);
+
   /* ===== Tag neutral (S1-D1-1, 사용자 결정 2026-09-20) ===================
    * Design Spec §4.15 는 Tag `neutral` 배경을 Tier 1 `--haru-dusk-200` 으로 적고 있으나
    * `packages/ui` 는 Tier 1 을 직접 참조하지 않는다 (Component → Semantic → Primitive).
@@ -155,6 +184,24 @@
    * 의미가 다른 `--color-bg-app-end`(배경 gradient 끝)를 재사용하지 않는다.
    */
   --color-tag-neutral-bg: var(--haru-dusk-200);
+
+  /* ===== HARU 전용 아이콘 색 (Stage 3 Home 재대조, Figma SVG export) ========
+   * Figma 원본 SVG 는 색을 HEX 로 굽고 있다. export 시 `currentColor` 로 바꾸고 색은
+   * 이 토큰으로 주입한다 (Stage 0 #21 · audit §16.8).
+   *  - flip 아이콘 `flip_to_back` = `#b0cfc0` = `color/spring green/75` = palette mint
+   *  - `★ Save` 별       = `#d0cca1` = palette yellow (D-REQ-1c — Figma palette 안에 있었다)
+   * `--color-rating-filled`(Stage 5 평점)를 재사용하지 않는다 — 의미가 다르다.
+   */
+  --color-icon-flip: var(--haru-palette-mint);
+  --color-icon-save-star: var(--haru-palette-yellow);
+  /*
+   * Home 헤더 칩의 `history` 글리프 (`50:161`, approvals §13.2 `A-23`-icon). Figma 원본도
+   * `#d0cca1` 라 **값은 `--color-icon-save-star` 와 같지만 의미가 다르다** — 저쪽은 `★ Save`
+   * 전용이다. 의미가 다른 토큰을 재사용하면 한쪽 색이 바뀔 때 다른 쪽이 끌려간다.
+   * Tier 3 가 Primitive 를 직접 참조할 수 없으므로(build-tokens 3-4) semantic 신설이
+   * 규칙을 지키는 유일한 경로다.
+   */
+  --color-icon-session-history: var(--haru-palette-yellow);
 }
 
 :root {

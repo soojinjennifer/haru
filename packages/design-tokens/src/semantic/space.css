@@ -6,7 +6,8 @@
  * Tailwind 노출: `--spacing`(4px base) 만 `@theme`. `--space-*` / `--size-*` 는 v4 네임스페이스가
  *                없으므로 `:root` + `@utility`(size-icon-*, min-touch, px-gutter …) 로 노출한다 (§3.4).
  *
- * Figma raw 7 · 13 · 18 · 26 은 §3.5 흡수표대로 이 스케일에 흡수되며 별도 토큰을 만들지 않는다.
+ * Figma raw 7 · 13 · 26 은 §3.5 흡수표대로 이 스케일에 흡수되며 별도 토큰을 만들지 않는다.
+ * 18 은 `--space-4-5` 로 **스케일에 추가**되었다 (`A-20`, stage-3-approvals §12.13).
  */
 
 @theme static {
@@ -15,7 +16,7 @@
 }
 
 :root {
-  /* --- Spacing scale (2 · 4 · 6 · 8 · 10 · 12 · 14 · 16 · 20 · 24 · 28 · 32 · 40) - */
+  /* --- Spacing scale (2 · 4 · 6 · 8 · 10 · 12 · 14 · 16 · 18 · 20 · 24 · 28 · 32 · 40) - */
   --space-0-5: calc(var(--spacing) * 0.5); /* 2 */
   --space-1: calc(var(--spacing) * 1); /* 4 */
   --space-1-5: calc(var(--spacing) * 1.5); /* 6 */
@@ -24,6 +25,10 @@
   --space-3: calc(var(--spacing) * 3); /* 12 */
   --space-3-5: calc(var(--spacing) * 3.5); /* 14 */
   --space-4: calc(var(--spacing) * 4); /* 16 */
+  /* 18 — Figma Activity Card padding (`163:2649` `pt-18 px-18`). 0.5 스텝 규칙
+   * (`0-5`·`1-5`·`2-5`·`3-5`)에 부합한다. 20 으로 흡수하면 카드 내부 폭이 329→325 가 되어
+   * Figma pill 330 이 들어가지 않는다 (`A-20`, stage-3-approvals §12.13). */
+  --space-4-5: calc(var(--spacing) * 4.5); /* 18 */
   --space-5: calc(var(--spacing) * 5); /* 20 */
   --space-6: calc(var(--spacing) * 6); /* 24 */
   /* 7 · 10 단계는 Stage 2 Design Spec §6.1 (2026-09-27 `S2-TOKEN-1`) 로 추가되었다.

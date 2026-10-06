@@ -396,6 +396,35 @@
   font-size: var(--text-caption-1);
 }
 
+/*
+ * `X-3` (2026-10-06) — 393px 에서 이 패널이 **가장 오른쪽 탭(`Progress`)을 덮어** 클릭을
+ * 가로챘다 (Playwright: `.haru-dev-panel__toggle` … `intercepts pointer events`).
+ * dev 전용이라 Production 영향은 없지만 **수동 검수와 e2e 를 막는다**.
+ *
+ * 그래서 **탭바가 떠 있는 화면에서만** 바 위로 올린다.
+ *   `--layout-tabbar-bottom-gap`(16) + `--layout-tabbar-height`(70)
+ *   + `--layout-tabbar-center-overhang`(35) + `--space-3`(12) = 133
+ * → 393×852 에서 패널 하단 719 < 중앙 버튼 상단 731 < 바 상단 766.
+ * 숫자를 직접 쓰지 않는다 — 탭바 기하가 바뀌면 함께 움직여야 한다.
+ *
+ * ⚠ **무조건 올리지 않는 이유**: 이 패널은 dev 전용인데도 **시각 baseline 에 함께 찍힌다**.
+ * 전역으로 올렸더니 UI gallery 영역 클립(`v1-button` 등) 안으로 들어와 Figma 대조 baseline
+ * 39종이 깨졌다 — 탭을 가리는 문제를 고치면서 **측정 영역을 오염**시키는 교환이다.
+ * 탭바가 없는 화면(gallery · auth · onboarding)에서는 겹칠 대상이 애초에 없으므로
+ * `:has()` 로 범위를 좁혀 **움직일 이유가 있는 화면에서만** 움직인다.
+ *
+ * 선택자가 `.haru-tab-bar` 가 아니라 **`.haru-app-shell__bar-bottom`** 인 이유: UI gallery 의
+ * `v3-tab-bar` 데모가 `.haru-tab-bar` 를 **본문 안에** 그린다. 그걸 세면 gallery 전체에서
+ * 패널이 떠올라 영역 클립이 다시 오염된다. 겹침을 만드는 건 데모가 아니라 **화면 하단에
+ * 고정된 실제 바**이고, 그 바는 AppShell 래퍼에만 있다.
+ */
+:root:has(.haru-app-shell__bar-bottom) .haru-dev-panel {
+  inset-block-end: calc(
+    var(--layout-tabbar-bottom-gap) + var(--layout-tabbar-height) +
+      var(--layout-tabbar-center-overhang) + var(--space-3)
+  );
+}
+
 .haru-dev-panel__toggle {
   display: inline-flex;
   align-items: center;

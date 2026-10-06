@@ -22,6 +22,15 @@ export interface SelectTriggerProps {
   placeholder: string;
   options: readonly SelectTriggerOption[];
   onChange: (value: string) => void;
+  /**
+   * 목록을 **소비자가 소유**할 때의 열기 핸들러.
+   *
+   * 주면 이 컴포넌트는 자기 `Sheet` 를 렌더하지 않고 트리거 행만 그린다. 이미 `Sheet` 안에
+   * 있는 자리에서 쓰기 위한 것이다 — 시트를 겹치면 scrim 이 2겹이 되고 포커스 트랩이 중첩된다
+   * (Stage 3 Design Spec §2.4 "시트 중첩 금지"). 그 경우 소비자가 같은 시트 안에서 목록 뷰로
+   * 전환하고 back 으로 돌아온다.
+   */
+  onOpen?: () => void;
   /** 옵션 Sheet 제목. 없으면 `label` 을 쓴다. */
   sheetTitle?: string;
   /** 값이 있으면 error 상태 — 경계색 + 메시지 (§4 공통 규칙 6). */
@@ -48,6 +57,7 @@ export function SelectTrigger({
   placeholder,
   options,
   onChange,
+  onOpen,
   sheetTitle,
   error,
   disabled = false,
@@ -80,11 +90,15 @@ export function SelectTrigger({
         className="haru-select-trigger__row haru-focus-ring"
         /* 접근성 이름 = label + 현재 값. 값 없음도 placeholder 텍스트로 읽힌다 (§4.1). */
         aria-haspopup="dialog"
-        aria-expanded={open}
+        aria-expanded={onOpen === undefined ? open : undefined}
         /* role=button 은 aria-invalid 를 지원하지 않는다 — 에러는 메시지 연결 + 시각 표시로 알린다. */
         aria-describedby={error ? errorId : undefined}
         disabled={disabled}
         onClick={() => {
+          if (onOpen !== undefined) {
+            onOpen();
+            return;
+          }
           setOpen(true);
         }}
       >
@@ -117,25 +131,27 @@ export function SelectTrigger({
         </p>
       ) : null}
 
-      <Sheet
-        open={open}
-        onClose={() => {
-          setOpen(false);
-        }}
-        title={sheetTitle ?? label}
-      >
-        <RadioGroup
-          legend={label}
-          name={`${fieldId}-options`}
-          options={radioOptions}
-          value={value}
-          variant="list"
-          onChange={(next) => {
-            onChange(next);
+      {onOpen !== undefined ? null : (
+        <Sheet
+          open={open}
+          onClose={() => {
             setOpen(false);
           }}
-        />
-      </Sheet>
+          title={sheetTitle ?? label}
+        >
+          <RadioGroup
+            legend={label}
+            name={`${fieldId}-options`}
+            options={radioOptions}
+            value={value}
+            variant="list"
+            onChange={(next) => {
+              onChange(next);
+              setOpen(false);
+            }}
+          />
+        </Sheet>
+      )}
     </div>
   );
 }

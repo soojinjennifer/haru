@@ -203,11 +203,14 @@ ai_generation_logs, audit_logs, data_deletion_requests (운영)
 | book_id null | 카탈로그 책 |
 | user_entered_title, user_entered_author null | DB에 없는 책 — 제목 텍스트 저장, 추천은 주제 태그만 (§7.2 규칙) |
 | ownership | `owned`, `gifted`, `gift_pending`, `favorite_only` (온보딩 "좋아하는 책"은 보유와 다름) |
-| source | `onboarding_favorite`, `onboarding_home_list`, `library_add`, `gift_program` |
+| source | `onboarding_favorite`, `library_add`, `gift_program`, **`card_save`** — ~~`onboarding_home_list`~~ 제거(온보딩 `homeBooks` 삭제, `stage-3-approvals.md` §11.9). `card_save` = Home/시트의 `★ Save` 로 행이 처음 생기는 경로 (`A-9`) |
+| **saved bool · saved_at null** | **`★ Save` 축 (2026-10-05, `stage-3-approvals.md` §12.8 `A-9`)**. `ownership` 과 **독립된 축**이다 — 보유 중인 책도 저장될 수 있고, `favorite_only`(온보딩 "좋아하는 책")를 재사용하면 설문 응답과 보호자 저장이 섞인다. Figma `145:1157` "My Saved" 표면과 `LibraryFilter=saved` 가 이 축 위에서 성립한다. 요구사항만 기록하며 **열 설계·이름은 Backend 재량**(`D-23` 과 같은 취급) |
 | first_read_at, last_read_at, read_count | "읽은 책 히스토리" (FR-20) — sessions에서 파생 갱신 |
 | CHECK | `book_id IS NOT NULL OR user_entered_title IS NOT NULL` |
 
-> Figma `30:74` "My Saved", "Reading now · 3 of 5 nights", "Rated 4.5" 는 PRD에 없는 개념 → 컬럼 추가하지 않음, 불일치로 보고 (PLANNING.md §6).
+> ~~Figma `30:74` "My Saved", "Reading now · 3 of 5 nights", "Rated 4.5" 는 PRD에 없는 개념 → 컬럼 추가하지 않음~~ → **부분 개정 (2026-10-05, `stage-3-approvals.md` §12.8 `A-9`)**:
+> - **"My Saved" = 채택** — Figma 에 `★ Save` 버튼(`I86:438;86:383;117:973`)이 실제로 있고 사용자가 "현재 카드를 Library 의 favorites 에 저장한다"로 결정했다 → 위 `saved`·`saved_at` 요구. contract 설계 = `docs/API_CONTRACTS.md` §3.7.
+> - **"Reading now · 3 of 5 nights" · "Rated 4.5" = 미채택 유지** (`D-7` 의 해당 부분은 유효). 불일치로 보고 (PLANNING.md §6, M-14).
 
 ### book_gift_requests — R1 (FR-22, §13 증정 책 미보유·배송 대기)
 | id, caregiver_id, child_id, book_id, status (`requested`, `approved`, `shipped`, `delivered`, `cancelled`, `rejected`), shipping_address_ref, requested_at, status_updated_at |

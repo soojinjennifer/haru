@@ -1,0 +1,117 @@
+/*
+ * Activity Card 덱 — Figma `163:2648` 트랙 + `261:1233` dots (실측 2026-10-05).
+ *
+ * ── 트랙 공식 (단일 공식, 393 에서 Figma 와 정확히 일치) ──
+ *   트랙 폭 = 앱 컬럼 content + 2 × gutter = min(100vw, 480)
+ *   카드 폭 = 트랙 폭 − 2 × pad          (393 → 365 = Figma 값)
+ *   peek   = pad − gap = 14 − 6 = 8     (**모든 폭에서 불변**)
+ *
+ * | 뷰포트 | 트랙 | 카드 | peek |
+ * |---|---|---|---|
+ * | 320 | 320 | 292 | 8 |
+ * | **393** | **393** | **365 ✓ Figma** | **8** |
+ * | ≥600 | 480 | 452 | 8 |
+ *
+ * ⚠ 트랙은 `overflow-x: auto` 를 갖는 **가로·세로 모두 자르는** 유일한 클리핑 박스다 — CSS
+ * 규격상 한 축이 `visible` 이 아니면 다른 축도 `visible` 로 남지 못한다. 그래서
+ * `padding-block`/`margin-block` 으로 그림자 자리를 **박스 안에** 확보한다 (`R-SHADOW-1`).
+ * 트랙 바깥(앱 컬럼·`main`)에는 클리핑을 만들지 않는다 (§0.4 · `QA-1-L1`).
+ */
+
+.haru-activity-deck {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--home-indicator-gap);
+}
+
+/* dots 는 트랙 아래 **가운데**다 (Figma `261:1233` 중심 x = 197 = 393/2 + 0.5). */
+.haru-activity-deck .haru-page-indicator {
+  align-self: center;
+}
+
+/* `empty` · `error` · `offline` 은 **트랙 높이를 그대로 점유**해 레이아웃이 튀지 않는다. */
+.haru-activity-deck__slot {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  block-size: var(--activity-card-track-size);
+}
+
+/* ===== 가로 scroll-snap 트랙 ============================================ */
+
+.haru-activity-track {
+  /* 앱 컬럼 밖으로 gutter 만큼 bleed → 트랙 폭 = min(100vw, --layout-app-max-width) */
+  margin-inline: calc(-1 * var(--layout-gutter));
+  inline-size: calc(100% + 2 * var(--layout-gutter));
+
+  display: flex;
+  gap: var(--activity-track-gap);
+  padding-inline: var(--activity-track-pad);
+  scroll-padding-inline-start: var(--activity-track-pad);
+
+  box-sizing: border-box;
+  /*
+    `R-SHADOW-1` (`.claude/rules/frontend.md` §6-1 · approvals §12.15 `D-REQ-4`) —
+    `overflow-x: auto` 가 세로도 자르므로 **그림자 자리를 트랙 안쪽에** 넣는다.
+    `box-sizing: border-box` 라서 `block-size` 에 inset 을 **가산**해야 content box 가
+    415 로 남는다. 음수 `margin-block` 이 레이아웃 점유와 scrollable overflow 를 되돌리므로
+    카드 하단 705 · dots 717 · 탭바 766 은 1px 도 움직이지 않는다 (audit §22.4).
+  */
+  block-size: calc(
+    var(--activity-card-track-size) + var(--carousel-shadow-inset) +
+      var(--carousel-shadow-inset-block-end)
+  );
+  padding-block-start: var(--carousel-shadow-inset);
+  padding-block-end: var(--carousel-shadow-inset-block-end);
+  margin-block-start: calc(-1 * var(--carousel-shadow-inset));
+  margin-block-end: calc(-1 * var(--carousel-shadow-inset-block-end));
+  /* 카드 **하단 모서리**를 고정한다 — 앞면 409 / 뒷면 415 의 차이는 위로 간다. */
+  align-items: flex-end;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.haru-activity-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* `100%` = 트랙 content box = 트랙 폭 − 2 × pad. */
+.haru-activity-track__item {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+}
+
+/*
+  `R-SHADOW-1` #5 — 포커스 링은 **border box** 에 그려진다. 위 inset 때문에 트랙 border box
+  가 카드 위 24 / 아래 80 으로 벌어지므로 UA 기본 링은 dots·탭바 영역까지 감싼다.
+  링을 **스냅된 카드**에 붙인다 (`data-active`). 결과적으로 화면 양끝까지 full-bleed 로
+  그려지던 기존 링보다 포커스 위치가 정확해진다 (audit §22.7 ①).
+*/
+.haru-activity-track:focus-visible {
+  outline: none;
+}
+
+.haru-activity-track:focus-visible
+  .haru-activity-track__item[data-active='true']
+  .haru-activity-card-flip {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Skeleton 은 스크롤·스냅을 쓰지 않는다 — 아직 카드가 없다. */
+.haru-activity-track--skeleton {
+  overflow: hidden;
+  scroll-snap-type: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .haru-activity-track {
+    scroll-behavior: auto;
+  }
+}

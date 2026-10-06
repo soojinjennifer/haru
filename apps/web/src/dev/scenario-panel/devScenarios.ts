@@ -8,7 +8,10 @@
  * (Design Spec §5.7 — `?scenario=__states:empty`). health 에는 `empty` 가 없으므로
  * EmptyState 는 이 그룹으로 확인한다 (Plan §8.1 · §8.2).
  */
+import { activityScenarioGroup } from '../../mocks/activities/MockActivityApi';
 import { healthScenarioGroup } from '../../mocks/health/MockHealthApi';
+import { homeScenarioGroup } from '../../mocks/home/MockHomeApi';
+import { libraryScenarioGroup } from '../../mocks/library/MockLibraryApi';
 import type { ScenarioGroupDefinition } from '../../mocks/scenarios';
 
 export const STATES_SCENARIO_KEYS = [
@@ -31,5 +34,10 @@ export const statesScenarioGroup: ScenarioGroupDefinition<StatesScenarioKey> = {
 /** 패널이 보여 주는 순서 그대로 (결정적). */
 export const DEV_SCENARIO_GROUPS: readonly ScenarioGroupDefinition<string>[] = [
   healthScenarioGroup,
+  // Stage 3 — Home 집계 · Activity Card (Plan §8.1 그룹)
+  homeScenarioGroup,
+  activityScenarioGroup,
+  // Stage 3 Home 재구현 — `★ Save` 저장/해제 (API_CONTRACTS §3.7)
+  libraryScenarioGroup,
   statesScenarioGroup,
 ];

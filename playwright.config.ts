@@ -32,10 +32,37 @@ export const VISUAL_MAX_DIFF_PIXELS = 200;
 /** 영역 클립 baseline 의 절대 픽셀 상한 (D-12). */
 export const VISUAL_MAX_DIFF_PIXELS_REGION = 20;
 
+/**
+ * 영역 클립 baseline 의 **픽셀당** 색 차이 임계값 (사용자 승인 2026-10-05).
+ *
+ * ⚠ `threshold` 와 `maxDiffPixels` 는 AND 가 아니라 **직렬**이다 — `threshold` 가 먼저 픽셀을
+ * 걸러내고, 살아남은 픽셀만 개수 상한과 비교된다. 그래서 Playwright 기본값 **0.2** 를 쓰면
+ * 개수 상한(20)이 아무리 빡빡해도 **저대비 회귀는 아예 세어지지 않는다**.
+ *
+ * 실측 근거 (Stage 3 카드 그림자 클리핑 수정 — approvals §12.15 · handoff §S6):
+ * 그림자가 새로 그려져 **픽셀의 4~31% 가 바뀐 영역 baseline 7종 중 6종이 통과**했다.
+ * `v6-bubble` 은 **68.72%** 가 다른데도 통과했다 (`V-10` 이전 `--shadow-rest` 3겹 시절 이미지가
+ * 박혀 있었다) — 그림자 회귀에 대한 **검출력이 0** 이었다.
+ *
+ * 값 선정: 실제 그림자 변화의 최소 픽셀 변화량은 채널당 ~19 였고, 노이즈 수준 변화
+ * (`s3-home-card-save-saved`, backdrop-filter 재래스터화)는 채널당 ~2.3 이었다. `0.02` 는
+ * pixelmatch YIQ 기준 채널당 약 **5.3** 에 해당해 그 사이를 가른다.
+ *
+ * ⚠ **CI 이식성**: 렌더 노이즈 바닥은 **이 환경에서 실측 0** 이었다(코드 변경 없이 같은
+ * baseline 을 2회 재생성 → 변화 픽셀 0개). 다른 macOS·CI 러너에서는 0 이 아닐 수 있다.
+ * **CI 에서 flake 가 나면 값을 올리기 전에 노이즈 바닥을 먼저 실측한다** — 임계값을 먼저
+ * 올리면 위와 같은 검출력 공백이 조용히 돌아온다.
+ *
+ * `FRAME_SNAPSHOT` 에는 적용하지 않는다 — 전체 프레임은 폰트 힌팅·안티에일리어싱 누적 차이
+ * 흡수가 목적이고 상한 200 과 충돌한다 (사용자 결정 2026-10-05).
+ */
+export const VISUAL_THRESHOLD_REGION = 0.02;
+
 /** 영역 클립 baseline 비교 옵션 — `expect(locator).toHaveScreenshot(name, REGION_SNAPSHOT)`. */
 export const REGION_SNAPSHOT = {
   maxDiffPixelRatio: VISUAL_MAX_DIFF_PIXEL_RATIO,
   maxDiffPixels: VISUAL_MAX_DIFF_PIXELS_REGION,
+  threshold: VISUAL_THRESHOLD_REGION,
 } as const;
 
 /** 전체 프레임 baseline 비교 옵션. */

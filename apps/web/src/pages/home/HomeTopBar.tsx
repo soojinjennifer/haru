@@ -1,17 +1,27 @@
 import { Icon, IconButton, Text, TopBar } from '@haru/ui';
 import { useNavigate } from 'react-router';
 
+import { homeOverviewCopy, HomeWeekSummary } from '../../features/home-overview';
 import { settingsCopy } from '../../features/settings';
 import { ROUTES } from '../../shared/config/routes';
-import { homeCopy } from '../../shared/copy/home-copy';
 
 /**
- * Home 헤더 — Design Spec §2.13 (Figma `26:21` / `26:39` 워드마크 / `26:44` 설정).
+ * Home 헤더 — Figma `26:21` 실측 2026-10-05 (워드마크 `26:39` · 칩 `26:40` · 설정 `26:44`).
  *
- * `TopBar variant="large"` 를 **제목 없이** 쓴다: leading 에 워드마크, trailing 에 설정
- * IconButton 만 두는 구성이다 (`large` 는 `auto 1fr auto` 격자라 양끝 정렬이 된다).
+ * | 요소 | Figma (Web y = Figma y − 56) | 비고 |
+ * |---|---|---|
+ * | 밴드 | padding-block-start **10**, 높이 38 → 총 **48** | 1차는 0 … 40 이었다 |
+ * | 워드마크 `26:39` | (26, 19) 64×25 | gutter 24 + 2 |
+ * | 칩 `26:40` | (188, 12) 145×34 | 기하는 Figma, **라벨은 `2 this week` 유지** |
+ * | 설정 `26:44` | (331, 10) 38×38 | |
  *
- * Stage 3 에서 이 헤더에 streak chip(`26:40`)이 붙는다. Stage 2 에는 넣지 않는다 (#33).
+ * `TopBar variant="large"` 를 **제목 없이** 쓴다: leading 에 워드마크, trailing 에 칩 + 설정
+ * IconButton (`large` 는 `auto 1fr auto` 격자라 양끝 정렬이 된다). 밴드 상단 여백 10 은
+ * 바깥 wrapper(`.haru-home-top-bar`)가 소유한다 — `TopBar` 공통 높이를 건드리지 않기 위해서다.
+ *
+ * ⚠ **헤더 칩 문구는 Figma 와 다르다** (의도된 불일치). Figma `26:43` 은 `2week /115 Min` 이지만
+ * 누적 분은 달성률 언어라 `D-6`·PRD §8.4(비교·판정 금지)와 충돌한다 → `2 this week` 유지가
+ * 사용자 결정이다 (approvals §12.3 · §12.7, `A-23`). Figma 불일치로 기록한다.
  *
  * 워드마크는 별도 로고 에셋이 아니라 **텍스트**다 — `COMPONENT_MAP.md` 실측이 `26:39` 를
  * "SF Pro Heavy 21px 텍스트 로고" 로 기록했고 에셋화는 아직 결정되지 않았다. 21px 은 토큰
@@ -24,23 +34,28 @@ export function HomeTopBar() {
   const navigate = useNavigate();
 
   return (
-    <TopBar
-      variant="large"
-      leading={
-        <Text as="span" variant="title-2" weight="heavy" tone="primary">
-          {homeCopy.wordmark}
-        </Text>
-      }
-      trailing={
-        <IconButton
-          icon={<Icon name="settings" size="md" decorative />}
-          label={settingsCopy.entryLabel}
-          variant="plain"
-          onPress={() => {
-            void navigate(ROUTES.settings);
-          }}
-        />
-      }
-    />
+    <div className="haru-home-top-bar">
+      <TopBar
+        variant="large"
+        leading={
+          <Text as="span" variant="title-2" weight="heavy" tone="primary">
+            {homeOverviewCopy.wordmark}
+          </Text>
+        }
+        trailing={
+          <>
+            <HomeWeekSummary />
+            <IconButton
+              icon={<Icon name="settings" size="md" decorative />}
+              label={settingsCopy.entryLabel}
+              variant="plain"
+              onPress={() => {
+                void navigate(ROUTES.settings);
+              }}
+            />
+          </>
+        }
+      />
+    </div>
   );
 }

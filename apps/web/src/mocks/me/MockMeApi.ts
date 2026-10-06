@@ -46,7 +46,12 @@ import type { Clock } from '../../shared/lib/clock';
 import type { IdFactory } from '../../shared/lib/idFactory';
 import type { MockConsentState } from '../consent/consentState';
 import type { MockOnboardingState } from '../onboarding/onboardingState';
-import { createMeResponseFixture, MOCK_REQUIRED_CONSENTS } from '../fixtures/me';
+import {
+  createMeResponseFixture,
+  MOCK_CHILD_FIRST_NAME,
+  MOCK_CHILD_ID,
+  MOCK_REQUIRED_CONSENTS,
+} from '../fixtures/me';
 import type { RequestLog } from '../request-log';
 import { consumeAttempt, type ScenarioGroupDefinition, type ScenarioStore } from '../scenarios';
 
@@ -134,6 +139,10 @@ export function createMockMeApi(deps: MockMeApiDeps): MeApi {
     })();
 
     // 제출이 끝났으면 어떤 scenario 든 온보딩은 완료다 — 그래야 Guard 가 홈으로 보낸다.
+    const onboardingStatus = onboardingState.submitted()
+      ? ('completed' as const)
+      : fixture.onboardingStatus;
+
     const merged: MeResponse = {
       ...fixture,
       caregiver: {
@@ -147,7 +156,16 @@ export function createMockMeApi(deps: MockMeApiDeps): MeApi {
           : { relationship: caregiverPatch.relationship }),
         ...(caregiverPatch.timezone === undefined ? {} : { timezone: caregiverPatch.timezone }),
       },
-      onboardingStatus: onboardingState.submitted() ? 'completed' : fixture.onboardingStatus,
+      onboardingStatus,
+      /*
+        아이 참조는 **온보딩 완료 상태의 함수**다. 제출로 완료가 되면 같은 턴에 생긴다.
+        반대 방향(완료 → 미완료)은 일어나지 않는다 — fixture 가 `child` 를 담는 경우는
+        fixture 자체가 `completed` 일 때뿐이고 그러면 여기도 `completed` 다. 그래서 지우는
+        분기를 두지 않는다 (AC-2-13 — 아동 데이터가 온보딩 전 구간에 새지 않는다).
+      */
+      ...(onboardingStatus === 'completed'
+        ? { child: { id: MOCK_CHILD_ID, firstName: MOCK_CHILD_FIRST_NAME } }
+        : {}),
     };
 
     // Mock 도 Http 와 동일하게 경계에서 parse 한다 (Plan §7.3).

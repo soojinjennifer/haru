@@ -1,5 +1,5 @@
 /**
- * Home skeleton · 설정 · 로그아웃 — **AC-2-29** · **AC-2-39** · **AC-2-40** · **AC-2-41**
+ * Home → 설정 · 로그아웃 — **AC-2-29** · **AC-2-39** · **AC-2-40** · **AC-2-41**
  * (+ AC-2-13 요청 로그, AC-2-38 문구 규칙).
  *
  * 결정 **#33**(Home 은 골격) · **C13-12**(설정 = 로그아웃 1행) · **D-7**(ConfirmDialog) ·
@@ -26,8 +26,8 @@ import { SettingsMenu } from '../src/features/settings/ui/SettingsMenu';
 import { createMockApiClientsBundle } from '../src/mocks';
 import { findChildDataKeys } from '../src/mocks/request-log';
 import { createImmediateTimer } from '../src/shared/api/helpers';
+import { homeOverviewCopy } from '../src/features/home-overview';
 import { ROUTES } from '../src/shared/config/routes';
-import { homeCopy } from '../src/shared/copy/home-copy';
 import { createFixedClock } from '../src/shared/lib/clock';
 import {
   createOnboardingDraftStore,
@@ -99,55 +99,30 @@ afterEach(() => {
   globalThis.localStorage.clear();
 });
 
-describe('`/` Home skeleton (AC-2-39 · #33)', () => {
+/*
+ * ⚠ **Stage 3 에서 Home 본문이 바뀌었다.**
+ *
+ * Stage 2 의 "`/` = CTA 없는 EmptyState · contract 호출 0건 · 탭바 없음" 단언은 **회귀가 아니라
+ * 의도된 변경**이다 (`AC-3-09` 가 Stage 2 skeleton 을 대체하라고 요구하고, `AC-3-04` 가 탭바
+ * 마운트를, `AC-3-10` 이 덱 3장을 요구한다). 그 단언들은 삭제하지 않고 **Stage 3 기준으로
+ * 다시 쓴 파일**로 옮겼다 → `__tests__/home-stage3.test.tsx`.
+ *
+ * 여기에는 Stage 3 이 바꾸지 않은 것만 남긴다: **Home 에서 설정으로 가는 경로**와 로그아웃이다.
+ */
+describe('`/` Home → 설정 진입 (AC-2-39 · AC-2-40)', () => {
   it('온보딩을 마친 사용자가 `/` 에 착지한다', async () => {
     await renderSignedIn();
 
     await expectPath(ROUTES.home);
-    expect(
-      await screen.findByRole('heading', { level: 1, name: homeCopy.empty.title }),
-    ).toBeDefined();
+    expect(await screen.findByRole('banner')).toBeDefined();
   });
 
-  it('워드마크와 설정 아이콘만 있는 헤더다', async () => {
+  it('헤더에 워드마크와 설정 아이콘이 있다', async () => {
     await renderSignedIn();
 
     const header = await screen.findByRole('banner');
-    expect(within(header).getByText(homeCopy.wordmark)).toBeDefined();
+    expect(within(header).getByText(homeOverviewCopy.wordmark)).toBeDefined();
     expect(within(header).getByRole('button', { name: settingsCopy.entryLabel })).toBeDefined();
-    // streak chip(`26:40`)·뒤로가기 등 다른 조작은 없다.
-    expect(within(header).getAllByRole('button')).toHaveLength(1);
-  });
-
-  it('본문은 CTA 없는 EmptyState 다', async () => {
-    await renderSignedIn();
-
-    expect(await screen.findByText(homeCopy.empty.description)).toBeDefined();
-    // 화면 전체에서 조작 가능한 것은 헤더의 설정 아이콘 하나뿐이다.
-    expect(screen.getAllByRole('button')).toHaveLength(1);
-  });
-
-  it('Activity Card · streak · 캐릭터 · BottomTabBar 를 마운트하지 않는다 (Stage 3)', async () => {
-    await renderSignedIn();
-    await screen.findByRole('banner');
-
-    // BottomTabBar 는 `navigation` 랜드마크다.
-    expect(screen.queryByRole('navigation')).toBeNull();
-    expect(document.querySelector('.haru-tab-bar')).toBeNull();
-    expect(document.querySelector('.haru-deck')).toBeNull();
-    expect(document.querySelector('.haru-bubble')).toBeNull();
-    expect(screen.queryByRole('img')).toBeNull();
-  });
-
-  it('contract 호출이 0건이다 — Home 은 `GET /v1/me` 밖의 요청을 만들지 않는다', async () => {
-    const harness = await renderSignedIn();
-    await screen.findByRole('banner');
-
-    const operations = harness.bundle.requestLog.entries().map((entry) => entry.operation);
-
-    expect(operations.filter((operation) => operation.includes('/v1/children'))).toStrictEqual([]);
-    expect(operations.filter((operation) => operation.includes('activity'))).toStrictEqual([]);
-    expect(operations.filter((operation) => operation.includes('home'))).toStrictEqual([]);
   });
 });
 
@@ -307,8 +282,12 @@ describe('로그아웃 (AC-2-29 · AC-2-41 · D-7 · D-3)', () => {
 describe('문구 규칙 (AC-2-38)', () => {
   it('Home · 설정 문구에 진단 · 판정 · 비교 표현이 없다', () => {
     const texts = [
-      homeCopy.wordmark,
-      ...Object.values(homeCopy.empty),
+      homeOverviewCopy.wordmark,
+      // `activeSession` 문구는 `V-15`(approvals §12.14)로 제거되었다 — 그 상태는 서버
+      // `characterLine` 이 말한다. 화면이 소유한 Home 문구는 아래 셋뿐이다.
+      homeOverviewCopy.bubbleHint,
+      homeOverviewCopy.weekSummary.label(0),
+      homeOverviewCopy.weekSummary.label(3),
       settingsCopy.title,
       settingsCopy.menuLabel,
       ...Object.values(settingsCopy.logOut),

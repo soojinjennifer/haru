@@ -13,13 +13,25 @@
 import { expect, test, type Page } from '@playwright/test';
 
 import { FRAME_SNAPSHOT, REGION_SNAPSHOT } from '../playwright.config';
-import { demo, GALLERY, gotoApp, gotoStable } from './support/gallery';
+import { demo, GALLERY, gotoApp, gotoStable, hideDevPanel, settle } from './support/gallery';
 import {
   completeOnboardingToSaved,
   DECK_LABEL,
   seedChildDraft,
   signUpAndConsent,
 } from './support/onboarding';
+
+/*
+ * **이 파일의 모든 스냅샷에서 dev Scenario Panel 을 제외한다** (사용자 결정 2026-10-06).
+ *
+ * 패널은 dev 전용이라 Production 화면에 없다 — baseline 이 제품에 없는 UI 를 담고 있었다.
+ * 영역 클립도 안전하지 않다: Playwright 의 element screenshot 은 그 요소의 bounding box 를
+ * 찍으므로 **위에 떠 있는 `position: fixed` 패널이 함께 들어온다**. 그래서 선택자를 좁히는
+ * 방식으로는 끝나지 않고, **찍을 때 가리는 것**이 올바른 해결이다 (`hideDevPanel` 주석).
+ */
+test.beforeEach(async ({ page }) => {
+  await hideDevPanel(page);
+});
 
 /** Design Spec §10.2 — Figma 대조 대상. */
 const FIGMA_BACKED: readonly { id: string; figma: string; page: string }[] = [
@@ -29,7 +41,9 @@ const FIGMA_BACKED: readonly { id: string; figma: string; page: string }[] = [
   { id: 'v3-tab-bar', figma: '25:87', page: GALLERY.components },
   { id: 'v4-tag-chip', figma: '76:440 / 90:626 / 40:316', page: GALLERY.components },
   { id: 'v5-field', figma: '76:417', page: GALLERY.components },
-  { id: 'v6-bubble', figma: '88:721', page: GALLERY.components },
+  // 2026-10-05 Home 재대조 — Home 버블이 `88:922`→`261:1293`(= `50:176` Type2) 로 교체되면서
+  // `SpeechBubble` 의 tail 기하·padding 이 `50:176` 기준이 되었다 (audit §10.3).
+  { id: 'v6-bubble', figma: '50:176 (구 88:721)', page: GALLERY.components },
   { id: 'v7-progress', figma: '88:789 / 179:1779', page: GALLERY.components },
   { id: 'v8-color-semantic', figma: '17:366', page: GALLERY.tokens },
   { id: 'v8-typography', figma: '17:298', page: GALLERY.tokens },
@@ -148,9 +162,18 @@ test.describe('Stage 2 동의 · VPC 화면 baseline (§11.2)', () => {
     await page.getByRole('button', { name: 'Create account' }).click();
   }
 
+  /*
+   * ⚠ 두 화면은 **가입 후 클라이언트 이동**으로 들어온다 — `gotoApp` 의 `settle` 을 거치지
+   * 않는다. 그래서 `settle` 을 직접 불러야 한다. 안 부르면 **레이아웃이 끝나기 전 프레임**이
+   * 찍힌다: `VpcStep` 의 CTA 는 `mt-auto` 로 열 바닥에 붙는데(최종 y=752), 셸이 아직 높이를
+   * 받기 전에는 카드 바로 아래(y≈465)에 있다. 2026-10-06 에 저장돼 있던 `s2-vpc-failed`
+   * baseline 이 바로 그 **과도기 프레임**이었고(실측: 세 번 독립 측정 모두 최종 y=752),
+   * dev 패널 제외로 타이밍이 1프레임 밀리자 드러났다.
+   */
   test('s2-consent — 동의 5항목 (전체 프레임)', async ({ page }) => {
     await signUp(page, 'me:consent-missing');
     await expect(page.getByRole('group', { name: 'Consent items' })).toBeVisible();
+    await settle(page);
 
     await expect(page).toHaveScreenshot('s2-consent.png', { fullPage: false, ...FRAME_SNAPSHOT });
   });
@@ -158,6 +181,7 @@ test.describe('Stage 2 동의 · VPC 화면 baseline (§11.2)', () => {
   test('s2-vpc-failed — VPC 슬롯 실패 상태 (전체 프레임)', async ({ page }) => {
     await signUp(page, 'me:vpc-failed');
     await expect(page.getByText("We couldn't complete this step yet.")).toBeVisible();
+    await settle(page);
 
     await expect(page).toHaveScreenshot('s2-vpc-failed.png', {
       fullPage: false,
@@ -305,19 +329,143 @@ test.describe('Stage 2 온보딩 화면 baseline (S2-HOME-2, 영역 클립)', ()
 });
 
 /**
- * Stage 2-HOME 헤더 baseline — Stage 2 Design Spec §11.2 (`s2-home-header`, 영역 클립).
+ * Home baseline — **Figma 재대조 후 전면 재생성** (approvals §12, audit §11.12 · §16).
  *
- * Figma `26:21` 의 헤더(`26:39` 워드마크 + `26:44` 설정)와 **대조**하는 항목이다. 본문은
- * Figma 가 없는 명세(`C13-13`)이고 Stage 3 에서 통째로 바뀌므로 프레임 전체를 찍지 않는다.
+ * ⚠ **기존 Home baseline 5장은 전부 무효다.** 덱이 `SwipeDeck` 스택 → 가로 scroll-snap 트랙으로,
+ * ActionBar 가 `Pick a time` → `★ Save` 로, Prompt 가 접힘 3개 → 전부 노출로 바뀌었고
+ * 캐릭터·버블·dots·탭바 간격이 모두 재실측값으로 교체되었다.
+ *
+ * | baseline | 대상 | Figma |
+ * |---|---|---|
+ * | `s2-home-header` | 헤더 영역 (워드마크 + 칩 + 설정) | `26:21` 상단 |
+ * | `s3-home` | `/` 전체 프레임 (레이아웃 회귀) | `26:21` |
+ * | `s3-home-deck` | 트랙 영역 — 카드 1 + peek 8 | `163:2649` |
+ * | `s3-home-deck-back` | **카드 뒷면** (신규) | `86:482` |
+ * | `s3-home-deck-scrolled` | 카드 2 스냅 상태 (좌우 peek) (신규) | `163:2648` |
+ * | `s3-home-card-save-saved` | `Saved` 상태 ActionBar (신규) | `117:973` (saved 변형 없음 — `D-REQ-1a`) |
+ * | `s3-tabbar-top` · `s3-tabbar-bottom` | 스크롤 상단/하단 2컷 + 하단 16px | `25:87` |
+ *
+ * 폐기: `s3-home-deck-prompts-expanded` (확장 트리거가 Figma 에 없다).
  */
-test.describe('Stage 2 Home 헤더 baseline (§11.2)', () => {
-  test('s2-home-header — Figma 26:21 헤더 영역 (영역 클립)', async ({ page }) => {
-    await gotoApp(page, '/auth/log-in');
-    await page.getByLabel('Email').fill('sam@example.com');
-    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('sunny-evening-8');
-    await page.getByRole('button', { name: 'Log in', exact: true }).click();
+async function logInToHome(page: Page): Promise<void> {
+  await gotoApp(page, '/auth/log-in');
+  await page.getByLabel('Email').fill('sam@example.com');
+  await page.getByRole('textbox', { name: 'Password', exact: true }).fill('sunny-evening-8');
+  await page.getByRole('button', { name: 'Log in', exact: true }).click();
+  await expect(page.getByRole('banner').getByText('HARU')).toBeVisible();
 
-    await expect(page.getByRole('banner').getByText('HARU')).toBeVisible();
+  /*
+    Home 은 **반투명 표면이 많다** — 탭바(glass)와 카드가 뒤 콘텐츠를 blur 로 비춘다. 그래서
+    배경 캐릭터 PNG·책 표지가 디코드되기 전에 찍으면 픽셀이 달라진다 (`settle` 은 폰트만
+    기다린다). 이미지까지 기다려야 baseline 이 결정적이다.
+  */
+  await page.waitForFunction(() =>
+    [...document.images].every((image) => image.complete && image.naturalWidth > 0),
+  );
+  await settle(page);
+}
+
+test.describe('Home baseline (audit §11.12)', () => {
+  test('s2-home-header — Figma 26:21 헤더 영역 (영역 클립)', async ({ page }) => {
+    await logInToHome(page);
+
     await expect(page.getByRole('banner')).toHaveScreenshot('s2-home-header.png', REGION_SNAPSHOT);
+  });
+
+  test('s3-home — `/` 전체 프레임 (레이아웃 회귀)', async ({ page }) => {
+    await logInToHome(page);
+    await expect(page.locator('.haru-activity-track')).toBeVisible();
+    await settle(page);
+
+    await expect(page).toHaveScreenshot('s3-home.png', FRAME_SNAPSHOT);
+  });
+
+  test('s3-home-deck — 트랙(카드 1 + peek 8) + dots', async ({ page }) => {
+    await logInToHome(page);
+    const deck = page.locator('.haru-activity-deck');
+    await expect(deck).toBeVisible();
+    await settle(page);
+
+    await expect(deck).toHaveScreenshot('s3-home-deck.png', REGION_SNAPSHOT);
+  });
+
+  test('s3-home-deck-back — 카드 뒷면 (Figma 86:482)', async ({ page }) => {
+    await logInToHome(page);
+    await page.getByRole('button', { name: 'Show prompts and coaching notes' }).first().click();
+    await expect(page.locator('.haru-activity-card-flip').first()).toHaveAttribute(
+      'data-face',
+      'back',
+    );
+    await settle(page);
+
+    await expect(page.locator('.haru-activity-deck')).toHaveScreenshot(
+      's3-home-deck-back.png',
+      REGION_SNAPSHOT,
+    );
+  });
+
+  test('s3-home-deck-scrolled — 카드 2 스냅 (좌우 peek)', async ({ page }) => {
+    await logInToHome(page);
+    const track = page.locator('.haru-activity-track');
+    await track.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.locator('[aria-live="polite"]')).toHaveText(/Option 2 of 3/);
+    await settle(page);
+
+    await expect(page.locator('.haru-activity-deck')).toHaveScreenshot(
+      's3-home-deck-scrolled.png',
+      REGION_SNAPSHOT,
+    );
+  });
+
+  test('s3-home-card-save-saved — `Saved` 상태 ActionBar', async ({ page }) => {
+    await logInToHome(page);
+    await page.getByRole('button', { name: 'Save', exact: true }).first().click();
+    await expect(page.getByRole('button', { name: 'Saved', exact: true }).first()).toBeVisible();
+    await settle(page);
+
+    await expect(page.locator('.haru-activity-card__actions').first()).toHaveScreenshot(
+      's3-home-card-save-saved.png',
+      REGION_SNAPSHOT,
+    );
+  });
+
+  /*
+   * ⚠ **바(bar) 요소만 클립하면 2컷이 같아진다.** 유리 바 **뒤에 구분되는 콘텐츠가 없어서**
+   * 스크롤 위치가 달라도 같은 그림이 나온다 (audit §20.8 이 md5 일치로 지적한 결함이며,
+   * 393×852 → 393×600 으로 바꿔도 **바만 찍으면 그대로 같다**).
+   *
+   * 그래서 ① 실제로 스크롤되는 **393×600** 에서 ② **화면 하단 220px 를 통째로** 찍는다.
+   * 그래야 "마지막 콘텐츠가 중앙 버튼에 가리지 않는가"(§2.1 sticky 규칙)가 그림에 들어오고
+   * 상단/하단 2컷이 서로 다른 그림이 된다.
+   */
+  test('s3-tabbar — 스크롤 상단 · 하단 2컷 (393×600, 하단 220px 영역)', async ({ page }) => {
+    const viewportSize = { width: 393, height: 600 };
+    await page.setViewportSize(viewportSize);
+    await logInToHome(page);
+
+    const viewport = page.locator('[data-app-shell-viewport]');
+    const range = await viewport.evaluate((node) => node.scrollHeight - node.clientHeight);
+    // 2컷이 같은 그림이 되지 않는다는 전제를 테스트 안에서 고정한다.
+    expect(range).toBeGreaterThan(0);
+
+    const clip = {
+      x: 0,
+      y: viewportSize.height - 220,
+      width: viewportSize.width,
+      height: 220,
+    } as const;
+
+    await expect(viewport).toBeVisible();
+    await settle(page);
+
+    await expect(page).toHaveScreenshot('s3-tabbar-top.png', { ...REGION_SNAPSHOT, clip });
+
+    await viewport.evaluate((node) => {
+      node.scrollTop = node.scrollHeight;
+    });
+    await settle(page);
+
+    await expect(page).toHaveScreenshot('s3-tabbar-bottom.png', { ...REGION_SNAPSHOT, clip });
   });
 });

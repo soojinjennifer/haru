@@ -65,11 +65,40 @@
   --field-label-size: var(--text-caption-2); /* Figma 11.5 → 11 흡수 (§3.5) */
   --field-value-size: var(--text-callout); /* Figma `76:361` 16 */
 
-  /* ===== SpeechBubble — Figma `88:721` =================================== */
-  --bubble-radius: var(--radius-surface); /* Figma `88:758` 22 */
-  --bubble-padding-x: var(--space-4);
-  --bubble-padding-y: var(--space-3-5);
-  --bubble-tail-size: 16px; /* Figma `88:762` 16×16 */
+  /* ===== SpeechBubble — Figma `50:176` Type2 (Home `261:1293`) ===========
+   * 2026-10-05 Home 재대조로 tail 기하가 `88:762`(16² −45°) → `50:174` 로 교체되었다.
+   * tail 은 22.49×16.35 를 −36.02° 회전 + skewX 17.97° 한 모서리 radius 3 사각형이고,
+   * 본체 좌측 끝에서 **76.32%** 지점에 서며 본체 아래로 8 내려간다. */
+  --bubble-radius: var(--radius-surface); /* Figma `50:171` 22 */
+  --bubble-shadow: var(--shadow-bubble); /* drop 1겹 + inset 2겹 (`V-10`) */
+  --bubble-padding-x: var(--space-4); /* Figma left/right 16 */
+  --bubble-padding-block-start: var(--space-3-5); /* Figma 주 텍스트 top 14 */
+  --bubble-padding-block-end: var(--space-2); /* Figma 본체 60.73 역산 ≈ 8 */
+  --bubble-gap: 5px; /* Figma 주 텍스트 line box(34) → 보조 top 39 */
+  --bubble-hint-size: var(--text-caption-1); /* Figma 12 / normal */
+  --bubble-tail-inline-size: 22.49px; /* Figma `50:174` */
+  --bubble-tail-block-size: 16.35px;
+  --bubble-tail-radius: 3px;
+  /* Figma 가 생성한 `hypot(50cqw, 50cqh)` 와 같은 값 — tail 박스 절반의 대각선 */
+  --bubble-tail-shape-size: 13.9px;
+  --bubble-tail-start: 76.32%;
+  --bubble-tail-overhang: var(--space-2); /* 본체 아래 8 */
+  --bubble-tail-rotate: -36.02deg;
+  --bubble-tail-skew: 17.97deg;
+  /*
+   * 닫기 버튼 inset — **Figma 에 없는 요소**다 (사용자 지시 2026-10-05, 허용 차이 등록 대상).
+   * 본체 기하(303 · radius 22 · tail 76.32% · 돌출 8)를 건드리지 않도록 **절대 배치**하고,
+   * 글자가 버튼 밑으로 들어가지 않게 `padding-inline-end` 를 버튼 폭만큼 넓힌다.
+   */
+  --bubble-dismiss-inset: 2px;
+  /*
+   * `W-5` (approvals §13.3) — 주 문구 **4줄 상한**.
+   * 캐릭터 눈 상단 **y=183** 실측 · 버블 높이 `20n+42` · 본체 하단 `51+높이`
+   *  → 4줄 **173**(여유 10) · 5줄 **193**(눈을 덮는다). 그래서 4 다.
+   * 문구는 서버(Mock) 값이라 Frontend 가 길이를 보장할 수 없다 → UI 는 말줄임으로 흡수하고
+   * "약 120자 이내" 는 Contract **요구사항**으로만 등록한다 (parse 를 실패시키지 않는다).
+   */
+  --bubble-content-max-lines: 4;
 
   /* ===== PageIndicator — Figma `88:789` ================================== */
   --indicator-dot-size: 7px; /* Figma `88:786` */
@@ -96,6 +125,99 @@
   --deck-inset-x: var(--space-2); /* Figma 345→329→313 = 레벨당 좌우 8 */
   --deck-peek-y: var(--space-4); /* Figma 아래로 레벨당 16 */
   --deck-depth: 3; /* Figma `179:1781–1783` 카드 3장 */
+
+  /* ===== BookCover — Stage 3 Design Spec §5.3 · §6.2 (entities 전용) =======
+   * aspect 는 실측 58×83(0.6988) · 34×48(0.7083) 을 ±1.2% 로 흡수한 값이다.
+   * 원본 비율 편차는 `object-fit: cover` 가 흡수한다 (`QA-2-004` 재발 방지, D-13 ③).
+   * `--book-cover-w-sm`(34) · `lg`(캐러셀 열 폭)은 **서재 화면이 생길 때** 추가한다. */
+  --book-cover-aspect: 7 / 10;
+  --book-cover-w-md: 58px; /* Figma `85:610` */
+
+  /* ===== PromptPill — Stage 3 Design Spec §5.4 · §5.4.1 · §6.2 (entities 전용) =
+   * 높이는 **최소값**이다. 내용이 넘치면 늘어난다 (고정 높이 금지 — §9).
+   * 접힌 상태 표시 개수(3)는 **렌더 컷오프**라 CSS 값이 아니다 — `entities/activity-card` 의
+   * `PROMPT_PREVIEW_COLLAPSED_COUNT` 가 소유한다 (cutoff ≠ cap, D-21). */
+  --prompt-pill-height-min: 42px; /* Figma `163:2649` pill 42 (9 + 24 + 9) */
+  --prompt-pill-pad-block: 9px; /* Figma py9 */
+  --prompt-pill-pad-inline: 13px; /* Figma `139:2459` Pagetag x=13 (`V-3`) */
+  --prompt-pill-gap: var(--space-1-5); /* Figma 목록 gap 6 */
+  --prompt-pill-text-size: var(--text-caption-1); /* Figma 11.8 → 12 흡수 */
+  --prompt-pill-text-line: var(--space-3); /* Figma line-height 12 — 2줄 = 24 */
+  --prompt-tag-size: 22px; /* Figma Pagetag h22 (7 + 12 + 7) */
+  --prompt-phase-tag-bg: var(--color-prompt-tag-bg);
+  --prompt-phase-tag-fg: var(--color-prompt-tag-fg); /* 가값 P-23 — semantic 쪽에 주석 */
+  --prompt-phase-tag-gap: var(--space-2-5); /* Figma 3 인스턴스 10 일치 (Δ0) */
+
+  /* ===== Home 화면 — Stage 3 재구현 (Figma `26:21` 실측 2026-10-05) ========
+   * 전부 **raw 값 흡수 계층**이다 (Stage 0 #10). 의미 토큰이 아니며 Home 화면 CSS 가 쓴다. */
+  --home-header-block-size: 48px; /* 10(상단 여백) + 38(IconButton) */
+  --home-header-pad-block-start: var(--space-2-5); /* Figma 설정 `26:44` y10 */
+  /* 워드마크 `26:39` web (26,19) 64×25 — 밴드(10…48) 안에서 위 9 / 아래 4 비대칭이다 (`V-5`). */
+  --home-wordmark-offset-block: 9px;
+  --home-wordmark-offset-inline: 2px; /* gutter 24 + 2 = Figma x26 */
+  --home-wordmark-line: 25px;
+  /* Streak 칩 `26:40` 145×34 — 라벨은 `2 this week` 유지, **기하만** Figma (`V-6`). */
+  --home-chip-block-size: 34px;
+  --home-chip-pad-inline: var(--space-3-5); /* Figma icon x=14 */
+  --home-chip-icon-size: 13px; /* Figma `50:161` 13×13 */
+  --home-chip-icon-color: var(--color-icon-session-history); /* Figma `50:161` fill #d0cca1 */
+  --home-character-top: 29px; /* Figma `26:22` y85 − 상태바 56 */
+  --home-character-overhang: var(--space-3); /* 컬럼 trailing edge 를 12 넘어간다 */
+  --home-character-aspect: 357 / 442; /* Figma `26:22` */
+  --home-bubble-size: 303px; /* Figma `261:1293` */
+  --home-bubble-offset: 15px; /* 컬럼 24 + 15 = Figma x39 (A-19) */
+  --home-bubble-pad-block-start: 3px; /* 헤더 48 → 버블 51 */
+  --home-indicator-gap: var(--space-3); /* 카드 하단 705 → dots 717 */
+  --home-indicator-bottom-gap: 42px; /* dots 724 → 탭바 766 */
+
+  /* ===== Activity Card 가로 트랙 — Figma `163:2648` ======================
+   * 공식: `pad + 카드 + gap + peek = 트랙 폭`. 카드 폭은 `100%`(= 트랙 폭 − 2×pad)이므로
+   * peek 은 `pad − gap` = 8 로 **모든 폭에서 불변**이다. */
+  --activity-track-pad: var(--space-3-5); /* 14 */
+  --activity-track-gap: var(--space-1-5); /* 6 (A-3 — Figma 내부 6 ↔ 10 혼재, 6 채택) */
+  --activity-card-track-size: 415px; /* max(앞면 409, 뒷면 415) */
+
+  /* `R-SHADOW-1` (`.claude/rules/frontend.md` §6-1) — 트랙은 `overflow-x: auto` 때문에
+   * **세로도** 클리핑 박스다. 카드 그림자 자리를 트랙 **안쪽**에 확보하는 inset 이며,
+   * 같은 크기의 음수 margin 으로 레이아웃 점유를 되돌린다. 광원이 아래로 쏠려 **비대칭**이다
+   * (`--shadow-glass-rest` 픽셀 프로브 실측 번짐: 위 22 · 아래 77 — audit §22.3). */
+  --carousel-shadow-inset: var(--space-6); /* 24 — 상단 (실측 22) */
+  --carousel-shadow-inset-block-end: 80px; /* 하단 (실측 77). `--space-*` 는 40 에서 끝난다 */
+
+  /* ===== Activity Card 앞면/뒷면 — Figma `163:2649` · `86:482` ============ */
+  --activity-card-size: 409px; /* 18+26+12+82+12+186+12+45+16 */
+  --activity-card-back-size: 415px; /* `86:482` */
+  --activity-card-prompts-size: 186px; /* `I163:2649;85:550` (pill 42×4 + gap 6×3) */
+  --activity-card-pad: var(--space-4-5); /* 18 */
+  --activity-card-pad-bottom: var(--space-4); /* 16 */
+  --activity-card-row-gap: var(--space-3); /* 12 */
+  --activity-card-back-gap: var(--space-2); /* 8 — Figma 6/8/8/8 혼재 → 8 통일 (A-22) */
+  --activity-card-back-pad-bottom: 7px; /* Figma 415 − 408 (`V-13`) */
+  --activity-card-tag-pad-inline: 13px; /* Figma Tag·Pagetag 공통 (`V-4`) */
+  --activity-card-tag-line: var(--space-3); /* Figma Semibold 12 / line-height 12 */
+  --activity-card-book-title-line: 20.4px; /* Figma `85:540` (`V-14`) */
+  --activity-card-book-author-line: 15.6px; /* Figma `85:542` (`V-14`) */
+  --activity-card-title-size: 26px; /* Cardtitle 행 */
+  --activity-card-book-size: 82px;
+  --activity-card-book-gap: var(--space-3-5); /* 14 */
+  --activity-card-cover-radius: var(--space-2-5); /* Figma 10 */
+  --activity-card-cover-shadow: var(--shadow-cover);
+  --activity-card-flip-size: var(--size-icon-lg); /* 24 */
+  --activity-card-flip-color: var(--color-icon-flip);
+  --activity-card-action-size: var(--size-button-md); /* 45 */
+  --activity-card-action-gap: var(--space-2); /* 8 */
+  --activity-card-action-pad-inline: 26px; /* Figma `86:369` px26 */
+  --activity-card-action-label-size: var(--text-subheadline); /* Figma 15 */
+  --activity-card-action-label-line: 17px;
+  --activity-card-save-size: 87px; /* `I86:373;117:973` — min-inline-size (hug) */
+  --activity-card-save-bg: var(--color-action-white-bg); /* `color/white/ 85%` (`V-11`) */
+  --activity-card-save-pad-inline: var(--space-3-5); /* 14 */
+  --activity-card-save-gap: 7px;
+  --activity-card-save-icon-inline-size: 14px;
+  --activity-card-save-icon-block-size: 13px;
+  --activity-card-save-star-color: var(--color-icon-save-star);
+  --activity-card-note-pad-block: 13px; /* Figma `I86:482;86:246` text y=13 (`V-12`) */
+  --activity-card-note-pad-inline: var(--space-3); /* Figma 12 */
 
   /* ===== Sheet / Dialog / Toast / Skeleton (Figma 없음 → 명세, §13.1) ==== */
   --sheet-radius-top: var(--radius-card);

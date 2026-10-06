@@ -131,15 +131,26 @@ describe('빌드 산출물 — CSS Variable export (AC-1-11)', () => {
       provisionalByItem: Record<string, string[]>;
     };
     // Stage 2-UI 에서 Tier 3 4종 추가 (list-row · deck 3종) → 52 (stage-2 Design Spec §4.2 · §4.3).
-    expect(manifest.counts['component']).toBe(52);
+    // Stage 3 에서 6종 추가 (book-cover 2 · prompt-pill 1 · prompt-phase-tag 3) → 58 (§6.2).
+    // Stage 3 Home 재구현(2026-10-05 Figma 재대조)에서 56종 순증 → 114.
+    // (bubble +10 · home 10 · activity track/card 33 · prompt-pill/tag 6, bubble 2종 제거)
+    // Visual Gap 교정(§20)에서 13종 추가 → 127 (워드마크 3 · 칩 3 · 카드 6 · 버블 1).
+    // 버블 닫기 버튼(사용자 지시 2026-10-05)으로 1종 추가 → 128.
+    // 카드 그림자 클리핑 수정(approvals §12.15 `D-REQ-4`)으로 2종 추가 → 130
+    // (`--carousel-shadow-inset` · `--carousel-shadow-inset-block-end`).
+    // Visual Gap 3차 결정(approvals §13)으로 2종 추가 → 132
+    // (`--home-chip-icon-color` `A-23`-icon · `--bubble-content-max-lines` `W-5`).
+    expect(manifest.counts['component']).toBe(132);
     // 2026-09-22 가값 승인 (stage-1-approvals §9) 후 남은 항목 = P-01 · P-02 · P-04 · P-05 · P-16.
+    // Stage 3 에서 P-23(--color-prompt-tag-fg) 신설 (stage-3-approvals §9.2 ⑫).
     expect(Object.keys(manifest.provisionalByItem).sort()).toEqual([
       'P-01',
       'P-02',
       'P-04',
       'P-05',
       'P-16',
+      'P-23',
     ]);
-    expect(manifest.counts['provisional']).toBe(41);
+    expect(manifest.counts['provisional']).toBe(42);
   });
 });

@@ -1,6 +1,7 @@
 # Stage 3 Plan — Home · Activity Card · Library · Book Selection · Recommendation (Frontend)
 
-Status: DRAFT (Plan 자체는 아직 미승인 — 사용자의 "Stage 3 Plan 승인" 발화 없음, rules/workflow.md §3)
+Status: **APPROVED (2026-10-05, user)** — 구현은 **Home 먼저, 검수 후 나머지** 로 나눈다 (사용자 지시 2026-10-05)
+Revision: **Rev 4 (2026-10-05, plan-agent)** — ⛔ **Home Figma 전수 재대조 반영.** `CLAUDE.md` **최우선 규칙**(Figma 를 그대로 구현한다, 2026-10-05 신설) + `stage-3-approvals.md` **§12 전체**(§12.1~§12.9) + `docs/design/stage-3-home-figma-audit.md`(§10~§15 재실측·구현 명세). **무효**: `AC-3-11`(폐기) · `AC-3-17`(확장 트리거) · `AC-3-22`~`26`(Reading Context 이월) · `D-14` Home 덱 부분 · `D-7`·`AD-S3-8`(`★ Save` 제외) · `AD-S3-23`. **수정**: `AC-3-06`·`AC-3-10`·`AC-3-14`·`AC-3-16`·`AC-3-18`·`AC-3-66`, `AC-3-19` 유효화. **신규**: `★ Save` contract(`A-9` — `API_CONTRACTS.md` §3.7) · `AC-3-82`~`AC-3-88` · `P3-BIP-15`. 상세 = **§20**. 정본 = `docs/decisions/stage-3-approvals.md` §12.
 Revision: **Rev 3 (2026-10-03, plan-agent)** — `stage-3-approvals.md` §9 반영: **D-21**(Prompt 개수 상한 해제 — AC-3-17 재작성 · `questions`·`promptPreview` 상한 제거 · §12 4개 이상 케이스) · **D-22**(`ActivityCard.targetCapability` 삭제) · §9.2 ⑩(`custom_time` picker 를 D-18 에서 분리) · §9.3 PRD 수정 대상 5·6 · §15.1 C-13 서술 갱신. Rev 2 (2026-10-02) — §16 D-1~D-20 전건 승인 결과 기입 · §7.1 `HomeSummary`(`streakDays` 삭제 · `characterLine` 추가)·`Prompt`(`phase`·`pageRef`)·`ActivityCardOption`(`capability`·`promptPreview`)·`CreateGiftRequestRequest` · `StreakChip`→`WeekSummaryChip` 개명 · D-18 알림 설정 화면 Out of Scope · D-17 Mock 전용 시트 route · §10 `P3-BIP-13`·`P3-BIP-14` 추가 · AC-3-80·81 추가. 정본 = `docs/decisions/stage-3-approvals.md`
 Based on:
 - PRD v1.4 — `docs/source/HARU_PRD_v1.5.md` (FR-07 · FR-08 · FR-19(제외) · FR-20 · FR-22 · FR-23, §6.1 내비게이션 · §6.2 화면 맵 · §7.4 홈 · §7.8 설정 · §8.1 책 라이브러리 · §8.2 Prompt 라이브러리 · §8.3 추천 로직 · §8.4 언어 규칙 · §11 NFR 성능·오프라인·접근성 · §12.1 ActivityCard/Book/PromptCard · §13 증정 대기·책 소진)
@@ -10,6 +11,8 @@ Based on:
 - 승인 문서 — `PLANNING.md` §4.1 · §4.2 · §4.3 · §5 Stage 3 · §6 (M-09·M-14·M-29·M-30·M-31·M-32) · §9.2, `docs/ARCHITECTURE.md` §2.3 · §2.4 · §5 · §6.3 · §13 · §16(OAQ-15), `docs/API_CONTRACTS.md` §1.2 · §2.2 · §4 Stage 3 · §5.3 · §5.4 · §6(G-01~G-07), `docs/DATA_MODEL.md` §7, `docs/COMPONENT_MAP.md` §1 · §2 · §3 · §7, `docs/FIGMA_SCREEN_MAP.md` §1.2 · §2 · §3
 - 결정 기록 — `docs/decisions/stage-0-approvals.md` (#9 · #13 · #14 · #15 · #16 · #17 · #19 · #21 · #22 · C-13 · C-16 · **C-17** · D-01 · D-02), `docs/decisions/stage-1-approvals.md` (§1 D-4 에셋 파이프라인 · D-5 scenario 전환 · D-7 Http 골격 · §9 가값), `docs/decisions/stage-2-approvals.md` (§4 D-1~D-17 · **§9 2026-09-28 미결 정리** · §9.3 Stage 배정)
 - 선행 Stage — `docs/plans/stage-2-plan.md` (APPROVED 2026-09-25), `docs/design/stage-2-design-spec.md`, `docs/qa/stage-2-handoff.md`, `docs/qa/stage-2-qa-report.md` (Verdict **`PASS`**, 2026-09-28)
+- ⛔ **최우선 규칙 — `CLAUDE.md` "Figma 를 그대로 구현한다"** (2026-10-05). 이 Plan 의 다른 모든 항목보다 우선한다.
+- Home 재대조 — `docs/design/stage-3-home-figma-audit.md` (감사 §0~§9 · **재실측 §10** · **구현 명세 §11** · 차단 §12 · 미결 §13 · AC 목록 §14 · 구현 순서 §15), `docs/decisions/stage-3-approvals.md` **§12**
 - Rules — `.claude/rules/workflow.md` · `architecture.md` · `frontend.md` · `backend.md` · `qa.md`
 
 라벨: `CONFIRMED` (PRD/Figma/사용자 결정으로 확정) · `RECOMMENDED` (근거 있는 권장안, 승인 필요) · `NEEDS DECISION` (사용자/법무/비즈니스 결정 필요)
@@ -92,7 +95,10 @@ Home 착지 화면을 **콘텐츠가 있는 첫 화면**으로 만들고, 오늘
 | **알림 설정 화면** `/settings/notifications`(카드 갱신 시간 · 리마인더 요일/시간 입력 UI) + `/settings` 의 알림 설정 행 | 디자이너 Figma 도착 후 Stage | **D-18** (2026-10-02, `stage-3-approvals.md` §8 · §8.4) — Figma 누락(`C13-19`). **push 권한 Port·Web·Mock·contracts 정의는 Stage 3 유지**(D-16). QA 는 FR-08 설정 화면 부분을 Out of Scope 로 기록(FAIL 아님) |
 | 데이터 관리·탈퇴·동의 이력 보기, Mock 웹 프리뷰 배포 | 8 | C-15 · C-19 · C-18 |
 | 동의 **철회** UI·Contract·`consent-revoked` | 없음 (MVP 제외) | **C-4** |
-| "My Saved" 북마크 · 책 평점 · 다회차 읽기 계획(`ReadingNowCard`) · 주간 Progress 지표 · 리포트 이메일 | 결정 전까지 없음 | G-01 · G-04 · G-11 (M-10 · M-11 · M-14) — §16 D-7 에서 기각안 제시 |
+| ~~"My Saved" 북마크~~ · 책 평점 · 다회차 읽기 계획(`ReadingNowCard`) · 주간 Progress 지표 · 리포트 이메일 | 결정 전까지 없음 | G-01 · G-04 · G-11 (M-10 · M-11 · M-14) — §16 D-7 에서 기각안 제시. ⛔ **부분 개정 (Rev 4 — approvals §12.8 `A-9`)**: **책 저장(`★ Save`)은 In Scope 로 복귀**한다 (Figma `I86:438;86:383;117:973` 에 실재 + 사용자 결정) → §20.3 · `API_CONTRACTS.md` §3.7. **평점 · reading plan · 주간 Progress · 리포트 이메일은 그대로 Out of Scope** (`D-7` 의 그 부분은 유효). Library 의 **저장 목록 화면**은 다음 라운드 |
+| **Reading Context 선택 UI** (6값 시트 · `custom_time` picker · `AC-3-22`~`26`) | **별도 디자인 요청 후 재배정** | **approvals §12.3 ⑧** (2026-10-05) — Figma 카드 앞면에 **진입점이 없다**. 그 자리는 `★ Save` 다. **contract 는 유지**하고 진입점만 없다. `D-9` 결정도 함께 이월 |
+| **Library 의 저장 표면 ("My Saved" 목록 · `LibraryFilter=saved` · 저장 해제 UI)** | **다음 라운드 (Stage 3 Library)** | **approvals §12.8 `A-9`** — *"저장 결과를 보는 Library 화면은 다음 차례"*. Home 라운드는 **저장 동작과 contract 까지**다 |
+| 카드 앞면의 `Remember tonight` Overlay (`86:512`/`86:545`) | 없음 (미채택) | audit §12 `A-17` ⓑ 기각 — 다른 컴포넌트(`Prompt Card/Min/*`)이고 앞면 높이가 377→452 로 커져 §11 기하가 전부 바뀐다. 코칭 문장은 **뒷면 beige 노트**가 담당 |
 | Stage 4~8 scenario key(`invalid-transition`·`mic-permission-denied`·`upload-*`·`analysis-*`·`report-*`·`deletion-*` …) | 각 Stage | API_CONTRACTS §5.4 최초 FE Stage |
 | 나머지 도메인 `Mock<Domain>Api`(sessions · recordings · analysis · reports · data-management) | 각 도메인 Stage | Stage 1 D-8 — 빈 stub 파일도 만들지 않는다 |
 
@@ -239,7 +245,7 @@ Stage 3는 `docs/DATA_MODEL.md` §7에 이미 초안이 있다. 이 Plan은 **�
 | 대상 (DATA_MODEL §7) | Stage 3 Contract가 요구하는 것 | 라벨 |
 |---|---|---|
 | `books` — R4 | `title`·`author`·`cover_image_path`·`age_min_months`/`age_max_months`·`topic_tags`·`difficulty`·`est_reading_minutes`·`purchase_url`·`capability_relevance`·`is_curated`·`is_giftable`. **Frontend가 필요한 최소 노출**은 `id·title·author·coverUrl?·purchaseUrl?` 이며 `capability_relevance`·`difficulty` 는 **노출하지 않는다**(추천 근거는 `reason` 문장으로만 — §8.4 판정 언어 금지) | **CONFIRMED (§8.1)** / 노출 범위 RECOMMENDED |
-| `child_books` — R1 | `ownership` 4값(`owned`·`gifted`·`gift_pending`·`favorite_only`) · `source` 4값(`onboarding_favorite`·`onboarding_home_list`·`library_add`·`gift_program`) · `user_entered_title`/`user_entered_author` · `first_read_at`·`last_read_at`·`read_count`. **CHECK `book_id IS NOT NULL OR user_entered_title IS NOT NULL`**. 서재 필터 `owned`/`gifted`/`history` 가 이 테이블 위에서 성립해야 한다 | **CONFIRMED (FR-20·22·23)** / `source` enum 화는 **보고 ④** |
+| `child_books` — R1 | ⭐ **Rev 4 추가 (`A-9`)**: **`saved`·`saved_at` 축** — `ownership` 과 **독립**이다(보유 중인 책도 저장될 수 있고, `favorite_only` 재사용은 설문 응답과 보호자 저장을 섞는다). `source` 에 **`card_save`** 추가, ~~`onboarding_home_list`~~ 제거(온보딩 `homeBooks` 삭제 — approvals §11.9). **열 설계·이름은 Backend 재량**(`D-23` 과 같은 취급). 상세 = `DATA_MODEL.md` §7 · `API_CONTRACTS.md` §3.7. 기존: `ownership` 4값(`owned`·`gifted`·`gift_pending`·`favorite_only`) · `source` 4값(`onboarding_favorite`·`onboarding_home_list`·`library_add`·`gift_program`) · `user_entered_title`/`user_entered_author` · `first_read_at`·`last_read_at`·`read_count`. **CHECK `book_id IS NOT NULL OR user_entered_title IS NOT NULL`**. 서재 필터 `owned`/`gifted`/`history` 가 이 테이블 위에서 성립해야 한다 | **CONFIRMED (FR-20·22·23)** / `source` enum 화는 **보고 ④** |
 | `book_gift_requests` — R1 | `status` 6값 · 같은 `(child_id, book_id)` 진행 중 신청 중복 금지 → `GIFT_REQUEST_DUPLICATE`(409). **`shipping_address_ref` 는 참조만** — 배송지 본문 저장 위치는 **NEEDS DECISION (운영·법무)**, Frontend는 입력받지 않는다(§16 D-15) | **CONFIRMED (FR-22)** / 배송지 = NEEDS DECISION |
 | `prompt_sets` / `prompts` — R4 | `prompt_sets`: `book_id null`(범용) · `capability` · `age_band` 3값 · `coaching_line` · `status`(`draft`·`expert_reviewed`·`active`). `prompts`: `kind`(`question`·`follow_up`) · `text` · `order`. **책별 최소 6개, 선택 시 2~3개 제시**(§8.2) — **Backend 생성 정책**이며 contract 상한이 아니다(**D-21**). `active` 가 아닌 세트는 Frontend에 내려오지 않아야 한다 | **CONFIRMED (§8.2)** / `phase`·`page_ref` **추가 확정 (D-8, 2026-10-02 §8.1)** — `pageRef` 는 책별 페이지 앵커 데이터 전제(`P3-BIP-14`) |
 | `activity_cards` — R2 | `card_date` **UNIQUE(child_id, card_date)** · `target_capability` · `generator_version` · `recommendation_phase`(cold/warm) · `selected_option_id` · `adopted_session_id` · `reading_context`·`custom_time`. **카드 날짜 기준 timezone** = §16 D-10 (OAQ-15) | **CONFIRMED (FR-07)** / `recommendation_phase` **노출은 Stage 6** |
@@ -275,6 +281,7 @@ Stage 1·2에서 이미 있는 것: `common/*` 5 · `enums/*` **26** · `rules/*
 | `src/enums/book-source.ts` | `BookSourceSchema` = `onboarding_favorite`, `onboarding_home_list`, `library_add`, `gift_program` | DATA_MODEL §7 `child_books.source` — **§2.2 enum 표에 없음** | RECOMMENDED — **보고 ④** |
 | `src/library/list.ts` | `LibraryListRequestSchema` = `CursorPageRequest & { filter: LibraryFilter }`, `LibraryListResponseSchema = paginated(LibraryBookSchema)` | §4 Stage 3 | RECOMMENDED |
 | `src/library/add-book.ts` | `AddOwnBookRequestSchema` = discriminated union — `{ bookId }` 또는 `{ title(1–200), author?(≤120) }` | §4 Stage 3 `POST …/library/books`(IK) → `LibraryBook` | **CONFIRMED (FR-23, §7.2 규칙)** / 길이 RECOMMENDED |
+| ⭐ `src/library/saved-book.ts` **(Rev 4 신규)** | `SaveBookTargetSchema` = `{ bookId }` \| `{ title, author? }` (판별 union — `AddOwnBookRequest` 와 **같은 구조이므로 공용화**하고 중복 선언하지 않는다), `SaveBookRequestSchema` = `{ target }`. 응답은 **신규 타입 없이 `LibraryBook`**. `LibraryBookSchema` 에 **`saved: boolean` · `savedAt: IsoDateTime \| null`** 추가(비파괴). `BookSource` 에 **`card_save`**, `LibraryFilter` 에 **`saved`** 추가 | `API_CONTRACTS.md` **§3.7** · §4 Stage 3 `PUT/DELETE …/saved-books` | **CONFIRMED (사용자 결정 2026-10-05, approvals §12.8 `A-9` — Figma `I86:438;86:383;117:973`)** / 필드·경로·멱등 규격 **RECOMMENDED** |
 | `src/library/gift-request.ts` | `CreateGiftRequestRequestSchema` = `{ bookId }` (**배송지 필드 없음** — §16 D-15), `GiftRequestSchema` = `{ id, book: BookSummary, status: GiftRequestStatus, requestedAt, statusUpdatedAt }`, `GiftRequestListSchema` | §4 Stage 3 `POST/GET …/gift-requests` | **CONFIRMED (2026-10-02, §8 D-15 — 배송지 미수집 확정)** |
 | `src/notifications/preferences.ts` | `NotificationPreferencesSchema` = `{ cardRefreshTime: 'HH:mm', reminderDays: number[0–6], reminderTime?: 'HH:mm', pushEnabled }`, `UpdateNotificationPreferencesRequestSchema`(부분 갱신) | §4 Stage 3 `GET/PUT /v1/notification-preferences` | RECOMMENDED |
 | `src/notifications/push-device.ts` | `RegisterPushDeviceRequestSchema` = `{ platform: PushPlatform, token }`, `PushDeviceSchema` = `{ id, platform, lastSeenAt }` (**token 미반환**) | §4 Stage 3 `POST /v1/push-devices`, `DELETE /v1/push-devices/:id` | RECOMMENDED |
@@ -282,9 +289,9 @@ Stage 1·2에서 이미 있는 것: `common/*` 5 · `enums/*` **26** · `rules/*
 | `src/common/time-of-day.ts` | `TimeOfDaySchema` = `^([01]\d\|2[0-3]):[0-5]\d$` — `cardRefreshTime`·`reminderTime`·`customTime` 공용 | 기술 요구사항 (중복 선언 방지) | RECOMMENDED |
 | `src/index.ts` (수정) | 신규 도메인 re-export (deep import 금지) | ARCHITECTURE §1.2 | CONFIRMED |
 
-**Stage 3에서 하지 않는 contracts 작업**: `§3.2 CreateSession*`·`§3.3 RecordingUpload*`(Stage 4), `Reflection*`(Stage 5), `RecommendationPhase` 노출·`profileUpdatedAt`(Stage 6), `ReportOverview`·`WeeklyProgress`(Stage 7), `ConsentHistory`·`DataDeletion*`(Stage 8), G-04 `LibraryBook.saved`·`averageRating`·reading plan(§16 D-7에서 기각).
+**Stage 3에서 하지 않는 contracts 작업**: `§3.2 CreateSession*`·`§3.3 RecordingUpload*`(Stage 4), `Reflection*`(Stage 5), `RecommendationPhase` 노출·`profileUpdatedAt`(Stage 6), `ReportOverview`·`WeeklyProgress`(Stage 7), `ConsentHistory`·`DataDeletion*`(Stage 8), ~~G-04 `LibraryBook.saved`~~·`averageRating`·reading plan(§16 D-7에서 기각) — ⛔ **`LibraryBook.saved` 는 Rev 4 에서 In Scope 로 복귀**한다 (approvals §12.8 `A-9`). `averageRating`·reading plan 은 **그대로 제외**.
 
-**Error Code**: Stage 1의 **28종을 그대로 쓴다. 신규 코드 추가 없음.** Stage 3가 새로 사용하는 코드 = `ONBOARDING_INCOMPLETE`(home·activity-cards), `RESOURCE_NOT_FOUND`(selection·prompts), `GIFT_REQUEST_DUPLICATE`, `SESSION_ALREADY_ACTIVE`(표시용), `VALIDATION_FAILED`, `IDEMPOTENCY_KEY_REUSED`.
+**Error Code**: Stage 1의 **28종을 그대로 쓴다. 신규 코드 추가 없음.** (Rev 4 재확인 — `★ Save` 도 **신규 error code 0건**: 중복 저장은 오류가 아니라 멱등 성공이고, 없는 `bookId` = `RESOURCE_NOT_FOUND`, 입력 오류 = `VALIDATION_FAILED`. 상한을 두지 않으므로 상한 초과 코드도 필요 없다 — `API_CONTRACTS.md` §3.7.3) Stage 3가 새로 사용하는 코드 = `ONBOARDING_INCOMPLETE`(home·activity-cards), `RESOURCE_NOT_FOUND`(selection·prompts), `GIFT_REQUEST_DUPLICATE`, `SESSION_ALREADY_ACTIVE`(표시용), `VALIDATION_FAILED`, `IDEMPOTENCY_KEY_REUSED`.
 
 ### 7.2 Endpoint Delta
 
@@ -295,6 +302,8 @@ Stage 1·2에서 이미 있는 것: `common/*` 5 · `enums/*` **26** · `rules/*
 | POST | `/v1/activity-cards/:cardId/selection` | `SelectActivityOption` | `ActivityCardSelection` | `RESOURCE_NOT_FOUND`, `VALIDATION_FAILED` | 필요 | — | **In** |
 | GET | `/v1/children/:childId/library?filter=&limit=&cursor=` | — | `Paginated<LibraryBook>` | `VALIDATION_FAILED`, `CHILD_NOT_FOUND` | 필요 | — | **In** |
 | POST | `/v1/children/:childId/library/books` | `AddOwnBook` | `LibraryBook` | `VALIDATION_FAILED`, `IDEMPOTENCY_KEY_REUSED` | 필요 | **필수** | **In** |
+| PUT | `/v1/children/:childId/saved-books` | `SaveBook` | `LibraryBook`(`saved=true`) | `RESOURCE_NOT_FOUND`, `VALIDATION_FAILED` | 필요 | **불필요**(PUT=상태 설정, 멱등) | **In (Rev 4 — `A-9`)** |
+| DELETE | `/v1/children/:childId/saved-books/:bookId` | — | 204 | `RESOURCE_NOT_FOUND` | 필요 | — | **In (contract)** / 화면 진입점은 **Library 라운드** (`G-13`) |
 | GET | `/v1/books/:bookId/prompts?childId=` | — | `BookPrompts` | `RESOURCE_NOT_FOUND` | 필요 | — | **In** |
 | POST | `/v1/children/:childId/gift-requests` | `CreateGiftRequest` | `GiftRequest` | `GIFT_REQUEST_DUPLICATE`, `VALIDATION_FAILED`, `IDEMPOTENCY_KEY_REUSED` | 필요 | **필수** | **In** |
 | GET | `/v1/children/:childId/gift-requests` | — | `GiftRequest[]` | `CHILD_NOT_FOUND` | 필요 | — | **In** |
@@ -329,7 +338,7 @@ Stage 1·2에서 이미 있는 것: `common/*` 5 · `enums/*` **26** · `rules/*
 |---|---|---|
 | `home` | `GET /v1/children/:childId/home` | home / activity-cards |
 | `activity-cards` | `GET …/activity-cards/today`, `POST /v1/activity-cards/:cardId/selection` | 〃 |
-| `library` | `GET …/library`, `POST …/library/books`, `GET /v1/books/:bookId/prompts` | library / books / gift-requests |
+| `library` | `GET …/library`, `POST …/library/books`, `GET /v1/books/:bookId/prompts`, ⭐ **`PUT/DELETE …/saved-books` (Rev 4)** | library / books / gift-requests / saved-books |
 | `gift-requests` | `POST/GET …/gift-requests` | 〃 |
 | `notifications` | `GET/PUT /v1/notification-preferences` | notifications / push-devices |
 | `push-devices` | `POST /v1/push-devices`, `DELETE /v1/push-devices/:id`, platform 권한 mock | 〃 |
@@ -355,8 +364,11 @@ Stage 1·2에서 이미 있는 것: `common/*` 5 · `enums/*` **26** · `rules/*
 | **`user-entered-book`** | `library`, `books` | DB 외 직접 등록 책 포함 (범용 Prompt, 표지 없음) | `BookCover placeholder`, 검색 결과 없음 → 제목 직접 입력 (FR-23) |
 | **`push-permission-denied`** | `push-devices` | platform mock: OS push 권한 거부 | 권한 거부 안내 + 재요청 경로, 기기 등록 미수행 |
 | `onboarding-incomplete` | `home`, `activity-cards` | `ONBOARDING_INCOMPLETE` | Guard 경계 회귀 (Stage 2 key 재사용) |
+| ⭐ **`book-saved`** (Rev 4 신규) | `library` (saved-books) | 대상 책이 **이미 저장된 상태**(`LibraryBook.saved=true`) | `★ Save` **재저장 멱등성**(같은 응답·같은 `savedAt`) + (`G-14` ⓑ 채택 시) 초기 표시. **catalogue 에 신규 등재** = `API_CONTRACTS.md` §5.4 |
 
-**총 16 key** (공통 6 + Stage 3 특화 9 + 재사용 1). 전부 catalogue 기존 값이며 **신규 key 0건**.
+~~**총 16 key** … **신규 key 0건**~~ → ⭐ **Rev 4: 총 17 key** (공통 6 + Stage 3 특화 10 + 재사용 1). **신규 key 1건 = `book-saved`** 이며 `API_CONTRACTS.md` §5.4 catalogue(단일 기준)에 **먼저 등재했다** — 임의 key 가 아니다. 나머지 16 key 는 변동 없다.
+
+⭐ **Rev 4 — Mock 영향 (approvals §12.9 · audit §11.11)**: ① `activity-cards` fixture 의 `date` 가 **`2026-01-01` 고정**이라 항상 `stale` 이 된다 → **주입 clock 기준 '오늘' fixture 로 교체**한다 (배너 삭제와 무관하게 필요). ② `loading` 의 덱 Skeleton 은 **가로 1장 + peek 8**, `empty`/`error`/`offline` 은 **트랙 높이 415 를 점유**한다. ③ `AC-3-11` 폐기로 **지난 카드 안내 시나리오는 없어지지만 `empty` 는 유지**된다. ④ Reading Context 이월로 `POST …/selection` 의 **`readingContext` 입력 경로가 화면에서 사라진다** — Mock·contract 는 그대로 두고 **단위/contract 테스트로만** 검증한다(화면 e2e 대상 아님). ⑤ 새 key `book-saved` 는 `library` 그룹에 붙는다.
 
 **fixture 규격 — Prompt 개수 상한 없음 (D-21, §9.1-3)**: `activity-cards` 의 **`success` fixture 가 옵션 1개에 `promptPreview` 4개를 담고**, `POST …/selection` 의 `promptSet.questions` 도 **4개**를 반환한다. 기본 경로에서 **상한이 없음 + 접힌 상태 3개 cutoff + 확장 도달**을 동시에 증명한다 (AC-3-17). **신규 scenario key 를 만들지 않는다** — §5.4 catalogue 변경 없음.
 
@@ -481,13 +493,13 @@ apps/web/src/
 
 ## 10. Backend Integration Requirements
 
-Stage 2는 `BACKEND_INTEGRATION_PENDING` 이 11건이었다. Stage 3는 **14건**이 발생한다 (D-8 승인으로 **P3-BIP-13 · P3-BIP-14** 추가, 2026-10-02 — `stage-3-approvals.md` §8.1). 각 항목은 ① Frontend 부분이 별도 AC로 PASS/FAIL 판정되고 ② 대기 사유와 Handoff 문서 대상이 기록되어야 한다 (rules/qa.md §1).
+Stage 2는 `BACKEND_INTEGRATION_PENDING` 이 11건이었다. ~~Stage 3는 **14건**~~ → ⭐ **Rev 4: 15건** — `★ Save` 저장 상태의 서버 소유(`P3-BIP-15`)가 추가된다 (approvals §12.8 `A-9`). **무효가 된 PENDING 은 없다**; `P3-BIP-01`·`P3-BIP-03` 의 **Frontend 판정 AC 참조만 교체**된다 (`AC-3-11` 폐기 · `AC-3-17` 무효). (Rev 3: D-8 승인으로 **P3-BIP-13 · P3-BIP-14** 추가, 2026-10-02 — `stage-3-approvals.md` §8.1). 각 항목은 ① Frontend 부분이 별도 AC로 PASS/FAIL 판정되고 ② 대기 사유와 Handoff 문서 대상이 기록되어야 한다 (rules/qa.md §1).
 
 | # | PENDING 항목 | Contract로 표현되는 기대 동작 | Frontend 부분 (별도 판정) | Handoff 문서 |
 |---|---|---|---|---|
-| **P3-BIP-01** | **일일 Activity Card 생성 잡** — 매일 07:00(설정 가능) 카드 갱신, `UNIQUE(child_id, card_date)`, caregiver timezone 기준 | `GET …/activity-cards/today` → `ActivityCard{ date, options[3] }` (`targetCapability` 없음 — **D-22**), `NotificationPreferences.cardRefreshTime` | AC-3-11 · AC-3-12 (오늘 카드 표시·날짜 경계) | `BACKEND_HANDOFF.md`, `DATA_REQUIREMENTS.md` |
+| **P3-BIP-01** | **일일 Activity Card 생성 잡** — 매일 07:00(설정 가능) 카드 갱신, `UNIQUE(child_id, card_date)`, caregiver timezone 기준 | `GET …/activity-cards/today` → `ActivityCard{ date, options[3] }` (`targetCapability` 없음 — **D-22**), `NotificationPreferences.cardRefreshTime` | ~~AC-3-11~~ → ⭐ **AC-3-82**(오늘 카드 없음 = `empty` 안내) · **AC-3-12**(배지) · **AC-3-88**(서버 `date` 를 그대로 신뢰, 클라이언트 재판정 0건). `AC-3-11` 은 **폐기**(Rev 4, approvals §12.8) — 날짜를 **화면에 밝히는 요구가 없어졌다**. `D-10` 의 서버 `date` 신뢰는 유지 | `BACKEND_HANDOFF.md`, `DATA_REQUIREMENTS.md` |
 | **P3-BIP-02** | **Cold/Warm 추천 로직 · 역량 순환 스케줄 · 주제 태그 매칭** (§8.3) — 온보딩 Q1~Q5 state vector 소비 | `ActivityCard.options[].capability`(**D-5** — 카드 단위 `targetCapability` 는 **D-22** 로 삭제), `options[].reason`(추천 이유 문장), `activity_cards.recommendation_phase` | AC-3-13 (응답 값만 표시, Frontend 가공 0건) | `BACKEND_HANDOFF.md`, `ANALYSIS_PIPELINE_REQUIREMENTS.md` |
-| **P3-BIP-03** | **Prompt 라이브러리 콘텐츠·전문가 감수·재독 시 새 세트 선택** (§8.2, §8.3) — 책별 최소 6개, **제시 2~3개 = Backend 생성 정책**, 동일 주제 연속 3일 지양. **이 개수는 Frontend 검증 조건이 아니다** — contracts 는 상한을 강제하지 않는다 (**D-21** §9.1-4) | `ActivityCardSelection.promptSet{ questions, coachingLine, followUps }` (`questions` = `.min(1)` · 상한 없음), `GET /v1/books/:bookId/prompts` | AC-3-16 (표시) · AC-3-17 (상한 없음 + 확장 도달) | `BACKEND_HANDOFF.md` |
+| **P3-BIP-03** | **Prompt 라이브러리 콘텐츠·전문가 감수·재독 시 새 세트 선택** (§8.2, §8.3) — 책별 최소 6개, **제시 2~3개 = Backend 생성 정책**, 동일 주제 연속 3일 지양. **이 개수는 Frontend 검증 조건이 아니다** — contracts 는 상한을 강제하지 않는다 (**D-21** §9.1-4) | `ActivityCardSelection.promptSet{ questions, coachingLine, followUps }` (`questions` = `.min(1)` · 상한 없음), `GET /v1/books/:bookId/prompts` | AC-3-16 (표시 — **뒷면으로 이동**) · ~~AC-3-17~~ → ⭐ **AC-3-83**(상한 없음 · `slice` 금지 · 4개 이상 fixture). **"확장 도달" 부분은 무효** — Figma 에 확장 트리거가 없고 4~5개가 전부 노출된다 | `BACKEND_HANDOFF.md` |
 | **P3-BIP-04** | **책 카탈로그 20권 큐레이션 · 표지 저장/CDN · 구매 링크 · 연령 게이팅** (§8.1) | `BookSummary{ id, title, author, coverUrl? }`, `LibraryBook.purchaseUrl` | AC-3-27 · AC-3-52 (원격 URL·번들 에셋 모두 렌더) | `DATA_REQUIREMENTS.md`, `BACKEND_HANDOFF.md` |
 | **P3-BIP-05** | **증정 프로그램 운영** — B2B 라이선스 주문·배송·상태 전이(`requested→approved→shipped→delivered`), 중복 판정 | `POST/GET …/gift-requests`, `GIFT_REQUEST_DUPLICATE`(409) | AC-3-33 · AC-3-34 · AC-3-35 (Mock 재현) | `BACKEND_HANDOFF.md`, `ERROR_CODES.md` |
 | **P3-BIP-06** | **증정 배송지 저장 위치·보호** — 아동 데이터와 결합되는 성인 PII (`shipping_address_ref`) | Stage 3 Contract에 배송지 필드 **없음**(§16 D-15) | 해당 없음 (Frontend 미수집) | `DATA_REQUIREMENTS.md` + **NEEDS DECISION (운영·법무)** |
@@ -499,6 +511,8 @@ Stage 2는 `BACKEND_INTEGRATION_PENDING` 이 11건이었다. Stage 3는 **14건*
 | **P3-BIP-12** | **Idempotency-Key 서버 보관 24h·재생** (`POST …/library/books`, `POST …/gift-requests`) + **카드 채택률 KPI 로깅**(`selected_option_id`·`adopted_session_id`, §2.3) | 두 endpoint의 IK 요구, `POST …/selection` 이 `selected_option_id` 를 기록 | AC-3-30 · AC-3-36 (Mock replay) | `BACKEND_HANDOFF.md`, `ERROR_CODES.md` |
 | **P3-BIP-13** | **Prompt 단계(`phase`) 판정 로직** — 각 Prompt 가 읽기 **전**(`pre`) / 읽은 **후**(`post`) 중 어디에 속하는지 서버가 정한다. Prompt 라이브러리 콘텐츠 설계와 함께 결정된다 (§16 D-8, `stage-3-approvals.md` §8.1) | `Prompt.phase: 'pre' \| 'post' \| null` — **optional · 표시 전용**. Frontend 는 값을 **생성·가공·추론하지 않는다**. 값이 없으면 배지를 렌더하지 않는다 | AC-3-80 (값 있을 때만 배지 렌더) · AC-3-81 (Mock fixture 결정적 값 · 하드코딩 0건) | `BACKEND_HANDOFF.md`, `ANALYSIS_PIPELINE_REQUIREMENTS.md` (Prompt 라이브러리 항목) |
 | **P3-BIP-14** | **Prompt 페이지 앵커(`pageRef`) 데이터** — `P.6` 형태의 책별 페이지 참조. **책별 페이지 단위 앵커 데이터가 선행 필요**하며, 큐레이션 20권의 **페이지 메타가 없으면 생성할 수 없다** → Backend 구현 범위를 넘어 **콘텐츠 제작 범위**로도 기록한다 (§16 D-8, §8.1) | `Prompt.pageRef: string \| null` — **optional · 표시 전용**(서버 문자열을 그대로 표시, Frontend 포맷팅·번역 금지) | AC-3-80 · AC-3-81 (동일 — 값 유무에 따른 렌더, fixture 결정성) | `BACKEND_HANDOFF.md`, `DATA_REQUIREMENTS.md`(책별 페이지 메타 테이블) + **콘텐츠 제작 범위 — 큐레이션 20권 페이지 메타 수집 필요** |
+
+| ⭐ **P3-BIP-15** **(Rev 4 신규)** | **책 저장 상태의 서버 소유** — `★ Save` 가 만든 `child_books.saved`·`saved_at` 의 생성·멱등 보장·`LibraryFilter=saved` 조회, `source=card_save` 기록. 저장이 **추천 신호로 쓰일지는 Backend·제품 결정**(Frontend 는 기대하지 않는다). 전체 삭제(FR-21) 대상에 포함 | `PUT /v1/children/:childId/saved-books` → `LibraryBook{ saved, savedAt }` (같은 책 재저장 = **같은 응답·같은 `savedAt`**), `DELETE …/saved-books/:bookId` → 204. 신규 error code **0건** (`RESOURCE_NOT_FOUND`·`VALIDATION_FAILED` 만) | **AC-3-84**(요청 발생·멱등) · **AC-3-85**(실패·오프라인 UX) · **AC-3-86**(저장 대상 = 선택된 옵션의 책) | `BACKEND_HANDOFF.md`, `DATA_REQUIREMENTS.md` + **NEEDS DECISION**: 초기 저장 여부 노출(`G-14`) · 토글 여부(`G-13`) · `conversation_only` 대상(`G-12`) |
 
 **향후 Backend가 재사용해야 할 Stage 3 산출물**: `packages/contracts` 의 home/activity/prompts/library/notifications schema + 신규 enum 5종(`PromptKind`·`AgeBand`·`LibraryFilter`·`BookSource`·`PushPlatform`) + `TimeOfDay`. Backend 모듈에서 별도 schema/type 재선언 금지 (rules/backend.md §4).
 
@@ -524,7 +538,7 @@ Stage 2는 `BACKEND_INTEGRATION_PENDING` 이 11건이었다. Stage 3는 **14건*
 |---|---|---|---|
 | **AC-3-04** | `/` 와 `/library` 에 BottomTabBar가 마운트되고 항목이 **Library / Home(가운데) / Progress 3개**이며 `/session` 탭이 없다 | e2e + DOM 검사 | **#15 · D-02** |
 | **AC-3-05** | 탭 아이콘이 `S1-D2-5` 확정값(`book` · HARU SVG `140:2971` · `chart-no-axes-column-increasing`)이고, 활성 상태가 **색상만이 아닌 수단**(아이콘 채움·라벨 강조 등)으로도 구분된다 | 시각 비교 + 대비 측정 | `S1-D2-5`, WCAG 1.4.1 |
-| **AC-3-06** | 탭바 고정 방식이 **§16 D-1 승인안대로** 구현되고, 320/393/600/1024px에서 **콘텐츠가 탭바·중앙 버튼 overhang에 가려지지 않는다**(스크롤 끝 기준 마지막 요소 전체 가시) | Playwright 4폭 × 2화면 | `S1-E-3`, Design Spec §2.2 |
+| ✎ **AC-3-06** | 탭바 고정 방식이 **§16 D-1 승인안대로** 구현되고, 320/393/600/1024px에서 **콘텐츠가 탭바·중앙 버튼 overhang에 가려지지 않는다**(스크롤 끝 기준 마지막 요소 전체 가시) | Playwright 4폭 × 2화면 | `S1-E-3`, Design Spec §2.2 <br>✎ **수정 (Rev 4 — approvals §12.9 · audit §11.6 · §12.4 M-01)**: 현재 **320px FAIL** — 카드가 탭바를 **16.8px 덮는다**. 원인은 ActionBar 2행(102px)이다. 해소안 = ActionBar 를 **`Save` 고정 87 + gap 8 + `Start Session` flex** 로 1행 유지 → 카드 하단 705, 탭바 766, **겹침 0**. 여기에 **탭바 하단 16px**(신규 토큰 `--layout-tabbar-bottom-gap`, Figma 852−(766+70))을 포함해 재검증한다 |
 | **AC-3-07** | Toast(§4.12)와 Sheet가 탭바 위에 정상 표시되고 z-index·하단 offset이 §16 D-1 규칙과 일치한다 | 컴포넌트 + e2e | Design Spec §4.12 · §6.2 |
 | **AC-3-08** | 탭 전환이 키보드만으로 가능하고 각 탭에 접근성 이름과 `aria-current` 가 있다. 터치 타깃 ≥ 44×44 | 키보드 e2e + 측정 | NFR 접근성 |
 
@@ -533,16 +547,16 @@ Stage 2는 `BACKEND_INTEGRATION_PENDING` 이 11건이었다. Stage 3는 **14건*
 | AC | 요구사항 | 검증 방법 | 근거 |
 |---|---|---|---|
 | **AC-3-09** | `/` 가 Stage 2 skeleton을 대체하고 `GET …/home` + `GET …/activity-cards/today` 를 호출한다. `PlaceholderPage`·빈 `EmptyState` 잔존 0건 | e2e + Mock 요청 로그 | #33 → Stage 3 |
-| **AC-3-10** | 덱이 **정확히 3장**이고 각 카드에 **역량 배지 · 추천 책(표지·제목) · 추천 이유 1~2문장 · 부모용 코칭 문장**이 표시된다 | 화면 + 컴포넌트 테스트 | FR-07, §7.4 |
-| **AC-3-11** | 카드 `date` 가 오늘이 아니면 화면이 **그 사실을 밝힌다**(캐시·지난 카드 표시). 오늘 카드가 없으면(`empty`) 안내를 표시한다 | 시나리오 테스트 | §16 D-10 |
+| ✎ **AC-3-10** | 덱이 **정확히 3장**이고 각 카드에 **역량 배지 · 추천 책(표지·제목) · 추천 이유 1~2문장 · 부모용 코칭 문장**이 표시된다 | 화면 + 컴포넌트 테스트 | FR-07, §7.4 <br>✎ **수정 (Rev 4 — approvals §12.8 `A-17`)**: "부모용 코칭 문장"의 **검증 지점을 카드 뒷면(`86:482`) beige 노트**(`color/grey/92` #f0eee6, 330×102/98)로 이동한다. Figma 앞면(`163:2649`·`86:438`)에는 코칭 문장 블록이 **없다** — 앞면 검증 항목은 역량 배지 · 추천 책(표지·제목) · 추천 이유까지다. 앞면에 코칭 문장 블록을 **추가하지 않는다**(최우선 규칙 2) |
+| ⛔ **AC-3-11** | 카드 `date` 가 오늘이 아니면 화면이 **그 사실을 밝힌다**(캐시·지난 카드 표시). 오늘 카드가 없으면(`empty`) 안내를 표시한다 | 시나리오 테스트 | §16 D-10 <br>⛔ **폐기 (Rev 4 — approvals §12.8 `AC-3-11` 결정, 사용자 2026-10-05)**: Figma 에 없는 파란 안내 카드를 삭제하면서 **"지난 날짜를 밝힌다"는 요구 자체를 없앤다**. `D-10` 의 **서버 `ActivityCard.date` 신뢰 / 클라이언트 재판정 금지는 유지**되고, ③("화면이 그 날짜를 밝힌다")만 **철회**한다. audit §14.3 의 3안(R-1·R-2·R-3) 중 **R-3 채택**. ⚠️ `empty`(오늘 카드 없음) 안내는 **유지** → §20.2 신규 `AC-3-82` 로 분리 |
 | **AC-3-12** | 역량 배지 라벨이 #14 표시 라벨이고 색이 `--color-capability-*`(#19)다. Figma "Emotion Day Day" 오타를 복제하지 않는다 | grep + 시각 비교 | #14 · #19 |
 | **AC-3-13** | 추천 이유·코칭 문장·Prompt 문구가 **API(Mock) 응답 값만** 표시되고 Frontend가 생성·가공하지 않는다. 하드코딩 문구 0건 | grep + 코드 검사 | rules/frontend §8, §8.4 |
-| **AC-3-14** | `loading` 에서 덱 Skeleton이 표시되고, 초기 렌더가 카드 응답을 **blocking 하지 않는다**(헤더·탭바 즉시 표시) | 시나리오 테스트 + 프로파일 | NFR 성능 2초 |
+| ✎ **AC-3-14** | `loading` 에서 덱 Skeleton이 표시되고, 초기 렌더가 카드 응답을 **blocking 하지 않는다**(헤더·탭바 즉시 표시) | 시나리오 테스트 + 프로파일 | NFR 성능 2초 <br>✎ **수정 (Rev 4 — approvals §12.9 · audit §11.11)**: 덱 Skeleton 형태를 **가로 트랙 1장 + peek 8px** 로 바꾼다(현재 스택 형태). `empty`/`error`/`offline` 도 **트랙 높이 415 를 차지**해 레이아웃이 튀지 않아야 한다. "초기 렌더가 카드 응답을 blocking 하지 않는다"는 부분은 그대로 유효 |
 | **AC-3-15** | `session-already-active` 에서 Home에 **이어하기 안내**가 표시된다. `POST /v1/sessions` 호출 0건 | 시나리오 테스트 + 요청 로그 | §5.4, Stage 4 경계 |
-| **AC-3-16** | 옵션 선택 → `POST /v1/activity-cards/:cardId/selection` → **응답의 Prompt 전체 + 코칭 문장 + Follow-up** 이 §16 D-4 승인안대로 표시된다 (개수 상한을 전제하지 않는다 — D-21) | e2e | FR-07, §8.2 |
-| **AC-3-17** | **Prompt 가 4개 이상인 응답도 contracts parse 를 통과하고**(`promptPreview` · `promptSet.questions` 모두 상한 없음, `.min(1)` 만), 접힌 상태에서 **3개가 보이며**(cutoff), **나머지가 확장·키보드로 도달 가능하다**. Frontend 가 `slice` 한 흔적이 0건이다 | ① contracts 단위 테스트(4개·10개 통과 / 0개 거부) ② `success` fixture 에 **4개 이상 케이스** 포함 상태의 컴포넌트·키보드 e2e ③ `slice(` grep | **D-21** (§9.1), N-2 (§6.1) |
-| **AC-3-18** | **덱 전 카드에 제스처 없이 도달 가능**하다 — 이전/다음 버튼과 키보드(←/→)로 3장 모두 열람·선택할 수 있다 | 키보드 e2e | **WCAG 2.5.1**, `SwipeDeck` 규약 |
-| **AC-3-19** | `prefers-reduced-motion: reduce` 에서 덱 전환·flip 애니메이션이 비활성화되고 동작은 유지된다 | e2e 양방향 | DESIGN_SYSTEM §9 |
+| ✎ **AC-3-16** | 옵션 선택 → `POST /v1/activity-cards/:cardId/selection` → **응답의 Prompt 전체 + 코칭 문장 + Follow-up** 이 §16 D-4 승인안대로 표시된다 (개수 상한을 전제하지 않는다 — D-21) | e2e | FR-07, §8.2 <br>✎ **수정 (Rev 4 — approvals §12.9 · §12.7)**: Prompt 전체 + 코칭 문장의 표시 지점이 **별도 Sheet → 카드 뒷면(flip)** 으로 이동한다. 근거는 추측이 아니라 **Figma 데이터**다 — `86:482` 가 앞면과 **같은 컴포넌트**이고 시그니처에 **`flip?: "front"` variant**, 우상단 아이콘 에셋명이 **`flip_to_back`** 이다. `AD-S3-23`·Design Spec §12.5("별도 시트")는 **무효** |
+| ⛔ **AC-3-17** | **Prompt 가 4개 이상인 응답도 contracts parse 를 통과하고**(`promptPreview` · `promptSet.questions` 모두 상한 없음, `.min(1)` 만), 접힌 상태에서 **3개가 보이며**(cutoff), **나머지가 확장·키보드로 도달 가능하다**. Frontend 가 `slice` 한 흔적이 0건이다 | ① contracts 단위 테스트(4개·10개 통과 / 0개 거부) ② `success` fixture 에 **4개 이상 케이스** 포함 상태의 컴포넌트·키보드 e2e ③ `slice(` grep | **D-21** (§9.1), N-2 (§6.1) <br>⛔ **무효 (Rev 4 — approvals §12.4 · §12.9)**: Figma 에 **확장 트리거(`Show all 5 prompts`)가 없고** pill 4~5개가 **전부 노출**된다(`163:2649`=4 · `86:438`=5) → 최우선 규칙 2 위반이라 제거한다. ⚠️ **살아남는 부분은 §20.2 신규 `AC-3-83` 으로 옮긴다**: `promptPreview`·`promptSet.questions` **상한 없음**(`.min(1)` 만) · Frontend `slice` 금지 · 4개 이상 fixture — 이것들은 `D-21` 소관이며 `D-21` 은 **무효가 아니다**. n>5 처리(`A-11`)는 미결 |
+| ✎ **AC-3-18** | **덱 전 카드에 제스처 없이 도달 가능**하다 — 이전/다음 버튼과 키보드(←/→)로 3장 모두 열람·선택할 수 있다 | 키보드 e2e | **WCAG 2.5.1**, `SwipeDeck` 규약 <br>✎ **수정 (Rev 4 — approvals §12.3 "덱 좌우 버튼 제거" · audit §11.3)**: "이전/다음 **버튼**과 키보드" → **"가로 scroll-snap 트랙에서 네이티브 키보드(←/→/Home/End)만으로 3장 모두 열람·선택 가능"**. 좌우 버튼은 **제거**한다 — Figma 에 없고, 가로 스크롤은 제스처 전용이 아니라 네이티브 키보드 경로가 있어 **WCAG 2.5.1 을 충족**한다. 포커스가 트랙 밖으로 튀지 않는지, 스냅 위치와 `aria` 현재 항목 표기가 일치하는지를 함께 검증한다 |
+| ✓ **AC-3-19** | `prefers-reduced-motion: reduce` 에서 덱 전환·flip 애니메이션이 비활성화되고 동작은 유지된다 | e2e 양방향 | DESIGN_SYSTEM §9 <br>✓ **유효해진다 (Rev 4 — approvals §12.9)**: 지금까지 Stage 3 에 flip 애니메이션이 없어 공허한 AC 였으나, **flip 이 실제로 생기므로** 요구가 의미를 갖는다. `reduce` 에서는 **전환 없이 즉시 앞↔뒷면 교체**하고 동작(도달·조작·포커스)은 유지한다. 가로 트랙의 스냅 스크롤도 `reduce` 에서 동작이 유지되어야 한다 |
 | **AC-3-20** | `conversation-only-option` · `reread-option` · `books-exhausted` 3종이 각각 **책 표지 없는 대체 카드**를 렌더하고 카드 종류가 사용자에게 식별된다 | 시나리오 테스트 | §7.4 규칙, §13 |
 | **AC-3-21** | 표지 이미지에 의미 있는 `alt` 가 있고, 로드 실패 시 `BookCover placeholder`(대체 표지 + 제목)로 전환된다 | 컴포넌트 테스트 | COMPONENT_MAP §2 |
 
@@ -550,11 +564,11 @@ Stage 2는 `BACKEND_INTEGRATION_PENDING` 이 11건이었다. Stage 3는 **14건*
 
 | AC | 요구사항 | 검증 방법 | 근거 |
 |---|---|---|---|
-| **AC-3-22** | Context 선택 UI가 **6값**(now · bedtime · after_pickup · weekend_morning · in_the_car · custom_time)을 제공하고 라벨이 copy 모듈에서 온다 | 화면 + grep | `ReadingContext` enum, §7.4 |
-| **AC-3-23** | `custom_time` 선택 시에만 시간 입력이 나타나고, `customTime` 없이 제출하면 contracts가 거부한다 | 컴포넌트 + 단위 테스트 | §7.1 `createCustomTimeRefine` |
-| **AC-3-24** | 선택한 Context가 `POST …/selection` 요청 body에 포함된다 (Mock 요청 로그 증거) | 요청 로그 테스트 | PLANNING Exit Criteria |
-| **AC-3-25** | Context 선택 시트가 키보드로 열기·이동·선택·닫기 가능하며 초기 포커스·포커스 트랩·복귀가 동작한다 | 키보드 e2e | NFR 접근성, Sheet 규약 |
-| **AC-3-26** | §16 D-9 승인안대로 **Context 미선택 시 진행 가능 여부**가 구현되고, 그 규칙이 contracts와 화면에서 일치한다 | 단위 + e2e | M-32 잔여 |
+| ⏭ **AC-3-22** | Context 선택 UI가 **6값**(now · bedtime · after_pickup · weekend_morning · in_the_car · custom_time)을 제공하고 라벨이 copy 모듈에서 온다 | 화면 + grep | `ReadingContext` enum, §7.4 <br>⏭ **이월 (Rev 4 — approvals §12.3 ⑧, 사용자 2026-10-05)**: Context 선택 UI 6값 — **Stage 3 에서 제외.** Figma 카드 앞면에 **Reading Context 진입점이 없다**. 명세가 그 자리에 Figma 에 없는 `Pick a time` 을 넣은 것이 최우선 규칙 2 위반이었고, 그 자리는 **Figma 대로 `★ Save` 로 복원**된다. 별도 디자인을 **다음에 요청**한다. ⚠️ **contract(`SelectActivityOptionRequest.readingContext`·`customTime`·`createCustomTimeRefine`)는 삭제하지 않는다** — 진입점만 없다. `D-9`(미선택 진행 가능 여부)는 **이월된 결정**이 된다 |
+| ⏭ **AC-3-23** | `custom_time` 선택 시에만 시간 입력이 나타나고, `customTime` 없이 제출하면 contracts가 거부한다 | 컴포넌트 + 단위 테스트 | §7.1 `createCustomTimeRefine` <br>⏭ **이월 (Rev 4 — approvals §12.3 ⑧, 사용자 2026-10-05)**: `custom_time` 조건부 입력 — **Stage 3 에서 제외.** Figma 카드 앞면에 **Reading Context 진입점이 없다**. 명세가 그 자리에 Figma 에 없는 `Pick a time` 을 넣은 것이 최우선 규칙 2 위반이었고, 그 자리는 **Figma 대로 `★ Save` 로 복원**된다. 별도 디자인을 **다음에 요청**한다. ⚠️ **contract(`SelectActivityOptionRequest.readingContext`·`customTime`·`createCustomTimeRefine`)는 삭제하지 않는다** — 진입점만 없다. `D-9`(미선택 진행 가능 여부)는 **이월된 결정**이 된다 |
+| ⏭ **AC-3-24** | 선택한 Context가 `POST …/selection` 요청 body에 포함된다 (Mock 요청 로그 증거) | 요청 로그 테스트 | PLANNING Exit Criteria <br>⏭ **이월 (Rev 4 — approvals §12.3 ⑧, 사용자 2026-10-05)**: 요청 body 포함 — **Stage 3 에서 제외.** Figma 카드 앞면에 **Reading Context 진입점이 없다**. 명세가 그 자리에 Figma 에 없는 `Pick a time` 을 넣은 것이 최우선 규칙 2 위반이었고, 그 자리는 **Figma 대로 `★ Save` 로 복원**된다. 별도 디자인을 **다음에 요청**한다. ⚠️ **contract(`SelectActivityOptionRequest.readingContext`·`customTime`·`createCustomTimeRefine`)는 삭제하지 않는다** — 진입점만 없다. `D-9`(미선택 진행 가능 여부)는 **이월된 결정**이 된다 |
+| ⏭ **AC-3-25** | Context 선택 시트가 키보드로 열기·이동·선택·닫기 가능하며 초기 포커스·포커스 트랩·복귀가 동작한다 | 키보드 e2e | NFR 접근성, Sheet 규약 <br>⏭ **이월 (Rev 4 — approvals §12.3 ⑧, 사용자 2026-10-05)**: 시트 키보드 조작 — **Stage 3 에서 제외.** Figma 카드 앞면에 **Reading Context 진입점이 없다**. 명세가 그 자리에 Figma 에 없는 `Pick a time` 을 넣은 것이 최우선 규칙 2 위반이었고, 그 자리는 **Figma 대로 `★ Save` 로 복원**된다. 별도 디자인을 **다음에 요청**한다. ⚠️ **contract(`SelectActivityOptionRequest.readingContext`·`customTime`·`createCustomTimeRefine`)는 삭제하지 않는다** — 진입점만 없다. `D-9`(미선택 진행 가능 여부)는 **이월된 결정**이 된다 |
+| ⏭ **AC-3-26** | §16 D-9 승인안대로 **Context 미선택 시 진행 가능 여부**가 구현되고, 그 규칙이 contracts와 화면에서 일치한다 | 단위 + e2e | M-32 잔여 <br>⏭ **이월 (Rev 4 — approvals §12.3 ⑧, 사용자 2026-10-05)**: 미선택 진행 가능 여부(`D-9`) — **Stage 3 에서 제외.** Figma 카드 앞면에 **Reading Context 진입점이 없다**. 명세가 그 자리에 Figma 에 없는 `Pick a time` 을 넣은 것이 최우선 규칙 2 위반이었고, 그 자리는 **Figma 대로 `★ Save` 로 복원**된다. 별도 디자인을 **다음에 요청**한다. ⚠️ **contract(`SelectActivityOptionRequest.readingContext`·`customTime`·`createCustomTimeRefine`)는 삭제하지 않는다** — 진입점만 없다. `D-9`(미선택 진행 가능 여부)는 **이월된 결정**이 된다 |
 
 ### 11.5 서재 (FR-20 · FR-22 · FR-23)
 
@@ -631,7 +645,7 @@ Stage 2는 `BACKEND_INTEGRATION_PENDING` 이 11건이었다. Stage 3는 **14건*
 
 | AC | 요구사항 | 검증 방법 | 근거 |
 |---|---|---|---|
-| **AC-3-66** | Stage 3 화면 Figma 대조(영역 클립 baseline, `0.002 / 20`) — `26:21`(헤더·버블·dots) · `163:2648`/`86:512` 카드 · `30:74` 서재 · `163:1669` 시트 · `145:1132` 책 상세 · `25:87` 탭바. **허용 차이는 사전 기록**한다 | Playwright 시각 비교 | Stage 2 `D-12` 체계 |
+| ✎ **AC-3-66** | Stage 3 화면 Figma 대조(영역 클립 baseline, `0.002 / 20`) — `26:21`(헤더·버블·dots) · `163:2648`/`86:512` 카드 · `30:74` 서재 · `163:1669` 시트 · `145:1132` 책 상세 · `25:87` 탭바. **허용 차이는 사전 기록**한다 | Playwright 시각 비교 | Stage 2 `D-12` 체계 <br>✎ **수정 (Rev 4 — approvals §12.9 · audit §11.12)**: **기존 Home baseline 5장은 전부 무효 → 재생성.** Home 대상 baseline = `s3-home`(`/` 393×852 ↔ `26:21`) · `s3-home-deck`(트랙 = 카드 1 + peek 8 ↔ `163:2649`) · **`s3-home-deck-back`**(카드 뒷면 ↔ `86:482`, 신규) · **`s3-home-deck-scrolled`**(카드 2 스냅, 좌우 peek 8/8, 신규) · `s3-tabbar-bottom`(하단 16px). **`s3-home-deck-prompts-expanded` 폐기**(확장 트리거 제거). 서재·시트·책 상세 baseline 은 그대로 |
 | **AC-3-67** | 임의 HEX / arbitrary Tailwind value / inline 수치 **신규 사용 0건** | grep | rules/frontend §6 |
 | **AC-3-68** | 320 / 393 / 600 / 1024px 에서 덱·캐러셀·시트·탭바가 가로 스크롤 없이 배치되고 앱 컬럼 최대 480px 가운데 정렬을 지킨다 | Playwright 4폭 | #12 |
 | **AC-3-69** | 캐러셀·시트·덱이 **제스처 전용이 아니며** 전 항목에 키보드로 도달 가능하다 | 키보드 e2e | WCAG 2.5.1 |
@@ -665,11 +679,13 @@ Stage 2는 `BACKEND_INTEGRATION_PENDING` 이 11건이었다. Stage 3는 **14건*
 | **AC-3-80** | `PromptPill` 이 `phase` 값이 있을 때만 `PRE`/`POST` 배지를, `pageRef` 값이 있을 때만 페이지 참조를 렌더하고 **둘 다 없으면 아무 것도 렌더하지 않는다**. 라벨 문구는 copy 모듈에서 온다 | 컴포넌트 테스트(값 있음/없음 양방향) + grep | §16 D-8, §8.1 |
 | **AC-3-81** | Mock fixture 가 `phase`·`pageRef` 를 **결정적으로** 채워 화면에 실제로 표시되고, Frontend 가 두 값을 **생성·추론·가공하지 않는다**(화면·feature 하드코딩 0건, 동일 key 2회 호출 → 동일 값) | Mock 결정성 테스트 + grep + 코드 검사 | §16 D-8, rules/frontend §8 |
 
-**AC 총 81건 (AC-3-01 ~ AC-3-81).** AC-3-80·81 은 D-8 승인(2026-10-02)으로 추가되었다. 요구사항 ID 매핑: FR-07 → AC-3-09~21 · FR-08 → AC-3-22~26·39~45 · FR-20 → AC-3-27~29·32·37·38 · FR-22 → AC-3-33~36 · FR-23 → AC-3-30·31 · 내비게이션(#15·D-02) → AC-3-04~08 · NFR 오프라인 → AC-3-46~50 · C-17/D-4 에셋 → AC-3-51~53 · contracts → AC-3-54~59 · Mock → AC-3-60~65 · 디자인/접근성/반응형 → AC-3-66~72 · Privacy/보안 → AC-3-73~76 · Scope → AC-3-01~03 · 회귀 → AC-3-77~79.
+~~**AC 총 81건 (AC-3-01 ~ AC-3-81).**~~ → ⭐ **Rev 4: AC 총 88건 (AC-3-01 ~ AC-3-88)** — 신규 7건(`AC-3-82`~`88`, §20.2) · **무효 2건**(`AC-3-11` 폐기 · `AC-3-17`) · **이월 5건**(`AC-3-22`~`26`) → **판정 대상 81건**. 상세·수정 내역 = **§20**. AC-3-80·81 은 D-8 승인(2026-10-02)으로 추가되었다. 요구사항 ID 매핑: FR-07 → AC-3-09~21 · FR-08 → AC-3-22~26·39~45 · FR-20 → AC-3-27~29·32·37·38 · FR-22 → AC-3-33~36 · FR-23 → AC-3-30·31 · 내비게이션(#15·D-02) → AC-3-04~08 · NFR 오프라인 → AC-3-46~50 · C-17/D-4 에셋 → AC-3-51~53 · contracts → AC-3-54~59 · Mock → AC-3-60~65 · 디자인/접근성/반응형 → AC-3-66~72 · Privacy/보안 → AC-3-73~76 · Scope → AC-3-01~03 · 회귀 → AC-3-77~79.
 
 ---
 
 ## 12. Test Strategy
+
+> ⭐ **Rev 4 추가 (2026-10-05)**: ① 덱 테스트는 **스택 index 모델이 아니라 가로 scroll-snap 트랙**을 대상으로 한다 — 스냅 위치·peek 8·네이티브 키보드(←/→/Home/End)·버튼 **부재**. ② **flip 상태 머신 테스트**(앞↔뒷면, `reduce` 즉시 교체, 포커스 이동)를 추가한다. ③ `★ Save` 는 **요청 로그 + replay(멱등) + `error`/`offline` 복구** 테스트. ④ Reading Context 는 **화면 e2e 가 아니라 contracts 단위 테스트**로만 남는다. ⑤ **Home 시각 baseline 전면 재생성** (§20.6 ⑦).
 
 | 계층 | 도구 | Stage 3 범위 |
 |---|---|---|
@@ -710,6 +726,8 @@ Stage 2는 `BACKEND_INTEGRATION_PENDING` 이 11건이었다. Stage 3는 **14건*
 
 ## 14. Open Decisions
 
+> ⭐ **Rev 4 추가 (2026-10-05)**: Home 재대조로 생긴 승인 필요 항목 10건은 **§20.10**, 모순·보고 항목 7건은 **§20.9** 에 있다. 아래 표는 Rev 3 기준이다.
+
 | ID | 항목 | 라벨 | 처리 |
 |---|---|---|---|
 | §16 D-1 ~ D-22 | Stage 3 세부 확정 항목 | **CONFIRMED — 22건 전건 승인** (2026-09-29 §3 / 10-01 §7·§7.1 / 10-02 §8 / **10-03 §9**) | 권장안 채택 15건 · 권장안 기각 4건(**D-4 · D-5 · D-8 · D-17**) · 범위 축소 1건(**D-18**) · 모순 해소 2건(**D-21** 상한 해제 · **D-22** `targetCapability` 삭제). 구현 지시는 §16 `결정` 열 |
@@ -727,6 +745,8 @@ Stage 2는 `BACKEND_INTEGRATION_PENDING` 이 11건이었다. Stage 3는 **14건*
 ---
 
 ## 15. Handoff to design-agent
+
+> ⭐ **Rev 4 추가 (2026-10-05)**: Home Figma 재대조로 생긴 design-agent 인계 항목 7건은 **§20.8** 에 있다 (`★ Save` 버튼 명세 · 가로 트랙 컴포넌트 선택 · 카드 뒷면 · `conversation_only` ActionBar · Library 3화면의 `★ Save` · Figma raw 값 흡수 정책 · **Library 전수 Figma 재대조**). 아래 §15.1~§15.8 은 Rev 3 기준이며 Home 관련 항목은 §20 이 우선한다.
 
 design-agent는 `docs/design/stage-3-design-spec.md` 를 작성한다. **Figma는 수정하지 않는다.**
 **Stage 2-B(`C13-09`·`C13-10`) 디자이너 요청서는 이미 전달되어 있다** (`docs/design/stage-2-designer-request.md`). Stage 3 Design Spec은 그 두 화면을 다루지 않는다.
@@ -834,14 +854,14 @@ design-agent는 **실제 렌더 측정**(4폭 × 스크롤 상단/하단)으로 
 | **D-4** ★ | **Prompt 노출 시점** (M-09 / G-07 — PRD §7.4·FR-07 = 책 선택 **후** "다음 카드", Figma 모든 카드 변형 = 선택 **전** 노출) | **PRD를 따른다** — 선택 전 카드에는 Prompt를 노출하지 않고, `POST …/selection` 응답의 `promptSet` 을 **선택 직후 화면**(카드 뒷면 `86:482` 또는 후속 카드, 형태는 design-agent §15.8-4)에 표시한다. `ActivityCardOption` 에 **`promptPreview` 를 추가하지 않는다**. 단 Figma `86:512/545`(compact, Prompt 2개)와의 차이를 **허용 차이로 사전 기록**한다 | ① PRD FR-07이 "책 선택 후 대화 Prompt 2~3개 카드 제시"로 명시하고 §7.4가 "세션 중 자동 제시는 없으므로 **세션 전에 확인하는 것이 기본 흐름**"으로 흐름을 설명한다 — Functional Source of Truth가 명확하다 ② Figma 카드 변형들은 Prompt 개수가 2·4·5개로 제각각이고(`86:512`=2, `163:2648`=4, `86:438`=5) 어느 것도 PRD의 "2~3개"와 맞지 않는다 — 확정 디자인이라기보다 탐색 변형이다 ③ 선택 전에 3장 × Prompt까지 내려주면 응답이 커져 **Activity Card 2초 NFR**에 불리하다 ④ contract 변경이 0이라 Stage 4 Prompt Drawer와도 충돌하지 않는다 | ① Figma 채택 — `options[].promptPreview` 추가 (기각 — PRD와 정면 충돌, 응답 크기 증가, Prompt 개수 기준이 Figma 내부에서도 불일치) ② 양쪽 다 — preview 1개 + 선택 후 전체 (기각 — PRD에 근거 없는 절충, "미리보기 1개"의 개수 기준이 없다) ③ 결정 보류 (기각 — 카드 앞면 구성이 정해지지 않으면 Home Design Spec을 쓸 수 없다) | **권장안 기각 — 사용자 결정은 "Figma 따름: Prompt 를 선택 *전* 카드에 노출"** (2026-09-29, §3). 권장안은 PRD(선택 후 제시)를 따르자는 것이었으나 §2 PRD↔Figma 우선순위 원칙을 적용해 뒤집혔다. → `ActivityCardOption.promptPreview` 를 **추가한다**. PRD FR-07·§7.4 는 **PRD 수정 대상** §5-1. 표시 개수는 별도 결정 **N-2**(§6.1)로 확정 — 접힌 상태 3개 + 스크롤/확장, contract 는 길이를 3으로 제한하지 않는다 |
 | **D-5** ★ | **덱 카드별 역량** (M-31 / G-05 — PRD §7.4 "오늘의 역량 배지"(하루 1개) · §8.3 역량 순환 ↔ Figma `163:2648` 3장이 각각 다른 역량) | **PRD를 따른다** — `ActivityCard.targetCapability` **카드(하루) 단위 1개**를 유지하고 `options[].capability` 를 추가하지 않는다. 배지는 **덱 상단(카드 바깥)에 1개** 표시하고, 옵션 카드에는 배지를 반복하지 않는다. Figma 3장 3배지와의 차이를 허용 차이로 기록한다 | ① PRD §7.4가 "오늘의 역량 배지 — 4대 역량 순환 스케줄상 **오늘의** 목표 역량"으로 하루 1개임을 명시한다 ② §8.3 "제시 역량을 주 2회 배치하고 나머지를 순차 배치"는 **날짜 단위 스케줄**이다 — 옵션마다 역량이 다르면 순환 스케줄이 성립하지 않는다 ③ Figma `163:2648` 의 배지 중 하나는 **"Emotion Day Day" 오타**(M-13)라 확정 디자인으로 보기 어렵다 ④ 배지를 덱 밖에 1개 두면 "오늘은 자기주도 데이!"라는 PRD 예시 표현과 정확히 맞는다 | ① Figma 채택 — `options[].capability` 추가 (기각 — §8.3 순환 스케줄 규칙 자체를 바꿔야 하고 추천 엔진 요구가 커진다) ② 카드 단위 1개 + 옵션마다 같은 배지 반복 (기각 — 같은 정보를 3번 반복해 시각 노이즈, 화면 폭 낭비) ③ 결정 보류 (기각 — 배지 개수·위치가 카드 레이아웃을 결정한다) | **권장안 기각 — 사용자 결정은 "Figma 따름: 덱 카드마다 다른 역량"** (2026-09-29, §3). 권장안은 PRD(카드 단위 1개)를 따르자는 것이었으나 §2 원칙으로 뒤집혔다. → `options[].capability` 를 **추가한다**. PRD §7.4·§8.3 은 **PRD 수정 대상** §5-2 이며 §8.3 역량 순환 규칙은 **추천 엔진 Backend 요구**(P3-BIP-02)에 반영. 배지는 역량 라벨만 표시하고 `" Day"` suffix 는 폐기(**N-3**, §6), Figma `163:2648` 의 "Emotion Day Day"(M-13)는 오타이므로 옮기지 않는다. **후속 — `D-22`(2026-10-03, §9): 카드 단위 `ActivityCard.targetCapability` 는 사용처가 없어져 삭제한다** |
 | **D-6** ★ | **Home IA 확정** (M-30 / G-02 — `26:21` 에 카드 미배치, 누적 분 "115 Min" 의 근거 없음) | **PRD §7.4 구성 요소를 기준으로 IA를 확정한다**: 상단 헤더(워드마크 + **StreakChip** + 설정) → 캐릭터 + 버블 → **오늘의 역량 배지 1개** → **Activity Card 덱 3장 + PageIndicator** → 보조 정보(이번 주 세션 수 · 지난 세션 하이라이트 한 줄). **누적 읽기 분("115 Min")은 표시하지 않는다** — `HomeSummary` 에 `totalMinutes` 를 추가하지 않는다. 구체 배치·간격은 design-agent가 §15.8-2로 제안한다 | ① PRD §7.4 "구성 요소"와 "보조 요소"가 화면에 무엇이 있어야 하는지 명시한다 — Figma에 프레임이 없다고 요구사항이 없는 것이 아니다 ② `26:40`/`26:43` 의 "115 Min"은 **PRD 보조 요소 목록(streak · 이번 주 세션 수 · 하이라이트 한 줄)에 없다**(G-02). 집계 기간(누적/이번 주/streak 기간)도 정의되지 않아 계약을 정할 수 없다 ③ 추가하면 서버가 집계 규칙을 새로 정의해야 하고, 시간 합계는 §8.4 "달성률·성과 비교" 언어로 미끄러지기 쉽다 ④ 필요해지면 `HomeSummary` 에 필드 1개를 더하는 비파괴 확장이다 | ① Figma 채택 — `HomeSummary.totalMinutes` 추가 (기각 — PRD 근거 없음, 집계 기간 미정의, 판정·성과 언어 위험) ② 덱을 Home이 아닌 별도 route로 (기각 — PRD §7.4가 홈 화면이라고 명시, #33도 Home 콘텐츠로 확정) ③ design-agent에게 전권 위임 (기각 — IA는 요구사항 범위 결정이라 plan 소관. 배치·간격만 design-agent) | **승인 — Home 집계는 "이번 주" 기준으로 확정** (2026-09-29, §3). Figma 의 "12-day" 연속 일수는 채택하지 않고 `/progress` 와 같은 "이번 주" 창을 쓴다. 누적 분 미표시는 권장안대로 유지. **귀결** (2026-10-02, §8.5 ④): `StreakChip` → **`WeekSummaryChip`** 개명 + `HomeSummary.streakDays` **삭제** (연속 일수는 달성률 언어). 표시 항목은 design-agent §15.8-2 제안으로 확정 |
-| **D-7** ★ | **서재 개념 범위** (M-14 / G-04 — Figma "My Saved" · "Rated 4.5" · "Reading now · 3 of 5 nights" · "Last read Tue · 12 min") | **전부 Stage 3 범위에서 제외한다.** 서재는 PRD FR-20의 4가지 — 증정·보유 라이브러리 / 보유 책 직접 등록 / 읽은 책 히스토리 / 책별 Prompt 보기 — 만 구현한다. `LibraryBook` 에 `saved`·`averageRating`·reading plan 필드를 넣지 않고 `ReadingNowCard` 를 만들지 않는다. Figma 차이는 **허용 차이로 사전 기록**한다 | ① PRD FR-20·§8.1 어디에도 북마크·평점·다회차 읽기 계획이 없다 — rules "PRD/Figma에 없는 요구사항을 임의로 추가하지 않는다" ② 책 평점은 PRD가 **세션 회고 별점(FR-12)** 으로만 정의한다. 책 단위 평점을 만들면 집계 주체·표시 기준을 새로 정해야 하고 §8.4 비교 언어 위험이 있다 ③ reading plan("3 of 5 nights")은 목표 설정·진행도 모델이 필요해 **새 도메인**이 생긴다 ④ 셋 다 나중에 필드·테이블 추가로 비파괴 확장이 가능하다 | ① 전부 채택 (기각 — PRD 근거 없는 3개 도메인 신설, Stage 3 범위 2배) ② "My Saved" 만 채택 (기각 — 북마크 하나만으로도 `child_books` 에 컬럼 + endpoint 2개 + 서재 필터 1개가 늘고, "보유"와 "저장"의 차이를 사용자에게 설명해야 한다) ③ 결정 보류하고 화면만 먼저 (기각 — 화면에 자리를 비워두면 레이아웃이 확정되지 않는다) | **승인 — 권장안 채택** (2026-10-01, §7). FR-20·FR-22 의 4기능만 구현한다. 평점 · "Reading now" · "My Saved" 는 **구현하지 않고 허용 차이로 기록** — 평점은 저장 위치·집계 규칙이 없고 HARU 의 비판정 톤과도 거리가 있다 |
+| ⛔ **D-7** ★ **부분 무효 (Rev 4 §20.1)** | **서재 개념 범위** (M-14 / G-04 — Figma "My Saved" · "Rated 4.5" · "Reading now · 3 of 5 nights" · "Last read Tue · 12 min") | **전부 Stage 3 범위에서 제외한다.** 서재는 PRD FR-20의 4가지 — 증정·보유 라이브러리 / 보유 책 직접 등록 / 읽은 책 히스토리 / 책별 Prompt 보기 — 만 구현한다. `LibraryBook` 에 `saved`·`averageRating`·reading plan 필드를 넣지 않고 `ReadingNowCard` 를 만들지 않는다. Figma 차이는 **허용 차이로 사전 기록**한다 | ① PRD FR-20·§8.1 어디에도 북마크·평점·다회차 읽기 계획이 없다 — rules "PRD/Figma에 없는 요구사항을 임의로 추가하지 않는다" ② 책 평점은 PRD가 **세션 회고 별점(FR-12)** 으로만 정의한다. 책 단위 평점을 만들면 집계 주체·표시 기준을 새로 정해야 하고 §8.4 비교 언어 위험이 있다 ③ reading plan("3 of 5 nights")은 목표 설정·진행도 모델이 필요해 **새 도메인**이 생긴다 ④ 셋 다 나중에 필드·테이블 추가로 비파괴 확장이 가능하다 | ① 전부 채택 (기각 — PRD 근거 없는 3개 도메인 신설, Stage 3 범위 2배) ② "My Saved" 만 채택 (기각 — 북마크 하나만으로도 `child_books` 에 컬럼 + endpoint 2개 + 서재 필터 1개가 늘고, "보유"와 "저장"의 차이를 사용자에게 설명해야 한다) ③ 결정 보류하고 화면만 먼저 (기각 — 화면에 자리를 비워두면 레이아웃이 확정되지 않는다) | **승인 — 권장안 채택** (2026-10-01, §7). FR-20·FR-22 의 4기능만 구현한다. 평점 · "Reading now" · "My Saved" 는 **구현하지 않고 허용 차이로 기록** — 평점은 저장 위치·집계 규칙이 없고 HARU 의 비판정 톤과도 거리가 있다. ⛔ **부분 무효 (2026-10-05, approvals §12.2 · §12.8 `A-9` · §12.9)**: **`★ Save` 제외 부분만 무효**다 — Figma `I86:438;86:383;117:973` 에 `Button/White 87×45 ★ Save` 가 **실재**하고(최우선 규칙 3: 있는 것을 빼지 않는다), 명세가 그 자리에 Figma 에 **없는** `Pick a time` 을 넣어 최우선 규칙 **2·3 을 동시에 위반**했다. 사용자 결정 = *"현재 카드를 Library 의 favorites 에 저장한다"*. → `LibraryBook.saved` + `PUT/DELETE …/saved-books` 를 **추가**한다 (§20.3, `API_CONTRACTS.md` §3.7). **평점(`averageRating`)·reading plan(`ReadingNowCard`) 제외는 그대로 유효**하다. 기각 사유였던 "북마크 하나로 컬럼+endpoint 2개+필터 1개가 늘고 보유↔저장 차이를 설명해야 한다"는 **비용 판단이었고, 최우선 규칙이 그 판단에 우선한다** |
 | **D-8** | **Prompt 단계·페이지 태그** (M-29 / G-03 — Figma PRE / POST / P.6) | **Stage 3에는 넣지 않는다** — `Prompt` 는 `kind`(question / follow_up) 만 유지하고 `phase`·`pageRef` 를 추가하지 않는다. `PromptPill` 의 `phaseTag` prop은 **정의하되 Stage 3에서는 사용하지 않는다**(Figma 근거가 있어 컴포넌트 API는 열어둔다). 채택 결정이 나면 contracts 필드 + 콘텐츠 제작 범위를 함께 정한다 | ① PRD §8.2는 Prompt를 "질문 + 부모용 코칭 문장 + Follow-up"으로 정의하고 **읽기 전/후·페이지 번호 개념이 없다** ② `pageRef`("P.6")는 **책 판본마다 페이지가 달라** 콘텐츠 제작·검수 비용이 급증한다(책별 최소 6개 × 판본) ③ `phase` 채택은 Prompt 라이브러리 스키마·전문가 감수 범위를 바꾸는 **콘텐츠 운영 결정**이라 Frontend가 먼저 정할 수 없다 ④ 컴포넌트 prop만 열어두면 채택 시 UI 재작업이 없다 | ① `phase` 만 채택 (기각 — 콘텐츠 제작 범위 결정이 선행되어야 하고, 지금 넣으면 Mock fixture가 근거 없는 값을 갖는다) ② `phase` + `pageRef` 채택 (기각 — 판본 의존, 운영 비용) ③ `phaseTag` prop도 만들지 않음 (기각 — Figma `139:2410–2412` 근거가 있어 채택 시 컴포넌트를 다시 열어야 한다) | **권장안 기각 — 사용자 결정은 "Figma 기준으로 실제 구현한다"** (2026-10-02, §8 · §8.1). 사용자 지시: "피그마를 기준으로 반영해줘. 이번 Stage가 아니면 다음 Stage에라도 반영하여 최종적으로 보이게 되어야 돼" → 권장안(prop 만 열어두기)과 design-agent 반대 의견을 **모두 기각**. 기각 사유: Figma 에 `PRE`/`POST` 배지와 `P.6` 페이지 참조가 실재하므로 §2 원칙상 Figma 가 우선하고, "값을 안 쓰는 dead prop" 으로는 최종 화면에 보이지 않는다. **Stage 3 구현 범위**: ① contracts `Prompt` 에 optional `phase: 'pre' \| 'post' \| null` · `pageRef: string \| null` **추가** (전환기에 값 없는 Prompt 가 섞여도 깨지지 않게 optional, 화면은 응답 값만 표시 — 생성·가공 금지) ② `PromptPill` 은 값이 있을 때 배지를 렌더하고 없으면 렌더하지 않는다 ③ Mock fixture 가 두 값을 **결정적으로** 채워 화면에 보이게 한다 ④ 라벨 문구는 copy 모듈. **Backend**: `phase` 판정 로직 = **P3-BIP-13**, `pageRef` 책별 페이지 앵커 데이터(콘텐츠 제작 범위 포함) = **P3-BIP-14** |
 | **D-9** | **Reading Context 없이 진행 허용 여부** (M-32 잔여 — 서재 `145:1132`·`163:1669` 에서 Context 선택 없이 "Start Session") | **Activity Card 경로는 Context 필수, 서재 경로는 Context 없이 진행 허용**으로 나눈다. contracts는 `SelectActivityOptionRequest.readingContext` 를 **필수**로 두고(카드 선택은 항상 Context를 동반), 서재의 "Start Session"(Stage 4)은 `CreateSession.readingContext` 를 **nullable 로 유지**한다(이미 허용). Stage 3에서 실제로 구현되는 것은 앞쪽뿐이다 | ① PRD §7.4가 Activity Card의 구성 요소로 "Context 선택"을 명시하고, **선택한 Context에 맞춰 알림 문구와 대화 톤을 조정**한다고 규정한다 — 카드 경로에서는 Context가 기능의 일부다 ② FR-23(보유 책 자유 선택)은 "지금 바로 읽기"를 전제하므로 서재 경로에 Context를 강제하면 마찰이 커진다 ③ `CreateSession.readingContext` nullable은 **이미 계약에 반영**되어 있어 변경이 없다 ④ 두 경로의 차이가 화면에서도 자연스럽다(카드 = 계획, 서재 = 즉시) | ① 양쪽 다 필수 (기각 — 서재 즉시 시작 흐름과 FR-23 취지에 마찰, Figma 서재 시트에도 Context UI가 없다) ② 양쪽 다 선택 (기각 — Context가 없으면 알림 문구·대화 톤 조정이라는 FR-08 기능이 카드 경로에서도 작동하지 않는다) ③ Stage 4로 이월 (기각 — `SelectActivityOptionRequest` 가 Stage 3 contract이므로 지금 정해야 한다) | **승인 — 권장안 채택(경로별 분리)** (2026-10-02, §8). Activity Card 경로 = `SelectActivityOptionRequest.readingContext` **필수**, 서재 경로 = `CreateSession.readingContext` **nullable 유지**. Stage 3 에서 실제 구현되는 것은 앞쪽뿐이다 |
 | **D-10** | **Activity Card 날짜 기준 timezone** (OAQ-15 — 07:00 갱신) | **서버가 `caregiver_profiles.timezone` 을 기준으로 `card_date` 를 정한다.** Frontend는 ① Stage 2에서 이미 전송하는 기기 감지 timezone(`PATCH /v1/me`)을 유지하고 ② **응답의 `ActivityCard.date` 를 그대로 신뢰**하며 클라이언트에서 "오늘"을 재판정하지 않는다 ③ `date` 가 기기 기준 오늘과 다르면 화면이 그 날짜를 밝힌다(AC-3-11) | ① 카드 생성은 서버 배치 잡이므로 **생성 시점의 기준 시간대는 서버가 소유**해야 `UNIQUE(child_id, card_date)` 가 성립한다 ② 클라이언트가 재판정하면 여행·시차·기기 시계 변경 시 "오늘 카드가 없다"는 오탐이 생긴다 ③ Stage 2가 이미 timezone 전송 경로(`D-16`)를 만들어 두어 추가 계약이 없다 ④ 날짜를 밝히는 UX는 오프라인 캐시 카드 표시와 동일한 규칙이라 화면이 하나로 정리된다 | ① 클라이언트 기기 timezone 기준 (기각 — 서버 배치 잡과 기준이 달라져 카드 없음·중복이 발생) ② UTC 고정 (기각 — 미국 사용자의 07:00이 실제 아침이 아니게 된다) ③ 사용자에게 timezone 입력받기 (기각 — PRD에 요구 없음, 입력 부담. Stage 2 `D-16`에서 이미 기각) | **승인 — 서버 기준 신뢰** (2026-10-02, §8). 서버가 `caregiver_profiles.timezone` 으로 `card_date` 를 정하고 Frontend 는 `ActivityCard.date` 를 그대로 신뢰한다. **클라이언트에서 "오늘"을 재판정하지 않으며**, 기기 기준 오늘과 다르면 화면이 그 날짜를 밝힌다 (AC-3-11) |
 | **D-11** | **Activity Card 오프라인 캐시 저장 방식** (ARCHITECTURE §6.3 — "TanStack Query persist 플러그인 승인됨(#9), 사용 여부는 Stage 3 Plan. 대안은 수동 저장") | **수동 저장**을 채택한다 — `shared/lib/activity-card-cache.ts` 가 `localStorage` 키 `haru.activity-card.v1` 에 **`{ schemaVersion, childId, card }`** 만 저장한다. 읽기·쓰기 모두 `ActivityCardSchema` parse. 폐기 조건 = schemaVersion 불일치 · parse 실패 · `card.date` 가 오늘보다 과거로 2일 이상 · 로그아웃. **TanStack Query persist 플러그인은 도입하지 않는다** | ① persist 플러그인은 **Query 캐시 전체**를 대상으로 하므로 `HomeSummary.lastHighlightLine`(아이 발화 파생)·서재 목록·`me` 까지 로컬에 남는다. 화이트리스트를 걸어도 "무엇이 저장되는가"가 라이브러리 내부 규칙에 의존해 **AC-3-48 전수 검사가 어려워진다** ② 캐시 대상이 1건이라 수동 구현이 수십 줄이다 ③ Stage 2 `OnboardingDraftStore`(localStorage + schema parse + 폐기 조건)와 **같은 패턴**이라 새 개념이 없다 ④ 신규 런타임 의존 0건(§16 D-19) | ① TanStack Query persist (기각 — 저장 범위가 넓어 프라이버시 검증이 어렵고, 신규 런타임 의존이 생긴다) ② IndexedDB (기각 — 비동기 읽기로 첫 렌더 깜빡임, 수 KB 데이터에 과한 복잡도. Stage 2 `D-3`와 동일 판단) ③ 캐시 없음 (기각 — **NFR 오프라인 "Activity Card는 최근 카드 캐시 표시"** 미충족) ④ `HomeSummary` 도 캐시 (기각 — 하이라이트 한 줄이 아이 발화 파생 텍스트다) | **승인 — 수동 저장** (2026-10-02, §8). `shared/lib/activity-card-cache.ts` → `localStorage` 키 `haru.activity-card.v1` 에 `{ schemaVersion, childId, card }` 만 저장. 읽기·쓰기 모두 `ActivityCardSchema` parse. **TanStack Query persist 플러그인 미도입** |
 | **D-12** | **`S2-ONB-2` — 온보딩 질문지 Q5 표지 그리드(8권 프리셋, 2열 커버 썸네일)** (Stage 2에서 표지 이미지 부재로 Stage 3 배정) | **온보딩 Step 3(`books`)로 되돌린다.** Stage 3에서 책 표지 에셋과 `BookCover` 가 준비되므로, Step 3의 "집에 있는 책" 입력 위에 **8권 프리셋 커버 그리드(2열, 다중 선택, 선택 안 함 허용)** 를 추가한다. 프리셋 목록은 **Mock instrument/fixture 응답 값**으로 내려오며 화면에 하드코딩하지 않는다. 기존 제목 직접 입력 경로는 **유지**한다(프리셋 밖 책) | ① 질문지 v1.1이 Q5를 "**the single highest-ROI question**"으로 명시한다 — 이미 보유한 책을 추천 후보에서 제거하는 것이 cold-start 추천 품질의 핵심이다 ② 제목 자유 입력만으로는 `book_id` 매칭이 불확실해 **엔진이 쓸 수 있는 데이터가 되지 않는다**(질문지 Open Decision 1: "엔진이 아는 책이어야 한다") ③ Stage 3가 표지 에셋·`BookCover`·카탈로그 fixture를 모두 갖게 되는 **첫 시점**이다 ④ 온보딩 Step 3 화면은 이미 존재하므로 추가 route·Guard 변경이 없다 ⑤ 프리셋을 서버 값으로 두면 8권 선정(질문지 Open Decision 1)이 바뀌어도 코드 변경이 없다 | ① Library 안에서만 다룬다 (기각 — 온보딩 시점의 cold-start 입력이 목적인데 서재는 가입 이후 화면이라 **첫 추천에 반영되지 않는다**) ② 구현하지 않고 제목 입력 유지 (기각 — 질문지 문서가 Required로 설계한 최고 ROI 문항을 데이터 형태가 다른 방식으로 대체하게 된다) ③ Stage 6(개인화)로 이월 (기각 — cold-start는 Stage 3 추천의 입력이라 Stage 6에서는 늦다) ④ 표지 없이 제목 8개 체크박스 (기각 — 질문지가 "2열 커버 썸네일"을 명시했고, 표지 없이는 보호자가 소장 여부를 빠르게 식별하기 어렵다) | **승인 — Stage 2 Design Spec 개정으로 처리** (2026-10-02, §8 · §8.5 ⑥). design-agent §13.1 ⑥ 의견 채택. 구현은 Stage 3 에서 하지만 화면 명세 소유는 Stage 2 Spec 에 둔다 — **Stage 3 Design Spec 이 Stage 2 화면을 재명세하지 않는다** |
 | **D-13** ★ | **C-17 에셋 파이프라인 실사용** (Stage 1 `D-4` 결정의 첫 적용. **`sharp` 미설치**) | ① **`sharp` 를 root devDependency로 설치**하고 `pnpm assets:optimize` 를 실제로 돌린다(런타임 의존 아님) ② 책 표지 해상도 상한 = **`--size-book-cover-*` 기준의 2배(2x)까지**만 산출하고 전면 상한(1440)은 캐릭터·일러스트에만 적용한다 — 표지는 카드/서재에서 최대 폭이 작다 ③ `BookCover` 는 **고정 aspect-ratio + `object-fit: cover`** 로 원본 비율 편차를 흡수한다(Stage 2 `QA-2-004` 재발 방지) ④ fixture의 `coverUrl` 은 **번들 에셋 경로**를 쓰되 `BookCover` 는 임의 URL도 받는다 ⑤ 원본 노드·크기·비율은 design-agent가 §15.8-3으로 먼저 실측 보고한다 | ① `D-4`는 이미 승인된 결정이고 `sharp` 추가도 사용자가 명시했다 — 남은 것은 **실행 시점**뿐이며 그것이 Stage 3다 ② 표지를 1440까지 만들면 20권 × 3포맷 × 4해상도로 저장소·빌드가 불필요하게 커진다. 표시 크기 대비 2x면 Retina에서 충분하다 ③ Stage 2에서 캐릭터 에셋의 **원본 비율이 Figma와 달라** 여백이 282px 어긋난 사례(`QA-2-004`)가 있었다 — 비율을 컴포넌트가 강제해야 반복되지 않는다 ④ 원격 URL 수용은 Backend 연동 시 재작업을 없앤다 | ① `sharp` 없이 수동 변환 (기각 — 재현 불가능하고 산출물 검증(AC-3-51)을 자동화할 수 없다) ② PNG만 사용 (기각 — `D-4` 승인 결정 위반, 표지 20권이면 용량 부담이 크다) ③ 표지도 1440 상한 (기각 — 표시 크기 대비 과잉, 빌드·저장소 비용) ④ 원격 URL만 지원 (기각 — Mock 단계에서 표지를 표시할 수 없어 Home·서재가 성립하지 않는다) | **승인 — 권장안 ①~⑤ 채택** (2026-10-02, §8). `sharp` devDependency 설치는 D-19 와 함께 승인. **캐릭터 해상도는 §7.1 로 분리 결정 — 안 C: 933px 에셋을 그대로 쓰고 ≥600px 에서 1.77x 를 수용한다**: 에셋은 투명 원본 **`Haru_Hello_Heart_t 1.png` (933×1659)** 에서 Home 크롭(aspect ≈0.79) 재추출, 필요치 1056 대비 **123px 부족 / 최대 1.77x** (393px 뷰포트는 표시 폭 441 → 2.12x 로 충족, 480 컬럼 528 에서만 부족). **쓰지 않는 것**: 941×1672 파일(알파 전부 255 인 **불투명 스크린샷본**) · Figma `163:2532`(294×373, 민트 배경 베이크) · `벤치마킹/Moodeboard/HARU_Hello_heart.png`(1536×2752, **다른 생성본**). Design Spec 의 "941px 한계 / 115px 부족" 표기는 **933px / 123px 부족 / 1.77x** 로 정정한다(design-agent 소관). QA 판정 = `PASS (accepted: D-13)`. 후속: 1056px 이상 투명 원본이 오면 **에셋 파일만 교체** |
-| **D-14** | **Stage 3 신규 Shared UI 범위와 `SwipeDeck` 재사용** | **3종만 추가**: `SectionHeader`(`30:74`) · `Carousel`(`113:1993`) · `Toggle`(`17:113`) + `ListRow` media/meta 변형 확장 (28 → **31**). **Home 덱은 `SwipeDeck`(depth 3) 을 재사용**한다 — 신규 덱 컴포넌트를 만들지 않는다. 제외: `StatTile`(S7) · `TextArea`·`StarRating`(S5) · `PromptCarousel`(S4) · `SegmentedTabs`(사용처 없음) | ① 3종 모두 Stage 3 화면에 **Figma 근거가 있는 사용처**가 있다 ② `SwipeDeck` 은 Stage 2에서 "3장 스택 + 버튼/키보드 대체 조작 + Pointer Events + `prefers-reduced-motion`" 으로 이미 구현·검증되었고 **PRD §7.9 "3장 덱 좌우 스와이프로 선택"** 과 동작이 일치한다. `scroll-snap` 미사용이라 카드 내부 인터랙션(`QA-2-001` 수정 포함)도 검증되어 있다 ③ `Carousel` 은 **다건 브라우징**(서재 책장, 스냅 가로 스크롤)이라 역할이 다르다 — 하나로 합치면 두 인터랙션이 한 컴포넌트에 섞인다 ④ 제외한 것들은 Stage 3 사용처가 없어 만들면 "다음 Stage 선행 구현"이다 | ① Home 덱용 신규 컴포넌트 (기각 — `SwipeDeck` 과 기능 중복, 접근성 경로를 다시 검증해야 한다) ② `SwipeDeck` 을 `Carousel` 로 통합 (기각 — 스택 선택 ↔ 다건 브라우징은 키보드·포커스·`aria` 규약이 다르고, 통합하면 Stage 2 검증 결과가 무효화된다) ③ `Toggle` 대신 Checkbox 재사용 (기각 — 설정의 on/off는 즉시 적용 스위치라 폼 제출형 Checkbox와 의미가 다르다. Figma `17:113` 근거 존재) ④ `SectionHeader` 를 page-only 로 (기각 — 서재·(향후) 리포트에서 반복되는 패턴) | **승인 — 원칙 확정: "해당 화면의 컴포넌트가 나올 때 만든다"** (사용자 지시 원문, 2026-10-02 §8). 그 원칙의 적용 결과가 권장안과 같다: **3종 추가**(`SectionHeader`·`Carousel`·`Toggle`) + `ListRow` media/meta 확장 (28 → 31), Home 덱은 **`SwipeDeck`(depth 3) 재사용**(신규 덱 컴포넌트 금지). 제외 5종(`StatTile`·`TextArea`·`StarRating`·`PromptCarousel`·`SegmentedTabs`)은 **그 화면이 나오는 Stage 에서** 만든다 — **선행 구현 금지** |
+| ⛔ **D-14** **Home 덱 부분 무효 (Rev 4 §20.1)** | **Stage 3 신규 Shared UI 범위와 `SwipeDeck` 재사용** | **3종만 추가**: `SectionHeader`(`30:74`) · `Carousel`(`113:1993`) · `Toggle`(`17:113`) + `ListRow` media/meta 변형 확장 (28 → **31**). **Home 덱은 `SwipeDeck`(depth 3) 을 재사용**한다 — 신규 덱 컴포넌트를 만들지 않는다. 제외: `StatTile`(S7) · `TextArea`·`StarRating`(S5) · `PromptCarousel`(S4) · `SegmentedTabs`(사용처 없음) | ① 3종 모두 Stage 3 화면에 **Figma 근거가 있는 사용처**가 있다 ② `SwipeDeck` 은 Stage 2에서 "3장 스택 + 버튼/키보드 대체 조작 + Pointer Events + `prefers-reduced-motion`" 으로 이미 구현·검증되었고 **PRD §7.9 "3장 덱 좌우 스와이프로 선택"** 과 동작이 일치한다. `scroll-snap` 미사용이라 카드 내부 인터랙션(`QA-2-001` 수정 포함)도 검증되어 있다 ③ `Carousel` 은 **다건 브라우징**(서재 책장, 스냅 가로 스크롤)이라 역할이 다르다 — 하나로 합치면 두 인터랙션이 한 컴포넌트에 섞인다 ④ 제외한 것들은 Stage 3 사용처가 없어 만들면 "다음 Stage 선행 구현"이다 | ① Home 덱용 신규 컴포넌트 (기각 — `SwipeDeck` 과 기능 중복, 접근성 경로를 다시 검증해야 한다) ② `SwipeDeck` 을 `Carousel` 로 통합 (기각 — 스택 선택 ↔ 다건 브라우징은 키보드·포커스·`aria` 규약이 다르고, 통합하면 Stage 2 검증 결과가 무효화된다) ③ `Toggle` 대신 Checkbox 재사용 (기각 — 설정의 on/off는 즉시 적용 스위치라 폼 제출형 Checkbox와 의미가 다르다. Figma `17:113` 근거 존재) ④ `SectionHeader` 를 page-only 로 (기각 — 서재·(향후) 리포트에서 반복되는 패턴) | **승인 — 원칙 확정: "해당 화면의 컴포넌트가 나올 때 만든다"** (사용자 지시 원문, 2026-10-02 §8). 그 원칙의 적용 결과가 권장안과 같다: **3종 추가**(`SectionHeader`·`Carousel`·`Toggle`) + `ListRow` media/meta 확장 (28 → 31), Home 덱은 **`SwipeDeck`(depth 3) 재사용**(신규 덱 컴포넌트 금지). 제외 5종(`StatTile`·`TextArea`·`StarRating`·`PromptCarousel`·`SegmentedTabs`)은 **그 화면이 나오는 Stage 에서** 만든다 — **선행 구현 금지**. ⛔ **Home 덱 부분 무효 (2026-10-05, approvals §12.2 · §12.9)**: Figma `163:2648` 실측이 **카드 365 + 좌 14 + 우 14 = 393 = 뷰포트 폭 정확히 일치** → **"1 카드 = 1 페이지" 가로 scroll-snap 트랙**이다. 기존 "스택" 판단은 **이 산술을 검토하지 않아 틀렸다**. 2차 재실측에서 gap 이 14→**6** 으로 줄어 **peek 8px** 이 생겼고(= "다음 카드가 있음을 알린다"), 트랙 공식 `pad 14 + 카드 + gap 6 + peek 8 = W` 로 **peek 8 이 320/393/≥600 전 구간 불변**이다. 따라서 **`SwipeDeck` 재사용은 불가**하다(4개 전제 충돌 — audit §3.2). ✓ **나머지는 유효**: Shared UI 3종(`SectionHeader`·`Carousel`·`Toggle`) + `ListRow` 확장, 제외 5종 선행 구현 금지. 트랙 컴포넌트는 **`Carousel` page 모드 확장(권장) 또는 신규 1종** — audit §11.10, design-agent 확정 |
 | **D-15** | **증정 신청의 배송지 입력 범위** (DATA_MODEL §7 "배송지는 아동 PII와 결합되는 성인 PII — 저장 위치 NEEDS DECISION") | **Stage 3 Frontend는 배송지를 입력받지 않는다.** `CreateGiftRequestRequest = { bookId }` 만 보내고, 접수 후 **"배송 정보는 별도로 안내드립니다" 성격의 안내**를 표시한다(문구는 copy 슬롯 — 확정 전에는 슬롯을 비운다). 배송지 수집·저장은 운영·법무 결정 후 별도 Stage/승인으로 다룬다 | ① 배송지는 **아동 프로필과 결합되는 성인 PII**이고 저장 위치(별도 테이블 / 외부 풀필먼트)가 **미결**이다(DATA_MODEL §7). 위치가 정해지지 않은 데이터를 Frontend가 먼저 수집하면 잘못된 곳으로 전송될 위험이 있다 ② COPPA 관점에서 아동 데이터와 배송지의 결합은 법무 검토 대상이다(rules/backend §4) ③ PRD FR-22·§13 어디에도 "앱에서 배송지를 입력한다"는 문장이 없다 — "신청을 받아 증정"까지만 규정한다 ④ 나중에 `CreateGiftRequest` 에 필드를 더하는 것은 비파괴 확장이다 | ① 배송지 폼을 지금 만든다 (기각 — 저장 위치 미결, 법무 미검토 상태에서 PII 수집) ② 주소 대신 이메일만 (기각 — PRD 근거 없음, 이미 계정 이메일이 있다) ③ 증정 기능 자체를 Stage 8로 이월 (기각 — FR-22가 **P0**이고 §13 "증정 대기 중 대체 흐름"이 Stage 3 In Scope다) | **승인 — 배송지를 입력받지 않는다** (2026-10-02, §8). `CreateGiftRequestRequest = { bookId }` **확정**. 접수 후 안내는 **잠정 문구를 copy 모듈에만** 둔다 (§8.2, 예: `Your request is in. We'll reach out with delivery details.`) — 수치·기한·배송 소요일 금지, 운영 표현 확정 시 **copy 값만** 교체. 배송지 수집·저장은 운영·법무 결정 후 별도 Stage·승인 (P3-BIP-06) |
 | **D-16** | **push 권한·기기 등록의 Stage 3 구현 방식** (#7 — 네이티브 Push Adapter는 Stage 4) | **interface + Web 구현 + Mock**: `shared/platform/pushPermission.ts` 에 `PushPermissionPort`(`getStatus` · `request` · `getToken`)를 정의하고 ① **Web 구현** = `Notification.permission` + `Notification.requestPermission()` 까지만 사용하고 **실제 구독(PushManager)·VAPID 키·provider SDK는 사용하지 않는다** — 토큰은 결정적 Mock 값 ② **Mock 구현** = `push-permission-denied` 등 시나리오용 ③ 선택 지점은 `app/providers` 한 곳. Stage 4가 Native 구현만 추가한다 | ① `RecorderAdapter`·`AuthGateway` 와 **같은 어댑터 패턴**이라 새 개념이 없고 Stage 4 전환 비용이 handler 추가로 끝난다 ② provider가 **미선정**(PLANNING §7-6: OneSignal 권장, NEEDS DECISION)이므로 SDK를 넣으면 교체 비용이 생긴다 ③ VAPID·서버 키는 Backend 소관이고 Frontend에 Secret을 둘 수 없다(NFR 보안) ④ `Notification.permission` 만으로도 **사전 안내 → 요청 → 허용/거부** 라는 FR-08의 Frontend UX 전부를 검증할 수 있다 | ① Web Push 전체 구현(PushManager + VAPID) (기각 — provider·서버 키 미정, Frontend Secret 금지, Stage 4 네이티브 전환 시 재작업) ② provider SDK(OneSignal 등) 도입 (기각 — 미선정 상태, 제3자 SDK 도입은 승인 사항이며 PII 전송 경로가 생긴다) ③ Mock만 만들고 실제 권한 API 미사용 (기각 — 브라우저 권한 다이얼로그 UX가 검증되지 않아 FR-08 Frontend 부분이 비어 있게 된다) | **승인 — Port + Web 구현 + Mock** (2026-10-02, §8). `shared/platform/pushPermission.ts` 의 `PushPermissionPort`(`getStatus`·`request`·`getToken`), Web 구현은 `Notification.permission` / `requestPermission()` 까지만 — **실제 구독(PushManager)·VAPID 키·provider SDK 금지**, 토큰은 결정적 Mock 값. 선택 지점은 `app/providers` 한 곳. Native 는 Stage 4. **D-18 로 설정 화면만 제외되며 이 항목은 그대로 유효하다** |
 | **D-17** | **서재 시트의 route화 여부** (PLANNING §9.2 "시트로 디자인된 화면은 부모 페이지 상태가 기본, 딥링크 필요 시 route") | **route화하지 않는다** — `LibraryShelfSheet`("See all") · `BookDetailSheet` · `ReadingContextSheet` · Prompt 공개는 전부 **부모 페이지의 상태**다. 단 `BookDetailSheet` 는 **뒤로 가기로 닫히도록** history 항목을 하나 쌓는다(`navigate` 대신 `history.pushState` 수준의 처리는 Router의 `location.state` 사용 — 구현 방식은 development-agent) | ① PLANNING §9.2가 기본 원칙으로 명시했고 Figma도 시트로 디자인했다 ② Stage 3에 **알림 deep link 대상이 없다**(push deep link는 Stage 5 `/session/:id/feedback`) ③ route화하면 `/library/books/:bookId` 에 직접 진입했을 때 부모 목록이 없는 상태를 따로 처리해야 한다 ④ 모바일에서 시트가 뒤로 가기로 닫히지 않으면 사용자가 앱을 벗어난다 — 이것만 별도로 해결한다 | ① 전부 route화 (기각 — 부모 없는 진입 상태 처리 비용, Figma 디자인과 불일치) ② `BookDetailSheet` 만 route화 (기각 — 딥링크 요구가 없고, history 처리만으로 뒤로 가기 문제가 해결된다) ③ 뒤로 가기 처리도 하지 않음 (기각 — 모바일에서 시트 탈출 경로가 닫기 버튼 하나뿐이 된다) | **권장안 기각 — 사용자 결정은 "시트는 만들고 Mock 전용 route 를 입힌다"** (2026-10-02, §8 · §8.3). 사용자 지시: "목업용으로 링크만 만들어 놓는다. 백엔드 개발시 삭제할 수 있게 한다" + 확인 질문 답변 "시트는 만들고 route 를 입힌다" → 권장안(route화 안 함)을 **기각**. 기각 사유: Mock 데모에서 시트에 직접 링크로 도달할 수 있어야 한다는 요구가 있었고, 삭제 가능성은 route 구조로 보장한다. **제약 4개 필수**: ① route 정의를 **한 파일에 모은다**(예: `app/router/mockPreviewRoutes.tsx`) — 삭제 지점이 한 곳 ② route 가 사라져도 시트가 **부모 화면의 상태로 계속 동작**해야 한다. 열림 상태는 route 에 **의존하지 않고** route 는 진입점일 뿐이다 ③ 파일 상단에 제거 조건을 주석으로 명시하고 **Stage 8 Handoff 에 제거 대상으로 등재** ④ `BookDetailSheet` 뒤로 가기 = **`LibraryShelfSheet` 목록으로 복귀**. 대상: `LibraryShelfSheet`("See all") · `BookDetailSheet` · `ReadingContextSheet` |
@@ -935,7 +955,7 @@ stage-1-approvals §9.4-3 "남은 건은 해당 화면이 나올 때 재제시�
 | ⑥ | **디자이너 수정 요청 (Figma) — Stage 3 해당분** | ⓐ `163:2648` 배지 "Emotion Day  Day" 오타 → #14 표시 라벨 + " Day" (M-13) ⓑ `113:1992` 책장 캡션 **"Confidence"**(4대 역량 외) → #14 라벨로 교체 (M-13) ⓒ `31:102` Growth themes 차트 색 → `--color-capability-*-chart`(#19) ⓓ `25:87` Tab Bar variant 이름 `Report` → `Progress` (#15) ⓔ `163:2648` 카드 하단 Prompt ↔ ActionBar **overflow** ⓕ `113:1992` 표지 ↔ 제목 placeholder 불일치 (M-36) ⓖ `17:57` 템플릿 "Activity Card"(Morning Walk) 이름 충돌 정리 (M-37) | Figma 수정은 **디자이너 몫**. 구현은 수정 없이 진행하고 차이를 AC-3-66 "허용 차이"로 사전 기록 (§15.8-9) |
 | ⑦ | **`CLAUDE.md` Source of Truth 표에 온보딩 질문지 미등재** (`S2-SRC-1` / `S2-ONB-3`) | 사용자가 2026-09-28에 **등재하기로 결정**했으나 `CLAUDE.md` 는 plan-agent 쓰기 허용 경로가 아니다 | **Orchestrator 처리 요청** — `docs/source/HARU_Onboarding_Questionnaire_v1-1.docx.md` 를 Source of Truth 표(참고 또는 Functional 보조)에 추가 |
 | ⑧ | **PLANNING §9.2의 `/library/gift-requests` Layout 표기** | "Tab"으로 적혀 있으나 탭은 **3개 고정**(#15)이라 증정 목록이 탭이 될 수 없다 | 이 Plan은 **Stack** 으로 확정한다(§9.1). 승인 시 PLANNING §9.2 갱신 |
-| ⑨ | **PRD 수정 대상 6건 (사용자 조치 — OneDrive 원본)** | Figma 우선 적용으로 PRD 와 어긋난 지점이 **6건**이다: **1** FR-07·§7.4 Prompt 선택 후 제시(`D-4`) · **2** §7.4·§8.3 하루 1개 역량 배지·날짜 단위 순환(`D-5`) · **3** §7.4 보조 요소 집계 창(`D-6`) · **4** FR-07·§8.2 Prompt "2~3개" 를 표시 개수로만 유지(`N-2`) · **5** FR-07·§8.2 Prompt 에 `phase`·`pageRef` 개념 부재(`D-8` · `P3-BIP-13` · `P3-BIP-14`) · **6** FR-07·§8.2 Prompt **개수 상한 없음**(`D-21`) | 정본 목록 = `stage-3-approvals.md` **§5 · §6.2 · §9.3**. `docs/source/HARU_PRD_v1.5.md` 는 사본이므로 **저장소에서 고치지 않는다** — OneDrive 원본 갱신 후 사본 교체. **Orchestrator 처리 요청** |
+| ⑨ | ⭐ **PRD 수정 대상 10건 (사용자 조치)** — Rev 4 에서 **8·9·10 추가 등재** | Figma 우선 적용으로 PRD 와 어긋난 지점이다. **정본 목록 = `stage-3-approvals.md` §5(1~3) · §6.2(4) · §9.3(5~7) · §12.5(8~10)** — 이 Plan 은 **등재만** 하고 `docs/source/**` 는 **수정하지 않는다**. **1** FR-07·§7.4 Prompt 선택 후 제시(`D-4`) · **2** §7.4·§8.3 하루 1개 역량 배지·날짜 단위 순환(`D-5`) · **3** §7.4 보조 요소 집계 창(`D-6`) · **4** FR-07·§8.2 Prompt "2~3개" 를 표시 개수로만 유지(`N-2`) · **5** FR-07·§8.2 Prompt 에 `phase`·`pageRef` 개념 부재(`D-8` · `P3-BIP-13` · `P3-BIP-14`) · **6** FR-07·§8.2 Prompt **개수 상한 없음**(`D-21`) · **7** §7.2 Step 1 언어 환경 **선택 사항 + 기본값 영어**(§11.22 · `QA-2R-012` — **Stage 2 소관**) · ⭐ **8** §7.9 카드 덱 **"좌우 스와이프" → 가로 스크롤(scroll-snap)**, 1 카드 = 1 페이지 (근거: Figma `163:2648` 실측 365+14+14=393, approvals §12.5) · ⭐ **9** FR-07·§7.4 Prompt **"2~3개 제시" → 4~5개 전부 노출**(확장 트리거 없음) (근거: Figma `163:2649`=4 · `86:438`=5) — **4·6 과 같은 문장을 다루므로 PRD 적용 시 한 번에 반영**해야 한다 · ⭐ **10** §7.4 에 **카드 뒷면(flip) 개념 신설** — 우상단 아이콘으로 뒤집어 Prompt 전체 + 코칭 노트를 본다 (근거: Figma `86:482` + 컴포넌트 시그니처 `flip?: "front"` · 아이콘 `flip_to_back`) | ⚠️ 적용 절차는 **`D-24`**(§11.1·§11.6) = **OneDrive 원본과 저장소 사본을 동시 수정**한다. ~~"사본이므로 저장소에서 고치지 않는다"~~ 는 Rev 3 서술은 `D-24` 로 **대체되었다**(§20.9 모순 ①). **plan-agent 는 `docs/source/**` 를 수정하지 않는다** — 적용은 Orchestrator·사용자. **Orchestrator 처리 요청** |
 
 **PRD ↔ Figma 불일치 (Stage 3 범위) — 신규 발견 없음.**
 Stage 3 관련 불일치는 전부 이미 등록되어 있으며 이 Plan이 §16으로 결정안을 제시한다: **M-09**(→ D-4) · **M-14**(→ D-7) · **M-29**(→ D-8) · **M-30**(→ D-6) · **M-31**(→ D-5) · **M-32 잔여**(→ D-9). 해소된 항목: M-08·M-19(→ #15·D-02), M-13(→ #14·#19, Figma 수정 요청 ⓐⓑⓒ), M-21·M-22(→ #12·C-18), M-35(→ C-17), M-36·M-37(→ 보고 ⑥ⓕⓖ). M-10·M-11·M-12·M-15·M-25·M-26은 Stage 4·5·7 항목이다(단 M-12 판정 언어는 AC-3-72로 Stage 3 문구에 선제 적용).
@@ -943,6 +963,16 @@ Stage 3 관련 불일치는 전부 이미 등록되어 있으며 이 Plan이 §1
 ---
 
 ## 19. 요약 — 승인 체크포인트 제시용
+
+> ⭐ **Rev 4 델타 (2026-10-05, Home Figma 재대조 — §20)**
+> - **In Scope 추가**: **`★ Save`**(`PUT/DELETE …/saved-books` + `LibraryBook.saved` — approvals §12.8 `A-9`) · **카드 뒷면(flip)** · **가로 scroll-snap 트랙**(peek 8) · 탭바 하단 16px
+> - **Out of Scope 변경**: **Reading Context 선택 UI 이월**(`AC-3-22`~`26`) · Library 의 **저장 표면("My Saved")은 다음 라운드** · G-04 중 **"My Saved" 만 In Scope 로 복귀**(평점·읽기 계획은 그대로 제외)
+> - **AC**: **88건**(신규 `AC-3-82`~`88` 7건, 무효 2, 이월 5 → **판정 대상 81건**)
+> - **Mock scenario**: **17 key** (신규 `book-saved` 1건 — `API_CONTRACTS.md` §5.4 에 등재)
+> - **PENDING**: **15건** (`P3-BIP-15` 신규)
+> - **enum**: `BookSource` += `card_save` / −`onboarding_home_list`, `LibraryFilter` += `saved` → **`AC-3-56` 총수 재계산 대상**
+> - **무효 결정**: `D-7`(Save 부분) · `D-14`(Home 덱 부분) · `AD-S3-8` · `AD-S3-23`
+> - **승인 필요**: **10건** (§20.10) / **모순·보고**: **7건** (§20.9)
 
 - **In Scope**: FR-07 · FR-08(FE — Web + Mock) · FR-20 · FR-22 · FR-23 + 홈 보조 요소(§7.4) + **BottomTabBar 첫 마운트**(#15 · D-02) + 알림 설정 진입(C-16) + NFR(카드 로딩 UX · **오프라인 캐시** · 접근성 · 로그 PII) + §13 예외 2건(증정 대기 · 책 소진) + 기술 요구사항(Shared UI 3종 · **C-17 에셋 파이프라인 실사용** · Stage 2 이월 정리)
 - **Out of Scope**: **Stage 2-B(프로필 결과 · 발전 역량 — 디자이너 대기)**, 세션 생성·녹음·Prompt Drawer·출석 스티커, 회고·분석, Warm 추천·프로필 갱신, `/progress` 리포트 내용·주간 지표, 데이터 관리·탈퇴, **G-04 서재 확장(My Saved · 평점 · 읽기 계획)**, `apps/mobile`, Backend 전부
@@ -955,3 +985,167 @@ Stage 3 관련 불일치는 전부 이미 등록되어 있으며 이 Plan이 §1
 - **Blocking**: Plan 단계 없음 / **Design 단계 = C-13 8건 + D-1 · D-6 · D-4 · D-5** / **구현 단계 = D-13 · D-3 · D-2 · D-7**
 - **신규 라이브러리**: **런타임 0건** (§16 D-19). **devDependency `sharp` 1건**(에셋 최적화 전용, Stage 1 `D-4` 승인 결정의 실행)
 - **가값**: Stage 3가 **P-02의 첫 대량 실사용처**다. Stage 3 QA 후 P-02 · P-01 · P-04 · P-05 · P-16 · P-17 재제시 (§17.3)
+
+---
+
+## 20. Rev 4 — Home Figma 전수 재대조 반영 (2026-10-05)
+
+> **입력 (정본 순서)**
+> 1. ⛔ `CLAUDE.md` **"최우선 규칙 — Figma 를 그대로 구현한다"** (2026-10-05 신설). **이 Plan 의 다른 모든 항목보다 우선한다.**
+> 2. `docs/decisions/stage-3-approvals.md` **§12 전체** (§12.1~§12.9) — **결정 정본**
+> 3. `docs/design/stage-3-home-figma-audit.md` — design-agent 감사 + 2차 재실측(§10) + 구현 명세(§11~§15)
+>
+> **이 절의 성격**: Rev 3 본문을 **삭제하지 않고**, 무효가 된 항목에 **사유와 근거를 병기**해 추적 가능하게 한 뒤 여기에 집계한다. 본문 각 행에는 ⛔(무효) · ⏭(이월) · ✎(수정) · ✓(유효화) · ⭐(신규) 마커를 달았다.
+> **발단 (approvals §12.1)**: `rules/workflow.md` 가 규정한 **design-agent 의 구현 후 Visual Gap 검토를 Orchestrator 가 건너뛰었다.** 테스트 통과와 AC 충족만 확인했고 **"Figma 와 같은가"를 아무도 보지 않았다.** 그래서 AC 를 다 통과한 구현이 Figma 와 크게 어긋났다 — **AC 설계 자체의 결함**이지 구현만의 문제가 아니다.
+
+### 20.1 무효 처리 — 6건 (삭제하지 않고 사유 병기)
+
+| 대상 | 처분 | 사유 | 근거 | 본문 위치 |
+|---|---|---|---|---|
+| **`AC-3-11`** | **폐기** | 파란 안내 카드가 **Figma 에 없어 삭제**되면서 "지난 날짜를 밝힌다"는 요구의 UI 근거가 사라졌다. 사용자가 요구 자체를 없애기로 결정. audit §14.3 의 R-1/R-2/R-3 중 **R-3** | approvals **§12.3 ①** · **§12.8** (사용자 2026-10-05) | §11.3 |
+| **`AC-3-17`** | **무효** (살아남는 부분은 `AC-3-83`) | Figma 에 **확장 트리거(`Show all 5 prompts`)와 cutoff 가 없고** pill 이 **4~5개 전부 노출**된다. 명세가 만든 확장 트리거는 최우선 규칙 2 위반 | approvals **§12.4** · §12.9. Figma `163:2649`(4) · `86:438`(5) | §11.3 |
+| **`AC-3-22` ~ `AC-3-26`** | **이월** (Stage 3 제외) | Reading Context **진입점이 Figma 카드 앞면에 없다.** 명세가 그 자리에 Figma 에 **없는** `Pick a time` 을 넣었고, 그 자리는 **`★ Save`** 다. 별도 디자인을 다음에 요청 | approvals **§12.3 ⑧** (사용자 2026-10-05) | §11.4 · §3.1 |
+| **`D-14`** — Home 덱 `SwipeDeck` 재사용 **부분만** | **무효** | `163:2648` 실측 **365 + 14 + 14 = 393 = 뷰포트 폭 정확히 일치** → **1 카드 = 1 페이지 가로 scroll-snap**. 기존 "스택" 판단은 **이 산술을 검토하지 않아 틀렸다**. `SwipeDeck` 은 4개 전제가 충돌해 유지 불가 | approvals **§12.2** · §12.7 · audit §3.2 | §16 `D-14` |
+| **`D-7`** — `★ Save` 제외 **부분만** · **`AD-S3-8`** | **무효** | Figma `I86:438;86:383;117:973` 에 `Button/White` **87×45 `★ Save`** 가 **실재**한다. "PRD 근거 없음"으로 뺀 것은 최우선 규칙 **3** 위반이고, 그 자리에 Figma 에 없는 `Pick a time` 을 넣은 것은 규칙 **2** 위반이다 | approvals **§12.2** · **§12.8 `A-9`** | §16 `D-7` · §3.1 · §7.1 |
+| **`AD-S3-23`** · Design Spec **§12.5** (`86:482` = 별도 시트) | **무효** | `86:482` 는 **뒷면**이다. 컴포넌트 이름이 앞면과 **동일**하고, 시그니처에 **`flip?: "front"` variant**, 우상단 아이콘 에셋명이 **`flip_to_back`** 이다 — **추측이 아니라 Figma 데이터** | approvals **§12.2** · **§12.7** · audit §10.7 | §11.3 (`AC-3-16`) |
+
+**무효가 *아닌* 것** (혼동 방지):
+
+- **`D-21`**(Prompt 개수 상한 해제) — **유효**. `AC-3-17` 이 무효인 것은 **"확장 트리거" 부분**이고, contract 상한 없음·`slice` 금지는 `D-21` 소관이라 `AC-3-83` 으로 살린다.
+- **`D-10`** — **유효**. 서버 `ActivityCard.date` 신뢰 / 클라이언트 재판정 금지는 유지되고 ③("화면이 그 날짜를 밝힌다")만 철회된다 → `AC-3-88`.
+- **`D-7`** 의 평점(`averageRating`) · reading plan(`ReadingNowCard`) 제외 — **유효**.
+- **`D-14`** 의 Shared UI 3종(`SectionHeader`·`Carousel`·`Toggle`) + `ListRow` 확장 · 제외 5종 선행 구현 금지 — **유효**.
+- **`D-9`**(Context 미선택 진행 가능 여부) — 폐기가 아니라 **이월**. Reading Context 진입점과 함께 다음 라운드로 간다. contract(`readingContext`·`customTime`·`createCustomTimeRefine`)는 **삭제하지 않는다**.
+- **헤더 칩 `2 this week`** — **유지**. Figma `26:40` 이 `12-day/115 Min` → `2week /115 Min` 으로 바뀌었어도 **누적 분(115 Min)이 달성률 언어**라 `D-6` 과 §8.4 비교·판정 금지 원칙을 지킨다. **Figma 불일치로 기록**한다 (approvals §12.3 · §12.7, 재확인 필요 = `A-23`).
+
+### 20.2 수정 — 6건 + 유효화 1건
+
+| AC | 수정 내용 (본문에 병기됨) |
+|---|---|
+| **`AC-3-06`** | **현재 320px FAIL** (카드가 탭바를 **16.8px** 덮는다 — audit M-01 Critical). 원인 = ActionBar 2행(102px). 해소안 = **`Save` 고정 87 + gap 8 + `Start Session` flex** 로 1행 유지 → 카드 하단 705 / 탭바 766 / **겹침 0**. **탭바 하단 16px**(신규 토큰 `--layout-tabbar-bottom-gap`, Figma 852−(766+70)) 포함해 재검증 |
+| **`AC-3-10`** | "부모용 코칭 문장" 검증 지점 → **카드 뒷면 `86:482` beige 노트**(`A-17` ⓐ). 앞면에 코칭 문장 블록을 **추가하지 않는다** |
+| **`AC-3-14`** | 덱 Skeleton → **가로 트랙 1장 + peek 8**. `empty`/`error`/`offline` 은 **트랙 높이 415 점유** |
+| **`AC-3-16`** | Prompt 전체 + 코칭 문장 → **별도 Sheet 가 아니라 카드 뒷면(flip)** |
+| **`AC-3-18`** | 이전/다음 **버튼 제거** → **가로 트랙 네이티브 키보드(←/→/Home/End)** 로 3장 도달. 가로 스크롤은 제스처 전용이 아니므로 **WCAG 2.5.1 충족** |
+| **`AC-3-66`** | **기존 Home baseline 5장 전부 무효 → 재생성.** `s3-home` · `s3-home-deck` · **`s3-home-deck-back`**(신규) · **`s3-home-deck-scrolled`**(신규) · `s3-tabbar-bottom`. **`s3-home-deck-prompts-expanded` 폐기** |
+| **`AC-3-19`** | ✓ **유효해진다** — flip 이 실제로 생겨 `prefers-reduced-motion` 요구가 의미를 갖는다. `reduce` = **전환 없이 즉시 교체 + 동작 유지** |
+
+#### 신규 AC — `AC-3-82` ~ `AC-3-88` (총 **88건**; 이 중 무효 2 · 이월 5)
+
+| AC | 요구사항 | 검증 방법 | 근거 | PENDING 예상 |
+|---|---|---|---|---|
+| ⭐ **AC-3-82** | `empty`(오늘 카드 없음)에서 **`EmptyState` 안내가 표시**되고 트랙 높이 415 를 점유해 레이아웃이 튀지 않는다. **지난 날짜 배너는 어떤 상태에서도 렌더되지 않는다** | 시나리오 테스트 + DOM 부재 검사 | `AC-3-11` 폐기 시 살아남는 부분 (approvals §12.8 · audit §14.3) · 공통 상태 화면 #22 | 아니오 |
+| ⭐ **AC-3-83** | `promptPreview` · `promptSet.questions` 가 **상한 없이**(`.min(1)` 만) parse 되고, **4·5·10개 응답이 전부 통과**하며 **Frontend `slice` 흔적 0건**. 앞면이 Figma 대로 **전부 노출**한다(4~5개) | ① contracts 단위 테스트(4·5·10 통과 / 0 거부) ② `success` fixture 4개 이상 ③ `slice(` grep ④ 앞면 렌더 개수 = 응답 개수 | **`D-21`**(유효) + approvals §12.4. `AC-3-17` 에서 **확장 트리거 부분만 제거** | 아니오 |
+| ⭐ **AC-3-84** | `★ Save` 를 누르면 **`PUT /v1/children/:childId/saved-books`** 가 **1회** 발생하고, **같은 책을 2회 저장하면 같은 응답(`savedAt` 포함)** 이 온다. **Idempotency-Key 헤더를 보내지 않는다**(PUT = 상태 설정) | Mock 요청 로그 + replay 테스트 | `A-9` · `API_CONTRACTS.md` §3.7.3 | Frontend 부분 아니오 / 서버 보장 = **`P3-BIP-15`** |
+| ⭐ **AC-3-85** | 저장 실패(`error`) · 오프라인에서 **낙관적 표시가 되돌려지고** 사용자에게 상태가 알려지며, **재시도 경로**가 있다. 저장 요청이 **큐에 쌓여 중복 발사되지 않는다** | `error`·`retry`·`offline` 시나리오 e2e | rules/frontend §7 · §5.3 오프라인 | 아니오 |
+| ⭐ **AC-3-86** | 저장 대상이 **현재 보이는 옵션의 책**이다 — 카탈로그 책은 `bookId`, 보호자 직접 입력 옵션은 `title`(+`author?`). 요청 body 가 **화면에 보이는 책과 일치**한다(스냅 위치가 바뀌면 대상도 바뀐다) | 요청 로그 + 트랙 스냅 e2e | `API_CONTRACTS.md` §3.7.2 | 아니오. ⚠️ `conversation_only` 는 **`G-12` 결정 전 검증 불가** |
+| ⭐ **AC-3-87** | 가로 트랙이 **1 카드 = 1 페이지 스냅**이고 공식 `pad 14 + 카드 + gap 6 + peek 8 = W` 가 **320(카드 292) · 393(카드 **365**, Figma 정확 일치) · ≥600(카드 452)** 에서 성립한다. **peek 8 이 전 구간 불변**이고 좌우 이동 **버튼이 존재하지 않는다** | Playwright 3폭 측정 + 버튼 DOM 부재 검사 | approvals §12.7 트랙 공식 · audit §11.3·§11.6·§11.7 | 아니오 |
+| ⭐ **AC-3-88** | 화면이 **서버 `ActivityCard.date` 를 그대로 신뢰**하고 클라이언트가 날짜를 **재판정하지 않는다**(기기 날짜 비교 분기 0건). 날짜 문자열을 **화면에 표시하지 않는다** | grep + 코드 검사 | **`D-10`** 유지분 (③ 철회 — approvals §12.8) | 서버 timezone 소유 = `P3-BIP-01` |
+
+> **요구사항 ID 매핑 갱신**: FR-07 → AC-3-09·10·12~16·19~21 + **82·83·87·88** / FR-08 → ~~22~26~~(이월) · 39~45 / FR-20 확장(`★ Save`, Figma 우선 + 사용자 결정) → **84·85·86** / 무효 = `AC-3-11`·`AC-3-17`.
+
+### 20.3 `★ Save` contract — 설계 결론 (`A-9`)
+
+전문은 **`docs/API_CONTRACTS.md` §3.7** (3.7.1 데이터 판정 · 3.7.2 저장 대상 · 3.7.3 schema·멱등 · 3.7.4 초기 상태). 요약:
+
+| 질문 | 결론 | 라벨 |
+|---|---|---|
+| 온보딩 `favoriteBooks` 와 **같은 데이터인가** | **다르다. 재사용하지 않는다.** ① Home Save 가 `favoriteBooks` 를 쓰면 **제출 완료된 설문 스냅샷을 사후 수정**한다(cold-start state vector 출처 훼손, 온보딩 응답 수정은 Stage 6) ② **상한 5**(`FAVORITE_BOOKS_MAX`, PRD §7.2 Step 3)에 걸려 6권째 Save 가 `VALIDATION_FAILED` 가 되는데 **그 상한을 알리는 UI 가 Figma 에 없다** ③ "이미 좋아하는 책"(과거)과 "저장해 둔 추천"(의도)은 추천 엔진이 **다르게 소비해야 하는 신호**다 ④ `child_books.source` 에 이미 **`onboarding_favorite`** 값이 있다 = 온보딩 favorites 는 **서재로 파생되는 입력**이라는 설계가 이미 있다 | **RECOMMENDED — 승인 필요** |
+| 그러면 어디에 저장하나 | **`child_books` 에 `saved`·`saved_at` 축을 추가**한다. **새 테이블 없음.** `ownership`(`owned`·`gifted`·`gift_pending`·`favorite_only`)에 값을 더하지 **않는다** — 보유 책도 저장될 수 있어 **두 축이 독립**이고 `favorite_only` 재사용은 설문 응답과 보호자 저장을 다시 섞는다 | **RECOMMENDED** |
+| **무엇을 저장하는가** | **선택된 옵션의 *책*** (카드가 아니다). 근거: ① 같은 ActionBar 가 Library 시트 `163:2347` · Book Select `145:1085` 에도 쓰이고 그 화면들은 **책 1권**을 다룬다 ② 저장 결과 표면 `145:1157` 이 **"My Saved" = 책 목록**이다 ③ 카드/옵션을 저장하면 `activity_card_options` 를 가리키는 **새 도메인**이 필요하고, 카드는 **하루 단위로 사라지는 자원**(`UNIQUE(child_id, card_date)`)이라 저장 항목이 만료된다 — **그 만료 UX 가 Figma 에 없다** | **RECOMMENDED** |
+| 상한 | **없다.** Figma `Save` 버튼에 카운터·상한 표시·상한 안내가 **없다** (최우선 규칙 2) | **RECOMMENDED** |
+| 멱등성·중복 저장 | `PUT /v1/children/:childId/saved-books` = **자원 상태 설정** → 같은 책 재저장은 **같은 응답·같은 `savedAt`**, **오류 아님**. `POST` 가 아니므로 **Idempotency-Key 를 요구하지 않는다** (`POST …/library/books`·`POST …/gift-requests` 와 다르다) | **RECOMMENDED** |
+| 해제(토글) | **contract 는 양방향 지원**(`PUT` + `DELETE …/saved-books/:bookId`). **Home 버튼이 토글인지는 Figma 근거가 없다** — `117:973` `Button/White` 에 saved(채움) 변형이 **없다** → **`G-13` NEEDS DECISION**. ⚠️ 어느 안이든 **해제 경로가 Library 라운드에 있어야 한다** — 저장만 있고 해제가 없으면 보호자가 자기 데이터를 되돌릴 수 없다 | **NEEDS DECISION** |
+| 신규 Error Code | **0건.** `RESOURCE_NOT_FOUND`(없는 `bookId`) · `VALIDATION_FAILED` 로 충분하다. 중복은 멱등 성공, 상한은 없음 → Stage 1 **28종 유지**(`AC-3-59` 그대로) | **CONFIRMED (원칙)** / 매핑 RECOMMENDED |
+| enum delta | `BookSource` += **`card_save`**(Save 로 행이 처음 생기는 경로 — FR-23 의 `library_add` 와 구분), `LibraryFilter` += **`saved`**("My Saved" 표면). ~~`onboarding_home_list`~~ 는 **제거**(온보딩 `homeBooks` 삭제 — approvals §11.9). **`AC-3-56` 의 "enum 5종 / 총 31종"이 재계산 대상이다** | **RECOMMENDED** |
+| `BookSummary` 확장 | **금지** — Stage 2 `BookSummary` 불변 원칙(`AC-3-55`). 저장 상태는 `LibraryBook`(또는 `G-14` ⓑ 채택 시 `ActivityCardOption`)에 둔다 | **CONFIRMED** |
+
+**아이콘 (audit §12 `A-9` 별건, 미결)**: Figma 글리프는 **14×13**. `lucide star`(획 두께·크기 다름) vs Figma SVG export → **design-agent 판단 대상** (Stage 0 #21: 일반=Lucide / HARU 전용=Figma SVG).
+
+### 20.4 PRD 수정 대상 8·9·10 — 등재 (§18 ⑨ 로 통합)
+
+`stage-3-approvals.md` §5(1~3) · §6.2(4) · §9.3(5~7) 에 이어 **§12.5 의 8·9·10** 을 §18 ⑨ 에 등재했다 (총 **10건**).
+
+| # | PRD 위치 | 현재 | 확정 동작 | 근거 |
+|---|---|---|---|---|
+| **8** | **§7.9** | 카드 덱 **"좌우 스와이프"** | **가로 스크롤(scroll-snap)** — 1 카드 = 1 페이지 | Figma `163:2648` 실측 (365+14+14=393) |
+| **9** | **FR-07 · §7.4** | Prompt **2~3개** 제시 | **4~5개 전부 노출**(확장 트리거 없음) | Figma `163:2649`(4) · `86:438`(5) |
+| **10** | **§7.4** | — | **카드 뒷면**(우상단 아이콘 → flip)에 Prompt 전체 + 코칭 노트 | Figma `86:482` + `flip?: "front"` variant · `flip_to_back` 아이콘 |
+
+- ⚠️ **9 는 4·6 과 같은 문장(FR-07·§8.2 "2~3개")을 다룬다** — PRD 적용 시 **한 번에** 반영해야 하며, 따로 적용하면 서로를 덮어쓴다.
+- ⚠️ 적용 절차는 **`D-24`** = **OneDrive 원본 + 저장소 사본 동시 수정**. **plan-agent 는 `docs/source/**` 를 수정하지 않는다** (지시·금지 사항). **목록만 만들었다.**
+
+### 20.5 `BACKEND_INTEGRATION_PENDING` 변화
+
+| 변화 | 항목 | 내용 |
+|---|---|---|
+| **신규 1건** | ⭐ **`P3-BIP-15`** | **책 저장 상태의 서버 소유** — `saved`·`saved_at` 생성·멱등 보장, `LibraryFilter=saved` 조회, `source=card_save` 기록, 전체 삭제(FR-21) 포함. 저장이 **추천 신호로 쓰일지는 Backend·제품 결정**이며 **Frontend 는 기대하지 않는다**. Handoff = `BACKEND_HANDOFF.md`·`DATA_REQUIREMENTS.md` |
+| **무효 0건** | — | **무효가 된 PENDING 은 없다.** Reading Context 이월도 PENDING 을 줄이지 않는다 — `readingContext` 는 contract 에 남고 서버가 소비한다 |
+| **범위 변경 2건** | `P3-BIP-01` | Frontend 판정 AC 가 ~~`AC-3-11`~~ → **`AC-3-82`**(= `empty` 안내) · `AC-3-12` · **`AC-3-88`**(서버 `date` 신뢰) 로 교체. **대기 사유(07:00 생성 잡 · `UNIQUE(child_id, card_date)` · caregiver timezone)는 그대로** |
+| | `P3-BIP-03` | Frontend 판정 AC 가 ~~`AC-3-17`~~ → **`AC-3-83`** 으로 교체. **"확장 도달" 기대 삭제** — Figma 는 전부 노출이다. "책별 최소 6개 · 제시 2~3개 = Backend 생성 정책"은 그대로 |
+| **참고** | `P3-BIP-10` | `G-14` ⓑ(`ActivityCardOption.saved` 추가)를 채택하면 카드 응답에 **서재 조인**이 생겨 **2초 NFR** 에 영향이 간다 → ⓐ 권장 사유 중 하나 |
+
+**→ Stage 3 PENDING 총 15건** (`P3-BIP-01` ~ `P3-BIP-15`).
+
+### 20.6 Mock 시나리오 영향
+
+| # | 영향 | 조치 |
+|---|---|---|
+| ① | **`fixtures/activity-cards.ts` 의 `date` 가 `2026-01-01` 고정**이라 항상 `stale` 이 된다 | **주입 clock 기준 "오늘" fixture 로 교체.** 배너 삭제와 **무관하게 필요**한 수정이다 (audit §11.11) |
+| ② | 덱 Skeleton 형태 | `loading` = **가로 1장 + peek 8**. `empty`/`error`/`offline` = **트랙 높이 415 점유** |
+| ③ | 지난 카드(`stale`) 안내 시나리오 | **없어진다** (`AC-3-11` 폐기). `empty` 는 **유지** (`AC-3-82`) |
+| ④ | Reading Context 이월 | `POST …/selection` 의 **`readingContext` 입력 경로가 화면에서 사라진다.** Mock·contract 는 **그대로 두고** 단위·contract 테스트로만 검증한다 (화면 e2e 대상에서 제외) |
+| ⑤ | **신규 key `book-saved` 1건** | `library`(saved-books) 그룹. **`API_CONTRACTS.md` §5.4 catalogue(단일 기준)에 먼저 등재했다** — 임의 key 가 아니다. §8.2 **총 16 → 17 key** |
+| ⑥ | `success` fixture 의 Prompt 개수 | **4개 이상 유지** (`D-21`·`AC-3-83`). 단 **앞면이 전부 노출**하므로 "접힘 3 + 확장" 전제의 테스트는 폐기 |
+| ⑦ | baseline | **Home baseline 5장 전부 재생성** + 신규 2장 (`s3-home-deck-back` · `s3-home-deck-scrolled`), `s3-home-deck-prompts-expanded` 폐기 |
+
+### 20.7 Stage 3 나머지(Library 이후) 범위에 미치는 영향
+
+| # | 영향 | 비고 |
+|---|---|---|
+| ① | ⭐ **favorites 가 Library 화면에 나타나야 한다** — Figma `145:1157` **"My Saved"**. Home 에서 저장한 책을 **보고·해제할 수 있는 표면**이 Library 라운드의 **필수 항목**이 된다 (`LibraryFilter=saved`) | 사용자 결정: *"저장 결과를 보는 Library 화면은 다음 차례"* (approvals §12.8). ⚠️ **해제 경로가 없으면 보호자가 자기 데이터를 되돌릴 수 없다** |
+| ② | **`D-7` 재검토 범위가 Library 전체로 번진다** — Library `30:74` · 시트 `163:1669` · Book Select `145:1132` 의 **`★ Save` ActionBar 는 Home 과 같은 컴포넌트**다. `AD-S3-6`·`AD-S3-7`(평점·`ReadingNowCard`)은 유효하지만, **`AD-S3-8`(Save 미렌더)은 세 화면 모두에서 무효**다 | Design Spec 갱신 = **design-agent 소관** |
+| ③ | **Library 도 Figma 전수 재대조 대상이다** — Home 에서 **사용자 지적 8건 + 추가 불일치 21건**이 나왔고, Library·Book Select 는 **같은 명세 패스에서 작성**되었다. 재대조 없이 구현하면 같은 재작업이 반복된다 | **RECOMMENDED — Library 구현 착수 전 design-agent Figma 대조 선행** |
+| ④ | **`Carousel` 컴포넌트가 두 용도를 떠안는다** — Library 책장(다건 브라우징) + Home 트랙(1 카드 = 1 페이지 page 모드). audit §11.10 은 `Carousel` page 모드 확장을 권장하고 신규 1종도 선택지로 둔다 | **design-agent 확정 필요.** `D-14` 가 경계를 그었던 "스택 ↔ 캐러셀" 구분이 사라졌다 |
+| ⑤ | **Reading Context 가 이월되어 세션 시작 경로가 Library 쪽만 남는다** — `145:1132`·`163:1669` 의 "Start Session" 은 **Context 선택이 없다**(M-32). `D-9`(미선택 진행 가능 여부)가 이월되면 **Library 의 Start Session 규칙도 함께 미결**이 된다 | **보고 항목** — Stage 4 경계(`D-3`)와 함께 재확인 필요 |
+| ⑥ | **`AC-3-56` enum 총수 재계산** — `BookSource` 값 변경(+`card_save`, −`onboarding_home_list`) · `LibraryFilter` +`saved` | 숫자(31종)는 Library 라운드 구현 시점에 확정 |
+| ⑦ | **`AC-3-66` 의 서재·시트·책 상세 baseline 은 그대로** 유효하다 (무효는 Home 5장) | — |
+
+### 20.8 design-agent 에게 넘길 항목 (§15 에 추가)
+
+| # | 항목 | 비고 |
+|---|---|---|
+| ① | **`★ Save` 버튼 명세** — `Button/White` 87×45 고정 + `Start Session` flex(1행 유지), 아이콘 14×13 (`lucide star` vs Figma SVG export), 저장 성공·실패·(토글 채택 시) saved 상태 | `G-13` 결정 후 |
+| ② | **가로 트랙 컴포넌트 선택** — `Carousel` page 모드 확장 vs 신규 1종 | audit §11.10 권장 ⓐ |
+| ③ | **카드 뒷면 명세** — `86:482` beige 노트(코칭 문장) · 뒷면 pill n>3 처리(`A-5`, Figma 근거 없음) · flip 높이 377↔415 (audit §11.5) | `A-5` 승인 필요 |
+| ④ | **`conversation_only` 카드의 ActionBar** — Figma 에 변형이 없다 (`G-12`) | 사용자 결정 선행 |
+| ⑤ | **Library·시트·Book Select 의 `★ Save`** — `AD-S3-8` 무효 반영 | §20.7 ② |
+| ⑥ | **Figma raw 값 흡수 정책** (`A-20`) — 최우선 규칙(정확히) ↔ Stage 0 #10(스케일 흡수) 충돌. `DESIGN_TOKEN_MAP.md:316` 이 카드 padding 을 "16·18·20 → 16·20" 으로 흡수했는데 **Figma 실측은 18** 이다 | **흡수 규칙 재검토 대상** |
+| ⑦ | **Library 전수 Figma 재대조** | §20.7 ③ |
+
+### 20.9 모순·보고 항목 (고치지 않고 기록)
+
+| # | 모순 | 양쪽 내용 | 처리 |
+|---|---|---|---|
+| ① | **PRD 사본 수정 방침** | §18 ⑨ (Rev 3) = *"사본이므로 저장소에서 고치지 않는다 — OneDrive 갱신 후 사본 교체"* ↔ **`D-24`**(approvals §11.1·§11.6) = **원본·사본 동시 수정** | `D-24` 가 **나중 결정이므로 우선**. §18 ⑨ 서술을 `D-24` 기준으로 갱신했다 |
+| ② | **`AC-3-18` 과 `D-14` 의 "버튼·키보드 대체 조작"** | `D-14` 승인 근거가 *"`SwipeDeck` 은 버튼/키보드 대체 조작으로 이미 검증"* ↔ approvals §12.3 = **버튼 제거** | `D-14` 의 **Home 덱 부분이 무효**이므로 충돌이 해소된다. 다만 `SwipeDeck` **자체는 Stage 2 에서 계속 쓰인다** — 제거하지 않는다 |
+| ③ | **§1 Goal 2번 문장** | *"스와이프와 **버튼·키보드 대체 조작**으로 전 카드에 도달"* — Rev 4 와 어긋난다 | **Goal 본문은 고치지 않았다** (승인된 문안). §20.2 `AC-3-18` 이 정본이다. **보고 항목** |
+| ④ | **§1 Goal 3번 · §7.1 `promptPreview` 주석** | *"접힌 상태 표시 3개 + 확장 도달"*(N-2) ↔ Figma = **4~5개 전부 노출** | **`N-2` 의 "표시 3개 + 확장" 규격이 Figma 와 충돌한다.** approvals §12.4 는 확장 트리거 제거만 결정했고 **`N-2` 자체의 무효 여부는 결정되지 않았다** → **NEEDS DECISION**. 현재 Plan 은 Figma(전부 노출)를 따른다 |
+| ⑤ | **`A-23` 헤더 칩** | approvals §12.3 = `2 this week` 유지(Figma 불일치 기록) ↔ §12.7 = Figma 가 `2week /115 Min` 로 바뀌어 *"현행 유지 결정을 그대로 둘지 재확인 필요"* | **미결.** 최우선 규칙과 `D-6`·§8.4(비교·달성률 언어 금지)가 **정면 충돌**하는 유일한 지점이다 → **사용자 재확인 필요** |
+| ⑥ | **`AC-3-02` Out of Scope 검사** | *"`S3-R13` — G-04 요소가 '있어 보여서' 구현되는 것을 AC-3-02 로 막는다"* ↔ 이제 **`★ Save` 는 In Scope** | `AC-3-02`·`S3-R13` 의 G-04 항목에서 **"My Saved" 만 제외**해야 한다. 평점·reading plan 은 그대로 금지 — **development-agent·QA 혼동 방지용 보고 항목** |
+| ⑦ | **`DESIGN_TOKEN_MAP.md:316`** | spacing 흡수 규칙이 "16·18·20 → 16·20" ↔ Figma 카드 padding 실측 **18** | **흡수 규칙 재검토 대상**(`A-20`) — design-agent 소관 |
+
+### 20.10 승인 필요 항목 (Rev 4)
+
+| # | 항목 | 라벨 |
+|---|---|---|
+| 1 | **`★ Save` 를 온보딩 `favoriteBooks` 와 분리**하고 `child_books` 에 `saved` 축을 둔다 (§20.3) | **RECOMMENDED** |
+| 2 | 저장 경로 `PUT/DELETE /v1/children/:childId/saved-books` · **IK 불필요** · 상한 없음 · 신규 error code 0건 | **RECOMMENDED** |
+| 3 | `BookSource` += `card_save` / −`onboarding_home_list`, `LibraryFilter` += `saved` | **RECOMMENDED** |
+| 4 | **`G-12`** `conversation_only` 카드의 Save 대상 (비활성 / 미렌더) | **NEEDS DECISION** |
+| 5 | **`G-13`** Home 버튼이 토글인가 (1방향 + Library 해제 / 양방향) | **NEEDS DECISION** |
+| 6 | **`G-14`** 저장 여부 초기 표시 (ⓐ 미반영 권장 / ⓑ `ActivityCardOption.saved`) | **NEEDS DECISION** |
+| 7 | **`A-23`** 헤더 칩 `2 this week` 유지 재확인 (최우선 규칙 ↔ `D-6`·§8.4) | **NEEDS DECISION** |
+| 8 | **`N-2`**("표시 3개 + 확장")의 무효 여부 — Figma 는 전부 노출 (§20.9 ④) | **NEEDS DECISION** |
+| 9 | **`A-5`** 뒷면 pill n>3 (Figma 근거 없음) · **`A-11`** Prompt n>5 · **`A-3`** gap 6 vs 10 · **`A-19`**·**`A-20`**·**`A-22`**·**`A-24`** | **NEEDS DECISION** (audit §13) |
+| 10 | **Library 구현 착수 전 Figma 전수 재대조** 선행 (§20.7 ③) | **RECOMMENDED** |

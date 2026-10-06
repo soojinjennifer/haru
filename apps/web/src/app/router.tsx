@@ -14,6 +14,8 @@ import {
 import { authCopy } from '../features/auth';
 import { consentCopy } from '../features/consent';
 import { HomePage, HomeTopBar } from '../pages/home';
+import { LibraryPage, LibraryTopBar } from '../pages/library';
+import { ProgressPage, ProgressTopBar } from '../pages/progress';
 import { NotFoundPage } from '../pages/not-found/NotFoundPage';
 import { OnboardingSessionProvider } from '../features/onboarding-survey';
 import {
@@ -26,7 +28,9 @@ import { SettingsPage, SettingsTopBar } from '../pages/settings';
 import { ROUTES } from '../shared/config/routes';
 
 import { RouteGuard } from './guards/RouteGuard';
+import { AppTabBar } from './layouts/AppTabBar';
 import { StackLayout } from './layouts/StackLayout';
+import { TabLayout } from './layouts/TabLayout';
 
 /**
  * dev 전용 화면 (Stage 1-G) — **Production 빌드에서 완전히 제거되어야 한다**.
@@ -56,7 +60,9 @@ const DevOverlay = import.meta.env.DEV ? lazy(() => import('../dev/DevOverlay'))
  * | `/onboarding/start`      | StackLayout     | 프로필 입력 소개 (`243:1147`) — TopBar 없음 |
  * | `/onboarding/:step`      | StackLayout     | 위저드 — **TopBar 는 feature 가 렌더**(단계·문항마다 내용이 다르다) |
  * | `/onboarding/saved`      | StackLayout     | 제출 완료 — TopBar 없음 |
- * | `/`                      | StackLayout     | Home skeleton — `HomeTopBar`(워드마크 `26:39` + 설정 `26:44`) |
+ * | `/`                      | **TabLayout**   | Home 본문 — `HomeTopBar`(워드마크 + 주간 집계 칩 + 설정) |
+ * | `/library`               | **TabLayout**   | 서재 — Stage 3 1차는 탭바 마운트 자리만 |
+ * | `/progress`              | **TabLayout**   | 리포트 준비 안내 (`D-2` — 수치 0건) |
  * | `/settings`              | StackLayout     | TopBar centered — 로그아웃 1행 |
  * | `/__dev/ui/*`            | (dev 전용)      | UI gallery — dev 에서만 존재한다 |
  * | `/__dev/screens`         | (dev 전용)      | 검수용 화면 목록 — dev 에서만 존재한다 |
@@ -67,7 +73,8 @@ const DevOverlay = import.meta.env.DEV ? lazy(() => import('../dev/DevOverlay'))
  *
  * Stage 2 에 등록하지 않는 route: `/onboarding/profile` · `/onboarding/growth-capability`
  * (**Stage 2-B** — 디자이너 Figma 대기, approvals §3). `ROUTES` 에도 두지 않는다.
- * BottomTabBar 를 쓰는 TabLayout route 는 Stage 3 이다 — Home 에 탭바를 마운트하지 않는다 (#33).
+ * Stage 3 에서 `/` · `/library` · `/progress` 가 **TabLayout** 으로 바뀌며 BottomTabBar 가
+ * 처음 마운트된다 (#15 · `D-02`).
  */
 export function AppRoutes() {
   return (
@@ -246,15 +253,39 @@ export function AppRoutes() {
         />
       </Route>
       {/*
-        Home 헤더는 `variant="large"` 에 제목 없이 워드마크 + 설정만 두는 구성이라
-        다른 화면과 공유할 수 없다 → `/` 전용 layout route 다 (Design Spec §2.13).
+        ── Stage 3 탭 route 3개 ────────────────────────────────────────────────
+        `BottomTabBar` 의 **첫 실마운트**다 (#15 · `D-02`). 항목은 Library / Home(가운데) /
+        Progress 3개이며 `/session` 탭이 없다. TopBar 는 화면마다 다르므로 layout route 를
+        경로별로 둔다 (Home = 워드마크 + 집계 칩 + 설정, 서재·진행 = 대형 제목).
+
+        탭바 하단 여백은 `.haru-app-shell__bar-bottom` 한 곳이 소유한다 (§2.1 이중 계상 금지).
       */}
-      <Route element={<StackLayout topBar={<HomeTopBar />} />}>
+      <Route element={<TabLayout topBar={<HomeTopBar />} tabBar={<AppTabBar />} />}>
         <Route
           path={ROUTES.home}
           element={
             <RouteGuard>
               <HomePage />
+            </RouteGuard>
+          }
+        />
+      </Route>
+      <Route element={<TabLayout topBar={<LibraryTopBar />} tabBar={<AppTabBar />} />}>
+        <Route
+          path={ROUTES.library}
+          element={
+            <RouteGuard>
+              <LibraryPage />
+            </RouteGuard>
+          }
+        />
+      </Route>
+      <Route element={<TabLayout topBar={<ProgressTopBar />} tabBar={<AppTabBar />} />}>
+        <Route
+          path={ROUTES.progress}
+          element={
+            <RouteGuard>
+              <ProgressPage />
             </RouteGuard>
           }
         />

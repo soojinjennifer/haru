@@ -33,6 +33,17 @@ const stubClients: ApiClients = {
   books: {
     search: () => Promise.reject(new Error('not used in this test')),
   },
+  home: {
+    getSummary: () => Promise.reject(new Error('not used in this test')),
+  },
+  activities: {
+    getTodayCard: () => Promise.reject(new Error('not used in this test')),
+    selectOption: () => Promise.reject(new Error('not used in this test')),
+  },
+  library: {
+    saveBook: () => Promise.reject(new Error('not used in this test')),
+    unsaveBook: () => Promise.reject(new Error('not used in this test')),
+  },
 };
 
 function Probe() {

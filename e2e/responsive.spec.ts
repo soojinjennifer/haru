@@ -7,7 +7,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 import { FRAME_SNAPSHOT } from '../playwright.config';
-import { GALLERY, gotoStable, settle } from './support/gallery';
+import { GALLERY, gotoStable, hideDevPanel, settle } from './support/gallery';
 
 /** Design Spec §7.2 표. content = column − 2 × gutter(24). */
 const EXPECTED = [
@@ -63,6 +63,8 @@ test.describe('앱 컬럼 규칙 (min 320 / max 480 / gutter 24)', () => {
 
 test.describe('텍스트 200% 확대 reflow (AC-1-22)', () => {
   test('320px 폭에서 가로 스크롤 없이 reflow 한다', async ({ page }) => {
+    // 이 테스트만 baseline 을 남긴다 — dev 패널은 Production 에 없으므로 그림에서 뺀다.
+    await hideDevPanel(page);
     await page.setViewportSize({ width: 320, height: 568 });
     await gotoStable(page, GALLERY.frame);
 

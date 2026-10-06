@@ -29,3 +29,14 @@ export const OccurredAtFieldsSchema = z.object({
 });
 
 export type OccurredAtFields = z.infer<typeof OccurredAtFieldsSchema>;
+
+/**
+ * 달력 날짜 (`YYYY-MM-DD`) — Activity Card 의 `card_date` 처럼 **시각이 아니라 날짜**인 값.
+ * 근거: Stage 3 Plan §7.1 `ActivityCardSchema.date`, `docs/API_CONTRACTS.md` §4 Stage 3.
+ *
+ * 기준 시간대는 **서버**가 소유한다 (`caregiver_profiles.timezone`, 결정 **D-10**).
+ * Frontend 는 이 값을 그대로 신뢰하며 클라이언트에서 "오늘" 을 재판정하지 않는다.
+ */
+export const CalendarDateSchema = z.iso.date();
+
+export type CalendarDate = z.infer<typeof CalendarDateSchema>;

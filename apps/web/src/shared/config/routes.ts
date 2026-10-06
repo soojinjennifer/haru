@@ -47,6 +47,16 @@ export const ROUTES = {
     saved: '/onboarding/saved',
   },
 
+  /**
+   * Stage 3 탭 route. 탭 항목은 **Library / Home(가운데) / Progress 3개**이며 `/session` 탭은
+   * 없다 (`CONFIRMED (#15 · D-02)`).
+   *
+   * `/library` 는 Stage 3 1차에서 **탭바만** 마운트한다 (화면 내용은 다음 단계).
+   * `/progress` 는 리포트 준비 안내만 둔다 (`CONFIRMED (D-2)` — 진행도 수치 0건).
+   */
+  library: '/library',
+  progress: '/progress',
+
   /** `2-HOME` 가 화면을 등록한다. */
   settings: '/settings',
 

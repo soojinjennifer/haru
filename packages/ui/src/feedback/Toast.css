@@ -15,7 +15,15 @@
 }
 
 .haru-toast-viewport--tabbar {
-  inset-block-end: calc(var(--layout-safe-bottom) + var(--space-4) + var(--layout-tabbar-height));
+  /*
+   * 중앙 버튼 overhang 을 더한다 (Stage 3 Design Spec §2.1 실측 — 기존 식이면 Toast 하단이
+   * `y=726`, 중앙 버튼 상단이 `y=707` 로 **19px 겹친다**. `--z-toast`(60) > `--z-tabbar`(20)
+   * 이라 Toast 가 홈 버튼을 덮는다). `AD-S3-14`.
+   */
+  inset-block-end: calc(
+    var(--layout-safe-bottom) + var(--space-4) + var(--layout-tabbar-height) +
+      var(--layout-tabbar-center-overhang)
+  );
 }
 
 .haru-toast {

@@ -8,7 +8,9 @@
  *
  * 2026-09-22 승인으로 **P-03 · P-06 · P-07 · P-08 · P-09 · P-11 · P-12 · P-13 · P-14 · P-15**
  * 10 항목이 현재 값 그대로 확정되어 `provisional` 주석을 제거했다(값 변경 없음).
- * 남은 가값은 **P-01 · P-02 · P-04 · P-05 · P-16** 5 항목뿐이다.
+ * 남은 가값은 **P-01 · P-02 · P-04 · P-05 · P-16** 5 항목이었고, Stage 3 에서
+ * **P-23**(`--color-prompt-tag-fg` — Prompt 단계·페이지 배지 흰 라벨 1.72:1)이 신설되어
+ * **6 항목**이다 (`stage-3-approvals.md` §9.2 ⑫ · Stage 3 Design Spec §6.4).
  * P-10 은 토큰이 아니라 화면 명세이므로 대상이 아니다.
  *
  * 아래 EXPECTED 는 §3.6 위치표에서 남은 5 항목만 옮긴 것이다.
@@ -79,6 +81,12 @@ const EXPECTED: Record<string, { file: string; tokens: string[] }[]> = {
     },
   ],
   'P-05': [{ file: 'src/semantic/color.css', tokens: ['--color-scrim'] }],
+  /*
+   * Stage 3 신설 — `stage-3-approvals.md` §9.2 ⑫ · Design Spec §6.4.
+   * `P-02`(역량 색 4종 위 흰 라벨)에 **흡수하지 않는다**: 대상이 Prompt 배지 전용이고
+   * 역량 팔레트 변경으로 해소되지 않아 교체 조건이 다르다.
+   */
+  'P-23': [{ file: 'src/semantic/color.css', tokens: ['--color-prompt-tag-fg'] }],
   'P-16': [
     {
       file: 'src/semantic/space.css',
@@ -146,14 +154,14 @@ const actualPairs = declarations
   .sort();
 
 describe('provisional 주석 ↔ 남은 가값 목록 (AC-1-12 · approvals §9)', () => {
-  it('항목이 5건이다 (P-01 · P-02 · P-04 · P-05 · P-16)', () => {
+  it('항목이 6건이다 (P-01 · P-02 · P-04 · P-05 · P-16 · P-23)', () => {
     const items = [...new Set(declarations.map((d) => d.provisional).filter(Boolean))].sort();
-    expect(items).toEqual(['P-01', 'P-02', 'P-04', 'P-05', 'P-16']);
-    expect(items).toHaveLength(5);
+    expect(items).toEqual(['P-01', 'P-02', 'P-04', 'P-05', 'P-16', 'P-23']);
+    expect(items).toHaveLength(6);
   });
 
-  it('EXPECTED 표 자체가 남은 5 항목만 담는다 (표를 늘려 검사를 우회하지 못한다)', () => {
-    expect(Object.keys(EXPECTED).sort()).toEqual(['P-01', 'P-02', 'P-04', 'P-05', 'P-16']);
+  it('EXPECTED 표 자체가 남은 6 항목만 담는다 (표를 늘려 검사를 우회하지 못한다)', () => {
+    expect(Object.keys(EXPECTED).sort()).toEqual(['P-01', 'P-02', 'P-04', 'P-05', 'P-16', 'P-23']);
     for (const item of CONFIRMED_2026_09_22) {
       expect(EXPECTED[item]).toBeUndefined();
     }
@@ -190,9 +198,7 @@ describe('provisional 주석 ↔ 남은 가값 목록 (AC-1-12 · approvals §9)
     const files = [...new Set(declarations.filter((d) => d.provisional).map((d) => d.file))];
     expect(files.length).toBeGreaterThan(0);
     for (const item of Object.keys(EXPECTED)) {
-      expect(`/* provisional: ${item} (docs/decisions/stage-0-approvals.md §4) */`).toMatch(
-        /^\/\* provisional: P-\d{2} \(docs\/decisions\/stage-0-approvals\.md §4\) \*\/$/,
-      );
+      expect(item).toMatch(/^P-\d{2}$/);
     }
   });
 });

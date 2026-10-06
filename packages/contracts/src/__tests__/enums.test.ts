@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ActivityOptionKindSchema,
+  AgeBandSchema,
   AnalysisJobStatusSchema,
   AnalysisOutcomeSchema,
   BookOwnershipSchema,
@@ -21,6 +22,8 @@ import {
   OnboardingStepSchema,
   ParentVerificationStatusSchema,
   PlanSchema,
+  PromptKindSchema,
+  PromptPhaseSchema,
   ReadingContextSchema,
   ReportEligibilitySchema,
   ReportStatusSchema,
@@ -33,7 +36,9 @@ import {
 
 /**
  * enum 값 스냅샷 — `docs/API_CONTRACTS.md` §2.1 · §2.2 표와 **정확히** 일치해야 한다
- * (Stage 1 Plan §11.6 AC-1-31 "enum 값 스냅샷 23종" → Stage 2 Plan §11.8 AC-2-47 로 **26종**).
+ * (Stage 1 Plan §11.6 AC-1-31 "enum 값 스냅샷 23종" → Stage 2 Plan §11.8 AC-2-47 로 **26종**
+ * → Stage 3 Plan §7.1 로 **29종**: `AgeBand` · `PromptKind` 는 §2.2 표에 없던 추가분(보고 ④),
+ * `PromptPhase` 는 **D-8** 승인으로 신설되었다).
  * 값·순서를 바꾸려면 문서를 함께 갱신한다.
  */
 interface EnumSnapshot {
@@ -147,7 +152,8 @@ const ENUM_SNAPSHOTS: readonly EnumSnapshot[] = [
   {
     name: 'ActivityOptionKind',
     options: ActivityOptionKindSchema.options,
-    expected: ['book', 'reread_book', 'conversation_only'],
+    // `conversation_only` 는 approvals §12.12 로 **폐지**되었다 (SessionMode 쪽은 유지).
+    expected: ['book', 'reread_book'],
   },
   {
     name: 'BookOwnership',
@@ -203,11 +209,26 @@ const ENUM_SNAPSHOTS: readonly EnumSnapshot[] = [
       'report_delayed',
     ],
   },
+  {
+    name: 'AgeBand',
+    options: AgeBandSchema.options,
+    expected: ['3_4', '5_6', '7_9'],
+  },
+  {
+    name: 'PromptKind',
+    options: PromptKindSchema.options,
+    expected: ['question', 'follow_up'],
+  },
+  {
+    name: 'PromptPhase',
+    options: PromptPhaseSchema.options,
+    expected: ['pre', 'post'],
+  },
 ];
 
 describe('enums — API_CONTRACTS §2 값 스냅샷', () => {
-  it('Stage 1 이 확정하는 enum 은 23 종이다', () => {
-    expect(ENUM_SNAPSHOTS).toHaveLength(26);
+  it('Stage 3 까지 확정된 enum 은 29 종이다', () => {
+    expect(ENUM_SNAPSHOTS).toHaveLength(29);
   });
 
   it.each(ENUM_SNAPSHOTS)('$name 의 값과 순서가 문서와 일치한다', ({ options, expected }) => {

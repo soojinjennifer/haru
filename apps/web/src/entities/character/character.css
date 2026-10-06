@@ -57,8 +57,19 @@
   display: block;
   flex: 0 1 auto;
   min-block-size: 0;
+}
+
+.haru-character-illustration--default {
   inline-size: min(100%, var(--size-illustration-max));
   margin-inline: auto;
+}
+
+/*
+ * `stage` — 폭 상한이 없다. bleed 기하는 부모(`.haru-home-stage__character`)가 소유한다
+ * (Stage 3 Design Spec §2.2). 세로비는 그대로이므로 여기에도 고정 높이가 없다.
+ */
+.haru-character-illustration--stage {
+  inline-size: 100%;
 }
 
 .haru-character-illustration img {
@@ -67,6 +78,12 @@
   block-size: auto;
   max-block-size: 100%;
   object-fit: contain;
+}
+
+/* 배경 레이어는 상한 없이 폭을 채운다 — `max-block-size` 제약을 걷어낸다. */
+.haru-character-illustration--stage img {
+  max-block-size: none;
+  object-fit: cover;
 }
 
 /*

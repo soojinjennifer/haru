@@ -1,0 +1,378 @@
+/*
+ * Activity Card 도메인 CSS — Figma `163:2649`(앞면) · `86:482`(뒷면) 실측 2026-10-05.
+ *
+ * ── 1차 구현에서 바뀐 규칙 (approvals §12, audit §16) ──
+ *  ① **높이를 고정한다.** 앞면 409 · 뒷면 415 는 Figma 실측이고, flip 컨테이너 415 가 둘을
+ *     모두 담는다. `AD-S3-3`("고정 높이 금지")은 §18.1 로 무효가 되었다 — 겹침 결함 방어는
+ *     "ActionBar 를 흐름에 둔다"가 담당한다 (Figma 는 `absolute bottom-12.78` 로 4번째 pill 을
+ *     17px 덮는 결함이 있다).
+ *  ② **본문 블록에만 `overflow-y: auto`.** 개수 상한이 없으므로(`D-21`) 설계치를 넘으면
+ *     목록만 스크롤한다 — 트랙 높이는 절대 바뀌지 않는다 (`A-5`·`A-11`).
+ *     ⚠ 카드 **바깥**에는 여전히 클리핑 박스를 만들지 않는다 (그림자 절단 방지 — §0.4).
+ *  ③ `touch-action` 을 쓰지 않는다. 덱이 가로 scroll-snap 트랙이 되어 제스처를 가로채는
+ *     코드가 사라졌다 (`SwipeDeck` 미사용).
+ */
+
+/* ===== flip 컨테이너 ===================================================== */
+
+.haru-activity-card-flip {
+  position: relative;
+  box-sizing: border-box;
+  block-size: var(--activity-card-track-size);
+  perspective: 1200px;
+}
+
+.haru-activity-card-flip__inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition-property: transform;
+  transition-duration: var(--motion-duration-slow);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+.haru-activity-card-flip[data-face='back'] .haru-activity-card-flip__inner {
+  transform: rotateY(180deg);
+}
+
+/*
+ * 두 면 모두 **하단 정렬**이다. 높이가 달라도 카드 하단 모서리가 같은 자리에 있어야
+ * dots·탭바·캐릭터가 뒤집기 중에 움직이지 않는다 (audit §16.3).
+ */
+.haru-activity-card-flip__face {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  backface-visibility: hidden;
+}
+
+.haru-activity-card-flip__face--front {
+  block-size: var(--activity-card-size);
+}
+
+.haru-activity-card-flip__face--back {
+  block-size: var(--activity-card-back-size);
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .haru-activity-card-flip__inner {
+    transition: none;
+  }
+}
+
+/* ===== 카드 공통 ========================================================= */
+
+.haru-activity-card {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding-inline: var(--activity-card-pad);
+  padding-block-start: var(--activity-card-pad);
+  border-radius: var(--radius-card);
+}
+
+/* 앞면 — `color/white/ 82%` + blur 12 + HARU/Glass Rest (Figma `163:2649`) */
+.haru-activity-card--front {
+  gap: var(--activity-card-row-gap);
+  padding-block-end: var(--activity-card-pad-bottom);
+  background-color: var(--color-surface-card);
+  backdrop-filter: blur(var(--material-blur-md));
+  box-shadow: var(--shadow-glass-rest);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .haru-activity-card--front {
+    background-color: var(--material-glass-fill-fallback);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .haru-activity-card--front {
+    background-color: var(--material-glass-fill-fallback);
+    backdrop-filter: none;
+  }
+}
+
+/* 뒷면 — `color/spring green/86` 불투명 면 (Figma `86:482`). glass 가 아니다. */
+.haru-activity-card--back {
+  gap: var(--activity-card-back-gap);
+  padding-block-end: var(--activity-card-back-pad-bottom);
+  background-color: var(--color-surface-spring);
+  box-shadow: var(--shadow-glass-rest);
+}
+
+/* ===== 1행 — Cardtitle (block-size 26) =================================== */
+
+.haru-activity-card__header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  block-size: var(--activity-card-title-size);
+}
+
+/*
+ * flip 버튼 — 시각 24×24 (Figma), 터치 타깃 44×44 는 `::before` 로 확장한다
+ * (IconButton 과 같은 규칙, §9.3). `IconButton`(38×38 고정)을 쓰지 않는 이유다.
+ */
+.haru-activity-card__flip {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--activity-card-flip-size);
+  block-size: var(--activity-card-flip-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--activity-card-flip-color);
+  cursor: pointer;
+}
+
+.haru-activity-card__flip::before {
+  content: '';
+  position: absolute;
+  inset: calc((var(--activity-card-flip-size) - var(--size-touch-min)) / 2);
+  border-radius: var(--radius-pill);
+}
+
+/* ===== 2행 — Book (block-size 82, gap 14) ================================ */
+
+.haru-activity-card__book {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--activity-card-book-gap);
+  block-size: var(--activity-card-book-size);
+}
+
+.haru-activity-card__book-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  /* 긴 제목이 표지를 밀어내지 않게 한다. 폭은 남는 자리를 쓴다. */
+  min-inline-size: 0;
+}
+
+/*
+ * `V-14` — Figma `85:540`(Bold 17 / **20.4**) · `85:542`(Regular 12 / **15.6**).
+ * 토큰 스케일(22 / 16)과 ≤1.6px 차이지만 세 줄이 겹쳐 책 블록 82 안의 배분이 달라진다.
+ */
+.haru-activity-card__book-text .haru-text--headline {
+  line-height: var(--activity-card-book-title-line);
+}
+
+.haru-activity-card__book-text .haru-text--caption-1 {
+  line-height: var(--activity-card-book-author-line);
+}
+
+/* 표지는 Figma `85:536` 규격 — 58×82, radius 10, drop + inset highlight */
+.haru-activity-card__book .haru-book-cover {
+  block-size: var(--activity-card-book-size);
+  border-radius: var(--activity-card-cover-radius);
+  box-shadow: var(--activity-card-cover-shadow);
+}
+
+.haru-activity-card__book .haru-book-cover img {
+  border-radius: var(--activity-card-cover-radius);
+}
+
+/* ===== 3행 — Prompt 목록 (block-size 186, pill 4개) ====================== */
+
+.haru-prompt-preview {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--prompt-pill-gap);
+  min-block-size: 0;
+  /* n > 4 에서만 실제로 스크롤한다. Figma 설계치(4)에서는 스크롤이 생기지 않는다. */
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+/* ===== 4행 — ActionBar (block-size 45, gap 8) ============================ */
+
+.haru-activity-card__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--activity-card-action-gap);
+  block-size: var(--activity-card-action-size);
+}
+
+/*
+ * `Start Session` 은 **남는 폭을 전부** 쓴다. Figma 235 는 393 전용 값이고, 고정하면 320 에서
+ * ActionBar 가 2행이 되어 카드가 탭바를 덮는다 (`AC-3-06` M-01 Critical 의 원인).
+ * 라벨·padding 은 Figma `I86:373;86:369` 규격으로 덮어쓴다 (공유 `Button` 은 `17:20` 규격이다).
+ */
+.haru-activity-card__actions .haru-button {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  padding-inline: var(--activity-card-action-pad-inline);
+  font-size: var(--activity-card-action-label-size);
+  line-height: var(--activity-card-action-label-line);
+}
+
+/* `★ Save` — Figma `I86:373;117:973` `Button/White` */
+.haru-activity-card__save {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: var(--activity-card-save-gap);
+  box-sizing: border-box;
+  min-inline-size: var(--activity-card-save-size);
+  block-size: var(--activity-card-action-size);
+  padding-inline: var(--activity-card-save-pad-inline);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background-color: var(--activity-card-save-bg);
+  box-shadow: var(--shadow-glass-rest);
+  color: var(--color-action-secondary-fg);
+  font-family: var(--font-sans);
+  font-size: var(--activity-card-action-label-size);
+  line-height: var(--activity-card-action-label-line);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* 별은 14×13 **비정사각**이라 Icon 의 16/20/24 박스를 쓰지 않는다 (audit §16.1). */
+.haru-activity-card__save .haru-icon {
+  inline-size: var(--activity-card-save-icon-inline-size);
+  block-size: var(--activity-card-save-icon-block-size);
+  color: var(--activity-card-save-star-color);
+}
+
+/* ===== 뒷면 본문 (Figma `86:482` 52…408) ================================= */
+
+.haru-activity-card__back-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--activity-card-back-gap);
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+.haru-activity-card__back-item {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--activity-card-back-gap);
+}
+
+/* ===== PromptPill (Figma `139:2439`) ====================================
+ * 높이는 **최소값**이다 (고정 높이 금지). Figma 는 pill 42 = padding 9+9 + 본문 2줄×12 이고,
+ * 1줄짜리 질문에서도 42 가 유지되도록 최소값을 쓴다.
+ */
+
+.haru-prompt-pill {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  gap: var(--prompt-phase-tag-gap);
+  box-sizing: border-box;
+  min-block-size: var(--prompt-pill-height-min);
+  padding-inline: var(--prompt-pill-pad-inline);
+  padding-block: var(--prompt-pill-pad-block);
+  border-radius: var(--radius-pill);
+}
+
+.haru-prompt-pill .haru-text {
+  font-size: var(--prompt-pill-text-size);
+  line-height: var(--prompt-pill-text-line);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-action-secondary-fg);
+}
+
+/*
+ * ★ `V-1`·`V-2` — 테두리를 **`box-shadow: inset`** 으로 그린다.
+ *
+ * `border` 는 padding box **바깥**에 붙어 높이에 2px 를 더한다. Figma 의 stroke 는 높이에
+ * 더해지지 않으므로 2줄 pill 이 42 여야 하는데 구현은 44 가 되고, 그 결과 Prompt 영역이
+ * 42+6+44+6+44+6+44 = **192 > 186** 이 되어 **4번째 pill 하단 테두리가 6px 잘렸다**
+ * (320px 에서는 5개 전부 44 라 244 vs 186 으로 더 커진다).
+ *
+ * `inset box-shadow` 는 레이아웃에 기여하지 않으므로 2줄 = 9+24+9 = **42** 가 되고
+ * 186 에 pill 4개가 정확히 들어간다. `border-radius` 도 그대로 따라간다.
+ * ⚠ pill 에는 다른 그림자가 없다 — 이 선언이 유일하므로 겹치지 않는다
+ *   (카드 그림자는 `.haru-activity-card--front`, Save 는 `.haru-activity-card__save` 가 소유).
+ */
+.haru-prompt-pill--outline {
+  box-shadow: inset 0 0 0 1px var(--color-border-subtle);
+}
+
+.haru-prompt-pill--tinted {
+  background-color: var(--color-surface-solid);
+}
+
+/*
+ * 단계·페이지 배지 (§5.4.1) — 배지는 **첫 줄에 세로 정렬**하고 줄어들지 않는다.
+ * 질문이 2줄이 되어도 배지가 세로 중앙으로 내려가지 않는다.
+ */
+.haru-prompt-pill__badges {
+  display: inline-flex;
+  flex: none;
+  align-self: flex-start;
+  gap: var(--space-1);
+}
+
+/*
+ * 배지 색은 **역량 색 토큰을 재사용하지 않는다** — 같은 cyan 이지만 "cyan = Cognitive
+ * Flexibility"(#19) 라는 의미가 Prompt 배지로 번지면 안 된다 (§6.2 분리 근거, §13.2 ⑪).
+ * 기하는 Figma `Pagetag` 실측(h22 · 12/12)이며 `Tag` 의 xs(19 · 11/13)와 다르다.
+ */
+.haru-prompt-pill__badges .haru-tag {
+  block-size: var(--prompt-tag-size);
+  padding-inline: var(--activity-card-tag-pad-inline);
+  background-color: var(--prompt-phase-tag-bg);
+  color: var(--prompt-phase-tag-fg);
+  font-size: var(--prompt-pill-text-size);
+  line-height: var(--prompt-pill-text-line);
+  font-weight: var(--font-weight-semibold);
+}
+
+/*
+ * `V-4` — 카드 헤더의 역량 배지도 Figma `I163:2649;85:593;85:585` 규격이다:
+ * padding 13 / 7 · SF Pro **Semibold 12 / line-height 12** (7+12+7 = 높이 26).
+ * 공유 `Tag` 는 `17:20` 계열 규격(padding 12 · line-height 16 · weight 400)이라
+ * 전역으로 바꾸면 다른 화면이 따라 움직인다 → **카드 안에서만** 덮어쓴다.
+ */
+.haru-activity-card__header .haru-tag {
+  padding-inline: var(--activity-card-tag-pad-inline);
+  line-height: var(--activity-card-tag-line);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ===== CoachingNote (Figma `86:246` beige) =============================== */
+
+.haru-coaching-note {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.haru-activity-card__back-item .haru-surface {
+  padding-block: var(--activity-card-note-pad-block);
+  padding-inline: var(--activity-card-note-pad-inline);
+}
+
+/* ===== PromptSetView (§2.5) ============================================== */
+
+.haru-prompt-set {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.haru-prompt-set__follow-ups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}

@@ -1,0 +1,124 @@
+/*
+ * Home 본문 — Figma `26:21` 실측 2026-10-05 (audit §11.1 · §11.8, §16.0).
+ *
+ * 캐릭터는 **배경 레이어**(절대 배치)이고 흐름 콘텐츠가 그 위에 얹힌다. `z-index` 를 쓰지 않고
+ * DOM 순서로 해결한다. **`overflow` 를 선언하지 않는다** — 유일한 클리핑 박스는 가로 트랙이고,
+ * 여기에 또 만들면 카드 그림자가 잘린다 (§0.4).
+ */
+
+.haru-home-stage {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+/*
+ * 캐릭터 `26:22` — (24, 29) **357 × 442**.
+ *  - 가로: 앱 컬럼 leading edge 에서 시작해 trailing edge 를 12 넘어간다
+ *    (393 에서 345 + 12 = 357 ✓). 1차의 좌우 bleed(441)는 사라졌다.
+ *  - 세로: 앱 컬럼 상단에서 29. 헤더가 흐름의 첫 블록이므로 그만큼 올려 잡는다.
+ *  - 비율 0.8077 은 1차(0.7875)와 다르다 → 에셋을 재export 했다 (`object-fit: cover`).
+ */
+.haru-home-stage__character {
+  position: absolute;
+  inset-block-start: calc(var(--home-character-top) - var(--home-header-block-size));
+  inset-inline-start: 0;
+  inline-size: calc(100% + var(--home-character-overhang));
+  aspect-ratio: var(--home-character-aspect);
+}
+
+.haru-home-stage__content {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  /* 헤더 48 → 버블 51 */
+  padding-block-start: var(--home-bubble-pad-block-start);
+  /*
+   * dots 하단(724) → 탭바 상단(766) = **42**. 그중 **35** 는 탭바 래퍼가 중앙 버튼 overhang
+   * 으로 이미 확보하고 있으므로(`.haru-app-shell__bar-bottom` padding-block-start) 여기서는
+   * 나머지만 더한다 — 더하면 35px 이 이중 계상되어 카드가 그만큼 위로 뜬다.
+   */
+  padding-block-end: calc(var(--home-indicator-bottom-gap) - var(--layout-tabbar-center-overhang));
+}
+
+/* 버블은 컬럼 leading edge + 15 = Figma x39 (`A-19`). */
+.haru-home-stage__bubble {
+  display: flex;
+  flex: none;
+  justify-content: flex-start;
+  margin-inline-start: var(--home-bubble-offset);
+}
+
+.haru-home-stage__bubble .haru-bubble {
+  inline-size: var(--home-bubble-size);
+  max-inline-size: 100%;
+}
+
+/*
+ * 버블 ↔ 트랙: 남는 높이를 흡수한다. 고정 높이가 아니므로 텍스트 200% 에서도 reflow 가 산다.
+ * 콘텐츠가 뷰포트보다 길어지면 0 이 되고 바깥 스크롤이 받는다.
+ */
+.haru-home-stage__spacer {
+  flex: 1 1 auto;
+  min-block-size: 0;
+}
+
+/* ===== 헤더 밴드 (Figma `26:21` 상단) ====================================
+ * 총 높이 48 = 상단 여백 10 + IconButton 38. `TopBar` 공통 높이(40)를 바꾸지 않고
+ * Home 에서만 밴드를 만든다 — 다른 화면 헤더가 따라 움직이면 안 된다.
+ */
+.haru-home-top-bar {
+  padding-block-start: var(--home-header-pad-block-start);
+}
+
+.haru-home-top-bar .haru-top-bar {
+  min-block-size: var(--icon-button-size);
+}
+
+/*
+ * `V-5` 워드마크 `26:39` — web (26, 19) 64×25.
+ * 밴드(10…48) 안에서 **위 9 / 아래 4** 로 비대칭이라 세로 가운데 정렬로는 재현되지 않는다.
+ * 그래서 leading 을 위 정렬로 바꾸고 offset 을 직접 준다.
+ */
+.haru-home-top-bar .haru-top-bar__leading {
+  /*
+   * `TopBar` 는 grid 행을 `align-items: center` 로 두므로 leading 상자 자체가 행 안에서
+   * 가운데로 내려간다. 상자를 행 높이(38)에 맞춰 늘려야 아래 offset 9 가 **밴드 상단(10)**
+   * 기준이 되어 Figma y19 가 나온다.
+   */
+  align-self: stretch;
+  align-items: flex-start;
+}
+
+.haru-home-top-bar .haru-top-bar__leading > .haru-text {
+  margin-block-start: var(--home-wordmark-offset-block);
+  margin-inline-start: var(--home-wordmark-offset-inline);
+  line-height: var(--home-wordmark-line);
+}
+
+/*
+ * `V-6` Streak 칩 `26:40` — **145×34**, icon 13×13 @ x14, gap 6, text 16.
+ * ⚠ **문구는 `2 this week` 를 유지**한다 (`A-23` 사용자 결정) — 기하만 Figma 를 따르므로
+ * 폭은 hug 다. 공유 `Tag`(높이 26 · padding 12 · icon 16)를 전역으로 바꾸지 않는다.
+ */
+.haru-home-top-bar .haru-tag {
+  block-size: var(--home-chip-block-size);
+  padding-inline: var(--home-chip-pad-inline);
+}
+
+.haru-home-top-bar .haru-tag__icon,
+.haru-home-top-bar .haru-tag__icon .haru-icon {
+  inline-size: var(--home-chip-icon-size);
+  block-size: var(--home-chip-icon-size);
+}
+
+/*
+ * `A-23`-icon (approvals §13.2) — 글리프는 Figma `50:161` 이고 **색도 Figma 를 따른다**
+ * (`#d0cca1`). `Tag` 는 아이콘 색을 정하지 않고 `currentColor` 를 흘리므로 사용 지점이 준다.
+ * 라벨 색(`--color-fg-primary`)은 그대로 둔다 — 칩에서 색이 다른 건 아이콘뿐이다.
+ */
+.haru-home-top-bar .haru-tag__icon {
+  color: var(--home-chip-icon-color);
+}

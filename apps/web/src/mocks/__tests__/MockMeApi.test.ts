@@ -106,15 +106,35 @@ describe('scenario 별 Guard 입력', () => {
     expect(me.onboardingStatus).toBe('in_progress');
   });
 
-  it('어떤 scenario 도 아동 데이터를 담지 않는다 (AC-2-13)', async () => {
+  /*
+   * ⚠ Stage 3 에서 **의도적으로 바뀐 단언**이다 (회귀가 아니다).
+   *
+   * Stage 2 는 "어떤 scenario 도 `child` 를 담지 않는다" 였다 — 당시에는 아이가 생기는 지점이
+   * 없었기 때문이다. Stage 3 의 아동 범위 endpoint(`…/home` · `…/activity-cards/today`)가
+   * `:childId` 를 받으므로 **온보딩 완료 이후에는** `GET /v1/me` 가 아이 참조를 담는다
+   * (contract `MeChildRefSchema` — 이미 Stage 2 에 정의되어 있던 optional 필드다).
+   *
+   * AC-2-13 의 실제 불변식은 "**동의·온보딩 전 구간**에 아동 데이터 0건" 이므로 그 경계를
+   * 그대로 검사한다. 노출 범위도 함께 고정한다 — **first name 뿐**이고 `lastName` 은 없다 (C-6).
+   */
+  it('온보딩 완료 전에는 아동 데이터를 담지 않는다 (AC-2-13)', async () => {
     for (const scenario of ME_SCENARIO_KEYS) {
       if (['error', 'offline', 'retry', 'token-expired'].includes(scenario)) continue;
 
       const { api } = makeApi(scenario);
       const me = await api.get();
 
+      if (me.onboardingStatus === 'completed') continue;
       expect(me.child).toBeUndefined();
     }
+  });
+
+  it('온보딩 완료 scenario 는 first name 만 담는다 (C-6 — lastName 금지)', async () => {
+    const { api } = makeApi('success');
+    const me = await api.get();
+
+    expect(me.onboardingStatus).toBe('completed');
+    expect(Object.keys(me.child ?? {}).sort()).toStrictEqual(['firstName', 'id']);
   });
 });
 

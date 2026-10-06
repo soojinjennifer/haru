@@ -18,9 +18,13 @@
 @import '@haru/ui/styles.css';
 @import '../app/layouts/app-shell.css';
 @import '../entities/character/character.css';
+@import '../entities/book/book.css';
+@import '../entities/activity-card/activity-card.css';
 @import '../features/auth/auth.css';
 @import '../features/consent/consent.css';
 @import '../features/onboarding-survey/onboarding.css';
+@import '../features/home-overview/home-overview.css';
+@import '../features/activity-card-deck/activity-card-deck.css';
 
 /*
  * 앱 셸 기본값. 값은 전부 semantic token 이며 리터럴 수치를 쓰지 않는다.

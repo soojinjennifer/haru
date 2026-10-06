@@ -43,6 +43,22 @@
     inset 0 1.5px 0 var(--haru-white-a90),
     inset 0 -1px 0 color-mix(in srgb, var(--haru-ink-600) 5%, transparent);
 
+  /*
+   * 말풍선 — Figma `261:1293` 인스턴스가 실제로 렌더하는 그림자다.
+   * Effect Style 이름은 `HARU/Shadow Rest` 지만 인스턴스는 **첫 drop 1겹 + inset 2겹**만
+   * 그린다 (`get_design_context` 원문 `shadow-[0px_6px_4px_0px_rgba(94,115,112,0.08)]`).
+   * `--shadow-rest`(drop 3겹)를 쓰면 버블 주위가 Figma 보다 짙어진다 (`V-10`).
+   */
+  --shadow-bubble:
+    0 6px 4px color-mix(in srgb, var(--haru-ink-600) 8%, transparent),
+    inset 0 1.5px 0 var(--haru-white-a90),
+    inset 0 -1px 0 color-mix(in srgb, var(--haru-ink-600) 5%, transparent);
+
+  /* 책 표지 — Figma `163:2649` `85:536` (drop 0 6px 14px 28% + inset highlight 50%) */
+  --shadow-cover:
+    0 6px 14px color-mix(in srgb, var(--haru-ink-600) 28%, transparent),
+    inset 0 1px 0 var(--haru-white-a50);
+
   /* HARU/Icon Chip */
   --shadow-icon-chip:
     0 4px 10px color-mix(in srgb, var(--haru-ink-600) 10%, transparent),

@@ -168,6 +168,15 @@ describe('세션 만료 2회 실패 → /auth/log-in (AC-2-07)', () => {
       submit: () => Promise.reject(new Error('not used')),
     },
     books: { search: () => Promise.reject(new Error('not used')) },
+    home: { getSummary: () => Promise.reject(new Error('not used')) },
+    activities: {
+      getTodayCard: () => Promise.reject(new Error('not used')),
+      selectOption: () => Promise.reject(new Error('not used')),
+    },
+    library: {
+      saveBook: () => Promise.reject(new Error('not used')),
+      unsaveBook: () => Promise.reject(new Error('not used')),
+    },
   };
 
   function wrapper({ children }: { children: ReactNode }) {

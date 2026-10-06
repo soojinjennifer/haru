@@ -10,10 +10,26 @@
 |---|---|
 | Major Stage | **Stage 3** — Home · Activity Card · Library · Book Selection · Recommendation |
 | Stage Status | `IN_PROGRESS` — 사용자 승인으로 착수 (2026-09-28) |
-| Next Step | **승인 체크포인트 — STOP.** design 단계 선행 결정 필요 (C-13 8건 · D-1·D-4·D-5·D-6) |
+| Next Step | **승인 체크포인트 — STOP.** Plan·Design Spec 이 아직 `DRAFT` 다. 결정 D-1~D-23 은 전건 승인됐으나 **두 문서에 대한 승인 발화가 없다** (`rules/workflow.md` §3 · Stage 0 #24 — "Stage 수행 요청은 승인이 아니다") |
 | Queue 파일 | `docs/workflow/stage-3/QUEUE.md` (plan·design 승인 후 생성) |
 | QA Fix Loop 횟수 | 0 / 3 |
-| 마지막 갱신 | 2026-09-29 (Stage 3 Plan 작성 완료 · design 선행 결정 대기) |
+| 마지막 갱신 | **2026-10-05** — Stage 2 재구성(설문 4단계·16카드 · 카드 좌우 버튼) 완료·QA PASS·푸시. Stage 3 문서 정합 확인(삭제 contracts·옛 step 이름 참조 0건, PRD v1.5, `SwipeDeck` 변경 무영향) |
+
+### 끼어든 작업 — Stage 2 재구성 (2026-10-03 ~ 10-05, 완료)
+
+Stage 3 착수 전에 사용자 지시로 **Stage 2 온보딩 설문을 재구성**했다. Stage 3 범위가 아니다.
+
+| 항목 | 결과 |
+|---|---|
+| 구성 | 설문 **4단계 · 16카드**(Trial 15), 카운터 `n / 16`, 한 카드 = 한 문항 |
+| 결정 | `stage-3-approvals.md` §11 (R-01~R-13 · S2R-OPEN-* · S2-FIX-1~4 · D-24·D-25) |
+| QA | **PASS** (3회차). `AC-2R-01`~`15` + 결함 3건 |
+| PRD | **v1.5** — 15건 적용, OneDrive 원본·사본 동일 확인 |
+| 검증 | `test` 1103 · `test:e2e` **159** |
+| 커밋 | `b58990a` · `fddc6a0` · `56d1a7a` · `2516996` (전부 push 완료) |
+| 검수 도구 | `/__dev/screens` — 화면 목록 + Guard 뱃지 + 시나리오 링크 (dev 전용) |
+
+사용자 검수 완료 (2026-10-05).
 
 ## 2-0. Step 진행 기록 (Stage 3)
 

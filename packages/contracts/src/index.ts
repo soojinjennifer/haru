@@ -14,6 +14,7 @@
  * 나머지 도메인 schema(sessions · recordings · analysis · reports · data-management ·
  * notifications)는 해당 Stage 에서 추가한다.
  */
+export * from './activity/index.js';
 export * from './auth/index.js';
 export * from './books/index.js';
 export * from './children/index.js';
@@ -21,6 +22,9 @@ export * from './common/index.js';
 export * from './consent/index.js';
 export * from './enums/index.js';
 export * from './health/index.js';
+export * from './home/index.js';
+export * from './library/index.js';
 export * from './me/index.js';
 export * from './onboarding/index.js';
+export * from './prompts/index.js';
 export * from './rules/index.js';

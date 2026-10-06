@@ -20,6 +20,15 @@ export interface TextLinkProps {
    * 문구는 소비자가 소유하므로 `external` 일 때 반드시 준다.
    */
   externalHint?: string;
+  /**
+   * **disclosure(펼침) 트리거**로 쓸 때의 상태 — `<button>` 경로에서만 의미가 있다
+   * (Stage 3 Design Spec §5.1.1 "트리거 컴포넌트 = 기존 `TextLink`" + `aria-expanded`).
+   *
+   * 이동이 아니라 상태 전환이므로 `href` 와 함께 쓰지 않는다.
+   */
+  expanded?: boolean;
+  /** 이 트리거가 펼치는 영역의 id (`aria-controls`). `expanded` 와 함께 준다. */
+  controls?: string;
 }
 
 /**
@@ -36,6 +45,8 @@ export function TextLink({
   tone = 'default',
   external = false,
   externalHint,
+  expanded,
+  controls,
 }: TextLinkProps) {
   if (external && externalHint === undefined) {
     devWarn('TextLink', 'missing-external-hint', 'external');
@@ -61,7 +72,13 @@ export function TextLink({
 
   if (href === undefined) {
     return (
-      <button type="button" className={className} onClick={onPress}>
+      <button
+        type="button"
+        className={className}
+        aria-expanded={expanded}
+        aria-controls={controls}
+        onClick={onPress}
+      >
         {content}
       </button>
     );

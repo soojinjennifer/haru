@@ -18,9 +18,9 @@ const semantics = tokens.filter((d) => d.tier === 'semantic');
 const components = tokens.filter((d) => d.tier === 'component');
 
 describe('Tier 1 — Primitive (Design Spec §3.1)', () => {
-  it('palette 색 30개 + status 8개가 정의되어 있다', () => {
+  it('palette 색 32개 + status 8개 — 30 + `--haru-white-a82` + `--haru-white-a85`', () => {
     const colors = primitives.filter((d) => d.file === 'src/primitive/color.css');
-    expect(colors.filter((d) => !d.name.startsWith('--haru-status-'))).toHaveLength(30);
+    expect(colors.filter((d) => !d.name.startsWith('--haru-status-'))).toHaveLength(32);
     expect(colors.filter((d) => d.name.startsWith('--haru-status-'))).toHaveLength(8);
   });
 
@@ -49,9 +49,39 @@ describe('Tier 1 — Primitive (Design Spec §3.1)', () => {
 });
 
 describe('Tier 2 — Semantic (Design Spec §3.2)', () => {
-  it('semantic color 가 65개다 — §3.2.1 표 64개 + S1-D1-1 (--gradient-app 제외)', () => {
+  it('semantic color 가 73개다 — 67 + Home 재구현 5 + 칩 아이콘 1 (--gradient-app 제외)', () => {
     const colors = semantics.filter((d) => d.name.startsWith('--color-'));
-    expect(colors).toHaveLength(65);
+    expect(colors).toHaveLength(73);
+  });
+
+  /*
+   * Stage 3 Home 재구현(2026-10-05 Figma 재대조). 넷 다 **Tier 3 가 Primitive 를 직접 참조할 수
+   * 없어서**(build-tokens 3-4) semantic 경유가 유일한 경로인 경우다 — `--color-prompt-tag-*` 와
+   * 같은 사유다. 값은 전부 기존 Primitive 안에 있다 (신규 HEX 0건).
+   */
+  it('Home 재구현 색 4종이 기존 Primitive 를 가리킨다', () => {
+    expect(byName.get('--color-surface-card')?.value).toBe('var(--haru-white-a82)');
+    expect(byName.get('--haru-white-a82')?.value).toBe('rgb(255 255 255 / 0.82)');
+    expect(byName.get('--color-surface-spring')?.value).toBe('var(--haru-mist-200)');
+    expect(byName.get('--color-icon-flip')?.value).toBe('var(--haru-palette-mint)');
+    expect(byName.get('--color-icon-save-star')?.value).toBe('var(--haru-palette-yellow)');
+    // Visual Gap `V-11` — `Button/White` 는 0.85 다. `--color-surface-strong`(0.90)과 다르다.
+    expect(byName.get('--color-action-white-bg')?.value).toBe('var(--haru-white-a85)');
+    expect(byName.get('--haru-white-a85')?.value).toBe('rgb(255 255 255 / 0.85)');
+  });
+
+  /*
+   * Stage 3 Design Spec §6.2 는 "신규 semantic 0건" 을 적었으나, 거기에서 제안한 Tier 3
+   * `--prompt-phase-tag-bg/-fg` 의 값이 **Primitive**(`--haru-palette-cyan` · `--haru-white`)
+   * 라서 Tier 3 → Primitive 직접 참조 금지(build-tokens 3-4)에 걸린다. 같은 절이 역량 색
+   * 토큰 재사용도 금지하므로 **semantic 2개 신설이 유일하게 규칙을 지키는 경로**다.
+   */
+  it('Prompt 배지 색이 semantic 을 거친다 (Tier3 → Primitive 직접 참조 금지 회피)', () => {
+    expect(byName.get('--color-prompt-tag-bg')?.value).toBe('var(--haru-palette-cyan)');
+    expect(byName.get('--color-prompt-tag-fg')?.value).toBe('var(--haru-white)');
+    // 역량 색 토큰을 재사용하지 않는다 (#19 오염 금지 — Design Spec §6.2).
+    expect(byName.get('--prompt-phase-tag-bg')?.value).toBe('var(--color-prompt-tag-bg)');
+    expect(byName.get('--prompt-phase-tag-fg')?.value).toBe('var(--color-prompt-tag-fg)');
   });
 
   it('Tag neutral 배경이 semantic 을 거친다 (S1-D1-1, approvals §7)', () => {
@@ -116,6 +146,10 @@ describe('Tier 2 — Semantic (Design Spec §3.2)', () => {
 
   it('사용자 확정값(2026-09-20)이 반영되어 있다', () => {
     expect(byName.get('--radius-surface')?.value).toBe('22px');
+    // `A-20` (stage-3-approvals §12.13) — 18 은 흡수하지 않고 0.5 스텝으로 스케일에 넣는다.
+    expect(byName.get('--space-4-5')?.value).toBe('calc(var(--spacing) * 4.5)');
+    // Figma `26:21` 852 − (766 + 70)
+    expect(byName.get('--layout-tabbar-bottom-gap')?.value).toBe('16px');
     expect(byName.get('--layout-gutter')?.value).toBe('var(--space-6)');
     expect(byName.get('--space-6')?.value).toBe('calc(var(--spacing) * 6)');
     expect(byName.get('--spacing')?.value).toBe('4px');
@@ -141,7 +175,12 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
     expect([...new Set(components.map((d) => d.file))]).toEqual(['src/component/index.css']);
   });
 
-  it('Design Spec §3.3 표 48개 + Stage 2 신규 4개 = 52개 토큰을 전부 정의한다', () => {
+  /*
+   * Visual Gap 3차 결정(2026-10-06, approvals §13)에서 **2종 추가** → 132.
+   *  - `--home-chip-icon-color`     (`A-23`-icon — Figma `50:161` 채움색)
+   *  - `--bubble-content-max-lines` (`W-5` — 주 문구 4줄 상한)
+   */
+  it('Tier 3 토큰 132개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset)', () => {
     expect(components.map((d) => d.name).sort()).toEqual(
       [
         '--button-height-md',
@@ -177,9 +216,22 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
         '--field-label-size',
         '--field-value-size',
         '--bubble-radius',
+        '--bubble-shadow',
         '--bubble-padding-x',
-        '--bubble-padding-y',
-        '--bubble-tail-size',
+        '--bubble-padding-block-start',
+        '--bubble-padding-block-end',
+        '--bubble-gap',
+        '--bubble-hint-size',
+        '--bubble-tail-inline-size',
+        '--bubble-tail-block-size',
+        '--bubble-tail-radius',
+        '--bubble-tail-shape-size',
+        '--bubble-tail-start',
+        '--bubble-tail-overhang',
+        '--bubble-tail-rotate',
+        '--bubble-tail-skew',
+        '--bubble-dismiss-inset',
+        '--bubble-content-max-lines',
         '--indicator-dot-size',
         '--indicator-active-width',
         '--indicator-gap',
@@ -188,11 +240,77 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
         '--checkbox-size',
         '--radio-dot-size',
         '--radio-row-height',
-        // Stage 2 Design Spec §4.2 · §4.3 신규 (D-8)
         '--list-row-height-min',
         '--deck-inset-x',
         '--deck-peek-y',
         '--deck-depth',
+        '--book-cover-aspect',
+        '--book-cover-w-md',
+        '--prompt-pill-height-min',
+        '--prompt-pill-pad-block',
+        '--prompt-pill-pad-inline',
+        '--prompt-pill-gap',
+        '--prompt-pill-text-size',
+        '--prompt-pill-text-line',
+        '--prompt-tag-size',
+        '--prompt-phase-tag-bg',
+        '--prompt-phase-tag-fg',
+        '--prompt-phase-tag-gap',
+        '--home-header-block-size',
+        '--home-header-pad-block-start',
+        '--home-wordmark-offset-block',
+        '--home-wordmark-offset-inline',
+        '--home-wordmark-line',
+        '--home-chip-block-size',
+        '--home-chip-pad-inline',
+        '--home-chip-icon-size',
+        '--home-chip-icon-color',
+        '--home-character-top',
+        '--home-character-overhang',
+        '--home-character-aspect',
+        '--home-bubble-size',
+        '--home-bubble-offset',
+        '--home-bubble-pad-block-start',
+        '--home-indicator-gap',
+        '--home-indicator-bottom-gap',
+        '--activity-track-pad',
+        '--activity-track-gap',
+        '--activity-card-track-size',
+        '--carousel-shadow-inset',
+        '--carousel-shadow-inset-block-end',
+        '--activity-card-size',
+        '--activity-card-back-size',
+        '--activity-card-prompts-size',
+        '--activity-card-pad',
+        '--activity-card-pad-bottom',
+        '--activity-card-row-gap',
+        '--activity-card-back-gap',
+        '--activity-card-back-pad-bottom',
+        '--activity-card-tag-pad-inline',
+        '--activity-card-tag-line',
+        '--activity-card-book-title-line',
+        '--activity-card-book-author-line',
+        '--activity-card-title-size',
+        '--activity-card-book-size',
+        '--activity-card-book-gap',
+        '--activity-card-cover-radius',
+        '--activity-card-cover-shadow',
+        '--activity-card-flip-size',
+        '--activity-card-flip-color',
+        '--activity-card-action-size',
+        '--activity-card-action-gap',
+        '--activity-card-action-pad-inline',
+        '--activity-card-action-label-size',
+        '--activity-card-action-label-line',
+        '--activity-card-save-size',
+        '--activity-card-save-bg',
+        '--activity-card-save-pad-inline',
+        '--activity-card-save-gap',
+        '--activity-card-save-icon-inline-size',
+        '--activity-card-save-icon-block-size',
+        '--activity-card-save-star-color',
+        '--activity-card-note-pad-block',
+        '--activity-card-note-pad-inline',
         '--sheet-radius-top',
         '--dialog-radius',
         '--toast-radius',

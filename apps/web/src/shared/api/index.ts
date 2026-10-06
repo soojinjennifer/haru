@@ -17,6 +17,9 @@ export type { MeApi } from './me-api';
 export type { ConsentApi } from './consent-api';
 export type { OnboardingApi } from './onboarding-api';
 export type { BooksApi } from './books-api';
+export type { HomeApi } from './home-api';
+export type { ActivityApi } from './activity-api';
+export type { LibraryApi } from './library-api';
 export {
   isHaruApiError,
   isNetworkError,

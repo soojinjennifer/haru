@@ -38,6 +38,10 @@
   /* --- White + alpha (glass fill) ----------------------------------------- */
   --haru-white: #ffffff;
   --haru-white-a90: rgb(255 255 255 / 0.9);
+  /* Figma `color/white/ 85%` — `Button/White`(`117:973` `★ Save`). a82·a90 과 구분된다. */
+  --haru-white-a85: rgb(255 255 255 / 0.85);
+  /* Figma `color/white/ 82%` — Activity Card 앞면 (`163:2649`). a74·a90 사이 값이라 대체 불가. */
+  --haru-white-a82: rgb(255 255 255 / 0.82);
   --haru-white-a74: rgb(255 255 255 / 0.74);
   --haru-white-a50: rgb(255 255 255 / 0.5);
 
