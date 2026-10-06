@@ -38,6 +38,8 @@ const LIST_CSS = codeOf(read('packages', 'ui', 'src', 'list', 'List.css'));
 const SHEET_CSS = codeOf(read('packages', 'ui', 'src', 'sheet', 'Sheet.css'));
 const SECTION_CSS = codeOf(read('packages', 'ui', 'src', 'section', 'SectionHeader.css'));
 const BOOK_CSS = codeOf(read('apps', 'web', 'src', 'entities', 'book', 'book.css'));
+const SHELF_CSS = codeOf(read('apps', 'web', 'src', 'entities', 'book', 'book-shelf.css'));
+const SHELVES_CSS = codeOf(read('apps', 'web', 'src', 'features', 'library', 'library.css'));
 const CARD_CSS = codeOf(
   read('apps', 'web', 'src', 'entities', 'activity-card', 'activity-card.css'),
 );
@@ -393,12 +395,127 @@ describe('`LT-13` SectionHeader hit area 44 (§9.2)', () => {
   });
 });
 
+/*
+ * ───────────────────────────────────────────────────────────────────────────
+ * 2라운드 — 캐러셀 `overflow-x` 와 그림자 자리 (`R-SHADOW-1` · `L-NEW-01`)
+ *
+ * `--shadow-cover` 번짐은 **픽셀 프로브 실측**이다 (빌드 산출물 CSS, 흰 배경, dSF 1):
+ *   위 **8** · 아래 **20** · 좌우 **14**  — 겹 2개(drop + inset)를 괄호 보존 분리로 전수 확인.
+ * 좌우 14 는 gutter(24) bleed 가 흡수하므로 inset 이 필요 없다.
+ */
+describe('`L-NEW-01` 캐러셀 가로 트랙 — overflow 예외와 그림자 자리', () => {
+  it('`book.css` 는 여전히 `overflow` **0건**이다 — 트랙은 별도 파일이 소유한다', () => {
+    expect(BOOK_CSS).not.toMatch(/overflow(-x|-y)?\s*:/);
+  });
+
+  it('가로 클리핑 박스는 **트랙 하나뿐**이다', () => {
+    const owners = [...SHELF_CSS.matchAll(/([^{}]+)\{([^}]*overflow-x:\s*auto[^}]*)\}/g)].map(
+      (match) => (match[1] ?? '').trim(),
+    );
+    expect(owners).toStrictEqual(['.haru-shelf-track']);
+    // feature CSS 와 `ReadingNowCard` 는 클리핑 박스를 만들지 않는다.
+    expect(SHELVES_CSS).not.toMatch(/overflow(-x|-y)?\s*:/);
+  });
+
+  it('그림자 자리 = 실측 번짐(위 8 · 아래 20)이고 **음수 margin 과 짝**이다', () => {
+    const track = rule(SHELF_CSS, '.haru-shelf-track');
+    expect(track).toMatch(/padding-block-start:\s*var\(--space-2\);/);
+    expect(track).toMatch(/padding-block-end:\s*var\(--space-5\);/);
+    expect(track).toMatch(/margin-block-start:\s*calc\(-1 \* var\(--space-2\)\);/);
+    expect(track).toMatch(/margin-block-end:\s*calc\(-1 \* var\(--space-5\)\);/);
+  });
+
+  it('`block-size` 를 선언하지 않는다 — 내용이 높이를 정하므로 가산 보정이 필요 없다', () => {
+    const track = rule(SHELF_CSS, '.haru-shelf-track');
+    expect(track).not.toMatch(/(^|[\s;])block-size:/);
+    expect(track).toMatch(/box-sizing:\s*border-box;/);
+  });
+
+  it('가로는 gutter bleed 이며 `inline-size` 에 inset 이 **가산**되어 있다', () => {
+    const track = rule(SHELF_CSS, '.haru-shelf-track');
+    expect(track).toMatch(/margin-inline:\s*calc\(-1 \* var\(--layout-gutter\)\);/);
+    expect(track).toMatch(/inline-size:\s*calc\(100% \+ 2 \* var\(--layout-gutter\)\);/);
+    expect(track).toMatch(/padding-inline:\s*var\(--layout-gutter\);/);
+  });
+
+  it('페이지 사이 간격 = gutter — 다음 페이지가 gutter 에 비치지 않는다 (Figma 에 peek 없음)', () => {
+    expect(rule(SHELF_CSS, '.haru-shelf-track')).toMatch(/column-gap:\s*var\(--layout-gutter\);/);
+  });
+
+  it('포커스 링은 트랙이 아니라 **스냅된 페이지**에 붙는다 (`R-SHADOW-1` ⑤)', () => {
+    expect(rule(SHELF_CSS, '.haru-shelf-track:focus-visible')).toMatch(/outline:\s*none;/);
+    expect(SHELF_CSS).toMatch(
+      /\.haru-shelf-track:focus-visible \.haru-shelf-page\[data-active='true'\]/,
+    );
+  });
+
+  it('퍼센트 그리드가 **실측 열 offset** 을 재현한다 (0 / 35.0574% / 69.2528%)', () => {
+    const columns = /grid-template-columns:\s*([^;]+);/.exec(rule(SHELF_CSS, '.haru-shelf-page'));
+    const parts = (columns?.[1] ?? '').split(/\s+/).map((part) => Number.parseFloat(part));
+    expect(parts).toHaveLength(5);
+
+    const [cover1, gap1, cover2, gap2, cover3] = parts as [number, number, number, number, number];
+
+    // 표지 폭은 세 열 모두 같다 — Figma 자신의 규칙 `표지 = content × 31.0145%` (§10).
+    expect(cover1).toBe(31.0145);
+    expect(cover2).toBe(31.0145);
+    expect(cover3).toBe(31.0145);
+
+    /*
+      ⚠️ 간격은 Design Spec §8.2 가 적은 4.0472 / 3.1862 가 **아니다** — 그 값은 §3.3 의
+      실측 열 offset 과 어긋나고 §8.2 자신이 적은 합(100.267%)과도 맞지 않는다.
+      **실측 offset 에서 역산한 값**을 고정한다.
+    */
+    expect(cover1 + gap1).toBeCloseTo(35.0574, 4);
+    expect(cover1 + gap1 + cover2 + gap2).toBeCloseTo(69.2528, 4);
+    expect(parts.reduce((total, part) => total + part, 0)).toBeCloseTo(100.2673, 4);
+
+    // 검산(content 345): 3번째 표지가 0.92px 넘친다 — Figma 자신의 기하다.
+    const end = (345 * (cover1 + gap1 + cover2 + gap2 + cover3)) / 100;
+    expect(end - 345).toBeGreaterThan(0.9);
+    expect(end - 345).toBeLessThan(0.95);
+  });
+
+  it('Skeleton 캐러셀도 **같은 퍼센트 그리드**를 쓴다 (도착 시 들썩이지 않는다)', () => {
+    const live = /grid-template-columns:\s*([^;]+);/.exec(rule(SHELF_CSS, '.haru-shelf-page'));
+    const skeleton = /grid-template-columns:\s*([^;]+);/.exec(
+      rule(SHELVES_CSS, '.haru-library-shelves__skeleton-shelf'),
+    );
+    expect(skeleton?.[1]).toBe(live?.[1]);
+  });
+
+  it('`lg` 표지는 이미지가 상자 높이를 밀지 못한다 (실측 결함 151 → 152.97 방지)', () => {
+    expect(rule(BOOK_CSS, '.haru-book-cover--lg')).toMatch(/position:\s*relative;/);
+    const img = rule(BOOK_CSS, '.haru-book-cover--lg img');
+    expect(img).toMatch(/position:\s*absolute;/);
+    expect(img).toMatch(/inset:\s*0;/);
+  });
+
+  it('캐러셀 블록 높이는 **최소값**이다 — 캡션 2줄에서 늘어나야 한다 (§6.3 ④)', () => {
+    const block = rule(SHELF_CSS, '.haru-shelf-carousel');
+    expect(block).toMatch(/min-block-size:\s*var\(--library-shelf-block-size\);/);
+    expect(block).not.toMatch(/(^|[\s;])block-size:/);
+  });
+
+  it('섹션 간격은 **전부 16** 이다 (헤더↔본문 · 섹션↔섹션 구분 없음)', () => {
+    expect(rule(SHELVES_CSS, '.haru-library-shelves')).toMatch(/gap:\s*var\(--space-4\);/);
+    // 하단에 탭바 padding 을 다시 더하지 않는다 (이중 계상 금지).
+    expect(rule(SHELVES_CSS, '.haru-library-shelves')).not.toMatch(/padding-block-end:/);
+  });
+});
+
 describe('신규 CSS 에 임의 값이 없다 (rules/frontend.md §6)', () => {
   it.each([
     ['SectionHeader.css', SECTION_CSS],
     ['List.css', LIST_CSS],
     ['Sheet.css', SHEET_CSS],
     ['book.css', BOOK_CSS],
+    ['book-shelf.css', SHELF_CSS],
+    [
+      'library.css (entities)',
+      codeOf(read('apps', 'web', 'src', 'entities', 'library', 'library.css')),
+    ],
+    ['library.css (features)', SHELVES_CSS],
   ])('%s 에 HEX · 색 함수 리터럴이 없다', (_name, css) => {
     expect(css).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
     expect(css).not.toMatch(/\brgba?\(/);

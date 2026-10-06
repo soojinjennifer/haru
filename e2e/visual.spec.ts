@@ -546,3 +546,124 @@ test.describe('Library 1라운드 컴포넌트 baseline (영역 클립)', () => 
     });
   }
 });
+
+/**
+ * Library 2라운드 — `/library` **본 화면** baseline.
+ *
+ * | baseline | 대상 | Figma |
+ * |---|---|---|
+ * | `s3-library` | `/library` 전체 프레임 (레이아웃 회귀) | `30:74` + `145:1141` 합성 |
+ * | `s3-library-reading-now` | `ReadingNowCard` 영역 | `145:1145` |
+ * | `s3-library-shelf` | 큐레이션 캐러셀 블록 (표지 3 + dots) | `113:1992` |
+ * | `s3-library-list` | `Finished together` 4행 | `30:140` |
+ * | `s3-library-favorites-empty` | ⭐ **저장 전 기본 상태** (가장 흔한 실제 화면) | Figma 없음 — §7.4 |
+ * | `s3-library-empty` | 3섹션 안내 동시 노출 + `Reading now` 블록 제거 | Figma 없음 — §7.4 |
+ *
+ * `R-BASELINE-1`: ① `settle()` 로 레이아웃 정착을 보장하고(표지 이미지 디코드까지 기다린다)
+ * ② dev Scenario Panel 은 이 파일의 `beforeEach` 가 가린다. 새 baseline 은 저장 후 **눈으로
+ * 확인**했다.
+ */
+async function logInToLibrary(page: Page, scenario?: string): Promise<void> {
+  /*
+    scenario 는 **로그인 화면에서** 심는다 — `?scenario=` 는 sessionStorage 에 남으므로
+    이후 SPA 이동에도 유지된다. Library 로 **새로 `goto` 하지 않는 이유**는 그 경로가
+    인증 상태를 잃고 Route Guard 에 걸리기 때문이다 (탭 이동이 실제 사용자 경로이기도 하다).
+  */
+  await gotoApp(
+    page,
+    scenario === undefined ? '/auth/log-in' : `/auth/log-in?scenario=${scenario}`,
+  );
+  await page.getByLabel('Email').fill('sam@example.com');
+  await page.getByRole('textbox', { name: 'Password', exact: true }).fill('sunny-evening-8');
+  await page.getByRole('button', { name: 'Log in', exact: true }).click();
+  await expect(page.locator('.haru-activity-track')).toBeVisible();
+
+  await page
+    .getByRole('navigation', { name: 'Main' })
+    .getByRole('link', { name: 'Library' })
+    .click();
+
+  const shelves = page.locator('.haru-library-shelves');
+  await expect(shelves).toBeVisible();
+  await expect(shelves).not.toHaveAttribute('aria-busy', 'true');
+
+  // 표지 PNG 가 디코드되기 전에 찍으면 픽셀이 달라진다 (Home baseline 과 같은 이유).
+  await page.waitForFunction(() =>
+    [...document.images].every((image) => image.complete && image.naturalWidth > 0),
+  );
+  await settle(page);
+}
+
+test.describe('Library 2라운드 화면 baseline', () => {
+  test('s3-library — `/library` 전체 프레임 (레이아웃 회귀)', async ({ page }) => {
+    await logInToLibrary(page);
+
+    await expect(page).toHaveScreenshot('s3-library.png', FRAME_SNAPSHOT);
+  });
+
+  test('s3-library-reading-now — Figma 145:1145', async ({ page }) => {
+    await logInToLibrary(page);
+
+    await expect(page.locator('.haru-reading-now')).toHaveScreenshot(
+      's3-library-reading-now.png',
+      REGION_SNAPSHOT,
+    );
+  });
+
+  test('s3-library-shelf — Figma 113:1992 (표지 3 + dots)', async ({ page }) => {
+    await logInToLibrary(page);
+
+    await expect(page.locator('.haru-shelf-carousel').first()).toHaveScreenshot(
+      's3-library-shelf.png',
+      REGION_SNAPSHOT,
+    );
+  });
+
+  test('s3-library-list — Figma 30:140 (`Finished together` 4행)', async ({ page }) => {
+    await logInToLibrary(page);
+
+    /*
+      `R-BASELINE-1` ② — Playwright 의 element screenshot 은 **요소 bounding box** 를 찍으므로
+      그 위에 떠 있는 `sticky` 탭바가 함께 들어온다. 실제로 첫 생성본에 탭바와 중앙 버튼이
+      목록 3·4행 위에 찍혀 있었다. 목록은 마지막 블록이므로 **끝까지 스크롤하면** 탭바 위로
+      완전히 올라온다 (목록 299 < 탭바 위 가용 높이).
+    */
+    await page.evaluate(() => {
+      // 스크롤 컨테이너는 **앱 컬럼 바깥의 AppShell 뷰포트**다 (`document.scrollingElement` 가 아니다).
+      for (
+        let node = document.querySelector('.haru-list-group')?.parentElement ?? null;
+        node !== null;
+        node = node.parentElement
+      ) {
+        if (node.scrollHeight > node.clientHeight) {
+          node.scrollTop = node.scrollHeight;
+          return;
+        }
+      }
+      throw new Error('스크롤 컨테이너를 찾지 못했다');
+    });
+    await settle(page);
+
+    const list = page.locator('.haru-list-group');
+    const overlap = await list.evaluate((node) => {
+      const bar = document.querySelector('.haru-app-shell__bar-bottom');
+      if (bar === null) return 0;
+      return node.getBoundingClientRect().bottom - bar.getBoundingClientRect().top;
+    });
+    expect(overlap, '목록이 탭바에 가려진 채로 baseline 에 들어갔다').toBeLessThanOrEqual(0);
+
+    await expect(list).toHaveScreenshot('s3-library-list.png', REGION_SNAPSHOT);
+  });
+
+  test('s3-library-favorites-empty — 저장 전 기본 상태 (§7.4)', async ({ page }) => {
+    await logInToLibrary(page, 'library:favorites-empty');
+
+    await expect(page).toHaveScreenshot('s3-library-favorites-empty.png', FRAME_SNAPSHOT);
+  });
+
+  test('s3-library-empty — 3섹션 안내 동시 노출 (§7.4)', async ({ page }) => {
+    await logInToLibrary(page, 'library:empty');
+
+    await expect(page).toHaveScreenshot('s3-library-empty.png', FRAME_SNAPSHOT);
+  });
+});

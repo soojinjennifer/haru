@@ -1,0 +1,168 @@
+/*
+ * 서재 캐러셀 · Book List 행 — Library Design Spec §3.3 · §3.5 · §8.2
+ * (Figma `113:1971` · `113:1992` · `30:141` `[실측]`)
+ *
+ * ⚠️ **`book.css` 와 분리된 이유**: `book.css` 는 `overflow` 선언이 **0건**이어야 한다
+ * (`stage3-css-guards.test.ts` · `library-css-guards.test.ts` 가 고정한다 — 표지·카드 그림자가
+ * 잘리지 않게 하는 `QA-1-L1` 재발 방지 장치다). 캐러셀 트랙은 `overflow-x` 를 **반드시**
+ * 선언해야 하므로 같은 파일에 둘 수 없다. 이 파일만 가로 클리핑 박스를 갖는다.
+ */
+
+/* ===== BookShelfItem — Library Design Spec §3.3 (Figma `113:1971` `[실측]`) ==========
+ * 표지 → 제목 7 · 제목 → 캡션 7 → `--library-shelf-item-gap`(8) 로 흡수 (Δ+1 각).
+ * 폭을 갖지 않는다 — 캐러셀의 퍼센트 그리드가 열 폭을 정한다 (§10).
+ */
+
+.haru-shelf-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--library-shelf-item-gap);
+  min-inline-size: 0;
+}
+
+/* ===== BookShelfCarousel — Library Design Spec §3.3 · §8.2 (`113:1992` `[실측]`) =====
+ *
+ * 블록 345×216 = 선반 192 + 간격 15(→16 흡수) + dots 7 (+2).
+ * `--library-shelf-block-size`(216) 는 **최소값**이다 (§6.3 ④) — 캡션이 2줄이 되면 늘어나야
+ * 하므로 고정 높이를 선언하지 않는다.
+ */
+
+.haru-shelf-carousel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--library-shelf-indicator-gap);
+  min-block-size: var(--library-shelf-block-size);
+}
+
+/*
+ * ⚠️ `AppColumn` 안쪽 `overflow-*` 금지의 **두 번째 예외**다 (첫째는 Home 가로 트랙
+ * `.haru-activity-track`). 승인 근거: 사용자 결정 2라운드 (Design Spec §8.2 `L-NEW-01`).
+ *
+ * **불가피성** — Figma 가 3-up 캐러셀 + dots 3개(= 페이지 3개)를 명시한다 `[실측 113:1986]`.
+ * 가로 스크롤 없이 표현할 수 없다 → `R-SHADOW-1` ① 의 "스크롤이 꼭 필요한 경우" 다.
+ *
+ * ── `R-SHADOW-1` ② 그림자 자리 (`.claude/rules/frontend.md` §6-1) ──
+ * 자식 그림자 = 표지 `--shadow-cover`. **픽셀 프로브 실측**(빌드 산출물 CSS, 흰 배경 위
+ * 107×151 · deviceScaleFactor 1, 순백 대비 채널차 합 ≥ 1 기준):
+ *
+ *   | 방향 | 실측 번짐 | inset |
+ *   |---|---|---|
+ *   | 위   | **8**  | `--space-2`(8)  |
+ *   | 아래 | **20** | `--space-5`(20) |
+ *   | 좌우 | **14** | gutter(24) bleed 로 흡수 — 14 < 24 ✓ |
+ *
+ * `--shadow-cover` 는 **겹 2개**(drop `0 6px 14px ink28%` + inset highlight)이며 괄호 보존
+ * 분리로 전수 확인했다 — 빠뜨린 겹이 없다. (과거 `--shadow-glass-rest` 는 3겹 중 1겹을
+ * 빠뜨려 inset 24 로 승인했다가 실측 77 로 드러났다.)
+ *
+ * **`block-size` 를 선언하지 않는다.** 표지 높이가 `aspect-ratio` 로 퍼센트 폭에서 파생되므로
+ * 고정 크기가 없고, 그래서 `box-sizing: border-box` 의 "크기에 inset 가산"(Home 트랙이
+ * 필요했던 보정)이 **이 자리에서는 불필요**하다 — content box 가 내용으로 자동 결정되어
+ * padding 을 더해도 내용이 줄지 않는다. 음수 `margin-block` 이 레이아웃 점유와 scrollable
+ * overflow 를 되돌리므로 **섹션 y 가 1px 도 움직이지 않는다**.
+ *
+ * 가로는 `inline-size` 를 선언하므로 가산이 필요하다: `100% + 2 × gutter` − `padding 2 ×
+ * gutter` = content box `100%` (= 섹션 content 폭 345) ✓
+ */
+.haru-shelf-track {
+  /* 앱 컬럼 밖으로 gutter 만큼 bleed → 좌우 번짐 14 가 잘리지 않는다 */
+  margin-inline: calc(-1 * var(--layout-gutter));
+  inline-size: calc(100% + 2 * var(--layout-gutter));
+  padding-inline: var(--layout-gutter);
+  scroll-padding-inline-start: var(--layout-gutter);
+
+  display: flex;
+  /*
+   * 페이지 사이 간격 = **bleed 와 같은 gutter**.
+   *
+   * 트랙이 앱 컬럼 밖으로 gutter(24) 만큼 번지므로, 간격이 없으면 **다음 페이지의 첫 표지가
+   * 오른쪽 gutter 에 비친다** (실측: page2 x=369 < 뷰포트 393). Figma 에는 peek 이 없다
+   * `[실측 113:1992 — 3-up 이 content 345 를 정확히 채운다]`.
+   * 간격을 gutter 와 같게 두면 page2 가 트랙의 오른쪽 padding 끝에 정확히 붙어(실측 x=393)
+   * 모든 폭에서 보이지 않는다. 페이지 **안쪽** 기하는 1px 도 바뀌지 않는다.
+   */
+  column-gap: var(--layout-gutter);
+  box-sizing: border-box;
+
+  /* 그림자 자리 — 위 8 · 아래 20 (실측) */
+  padding-block-start: var(--space-2);
+  padding-block-end: var(--space-5);
+  margin-block-start: calc(-1 * var(--space-2));
+  margin-block-end: calc(-1 * var(--space-5));
+
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.haru-shelf-track::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+ * 페이지 = 트랙 content box 폭(= 섹션 content 345). `100%` 가 그 값이다.
+ *
+ * 열 기하는 **Figma 의 퍼센트 그리드 그대로**다 `[실측]`:
+ *   표지 31.0145% · 간격 4.0429% · 표지 31.0145% · 간격 3.1809% · 표지 31.0145%
+ *
+ *   ⚠️ 간격 두 값은 Design Spec §8.2 가 적은 `4.0472 / 3.1862` 가 **아니다**. 그 숫자를
+ *   쓰면 열 시작이 35.0617% / 69.2634% 가 되어 §3.3 의 **실측 열 offset**(35.0574% ·
+ *   69.2528%)과 어긋나고, 합도 §8.2 자신이 적은 100.267% 가 아니라 100.2769% 가 된다.
+ *   그래서 **실측 offset 에서 역산**했다: 35.0574 − 31.0145 = 4.0429 ·
+ *   69.2528 − (35.0574 + 31.0145) = 3.1809. 합 **100.2673%**.
+ *   검산(content 345): 표지 107.000 · x2 120.948 · x3 238.922 · 끝 345.922
+ *   — Figma 실측(107 / 120.948 / 238.922 / 0.92 넘침)과 **소수 셋째 자리까지 일치**한다.
+ *
+ *   열 간격이 13.95 / 10.97 로 균일하지 않은 것(% 그리드의 산술 잔차)도 이 방식으로만
+ *   재현된다. 넘친 0.92px 는 gutter 24 안에 들어가므로 보이는 클립이 생기지 않는다.
+ * 간격 열에는 항목을 놓지 않는다 (auto-placement 가 간격 칸을 채우지 않게 명시 배치).
+ */
+.haru-shelf-page {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  display: grid;
+  grid-template-columns: 31.0145% 4.0429% 31.0145% 3.1809% 31.0145%;
+  align-items: start;
+}
+
+.haru-shelf-page__slot {
+  min-inline-size: 0;
+}
+
+.haru-shelf-page__slot:nth-child(1) {
+  grid-column: 1;
+}
+
+.haru-shelf-page__slot:nth-child(2) {
+  grid-column: 3;
+}
+
+.haru-shelf-page__slot:nth-child(3) {
+  grid-column: 5;
+}
+
+/*
+ * `R-SHADOW-1` ⑤ — 포커스 링은 **border box** 에 그려진다. 위 inset 8 / 아래 20 때문에 트랙
+ * border box 가 벌어지므로 UA 기본 링은 dots 영역까지 감싼다. 링을 **스냅된 페이지**에 붙인다.
+ */
+.haru-shelf-track:focus-visible {
+  outline: none;
+}
+
+.haru-shelf-track:focus-visible .haru-shelf-page[data-active='true'] {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ===== Book List 행의 chevron — Figma stroke `#9AABAA`(= fg-tertiary) =========
+ * `ListRow` 의 trailing 기본색은 `fg-secondary` 이므로 이 자리에서만 덮는다.
+ * `IconTone` 에 `tertiary` 가 없어 `inherit` + 래퍼 색으로 처리한다. */
+
+.haru-book-row__chevron {
+  display: inline-flex;
+  align-items: center;
+  /* provisional: P-24 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-tertiary);
+}

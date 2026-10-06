@@ -35,11 +35,32 @@
   inline-size: var(--book-cover-w-md);
 }
 
+/*
+ * `lg` 만 **이미지를 흐름에서 뺀다** (`position: absolute`).
+ *
+ * 실측 결함: 표지 이미지의 원본 비가 107/151(0.7086)보다 세로로 길면(예 135×193 = 0.6995)
+ * 흐름 안의 `<img>` 가 상자를 **밀어 올려** 높이가 151 → **152.97** 이 됐다. `aspect-ratio` 는
+ * 선호 크기일 뿐 내용이 더 크면 상자가 늘어나기 때문이다. 캐러셀은 항목 높이가 블록 높이를
+ * 정하므로 이 1.97px 이 그대로 섹션 기하로 번졌다 (`QA-2-004` 와 같은 부류의 결함이다).
+ *
+ * `object-fit: cover` 가 상자 안에서 잘라내므로 `overflow` 를 선언할 필요가 없다 —
+ * 클리핑 박스를 만들지 않는다 (§0.4).
+ *
+ * ⚠️ **`sm`·`md`·`xl` 에는 적용하지 않는다.** `xl` 은 두 변을 직접 두어 영향이 없고,
+ * `sm`·`md` 는 같은 구조적 취약점을 갖지만 **Home 의 baseline 이 걸려 있다** — 고치면 Home 이
+ * 변할 수 있으므로 이번 범위에서 손대지 않고 보고한다.
+ */
 .haru-book-cover--lg {
+  position: relative;
   inline-size: 100%;
   aspect-ratio: var(--library-shelf-cover-aspect);
   border-radius: var(--radius-media);
   box-shadow: var(--shadow-cover);
+}
+
+.haru-book-cover--lg img {
+  position: absolute;
+  inset: 0;
 }
 
 /* 64×90 은 7/10 과 어긋나므로 두 변을 직접 둔다 (`aspect-ratio` 를 끈다). */

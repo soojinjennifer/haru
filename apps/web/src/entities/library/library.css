@@ -1,0 +1,48 @@
+/*
+ * ReadingNowCard — Library Design Spec §3.2 (Figma `145:1145` `[실측]`)
+ *
+ * 345×118 · padding 14 · gap 14 · radius 22 · `--color-surface-strong` · `--shadow-bubble`.
+ * 세로 중앙 정렬: (118 − 90) / 2 = 14 ✓ · (118 − 63) / 2 = 27.5 ✓ — padding 14 와 일치한다.
+ * 좌우: 14 + 64 + 14 + 239 + 14 = 345 ✓
+ *
+ * ── `overflow` 를 선언하지 않는다 (`R-SHADOW-1` ① · 사용자 결정 2라운드) ──
+ * Figma 는 카드에 clip content 를 걸지만(§8.3), 그러면 표지 그림자 아래 6px 이 잘린다
+ * (표지 하단 104 + 실측 번짐 20 = 124 > 118). 사용자가 **표지 그림자를 살리는 쪽**을 택했다.
+ * 따라서 이 카드는 클리핑 박스가 아니고 그림자 inset 설계가 필요하지 않다.
+ *
+ * 높이를 고정하지 않는다 — 118 은 결과값이다 (§9.1 텍스트 200% reflow).
+ */
+
+.haru-reading-now {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3-5);
+  box-sizing: border-box;
+  inline-size: 100%;
+  padding: var(--space-3-5);
+  border: 0;
+  border-radius: var(--radius-surface);
+  background-color: var(--color-surface-strong);
+  box-shadow: var(--shadow-bubble);
+  font-family: var(--font-sans);
+  color: inherit;
+  text-align: start;
+}
+
+/* 텍스트 열 — 내부 gap 3 (`--reading-now-text-gap`: 2·4 동점이라 스케일로 흡수할 수 없다). */
+.haru-reading-now__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--reading-now-text-gap);
+  min-inline-size: 0;
+}
+
+/*
+ * 진행 바 높이 7 (`--reading-now-progress-height`) — Figma 는 7 이고 `ProgressBar` 의
+ * 기본 size 는 6(`sm`) / 8(`md`) 다. **컴포넌트에 size 를 추가하지 않고** 사용처에서 Tier 3
+ * 토큰으로 덮는다 (`LT-9`) — 7 은 이 카드에만 있는 값이라 공용 size 가 될 근거가 없다.
+ */
+.haru-reading-now__progress .haru-progress__track {
+  block-size: var(--reading-now-progress-height);
+}

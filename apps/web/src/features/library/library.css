@@ -1,0 +1,80 @@
+/*
+ * `/library` 본문 — Library Design Spec §2.2 · §2.3 (Figma `30:74` · `145:1141` `[실측]`)
+ *
+ * Frame 15 는 **일정 gap 16 의 세로 flex** 다. 헤더↔본문도, 섹션↔섹션도 모두 16 이므로
+ * (실측 L-1·L-2 공통) 래퍼를 중간에 넣지 않고 헤더와 본문을 같은 레벨의 flex 행으로 둔다.
+ *
+ * 제목 행(TopBar `variant=large`, min 40) → Frame 15 = **16** `[실측 40 → 56]`.
+ * 마지막 블록 → 탭바 = 32 는 `.haru-app-shell__bar-bottom` 의 중앙 버튼 overhang 이 이미
+ * 확보한다 — 여기서 하단 padding 을 **다시 더하지 않는다** (이중 계상 금지, `AD-S3-13`).
+ *
+ * **`overflow` 를 선언하지 않는다** — 세로 스크롤 컨테이너는 `AppShell` 의 뷰포트(앱 컬럼
+ * **바깥**)이고, 가로 클리핑 박스는 캐러셀 트랙 하나뿐이다 (`R-SHADOW-1` ①).
+ * 특히 `Finished together` 목록에는 그림자 inset 을 걸지 않는다 — 스크롤 컨테이너가 앱 컬럼
+ * 바깥이라 클립 선이 화면 밖이다 (approvals §19.5).
+ */
+
+.haru-library-shelves {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-block-start: var(--space-4);
+}
+
+/* ===== Loading (§7.4) — 헤더는 실제 텍스트, 본문만 Skeleton ==================
+ *
+ * Skeleton 자리는 **실제 블록의 기하를 그대로 재사용**한다 (`.haru-reading-now` ·
+ * `--book-cover-*` · `--book-list-row-height-min` · 캐러셀 퍼센트 그리드). 높이를 리터럴로
+ * 적지 않으므로 데이터가 도착할 때 화면이 들썩이지 않고, 토큰이 바뀌면 함께 따라온다.
+ */
+
+/* `ReadingNowCard` 표지 자리 — 64×90 (`--book-cover-w-xl` · `-h-xl`) → 카드 높이 118 이 된다. */
+.haru-library-shelves__skeleton-cover-xl {
+  flex: none;
+  inline-size: var(--book-cover-w-xl);
+  block-size: var(--book-cover-h-xl);
+}
+
+.haru-library-shelves__skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.haru-library-shelves__skeleton-row {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--book-list-row-height-min);
+  padding-block: var(--space-3);
+}
+
+/* 캐러셀 자리 — 표지 3개를 **같은 퍼센트 그리드**로 둔다 (dots 는 표시하지 않는다). */
+.haru-library-shelves__skeleton-shelf {
+  display: grid;
+  grid-template-columns: 31.0145% 4.0429% 31.0145% 3.1809% 31.0145%;
+  align-items: start;
+  min-block-size: var(--library-shelf-block-size);
+}
+
+.haru-library-shelves__skeleton-slot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--library-shelf-item-gap);
+  min-inline-size: 0;
+}
+
+.haru-library-shelves__skeleton-slot:nth-child(1) {
+  grid-column: 1;
+}
+
+.haru-library-shelves__skeleton-slot:nth-child(2) {
+  grid-column: 3;
+}
+
+.haru-library-shelves__skeleton-slot:nth-child(3) {
+  grid-column: 5;
+}
+
+.haru-library-shelves__skeleton-cover {
+  aspect-ratio: var(--library-shelf-cover-aspect);
+}

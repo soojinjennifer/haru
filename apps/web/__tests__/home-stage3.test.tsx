@@ -153,10 +153,18 @@ describe('BottomTabBar 마운트 (AC-3-04 · AC-3-05 · AC-3-08)', () => {
     expect(screen.queryByText(/\d/)).toBeNull();
   });
 
-  it('`/library` 는 탭바 마운트 자리만 잡는다 (화면 내용은 다음 단계)', async () => {
+  /*
+    Library 2라운드로 `/library` 본문이 생겼다 — 이 테스트의 기존 기대값은
+    "탭바 마운트 자리만 잡는다(= `EmptyState` 1개)" 라는 **과도기 상태**였고, 그 상태가 끝났다.
+    여기서는 Home 탭 묶음의 관심사만 남긴다: 제목 행(`<h1>`) 과 섹션이 함께 마운트된다.
+    서재 본문의 상세 계약은 `library-screen.test.tsx` 가 덮는다.
+  */
+  it('`/library` 에 제목 행과 서재 섹션이 함께 마운트된다', async () => {
     await renderHome({ path: ROUTES.library });
 
-    expect(await screen.findByText(libraryCopy.empty.title)).toBeDefined();
+    expect(
+      await screen.findByRole('heading', { level: 2, name: libraryCopy.sectionTitles.curated }),
+    ).toBeDefined();
     expect(screen.getByRole('heading', { level: 1, name: libraryCopy.title })).toBeDefined();
   });
 });

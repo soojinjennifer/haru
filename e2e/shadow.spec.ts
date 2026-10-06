@@ -17,6 +17,8 @@ import { inflateSync } from 'node:zlib';
 
 import { expect, test, type Page } from '@playwright/test';
 
+import { hideDevPanel } from './support/gallery';
+
 /** Design Spec §7.2 의 4개 폭. */
 const VIEWPORTS = [
   { width: 320, height: 568 },
@@ -207,6 +209,98 @@ test.describe('카드 하단 그림자가 가로 트랙 안에서 잘리지 않�
         delta,
         `카드 하단 +${VERTICAL_PROBE_OFFSET_PX}px (${probeX}, ${probeY}) 에서 그림자가 보이지 않는다 (delta ${delta})`,
       ).toBeGreaterThanOrEqual(MIN_SHADOW_DELTA);
+    });
+  }
+});
+
+/*
+ * ───────────────────────────────────────────────────────────────────────────
+ * 서재 캐러셀 트랙 — `R-SHADOW-1` ⑥ **세로·가로 양축** 프로브 (`L-NEW-01`)
+ *
+ * `.haru-shelf-track` 은 `AppColumn` 안쪽 `overflow-*` 금지의 **두 번째 예외**다
+ * (첫째는 Home 가로 트랙). `overflow-x: auto` 를 선언하면 세로도 클리핑 박스가 되므로
+ * 표지 그림자 자리를 트랙 **안쪽**에 넣어야 한다.
+ *
+ * 번짐은 **픽셀 프로브 실측**이다 (빌드 산출물 CSS · 흰 배경 · dSF 1 · 순백 대비 채널차 합):
+ *   `--shadow-cover` = 겹 2개(drop `0 6px 14px ink28%` + inset highlight)
+ *   위 **8** · 아래 **20** · 좌우 **14**
+ * → `padding-block-start: 8` · `padding-block-end: 20` · 좌우는 gutter(24) bleed 가 흡수한다.
+ *
+ * 여기서 **네 방향을 모두** 본다. 가로만 보던 탓에 과거 결함(카드 하단 그림자 전면 절단)을
+ * 놓쳤고, 세로만 보면 gutter bleed 회귀를 놓친다.
+ *   · 위   — `padding-block-start` 가 사라지면 표지 상단 그림자가 트랙 border box 에서 잘린다
+ *   · 아래 — 표지 하단 그림자(가장 짙다)가 살아 있다
+ *   · 좌   — 첫 열 표지는 앱 컬럼 **leading edge** 에 붙어 있다. bleed 가 없으면 잘린다
+ *   · 우   — 셋째 열 표지는 content 를 0.92px 넘는다(Figma 기하). 오른쪽 bleed 가 없으면 잘린다
+ */
+const SHELF_PROBE = {
+  /** 위쪽은 `0 6px` 오프셋 때문에 가장 옅다 — 경계 바로 바깥을 본다. */
+  above: 2,
+  below: 4,
+  /** 표지 제목 글리프가 시작되기 전(`+8`)이라 텍스트가 섞이지 않는다. */
+  side: 6,
+} as const;
+
+test.describe('서재 캐러셀 표지 그림자가 트랙 안에서 잘리지 않는다 (R-SHADOW-1 · L-NEW-01)', () => {
+  for (const viewport of VIEWPORTS) {
+    test(`${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await hideDevPanel(page);
+
+      // Library 는 인증이 필요하다. 새 `goto` 는 인증을 잃으므로 **SPA 이동**으로 간다.
+      await page.goto('/auth/log-in', { waitUntil: 'domcontentloaded' });
+      await page.getByLabel('Email').fill('sam@example.com');
+      await page.getByRole('textbox', { name: 'Password', exact: true }).fill('sunny-evening-8');
+      await page.getByRole('button', { name: 'Log in', exact: true }).click();
+      await expect(page.locator('.haru-activity-track')).toBeVisible();
+
+      await page
+        .getByRole('navigation', { name: 'Main' })
+        .getByRole('link', { name: 'Library' })
+        .click();
+
+      const track = page.locator('.haru-shelf-track').first();
+      await expect(track).toBeVisible();
+      await expect.poll(async () => track.evaluate((node) => node.clientWidth > 0)).toBe(true);
+      await settle(page);
+
+      const covers = track.locator('.haru-shelf-page').first().locator('.haru-book-cover');
+      const first = await covers.first().boundingBox();
+      const last = await covers.last().boundingBox();
+      expect(first).not.toBeNull();
+      expect(last).not.toBeNull();
+
+      const left = first?.x ?? 0;
+      const top = first?.y ?? 0;
+      const width = first?.width ?? 0;
+      const height = first?.height ?? 0;
+      const centerX = Math.round(left + width / 2);
+      const middleY = Math.round(top + height / 2);
+      const rightEdge = Math.round((last?.x ?? 0) + (last?.width ?? 0));
+
+      const probes = [
+        { name: '위', x: centerX, y: Math.round(top) - SHELF_PROBE.above },
+        { name: '아래', x: centerX, y: Math.round(top + height) + SHELF_PROBE.below },
+        { name: '좌', x: Math.round(left) - SHELF_PROBE.side, y: middleY },
+        { name: '우', x: rightEdge + SHELF_PROBE.side - 1, y: middleY },
+      ] as const;
+
+      const withShadow = await Promise.all(probes.map((probe) => pixelAt(page, probe.x, probe.y)));
+      await page.addStyleTag({
+        content: '.haru-book-cover--lg { box-shadow: none !important; }',
+      });
+      await settle(page);
+      const withoutShadow = await Promise.all(
+        probes.map((probe) => pixelAt(page, probe.x, probe.y)),
+      );
+
+      probes.forEach((probe, index) => {
+        const delta = distance(withShadow[index] as Rgb, withoutShadow[index] as Rgb);
+        expect(
+          delta,
+          `${probe.name} (${probe.x}, ${probe.y}) 에서 표지 그림자가 보이지 않는다 (delta ${delta})`,
+        ).toBeGreaterThanOrEqual(MIN_SHADOW_DELTA);
+      });
     });
   }
 });

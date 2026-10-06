@@ -1433,3 +1433,67 @@ Plan §7.2 가 `BookPrompts` 에 **`coachingLine`** 을 적고 있으나, 그 �
 
 library 시나리오 키가 6 → 18 로 늘어 패널이 뷰포트를 벗어나 `scenarios.spec.ts` 가 실패했다. 본문을 `max-block-size: 60dvh` + `overflow-y: auto` 로 바꿨다.
 dev 전용이고 상자 안에 그림자 요소가 없어 `R-SHADOW-1` 대상이 아니다 (근거 주석 포함). **Production 영향 0** (`assert:no-mocks` 통과).
+
+## 22. Library 2라운드-1 (`/library` 본 화면) 결과와 결정 (2026-10-07)
+
+구현: `docs/qa/stage-3-library-r2-handoff.md`. 시트·진입점 화면은 **다음 작업**이다.
+
+### 22.1 확정 결정 (user)
+
+| ID | 항목 | 결정 | 권고와 일치 |
+|---|---|---|---|
+| `L-R2-01` | `BookCover` `sm`·`md` 구조적 결함 | **지금 전부 고친다** | ✅ |
+| `L-R2-02` | `SectionHeader` 높이 22 ↔ Figma 20 | **22 로 두고 허용 차이 등록** | ✅ |
+
+**`L-R2-01`** — 표지 이미지의 원본 종횡비가 세로로 길면 **상자 높이를 밀어 올리는** 결함이다 (`lg` 에서 151 → **152.97** 로 관측). 2라운드-1 이 `lg` 만 `position: absolute` 로 고쳤고 `sm`·`md` 는 **Home 시각 baseline 이 걸려 손대지 않았다**(옳은 판단 — 범위 밖 변경을 피했다).
+→ **이제 `sm`·`md` 도 고친다.** Home baseline 이 바뀔 수 있으므로 **`R-BASELINE-1` ⑤** 를 지킨다: diff 를 **픽셀 클러스터로 분해**해 원인을 대고, **이 결함 수정으로 설명되지 않는 변화가 섞이면 멈춘다.**
+
+**`L-R2-02`** — `--text-headline--line-height` 가 22 라서 나온 **결과값**이고, 명세가 20 을 직접 박는 것을 금지한다. **토큰 일관성을 택하고 2px 차이를 허용 차이로 등록**한다 (ID 는 design-agent 가 `AD-L-*` 로 부여).
+
+### 22.2 Orchestrator 가 받아들인 판단 3건 (별도 승인 불필요)
+
+1. **Error 상태를 `ErrorState` 1개로** — Design Spec §7.4 는 "섹션 본문 자리에 `ErrorState` + Retry" 였으나, 단일 조회(`GET …/library/overview`)라 실패 시 네 섹션이 **동시에** 빈다. 섹션마다 두면 **같은 refetch 를 가리키는 Retry 가 4개**, `announce="alert"` 가 **4번** 울린다.
+   → `h1 Library` 는 `LibraryTopBar` 가 **router TopBar 슬롯**에서 담당하므로 **에러 상태에서도 제목이 남는다** (Orchestrator 코드 확인). 렌더하지 않은 것은 **섹션 헤더**다. 판단 타당.
+2. **`favorites-empty` 아이콘 `star` → `book`** — `star` 는 `A-23`(§13.2) 으로 registry 에서 **의도적으로 제거된 글리프**이고 "성취·평점 언어" 라는 사유가 붙어 있다. 되살리지 않은 것이 맞다.
+3. **`home-stage3.test.tsx` 1건 갱신** — 기존 기대값이 *"`/library` 는 탭바 마운트 자리만 잡는다(= `EmptyState` 1개)"* 라는 **과도기 상태 단정**이었고 본문이 생긴 지금 **사실이 아니다**. 새 단정은 `h1` 을 유지하면서 `h2` 섹션 마운트까지 확인하므로 **더 강하다** (Orchestrator diff 확인 — 테스트 약화 아님).
+
+### 22.3 Design Spec 실측 정정 2건 (수정 대상)
+
+**`[추정]` 이 실측과 달랐다.** 2라운드-1 이 브라우저에서 직접 재서 바로잡았다.
+
+| 위치 | 명세의 `[추정]` | 실측 |
+|---|---|---|
+| §6.3 역량 캡션 폭 | `118`·`112` → **"11px 1줄 불가"** | SF Pro 기준 `Emotion Regulation` **101.44** · `Self-Direction` **72.80** · `Cognitive Flexibility` **101.98** · `Intrinsic Motivation` **99.98** → **107(Figma 393)에서 네 라벨 모두 1줄**(여유 5~7px). **2줄은 320px(열 84.36)에서만** 발동 |
+| §8.2 캐러셀 열 간격 % | 명세의 퍼센트가 **§3.3 실측 offset 과 모순**이고 합도 자기 기술과 불일치 | 실측 offset 역산 **`4.0429%` / `3.1809%`** → 검산 `107.000 / 120.948 / 238.922 / +0.922` **완전 일치** |
+
+적용 규칙: 캡션 최대 **2줄 + 말줄임**, `break-word` 미사용(최장 단어 `Regulation` 55.56 < 84.36), 제목은 Figma 대로 1줄, **별도 `aria-label` 미생성**(clamp 는 DOM 텍스트를 숨기지 않는다), **11px 축소 금지**(e2e 로 고정).
+
+### 22.4 캐러셀 그림자 — 승인값이 실측과 일치했다
+
+**`--shadow-cover` 는 2겹**(`rgb(94 115 112 / .28) 0 6px 14px` + `rgb(255 255 255 / .5) 0 1px 0 inset`)이고 **빠뜨린 겹이 없다.**
+
+| 임계값 | 위 | 아래 | 좌 | 우 |
+|---|---|---|---|---|
+| Δ≥1 | **8** | **20** | **14** | **14** |
+
+→ Design Spec §8.2 의 20/8/14 와 일치. `padding-block-start: --space-2` / `-end: --space-5` + 음수 margin, 좌우 14 는 gutter(24) bleed 로 흡수. `block-size` 는 미선언(표지 높이가 `aspect-ratio` 파생이라 content box 자동) — **가산 보정 불필요**, 가로는 `inline-size` 선언이라 가산.
+
+**프로브 민감도를 역검증했다** (`R-SHADOW-1` ⑥ 의 취지): `padding-block-start` 제거 → **위** 4폭 전부 `delta 0` 실패 / gutter bleed 제거 → **좌** 4폭 전부 `delta 0` 실패. 즉 테스트가 실제로 문다.
+
+### 22.5 `R-BASELINE-1` 이 또 한 번 작동했다
+
+신규 baseline 6건(`s3-library` · `-reading-now` · `-shelf` · `-list` · `-favorites-empty` · `-empty`) 중
+**`s3-library-list` 의 첫 생성본이 sticky 탭바에 가려진 채 찍혔다.** 스크롤 컨테이너가 `document.scrollingElement` 가 아니라 **`AppShell` 뷰포트**인 것을 반영해 끝까지 내려 재생성하고, **겹침 ≤ 0 단언을 테스트에 넣었다.**
+→ `R-BASELINE-1` ② 의 "덮개가 함께 찍힌다" 유형이며, **저장 후 육안 확인** 단계가 잡아냈다.
+
+**기존 baseline 재생성 0건. Home baseline 7종·Home 코드 변경 0건** (Orchestrator 확인).
+
+### 22.6 부수 수정 2건 (보고 수용)
+
+1. **다음 페이지가 오른쪽 gutter 에 비쳤다** — Figma 캐러셀에는 peek 이 **없다**(Home 트랙의 peek 8 과 다르다). `column-gap: var(--layout-gutter)` 로 page2 를 뷰포트 끝(393)에 붙이고 스냅 stride 도 gap 포함으로 수정
+2. `BookCover` `lg` 표지 높이 결함 (→ `L-R2-01` 로 `sm`·`md` 까지 확장)
+
+### 22.7 승인된 흡수의 산술 결과 (Figma 와의 차이, 결함 아님)
+
+캐러셀 블록 **219 vs 216**(+3) · Book List **299 vs 297**(+2 — divider 3개 선택 `L-OPEN-05` 의 결과. 화면 사본 297 = 74×4+1) · Frame15 **1052 vs 1039**.
+정확히 일치한 것: `ReadingNowCard` **118** · 표지 **107×151** · **섹션 간격 전 구간 16**.
