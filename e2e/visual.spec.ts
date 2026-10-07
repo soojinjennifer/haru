@@ -7,8 +7,14 @@
  *
  * 임계값은 결정 `D-12` 로 **2종으로 나뉜다** (stage-2-approvals §4).
  *   - 영역 클립(`REGION_SNAPSHOT`) `0.002 / 20` — Figma 대조 대상 · 컴포넌트 블록
- *   - 전체 프레임(`FRAME_SNAPSHOT`) `0.002 / 200` — 레이아웃 회귀 전용 (반응형 4폭)
+ *   - 전체 프레임(`FRAME_SNAPSHOT`) `0.002 / 50` — 레이아웃 회귀 전용 (반응형 4폭)
  * 비율 0.002 는 `S1-D2-6` 확정값 그대로다.
+ *
+ * 2026-10-08: 두 종류 모두 **픽셀당 임계값 `0.02`** 를 쓴다. 전체 프레임이 Playwright 기본값
+ * `0.2` 로 남아 있던 탓에 dev Scenario Panel 이 찍힌 `frame-1024` baseline 이 통과하고 있었다
+ * (`playwright.config.ts` `VISUAL_THRESHOLD_FRAME` 주석에 실측 근거). 같은 날 전체 프레임의
+ * 절대 픽셀 상한도 **200 → 50** 으로 조였다 — 픽셀당 임계값이 노이즈를 걸러주므로 개수 상한이
+ * 그 역할을 겸할 필요가 없어졌다 (`VISUAL_MAX_DIFF_PIXELS` 주석).
  */
 import { expect, test, type Page } from '@playwright/test';
 
