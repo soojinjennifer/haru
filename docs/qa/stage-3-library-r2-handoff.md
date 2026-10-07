@@ -382,3 +382,104 @@ e2e/visual.spec.ts                           — Library 화면 baseline 6건
 그 밖의 테스트는 **약화·skip·threshold 조정 0건**이다. `book.css` 의 `overflow` 0건 가드
 (`stage3-css-guards.test.ts` · `library-css-guards.test.ts`)는 **그대로 두고**, 캐러셀 CSS 를
 `book-shelf.css` 로 분리해 가드를 지켰다 — 가드를 고치지 않고 코드를 가드에 맞췄다.
+
+---
+
+## 15. 후속 — `L-R2-01` `BookCover` `sm`·`md` 구조적 결함 수정 (2026-10-07)
+
+승인: approvals §22.1 `L-R2-01` *"지금 전부 고친다"*.
+
+### 15.1 1단계 — 재현 (실측)
+
+`lg` 에서 쓴 방법(브라우저 실측 + 런타임 토글)을 그대로 썼다.
+
+**① 현재 호출 자리에서는 밀리지 않는다.**
+
+| 자리 | 실측 높이 | 선언값 |
+|---|---|---|
+| `/library` `Finished together` 썸네일 (`sm` × 4행) | **48.5625** | 48.5625 (= 34 ÷ 0.7, LayoutUnit 내림) |
+| Home 활동 카드 표지 (`md` × 3장) | **82** | 82 (`--activity-card-book-size`) |
+
+`sm` 의 부모 `.haru-list-row__media` 는 **row flex** 이고, Home 은 `activity-card.css` 가
+`block-size: 82px` 를 직접 선언해 블록축이 definite 이다. 두 자리 모두 결함이 **가려져 있었다.**
+
+**② 구조적 취약점은 실재한다.** `lg` 가 깨졌던 조건(`.haru-shelf-item` = **column flex**)에
+같은 상자를 세우면 밀린다. 표지 `where-the-wild-things-are.png`(135×193 = 0.6995):
+
+| size | 선언 | 밀림 | Δ |
+|---|---|---|---|
+| `sm` | 48.56250 | **48.59375** | +0.031 |
+| `md` | 82.84375 | **82.90625** | +0.063 |
+| `lg` | 151 | **152.96875** | +1.969 |
+| `xl` | 90 | **90** (면역 — 두 변 직접 선언) | 0 |
+
+전부 `폭 × 193/135` 의 LayoutUnit(1/64px) 내림값과 **자릿수까지 일치**한다.
+
+**③ 역검증** (`R-BASELINE-1` ⑥): 실제 캐러셀에서 `lg` 수정을 `position: static` 으로 끄면
+**152.96875 가 돌아왔고**(135×193 표지 2장만, 나머지 4장은 151 유지) 다시 켜면 151 로 돌아왔다.
+
+### 15.2 2단계 — 수정
+
+`.haru-book-cover--sm`·`--md` 에 `position: relative`, `--sm img`·`--md img` 에
+`position: absolute; inset: 0` (= `lg` 와 같은 해법). `lg` 규칙은 **건드리지 않았다**.
+`xl` 은 두 변을 직접 선언해 면역이므로 적용하지 않았다 (실측 확인).
+
+### 15.3 3단계 — 회귀 테스트
+
+- `e2e/book-cover.spec.ts` (신규 2건) — `lg` 가 깨졌던 **column flex** 부모에 `sm`·`md`·`lg`·`xl`
+  을 세우고 원본비 3종(135×193 · 100×400 · 400×100) + 이미지 없음에서 상자 높이가 **선언값을
+  유지**함을 단정한다. 두 번째 테스트는 `position: absolute` 를 런타임에 끄고 **밀린 값
+  (48.59375 / 82.90625 / 152.96875)이 돌아오는지** 확인한다 — 프로브가 실제로 무는지 역검증.
+- `library-css-guards.test.ts` (신규 4건) — 수단이 지워지지 않았는지 고정 + `xl` 제외 근거.
+
+**load-bearing 확인**: `--sm img`·`--md img` 규칙을 지우면 신규 e2e 가 실패한다 (실행 확인).
+
+### 15.4 시각 baseline — **재생성 0건**
+
+기존 baseline 전부 통과(`test:e2e` 217 = 215 + 신규 2). `R-BASELINE-1` ⑤ 에 따라 강제
+재생성본을 픽셀 연결성분으로 분해해 원인을 전부 댔다.
+
+**노이즈 바닥 = 0** (같은 코드로 2회 재생성 → 변화 0px, 9종 전부). 즉 아래 차이는 노이즈가 아니다.
+
+**이 수정의 기여분** (HEAD 코드 재생성 ↔ 수정 코드 재생성) — 4종, **전부 Δ≤6**:
+
+| baseline | 변화 px | maxΔ | 클러스터 위치 |
+|---|---|---|---|
+| `s3-home` | 1108 | 6 | 표지 상자 테두리·그림자 둘레 |
+| `s3-home-deck` | 1061 | 6 | 같음 |
+| `s3-home-deck-scrolled` | 696 | 2 | 같음 |
+| `s3-book-cover` | 135 | **1** | `md` 상자 우측 경계 2px (x[119..120]) |
+
+**기하 이동이 아니다.** 1px 이라도 밀렸으면 글리프·경계가 수십~수백 Δ 로 바뀌는데 최대가 6 이다.
+원인은 상자가 **positioned 요소**가 되면서 테두리·그림자·이미지 리샘플링이 다시 래스터화된 것
+한 가지이며, 40배 증폭 diff 를 육안 확인한 결과 **차이가 표지 상자 둘레에만 갇혀 있고 본문
+텍스트는 0** 이다. 기존 baseline 이 그대로 통과하므로 재생성하지 않았다.
+
+### 15.5 ⚠️ 선행 drift 6종 — 내 수정과 **무관**, 손대지 않았다
+
+수정을 되돌린 **HEAD 코드로 재생성해도** 커밋된 baseline 과 다른 것이 6종 있다. 이번 작업
+범위가 아니라 **보고만** 한다.
+
+| baseline | 변화 px | maxΔ | 정체 |
+|---|---|---|---|
+| `frame-1024` | 13190 | **127** | **커밋된 baseline 에 dev Scenario Panel 이 찍혀 있다** (우하단 `scenario` pill). 지금 코드는 `hideDevPanel` 로 가려 찍히지 않는다 → `R-BASELINE-1` ② 유형의 **잔존 1건** |
+| `s3-book-cover` | 176 | 2 | 캡션 행(y[338..343]) 텍스트 래스터화 |
+| `v7-progress` | 50 | 15 | 좌우 끝 둥근 모서리 안티에일리어싱 |
+| `v4-tag-chip` | 88 | 10 | chip 둥근 모서리 |
+| `v2-material` | 84 | 4 | 카드 둥근 모서리 |
+| `s2-inforow` | 6 | 7 | 상단 모서리 3px × 2 |
+
+`frame-1024` 는 저대비(회색 위 회색)라 `FRAME_SNAPSHOT`(threshold 0.2) 가 거의 세지 않아
+**통과한 채로 남아 있었다** — `R-BASELINE-1` ④ 가 경고한 검출 공백 그대로다. 처리 방침은
+사용자 판단이 필요하다.
+
+### 15.6 파일
+
+```
+수정  apps/web/src/entities/book/book.css            — sm·md 규칙 + 공통 근거 주석
+수정  apps/web/__tests__/library-css-guards.test.ts  — 가드 4건 추가
+신규  e2e/book-cover.spec.ts                         — 상자 기하 회귀 2건
+```
+
+검증: `typecheck` · `lint` · `test`(1511) · `lint:boundaries` · `build` · `format:check` ·
+`assert:no-mocks` · `test:e2e`(217) 전부 통과. baseline 재생성 **0건**.

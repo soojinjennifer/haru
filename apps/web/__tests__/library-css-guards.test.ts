@@ -491,6 +491,34 @@ describe('`L-NEW-01` 캐러셀 가로 트랙 — overflow 예외와 그림자 �
     expect(img).toMatch(/inset:\s*0;/);
   });
 
+  /*
+   * `L-R2-01` (approvals §22.1) — 같은 결함이 `sm`(48.5625 → 48.59375) ·
+   * `md`(82.84375 → 82.90625) 에도 있었다. 실제 높이 단언은 `e2e/book-cover.spec.ts` 가
+   * 한다 (CSS 문자열로는 밀림을 볼 수 없다). 여기서는 **수단이 지워지지 않았는지**만 고정한다.
+   */
+  it.each(['sm', 'md'] as const)(
+    '`%s` 표지도 이미지를 흐름에서 뺀다 (`L-R2-01` — 세 크기 전부 고쳤다)',
+    (size) => {
+      expect(rule(BOOK_CSS, `.haru-book-cover--${size}`)).toMatch(/position:\s*relative;/);
+    },
+  );
+
+  it('`sm`·`md` 이미지가 `position: absolute; inset: 0` 을 **함께** 받는다', () => {
+    // `rule()` 은 단일 선택자용이다 — 그룹 선택자는 공백에 견디는 정규식으로 직접 꺼낸다.
+    const img =
+      /\.haru-book-cover--sm img,\s*\.haru-book-cover--md img\s*\{([^}]*)\}/.exec(BOOK_CSS)?.[1] ??
+      '';
+    expect(img).toMatch(/position:\s*absolute;/);
+    expect(img).toMatch(/inset:\s*0;/);
+  });
+
+  it('`xl` 은 적용 대상이 아니다 — 두 변을 직접 선언해 면역이다 (실측 90 유지)', () => {
+    expect(rule(BOOK_CSS, '.haru-book-cover--xl')).toMatch(
+      /block-size:\s*var\(--book-cover-h-xl\);/,
+    );
+    expect(BOOK_CSS).not.toMatch(/\.haru-book-cover--xl img\s*\{[^}]*position:\s*absolute/);
+  });
+
   it('캐러셀 블록 높이는 **최소값**이다 — 캡션 2줄에서 늘어나야 한다 (§6.3 ④)', () => {
     const block = rule(SHELF_CSS, '.haru-shelf-carousel');
     expect(block).toMatch(/min-block-size:\s*var\(--library-shelf-block-size\);/);

@@ -28,27 +28,52 @@
  */
 
 .haru-book-cover--sm {
+  position: relative;
   inline-size: var(--book-cover-w-sm);
 }
 
 .haru-book-cover--md {
+  position: relative;
   inline-size: var(--book-cover-w-md);
 }
 
-/*
- * `lg` 만 **이미지를 흐름에서 뺀다** (`position: absolute`).
+/* ===== 이미지를 흐름에서 뺀다 — `sm`·`md`·`lg` 공통 =====================
  *
- * 실측 결함: 표지 이미지의 원본 비가 107/151(0.7086)보다 세로로 길면(예 135×193 = 0.6995)
- * 흐름 안의 `<img>` 가 상자를 **밀어 올려** 높이가 151 → **152.97** 이 됐다. `aspect-ratio` 는
- * 선호 크기일 뿐 내용이 더 크면 상자가 늘어나기 때문이다. 캐러셀은 항목 높이가 블록 높이를
- * 정하므로 이 1.97px 이 그대로 섹션 기하로 번졌다 (`QA-2-004` 와 같은 부류의 결함이다).
+ * 실측 결함: 표지 원본비가 **상자 비보다 세로로 길면**(예 135×193 = 0.6995) 흐름 안의
+ * `<img>` 가 상자를 **밀어 올린다**. `aspect-ratio` 는 선호 크기일 뿐이고, 블록축을
+ * **내용으로 재는 부모**(column flex 등) 안에서는 내용(= 이미지 고유비 높이)이 더 크면
+ * 상자가 그만큼 늘어나기 때문이다. `block-size: 100%` 로는 막을 수 없다 — 그 퍼센트가
+ * 해소되지 않는 상황이 바로 이 상황이다.
+ *
+ * `where-the-wild-things-are.png`(135×193) 로 실측한 Δ (Chromium LayoutUnit 1/64px):
+ *
+ * | size | 선언 높이 | 밀린 높이 | Δ |
+ * |---|---|---|---|
+ * | `sm` | 48.56250 | **48.59375** | +0.031 |
+ * | `md` | 82.84375 | **82.90625** | +0.063 |
+ * | `lg` | 151.00000 | **152.96875** | +1.969 |
+ *
+ * `lg` 는 `.haru-shelf-item`(column flex) 안에 있어 **실제로 발동했다** — 캐러셀은 항목
+ * 높이가 블록 높이를 정하므로 1.97px 이 그대로 섹션 기하로 번졌다 (`QA-2-004` 와 같은
+ * 부류의 결함이다). 끄고 다시 재면 152.96875 가 돌아온다 (`R-BASELINE-1` ⑥ 역검증).
+ *
+ * `sm`·`md` 는 **현재 호출 자리에서는 발동하지 않는다** — `sm` 의 부모
+ * `.haru-list-row__media` 는 row flex 이고, `md` 는 `activity-card.css` 가
+ * `block-size: var(--activity-card-book-size)`(82) 를 직접 선언해 블록축이 definite 이다.
+ * 그래도 **부모 한 곳이 column flex 로 바뀌면 되살아나는** 구조적 취약점이므로 함께 막는다
+ * (사용자 결정 `L-R2-01`, approvals §22.1).
+ *
+ * 그래서 이 수정의 **기하 변화는 0** 이다 (sm 48.5625 · md 82 유지 — 실측). 다만 상자가
+ * positioned 요소가 되면서 테두리·그림자·이미지 리샘플링이 다시 래스터화돼 Home 표지 둘레에
+ * **채널차 ≤ 6** 의 서브픽셀 차이가 남는다 (실측: `s3-home` 1108px · `s3-home-deck` 1061px ·
+ * `s3-book-cover` 135px, 전부 Δ≤6). 육안 동일이고 기존 baseline 이 그대로 통과하므로
+ * **재생성하지 않았다** (`R-BASELINE-1` ⑤).
+ *
+ * `xl` 은 두 변(64×90)을 직접 선언해 블록축이 definite 이므로 **면역**이다 — column flex
+ * 안에서도 실측 90 을 유지한다. 그래서 적용하지 않는다.
  *
  * `object-fit: cover` 가 상자 안에서 잘라내므로 `overflow` 를 선언할 필요가 없다 —
  * 클리핑 박스를 만들지 않는다 (§0.4).
- *
- * ⚠️ **`sm`·`md`·`xl` 에는 적용하지 않는다.** `xl` 은 두 변을 직접 두어 영향이 없고,
- * `sm`·`md` 는 같은 구조적 취약점을 갖지만 **Home 의 baseline 이 걸려 있다** — 고치면 Home 이
- * 변할 수 있으므로 이번 범위에서 손대지 않고 보고한다.
  */
 .haru-book-cover--lg {
   position: relative;
@@ -59,6 +84,12 @@
 }
 
 .haru-book-cover--lg img {
+  position: absolute;
+  inset: 0;
+}
+
+.haru-book-cover--sm img,
+.haru-book-cover--md img {
   position: absolute;
   inset: 0;
 }
