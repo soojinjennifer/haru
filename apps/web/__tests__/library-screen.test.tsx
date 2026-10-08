@@ -101,7 +101,13 @@ describe('섹션 구조 (Design Spec §2.2 · §3)', () => {
     await renderLibrary();
     await waitForLoaded();
 
-    expect(document.querySelectorAll('.haru-list-row')).toHaveLength(4);
+    /*
+      2라운드-2 에서 `LibraryEntryActions`(진입점 2행)가 **같은 Page** 에 생겼다. 그 행은
+      서재 섹션이 아니므로 단언을 `.haru-library-shelves` 안으로 좁힌다 — 전역 `.haru-list-row`
+      개수를 세면 진입점 행까지 포함해 "4행 고정" 이라는 뜻이 사라진다. 진입점 행의 개수는
+      별도 테스트(`진입점`)가 고정한다.
+    */
+    expect(shelves().querySelectorAll('.haru-list-row')).toHaveLength(4);
     expect(screen.queryByRole('button', { name: /show more/i })).toBeNull();
   });
 

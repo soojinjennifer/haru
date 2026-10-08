@@ -14,7 +14,14 @@ import {
 import { authCopy } from '../features/auth';
 import { consentCopy } from '../features/consent';
 import { HomePage, HomeTopBar } from '../pages/home';
-import { LibraryPage, LibraryTopBar } from '../pages/library';
+import {
+  AddOwnBookPage,
+  AddOwnBookTopBar,
+  GiftRequestsPage,
+  GiftRequestsTopBar,
+  LibraryPage,
+  LibraryTopBar,
+} from '../pages/library';
 import { ProgressPage, ProgressTopBar } from '../pages/progress';
 import { NotFoundPage } from '../pages/not-found/NotFoundPage';
 import { OnboardingSessionProvider } from '../features/onboarding-survey';
@@ -286,6 +293,31 @@ export function AppRoutes() {
           element={
             <RouteGuard>
               <ProgressPage />
+            </RouteGuard>
+          }
+        />
+      </Route>
+      {/*
+        서재 하위 스택 2개 — 탭이 아니다 (탭바 없음). Figma 에 없고 `C-13` ②(`L-OPEN-12` ·
+        `L-OPEN-13`)로 승인된 design-agent 명세다 (Library Design Spec §7.2 · §7.3).
+        `/settings` 와 같은 `StackLayout` + `centered` TopBar 규격을 쓴다.
+      */}
+      <Route element={<StackLayout topBar={<AddOwnBookTopBar />} />}>
+        <Route
+          path={ROUTES.libraryAdd}
+          element={
+            <RouteGuard>
+              <AddOwnBookPage />
+            </RouteGuard>
+          }
+        />
+      </Route>
+      <Route element={<StackLayout topBar={<GiftRequestsTopBar />} />}>
+        <Route
+          path={ROUTES.libraryGiftRequests}
+          element={
+            <RouteGuard>
+              <GiftRequestsPage />
             </RouteGuard>
           }
         />

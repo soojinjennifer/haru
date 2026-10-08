@@ -14,7 +14,7 @@
  * 진단·판정·비교 표현을 쓰지 않는다. 평점은 **서버 값 표시**이고 Frontend 가 등급·우열 문구를
  * 더하지 않는다 (`rules/frontend.md` §8).
  */
-import type { LibrarySectionKey } from '@haru/contracts';
+import type { GiftRequestStatus, LibrarySectionKey } from '@haru/contracts';
 
 /** 날짜 문구는 사용자 노출 언어(영어) 로만 만든다. */
 const LOCALE = 'en-US';
@@ -73,7 +73,122 @@ export const libraryCopy = {
     retry: 'Try again',
     loading: 'Loading your library',
   },
+
+  /* ===== 시트 (§3.7 · §3.8) ============================================== */
+
+  /**
+   * 시트 헤더 우상단 닫기 버튼의 접근성 이름. Figma 글리프는 `확인 불가` 이고
+   * `stage-3-design-spec.md` §2.8 이 **닫기 `IconButton`** 으로 확정했다.
+   */
+  closeSheet: 'Close',
+
+  shelfSheet: {
+    /** 전체 목록 블록의 접근성 이름 — 보이는 제목(섹션 이름)은 시트 헤더가 갖는다. */
+    listLabel: 'All books in this shelf',
+    /** 추가 페이지를 받는 중 (`paged`). 목록 자리에 Skeleton 2행이 들어간다. */
+    loadingMore: 'Loading more books',
+    emptyTitle: 'Nothing here yet',
+    emptyDescription: 'Books will show up here as you save and read together.',
+    errorTitle: 'We could not load this shelf',
+  },
+
+  bookSheet: {
+    /** Prompt 목록 블록의 접근성 이름 (`PromptPreview` 와 같은 역할). */
+    promptsLabel: 'Prompts for this book',
+    /** Prompt 를 아직 받는 중. */
+    promptsLoading: 'Loading prompts',
+    /** Prompt 조회 실패 — 시트의 나머지(책·액션)는 그대로 보인다. */
+    promptsErrorTitle: 'We could not load the prompts',
+    /**
+     * 카탈로그에 없는 책(`book === null`)에는 Prompt 세트가 **존재할 수 없다**.
+     * 판정 문구를 쓰지 않고 다음에 할 일만 알린다.
+     */
+    promptsUnavailable: 'Prompts arrive once this book is in our catalogue.',
+    /** `★ Save` — Home 과 **같은 문구**다 (같은 `SaveButton` 을 쓴다). */
+    save: 'Save',
+    saved: 'Saved',
+    saveFailed: "We couldn't save that book. Try again.",
+    /**
+     * 주 CTA. **Stage 3 에서는 비활성**이다 (`CONFIRMED (D-3)`, approvals §13.10).
+     * `reason` 이 비어 있는 이유는 Home 과 같다 — "곧 나옵니다" 류를 쓰지 않는다.
+     */
+    startSession: { label: 'Start Session', reason: null as string | null },
+    /** 증정 신청 CTA — `ownership === 'favorite_only'` 에만 보인다 (§2.9). */
+    requestBook: 'Request this book',
+    /** 외부 구매 링크 — `purchaseUrl` 이 있을 때만 보인다. */
+    whereToBuy: 'Where to buy',
+    whereToBuyHint: 'Opens in a new tab',
+  },
+
+  /* ===== 진입점 · 하위 화면 (§7.1 · §7.2 · §7.3) ========================== */
+
+  entryActions: {
+    /** 목록 자체의 접근성 이름 — 섹션 제목을 새로 만들지 않는다 (§7.1). */
+    label: 'Library actions',
+    addOwnBook: 'Add a book you own',
+    giftRequests: 'Gift requests',
+  },
+
+  add: {
+    title: 'Add a book',
+    back: 'Go back',
+    searchLabel: 'Search by title',
+    clear: 'Clear',
+    /** 검색 결과 행의 등록 버튼. */
+    addToLibrary: 'Add',
+    resultsLabel: 'Search results',
+    searching: 'Searching',
+    noResultsTitle: 'No matches yet',
+    noResultsDescription: 'You can add the book by typing its title below.',
+    searchErrorTitle: 'We could not search right now',
+    /** 직접 입력 블록 — Figma 가 없고 Stage 2 부품을 그대로 쓴다 (§7.2). */
+    dividerLabel: 'or',
+    manualTitle: 'Not finding it?',
+    titleLabel: 'Title',
+    authorLabel: 'Author',
+    submit: 'Add to library',
+    /** 등록 성공 — `/library` 로 돌아가며 Toast 로 알린다. */
+    successToast: 'Added to your library',
+    duplicateTitle: 'Already in your library',
+    duplicateDescription: 'This book is already on your shelf.',
+    errorTitle: 'We could not add that book',
+  },
+
+  giftRequests: {
+    title: 'Gift requests',
+    back: 'Go back',
+    /**
+     * `D-15` 접수 안내 — **잠정 문구**다 (approvals §8.2). 수치·기한·배송 소요일을 넣지
+     * 않는다. 운영 표현이 확정되면 **이 값만** 교체한다.
+     */
+    noticeTitle: 'Your request is in',
+    noticeDescription: "We'll reach out with delivery details.",
+    listLabel: 'Gift requests',
+    emptyTitle: 'No gift requests yet',
+    emptyDescription: 'You can request a book from its detail sheet.',
+    errorTitle: 'We could not load your gift requests',
+    loading: 'Loading your gift requests',
+  },
 } as const;
+
+/**
+ * 증정 요청 상태 라벨 (`GiftRequestStatusSchema` 6종, FR-22).
+ *
+ * **색에 의존하지 않는다** — `Tag tone="neutral"` 하나로 그리고 뜻은 라벨 텍스트가 전달한다
+ * (WCAG 1.4.1, contract 주석의 "상태 **라벨 텍스트**로 표시한다"). Figma 에 증정 상태 배지
+ * 디자인이 없어 색 체계를 발명하지 않는다.
+ *
+ * `rejected` 는 **`Not approved`** 로 적는다 — 아이·보호자에 대한 판정이 아니라 **요청의
+ * 처리 결과**이며, 'Rejected' 보다 중립적인 영어 표현이다. 전부 `RECOMMENDED` 다.
+ */
+export const giftRequestStatusCopy: Readonly<Record<GiftRequestStatus, string>> = {
+  requested: 'Requested',
+  approved: 'Approved',
+  shipped: 'Shipped',
+  delivered: 'Delivered',
+  cancelled: 'Cancelled',
+  rejected: 'Not approved',
+};
 
 /** 섹션 key → Figma 제목. 섹션이 늘면 컴파일 에러로 누락을 알린다. */
 export const librarySectionTitle: Readonly<Record<LibrarySectionKey, string>> = {
@@ -127,6 +242,11 @@ export function finishedMeta(sessionCount: number, finishedAt: string | null): s
   const sessions = `${String(sessionCount)} ${sessionCount === 1 ? 'session' : 'sessions'}`;
   if (finishedAt === null) return sessions;
   return `${sessions} · finished ${monthDay.format(new Date(finishedAt))}`;
+}
+
+/** `Requested May 2` — 증정 요청 행의 부제 (§7.3). */
+export function requestedMeta(requestedAt: string): string {
+  return `Requested ${monthDay.format(new Date(requestedAt))}`;
 }
 
 /**

@@ -44,11 +44,31 @@
 .haru-sheet--inset-card {
   inset-inline: var(--sheet-inset-inline);
   inset-block-end: var(--sheet-inset-block-end);
+  /*
+   * ⚠️ base 의 `inline-size: 100%` 를 **반드시 꺼야 한다.** `position: fixed` 에서 폭이
+   * 명시되면 `inset-inline` 의 오른쪽 값이 무시되고, 393 에서 카드가 뷰포트를 **오른쪽으로
+   * 14px 넘친다** (실측: `right = innerWidth + 14`). `auto` 로 두면 폭이 좌우 inset 에서
+   * 파생된다 — 393 → 365(= 393 − 28) · 1024 → `max-inline-size` 452.
+   * 2라운드-2 e2e 기하 테스트가 이 값을 고정한다.
+   */
+  inline-size: auto;
   /* 앱 컬럼(480) 안에서도 좌우 14 를 유지한다. */
   max-inline-size: calc(var(--layout-app-max-width) - 2 * var(--sheet-inset-inline));
   /* 상단 40 은 scrim 이 반드시 보이도록 남긴다 (Design Spec §3.9). */
   max-block-size: calc(100dvh - var(--space-10) - var(--sheet-inset-block-end));
   padding: var(--sheet-inset-pad);
+  /*
+   * 하단만 **16** 이다 (`--activity-card-pad-bottom`).
+   * 근거: Figma `163:1898`(`type=shelf`) 의 아래 여백은 425 − 412 = **13** 이고, Design Spec
+   * §3.7 이 그것을 기존 토큰 16 으로 **흡수**하도록 정했다 (Δ+3, `RECOMMENDED`). 같은 값이
+   * `145:1085`(= Home 카드 `163:2649`) 의 카드 하단 padding 이기도 해서 두 시트에 모두 맞는다.
+   * 새 토큰을 만들지 않고 활동 카드와 같은 토큰을 가리킨다.
+   *
+   * base 가 더하는 `--layout-safe-bottom` 은 여기서 **빼야 한다** — 떠 있는 카드는 뷰포트
+   * 바닥에서 `--sheet-inset-block-end`(14 + safe-area) 만큼 이미 떨어져 있어 두 번 세면
+   * 카드 안쪽에 홈 인디케이터 높이만큼 빈 띠가 생긴다.
+   */
+  padding-block-end: var(--activity-card-pad-bottom);
   border-radius: var(--sheet-inset-radius);
 }
 
@@ -75,6 +95,27 @@
 .haru-sheet__content {
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/*
+ * 고정 ActionBar 슬롯 (Figma `Button/card` — 카드 하단 고정 `[실측 163:1898 · 145:1085]`).
+ * 시트가 세로 flex 이므로 `gap`(12)이 본문↔ActionBar 간격을 만든다.
+ */
+.haru-sheet__footer {
+  flex: none;
+}
+
+/*
+ * `footer` 가 밀려나지 않도록 본문이 **줄어들 수 있게** 한다.
+ * flex item 의 기본 `min-block-size: auto` 는 내용 높이 아래로 줄어드는 것을 막아서,
+ * 긴 목록이면 본문이 아니라 **시트 자체**가 넘친다.
+ *
+ * ⚠️ `inset-card` 에만 건다 — `bottom`·`full` 시트(온보딩 선택 시트 등)의 레이아웃을 바꾸지
+ * 않는다 (시각 baseline 보호).
+ */
+.haru-sheet--inset-card .haru-sheet__content {
+  flex: 1 1 auto;
+  min-block-size: 0;
 }
 
 /*

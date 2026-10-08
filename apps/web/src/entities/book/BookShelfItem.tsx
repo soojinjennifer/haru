@@ -22,6 +22,15 @@
  *
  * 제목은 **Figma 대로 1줄 + 말줄임**이다 (§6.3 ③) — 길이가 데이터 의존이고 Figma 가
  * `nowrap` 1줄을 명시한다.
+ *
+ * ── `onPress` (시트 라운드에서 연결) ──
+ * §6.1 "캐러셀 항목 탭 → `BookDetailSheet`". 주면 root 가 `<button>` 이 된다. 2라운드-1 은
+ * 열 대상이 없어 비대화형으로 뒀고, 시트가 생긴 지금 **같은 기하 그대로** 버튼이 된다 —
+ * `book-shelf.css` 가 UA 기본값(면·테두리·padding·폰트·정렬)을 전부 되돌리므로 rest 상태의
+ * 렌더 픽셀이 변하지 않는다 (`ListRow` 의 `__content` 선례와 같은 방식).
+ *
+ * 접근성 이름은 **제목 + 캡션**이다 (§6.3 ⑤ — 캡션은 `line-clamp` 로 시각만 줄어들고 DOM 에
+ * 전체가 남으므로 별도 `aria-label` 을 만들지 않는다. 버튼 이름은 자식 텍스트로 계산된다).
  */
 import { Text } from '@haru/ui';
 
@@ -36,11 +45,13 @@ export interface BookShelfItemProps {
    * (`L-OPEN-15`). 라벨 문구는 `shared/copy/capability-copy.ts` 가 소유한다.
    */
   caption?: string | undefined;
+  /** 주면 칸 전체가 `<button>` 이 된다 (§6.1 — `BookDetailSheet` 열기). */
+  onPress?: (() => void) | undefined;
 }
 
-export function BookShelfItem({ title, author, coverUrl, caption }: BookShelfItemProps) {
-  return (
-    <div className="haru-shelf-item">
+export function BookShelfItem({ title, author, coverUrl, caption, onPress }: BookShelfItemProps) {
+  const body = (
+    <>
       <BookCover title={title} author={author} coverUrl={coverUrl} size="lg" decorative />
       <Text as="span" variant="caption-1" weight="semibold" tone="primary" truncate={1}>
         {title}
@@ -50,6 +61,18 @@ export function BookShelfItem({ title, author, coverUrl, caption }: BookShelfIte
           {caption}
         </Text>
       )}
-    </div>
+    </>
+  );
+
+  if (onPress === undefined) return <div className="haru-shelf-item">{body}</div>;
+
+  return (
+    <button
+      type="button"
+      className="haru-shelf-item haru-shelf-item--pressable haru-focus-ring"
+      onClick={onPress}
+    >
+      {body}
+    </button>
   );
 }

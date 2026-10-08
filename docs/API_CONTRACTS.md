@@ -836,7 +836,7 @@ apps/web/src/
 | me / consents / auth(AuthGateway) | 2 | `success`, `loading`, `error`, `retry` | `consent-missing`, `consent-version-outdated`, `token-expired`, `provider-cancelled`, `onboarding-incomplete`, `vpc-pending`, `vpc-failed` |
 | onboarding / children profile | 2 | `success`, `loading`, `error`, `retry` | `draft-resume`, `persona-fallback`, `child-limit-reached`, `capability-all-missing` |
 | home / activity-cards | 3 | `success`, `loading`, `empty`, `error`, `retry` | `offline-cached-card`, `conversation-only-option`, `reread-option`, `books-exhausted`, `session-already-active` |
-| library / books / gift-requests / **saved-books** | 3 | `success`, `loading`, `empty`, `error`, `retry` | `gift-pending`, `gift-duplicate`, `user-entered-book`, **`book-saved`** |
+| library / books / gift-requests / **saved-books** | 3 | `success`, `loading`, `empty`, `error`, `retry` | `gift-pending`, `gift-duplicate`, `book-already-owned`, `user-entered-book`, **`book-saved`** |
 | notifications / push-devices | 3 | `success`, `loading`, `error`, `retry` | `push-permission-denied` |
 | sessions (create / transitions) | 4 | `success`, `loading`, `error`, `retry` | `invalid-transition`, `session-already-active`, `onboarding-incomplete`, `consent-missing`, `mic-permission-denied`, `recording-interrupted`, `auto-timeout`, `crash-recovered`, `abandoned` |
 | recordings (upload init / tokens / complete) | 4 | `success`, `loading`, `error`, `retry` | **`recording-upload-success`**, **`recording-upload-failure`**, `upload-retry`, `upload-token-expired`, `recording-incomplete`, `offline-queued`, `upload-stalled-48h`, `recording-deleted` (upload-tokens) |
@@ -887,6 +887,7 @@ apps/web/src/
 | `session-already-active` | — | `HomeSummary.activeSession` 존재 / `POST /v1/sessions` → `SESSION_ALREADY_ACTIVE` | home, sessions | 3 | `active-session-exists` |
 | `gift-pending` | — | 증정 신청 `gift_pending`·배송 상태 표시 | library, gift-requests | 3 | — |
 | `gift-duplicate` | — | `GIFT_REQUEST_DUPLICATE` | gift-requests | 3 | — |
+| `book-already-owned` | — | `BOOK_ALREADY_OWNED`(409) — `/library/add` 중복 등록 안내 (Design Spec §7.2 `InlineAlert tone=info`). Library 2라운드-2 에서 추가 | library (add book) | 3 | — |
 | `user-entered-book` | — | DB 외 직접 등록 책 포함 (범용 Prompt) | library, books | 3 | — |
 | `book-saved` | — | 대상 책이 **이미 저장된 상태**(`LibraryBook.saved=true`) → 재저장이 같은 응답을 돌려주는 멱등성(§3.7.3)과 (`G-14` ⓑ 채택 시) 초기 표시 검증 | library, saved-books, activity-cards | 3 | — |
 | `unsave` | — | 저장 해제 성공 (`G-13` 토글) → `libraryKeys.overview` 무효화·재조회 | library, saved-books | 3 | — |

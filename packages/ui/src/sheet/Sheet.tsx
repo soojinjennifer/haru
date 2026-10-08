@@ -27,6 +27,17 @@ export interface SheetProps {
   variant?: SheetVariant;
   /** 헤더 우측 슬롯 (닫기 IconButton 등). */
   trailing?: ReactNode;
+  /**
+   * 본문 **아래에 고정**되는 슬롯 — 스크롤 영역 밖이다.
+   *
+   * Figma `163:1898`(`type=shelf`)·`145:1085` 의 `Button/card` ActionBar 는 카드 **하단에
+   * 고정**되어 있고 목록만 스크롤한다 `[실측]`. 그래서 본문(`overflow-y: auto`) 안에 두지
+   * 않는다 — 본문에 넣으면 스크롤할 때 CTA 가 함께 사라지고, 목록 그림자가 잘릴 자리도
+   * 사라져 `contentShadowInset` 이 무의미해진다.
+   *
+   * 주지 않으면 **아무것도 렌더하지 않는다** — `bottom`·`full` 시트의 외형은 그대로다.
+   */
+  footer?: ReactNode;
   /** 열릴 때 포커스를 받을 요소. 없으면 시트 안 첫 포커스 대상. */
   initialFocus?: RefObject<HTMLElement | null>;
   /** false 면 Esc·배경 탭으로 닫히지 않는다. */
@@ -53,6 +64,7 @@ export function Sheet({
   children,
   variant = 'bottom',
   trailing,
+  footer,
   initialFocus,
   dismissible = true,
   contentShadowInset = false,
@@ -96,6 +108,7 @@ export function Sheet({
         >
           {children}
         </div>
+        {footer === undefined ? null : <div className="haru-sheet__footer">{footer}</div>}
       </div>
     </div>,
     document.body,

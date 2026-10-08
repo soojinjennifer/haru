@@ -51,10 +51,18 @@ export const ROUTES = {
    * Stage 3 탭 route. 탭 항목은 **Library / Home(가운데) / Progress 3개**이며 `/session` 탭은
    * 없다 (`CONFIRMED (#15 · D-02)`).
    *
-   * `/library` 는 Stage 3 1차에서 **탭바만** 마운트한다 (화면 내용은 다음 단계).
    * `/progress` 는 리포트 준비 안내만 둔다 (`CONFIRMED (D-2)` — 진행도 수치 0건).
    */
   library: '/library',
+  /**
+   * 서재 하위 스택 화면 2개 — Figma 에 없고 `C-13` ②(`L-OPEN-12`·`L-OPEN-13`)로 승인된
+   * design-agent 명세다 (Library Design Spec §7.2 · §7.3).
+   *
+   * 평면 key 로 둔다 — `library` 를 객체로 바꾸면 기존 `ROUTES.library` 사용처(router ·
+   * `AppTabBar` · 테스트)가 전부 깨진다. 탭 route 는 `/library` 하나이고 이 둘은 탭이 아니다.
+   */
+  libraryAdd: '/library/add',
+  libraryGiftRequests: '/library/gift-requests',
   progress: '/progress',
 
   /** `2-HOME` 가 화면을 등록한다. */

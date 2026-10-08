@@ -19,8 +19,15 @@ export const libraryKeys = {
    */
   list: (childId: string, filter: LibraryFilter) =>
     [...libraryKeys.all, 'list', childId, filter] as const,
+  /**
+   * 증정 요청 상태 목록 (`GET /v1/children/:childId/gift-requests`, FR-22).
+   * `/library/gift-requests` 화면과 `BookDetailSheet` 의 신청 성공이 공유한다 —
+   * 신청 직후 이 key 를 무효화하면 상태 화면이 최신 목록을 받는다.
+   */
+  giftRequests: (childId: string) => [...libraryKeys.all, 'gift-requests', childId] as const,
 } as const;
 
 export type SavedBooksQueryKey = ReturnType<typeof libraryKeys.saved>;
 export type LibraryOverviewQueryKey = ReturnType<typeof libraryKeys.overview>;
 export type LibraryListQueryKey = ReturnType<typeof libraryKeys.list>;
+export type GiftRequestsQueryKey = ReturnType<typeof libraryKeys.giftRequests>;

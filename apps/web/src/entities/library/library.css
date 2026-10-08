@@ -29,6 +29,15 @@
   text-align: start;
 }
 
+/*
+ * `onPress` 가 있으면 root 가 `<button>` 이다 (§6.1 — `BookDetailSheet` 열기).
+ * 위 규칙이 이미 `border: 0` · 면 · 폰트 · 정렬 · padding 을 선언하므로 **UA 기본값이 전부
+ * 덮여 있다** — 여기서는 포인터만 더한다. 눌림 상태의 면 변화는 Figma 에 없어 만들지 않는다.
+ */
+button.haru-reading-now {
+  cursor: pointer;
+}
+
 /* 텍스트 열 — 내부 gap 3 (`--reading-now-text-gap`: 2·4 동점이라 스케일로 흡수할 수 없다). */
 .haru-reading-now__text {
   display: flex;

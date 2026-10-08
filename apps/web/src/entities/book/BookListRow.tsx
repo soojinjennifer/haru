@@ -19,10 +19,14 @@
  * ── `ownership` 표식을 만들지 않는다 (`L-OPEN-14`) ──
  * `owned` / `gifted` / `gift_pending` 를 드러내는 요소가 **없다**. 데이터는 contract 에 남는다.
  *
- * ── 이번 라운드에는 **비대화형**이다 ──
- * §6.1 은 "행 탭 → `BookDetailSheet`" 를 정하지만 **시트는 다음 작업**이다. 아무 일도 하지 않는
- * `<button>` 을 만들지 않으려고 `onPress` 를 넘기지 않는다. chevron 은 Figma 에 있는 요소이므로
- * **빼지 않고** 그대로 그린다 (장식이며 `aria-hidden`).
+ * ── `onPress` (시트 라운드에서 연결) ──
+ * §6.1 "행 탭 → `BookDetailSheet`(행 전체가 `<button>`)". `ListRow` 가 `onPress` 를 받으면
+ * `__content` 가 `<button>` 이 되고 그 선택자는 이미 UA 기본값을 되돌려 두었으므로 rest 상태의
+ * 렌더가 바뀌지 않는다 (`--pressable` 은 `cursor` · hover/active 전환만 더한다).
+ * chevron 은 Figma 요소이므로 **빼지 않고** 장식(`aria-hidden`)으로 둔다 — `ListRow` 규칙대로
+ * trailing 에 인터랙티브 요소를 넣지 않으므로 중첩 버튼이 생기지 않는다.
+ *
+ * `onPress` 를 주지 않으면 비대화형 `<div>` 그대로다 (Skeleton·읽기 전용 목록 경로).
  */
 import { Icon, ListRow, Text } from '@haru/ui';
 
@@ -32,14 +36,21 @@ export interface BookListRowProps {
   title: string;
   author?: string | undefined;
   coverUrl?: string | undefined;
-  /** `4 sessions · finished Mar 3` — 문구는 호출 측(copy 모듈)이 만든다. */
-  meta: string;
+  /**
+   * 좌측 보조 1행 — `4 sessions · finished Mar 3`. 문구는 호출 측(copy 모듈)이 만든다.
+   *
+   * **없으면 넘기지 않는다**: 아직 읽지 않은 책(`Our curated shelf` 전체 목록)에 `0 sessions`
+   * 를 찍지 않기 위해서다. 호출 측이 저자명 같은 다른 보조 문구를 넘길 수도 있다.
+   */
+  meta?: string | undefined;
   /** 1–5 또는 `null`. `null` 이면 우측 meta 를 렌더하지 않는다. */
   averageRating: number | null;
   /** `Rated ` 접두 — copy 모듈이 소유한다. */
   ratedPrefix: string;
   /** 서버 값을 그대로 쓴 표시 문자열 (`4.5`). Frontend 가 가공하지 않는다. */
   ratingText?: string | undefined;
+  /** 주면 행 전체가 `<button>` 이 된다 (§6.1 — `BookDetailSheet` 열기). */
+  onPress?: (() => void) | undefined;
 }
 
 export function BookListRow({
@@ -50,6 +61,7 @@ export function BookListRow({
   averageRating,
   ratedPrefix,
   ratingText,
+  onPress,
 }: BookListRowProps) {
   const rating =
     averageRating === null || ratingText === undefined ? undefined : (
@@ -67,17 +79,22 @@ export function BookListRow({
     <ListRow
       title={title}
       media={<BookCover title={title} author={author} coverUrl={coverUrl} size="sm" decorative />}
-      subtitle={
-        <Text as="span" variant="caption-2" tone="tertiary">
-          {meta}
-        </Text>
-      }
+      {...(meta === undefined
+        ? {}
+        : {
+            subtitle: (
+              <Text as="span" variant="caption-2" tone="tertiary">
+                {meta}
+              </Text>
+            ),
+          })}
       meta={rating}
       trailing={
         <span className="haru-book-row__chevron">
           <Icon name="chevron-right" size="sm" tone="inherit" decorative />
         </span>
       }
+      {...(onPress === undefined ? {} : { onPress })}
     />
   );
 }

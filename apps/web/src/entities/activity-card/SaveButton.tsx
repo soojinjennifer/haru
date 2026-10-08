@@ -16,6 +16,14 @@
  * 규격이다. 이 버튼은 padding 14 · gap 7 · 라벨 15/13 이라 공유 토큰을 덮어써야 하는데,
  * 그러면 모든 화면의 Button 이 바뀐다. Shared UI 신규 0건 원칙(audit §16.8)을 지키면서
  * 도메인 규격을 갖는 방법은 도메인 버튼이다 (`.haru-activity-card__context-trigger` 선례).
+ *
+ * ── `disabled` (Library 2라운드-2) ──
+ * `LibraryShelfSheet` 의 ActionBar 는 **대상 책이 없다**: Figma `163:1898`(`type=shelf`)에
+ * ActionBar 가 실재해 그리지만(approvals §17.2 — "Figma 대로 넣는다"), 행 탭은 선택이 아니라
+ * `BookDetailSheet` **교체 전환**이고 `type=selected` 변형은 **미구현**(확정 결정)이라
+ * 저장할 책이 정해지지 않는다. 그래서 그 자리에서는 `Start Session` 과 **같은 방식**으로
+ * `aria-disabled` + 누름 무시다 (`D-3` 의 "설명 슬롯이 비면 설명 없이 `aria-disabled` 만").
+ * native `disabled` 를 쓰지 않는 이유도 같다 — 포커스를 잃으면 존재를 전달할 수 없다.
  */
 import { Icon } from '@haru/ui';
 
@@ -31,17 +39,29 @@ export interface SaveButtonProps {
   copy: SaveButtonCopy;
   /** 전송 중 — 낙관적 갱신이 이미 라벨을 바꿨으므로 **비활성화하지 않는다**. */
   busy?: boolean;
+  /** 대상 책이 없는 자리 (`LibraryShelfSheet` ActionBar) — `aria-disabled` + 누름 무시. */
+  disabled?: boolean;
   onToggle: () => void;
 }
 
-export function SaveButton({ saved, copy, busy = false, onToggle }: SaveButtonProps) {
+export function SaveButton({
+  saved,
+  copy,
+  busy = false,
+  disabled = false,
+  onToggle,
+}: SaveButtonProps) {
   return (
     <button
       type="button"
       className="haru-activity-card__save haru-focus-ring"
       aria-pressed={saved}
       {...(busy ? { 'aria-busy': true } : {})}
-      onClick={onToggle}
+      {...(disabled ? { 'aria-disabled': true } : {})}
+      onClick={() => {
+        if (disabled) return;
+        onToggle();
+      }}
     >
       <Icon name="haru:save-star" decorative />
       <span className="haru-activity-card__save-label">{saved ? copy.saved : copy.save}</span>

@@ -40,6 +40,7 @@ const SECTION_CSS = codeOf(read('packages', 'ui', 'src', 'section', 'SectionHead
 const BOOK_CSS = codeOf(read('apps', 'web', 'src', 'entities', 'book', 'book.css'));
 const SHELF_CSS = codeOf(read('apps', 'web', 'src', 'entities', 'book', 'book-shelf.css'));
 const SHELVES_CSS = codeOf(read('apps', 'web', 'src', 'features', 'library', 'library.css'));
+const READING_NOW_CSS = codeOf(read('apps', 'web', 'src', 'entities', 'library', 'library.css'));
 const CARD_CSS = codeOf(
   read('apps', 'web', 'src', 'entities', 'activity-card', 'activity-card.css'),
 );
@@ -547,5 +548,125 @@ describe('신규 CSS 에 임의 값이 없다 (rules/frontend.md §6)', () => {
   ])('%s 에 HEX · 색 함수 리터럴이 없다', (_name, css) => {
     expect(css).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
     expect(css).not.toMatch(/\brgba?\(/);
+  });
+});
+
+/*
+ * ───────────────────────────────────────────────────────────────────────────
+ * 2라운드-2 — 시트 2종 · 진입점 · 하위 화면
+ *
+ * `--shadow-bubble` 번짐을 **다시 재서** 1라운드 등록값과 맞는지 확인했다
+ * (빌드 산출물 CSS · 흰 배경 · dSF 1 · 순백 대비 채널차 합 ≥ 1):
+ *   아래 **10** · 위 **0** · 좌우 **4** — drop 1겹(`0 6px 4px`) 이므로 누락할 겹이 없다.
+ * 같은 방법으로 `--shadow-glass-rest`(3겹)를 재면 아래 78 · 위 22 · 좌우 50 이 나와
+ * 기록과 일치한다 → **방법 검정 통과**.
+ */
+describe('`R-SHADOW-1` 2라운드-2 — 시트 본문 inset 의 첫 실사용처', () => {
+  it('`inset-card` 하단 padding 이 16(`--activity-card-pad-bottom`) 이다 (§3.7 흡수)', () => {
+    const inset = rule(SHEET_CSS, '.haru-sheet--inset-card');
+
+    expect(inset).toMatch(/padding-block-end:\s*var\(--activity-card-pad-bottom\);/);
+    /* `padding:`(18) 선언보다 **뒤**에 와야 override 가 성립한다. */
+    expect(inset.indexOf('padding-block-end')).toBeGreaterThan(inset.indexOf('padding:'));
+  });
+
+  it('`inset-card` 하단 padding 에 safe-area 를 **가산하지 않는다** (이중 계상 금지)', () => {
+    /*
+      떠 있는 카드는 뷰포트 바닥에서 `--sheet-inset-block-end`(14 + safe-area) 만큼 이미
+      떨어져 있다. 여기서 또 더하면 카드 **안쪽**에 홈 인디케이터 높이의 빈 띠가 생긴다.
+    */
+    const inset = rule(SHEET_CSS, '.haru-sheet--inset-card');
+    expect(/padding-block-end:[^;]*--layout-safe-bottom/.test(inset)).toBe(false);
+    /* base(`bottom`)는 여전히 safe-area 를 더한다 — 바닥에 붙어 있기 때문이다. */
+    expect(rule(SHEET_CSS, '.haru-sheet')).toMatch(
+      /padding-block-end:\s*calc\(var\(--space-6\) \+ var\(--layout-safe-bottom\)\);/,
+    );
+  });
+
+  /*
+   * 2라운드-2 에서 발견한 1라운드 결함: base 의 `inline-size: 100%` 가 남아 있어
+   * `position: fixed` + `inset-inline: 14` 의 **오른쪽 값이 무시**되고 393 에서 카드가
+   * 뷰포트를 14px 넘쳤다 (실측 `right = innerWidth + 14`). 시트가 처음 쓰이면서 드러났다.
+   */
+  it('`inset-card` 가 base 의 `inline-size: 100%` 를 끈다 (좌우 inset 이 폭을 정한다)', () => {
+    const inset = rule(SHEET_CSS, '.haru-sheet--inset-card');
+    expect(inset).toMatch(/inline-size:\s*auto;/);
+    expect(rule(SHEET_CSS, '.haru-sheet')).toMatch(/inline-size:\s*100%;/);
+  });
+
+  it('`--shadow-bubble` 이 여전히 1겹이고 inset 값(10 / 4)이 그대로다 (겹이 늘면 재측정)', () => {
+    const shadows = codeOf(read('packages', 'design-tokens', 'src', 'semantic', 'shadow.css'));
+    const layers = splitShadowLayers(/--shadow-bubble:([^;]*);/.exec(shadows)?.[1] ?? '');
+
+    expect(layers.filter((layer) => !layer.startsWith('inset'))).toHaveLength(1);
+    expect(COMPONENT_TOKENS).toMatch(/--sheet-content-shadow-inset-block-end:\s*10px;/);
+    expect(COMPONENT_TOKENS).toMatch(/--sheet-content-shadow-inset-inline:\s*4px;/);
+  });
+
+  it('`BookDetailSheet` 표지 자리에 `--shadow-cover` 번짐(위 8 · 아래 20 · 좌우 14) inset 이 있다', () => {
+    const cover = rule(SHELVES_CSS, '.haru-book-sheet__cover');
+
+    expect(cover).toMatch(/padding-block-start:\s*var\(--space-2\);/);
+    expect(cover).toMatch(/padding-block-end:\s*var\(--space-5\);/);
+    expect(cover).toMatch(/padding-inline:\s*var\(--space-3-5\);/);
+    /* padding 과 음수 margin 이 **짝**이어야 레이아웃 점유가 되돌아온다. */
+    expect(cover).toMatch(/margin-block-start:\s*calc\(-1 \* var\(--space-2\)\);/);
+    expect(cover).toMatch(/margin-block-end:\s*calc\(-1 \* var\(--space-5\)\);/);
+    expect(cover).toMatch(/margin-inline:\s*calc\(-1 \* var\(--space-3-5\)\);/);
+    /* 크기를 선언하지 않으므로 `border-box` 가산 보정이 필요 없다. */
+    expect(cover).not.toMatch(/(^|[\s;])(block|inline)-size:/);
+  });
+
+  it('feature CSS 가 **여전히** 클리핑 박스를 만들지 않는다 (`overflow` 0건)', () => {
+    expect(SHELVES_CSS).not.toMatch(/overflow(-x|-y)?\s*:/);
+  });
+});
+
+describe('2라운드-2 — 대화형 전환이 rest 렌더를 바꾸지 않는다', () => {
+  it('`BookShelfItem` 버튼 경로가 UA 기본값을 전부 되돌린다', () => {
+    const pressable = rule(SHELF_CSS, '.haru-shelf-item--pressable');
+
+    for (const declaration of [
+      /padding:\s*0;/,
+      /margin:\s*0;/,
+      /border:\s*0;/,
+      /background:\s*none;/,
+      /font:\s*inherit;/,
+      /color:\s*inherit;/,
+      /text-align:\s*start;/,
+    ]) {
+      expect(pressable).toMatch(declaration);
+    }
+    /* 면·테두리를 새로 입히지 않는다 — Figma 에 눌림 상태 표현이 없다. */
+    expect(pressable).not.toMatch(/background-color:/);
+  });
+
+  it('`ReadingNowCard` 버튼 경로는 **포인터만** 더한다 (면 선언 0건)', () => {
+    const button = rule(READING_NOW_CSS, 'button.haru-reading-now');
+
+    expect(button).toMatch(/cursor:\s*pointer;/);
+    expect(button).not.toMatch(/background/);
+    expect(button).not.toMatch(/border/);
+    expect(button).not.toMatch(/padding/);
+  });
+
+  it('시트 ActionBar 가 Home 활동 카드와 **같은 토큰**을 쓴다 (신규 토큰 0건)', () => {
+    const actions = rule(SHELVES_CSS, '.haru-book-sheet__actions');
+
+    expect(actions).toMatch(/gap:\s*var\(--activity-card-action-gap\);/);
+    expect(actions).toMatch(/min-block-size:\s*var\(--activity-card-action-size\);/);
+  });
+
+  it('진입점 chevron 이 Book List 행과 같은 3차 회색이다 (`P-24` 주석 포함)', () => {
+    const chevron = rule(SHELVES_CSS, '.haru-library-entry__chevron');
+    expect(chevron).toMatch(/color:\s*var\(--color-fg-tertiary\);/);
+
+    const source = read('apps', 'web', 'src', 'features', 'library', 'library.css');
+    const index = source.indexOf('.haru-library-entry__chevron');
+    expect(source.lastIndexOf('provisional: P-24', index + 400)).toBeGreaterThan(index);
+  });
+
+  it('진입점 행 높이 토큰이 56(media 없는 기본 행)이다 — Book List 74 를 쓰지 않는다', () => {
+    expect(COMPONENT_TOKENS).toMatch(/--library-entry-row-height-min:\s*56px;/);
   });
 });

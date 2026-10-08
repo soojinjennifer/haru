@@ -22,6 +22,7 @@
  * | `user-entered-book` | `book: null` + 제목만 | `BookCover` placeholder |
  * | `gift-pending` | `ownership: gift_pending` + 배송 상태 | PRD §13 증정 대기 |
  * | `gift-duplicate` | `GIFT_REQUEST_DUPLICATE` | 중복 신청 안내 |
+ * | **`book-already-owned`** | `BOOK_ALREADY_OWNED` | `/library/add` 중복 등록 안내 (Design Spec §7.2) |
  * | `paged` | `nextCursor` 2페이지 | "See all" 더 보기 (`L-OPEN-21`) |
  * | `book-saved` | 저장 상태로 **시작** (초기 상태는 `MockActivityApi` 의 덱 모양이 만든다) | `G-14` |
  * | `unsave` | 해제 성공 경로 | `G-13` 토글 + `libraryKeys.overview` 무효화 |
@@ -105,6 +106,7 @@ export const LIBRARY_SCENARIO_KEYS = [
   'user-entered-book',
   'gift-pending',
   'gift-duplicate',
+  'book-already-owned',
   'paged',
   'book-saved',
   'unsave',
@@ -284,6 +286,14 @@ export function createMockLibraryApi(deps: MockLibraryApiDeps): LibraryApi {
 
       const scenario = store.resolve(libraryScenarioGroup);
       const attempt = consumeAttempt(store, libraryScenarioGroup.group, options.signal);
+
+      /*
+        중복 등록 — `gift-duplicate` 와 같은 자리에서 분기한다. 등록 **전**에 거절되는
+        경로이므로 `deliver`(지연·재시도) 보다 앞이다 (Design Spec §7.2 `InlineAlert tone=info`).
+      */
+      if (scenario === 'book-already-owned') {
+        return fail('BOOK_ALREADY_OWNED', 'This book is already in the library.');
+      }
 
       const run = (): LibraryBook => {
         const { target } = parsed;

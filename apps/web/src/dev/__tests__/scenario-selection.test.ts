@@ -215,6 +215,8 @@ describe('DEV_SCENARIO_GROUPS — Catalogue 준수 (AC-1-40)', () => {
     'user-entered-book',
     'gift-pending',
     'gift-duplicate',
+    // Library 2라운드-2 — `/library/add` 중복 등록 (`API_CONTRACTS.md` §5.4 에 등재했다).
+    'book-already-owned',
     'paged',
     'unsave',
   ];

@@ -41,7 +41,13 @@
   gap: 1px;
 }
 
-.haru-library-shelves__skeleton-row {
+/*
+ * 자리 행 — 실제 Book List 행과 **같은 최소 높이**(74)를 쓰므로 도착할 때 들썩이지 않는다.
+ * `LibraryShelfSheet` 와 `/library/gift-requests` 도 같은 규격을 쓴다 (선택자만 함께 둔다 —
+ * 선언을 복제하지 않는다).
+ */
+.haru-library-shelves__skeleton-row,
+.haru-shelf-sheet__skeleton-row {
   display: flex;
   align-items: center;
   min-block-size: var(--book-list-row-height-min);
@@ -77,4 +83,107 @@
 
 .haru-library-shelves__skeleton-cover {
   aspect-ratio: var(--library-shelf-cover-aspect);
+}
+
+/* ===== 2라운드-2 =========================================================
+ * 시트 2종 · 진입점 · 하위 화면 2종. 모두 **기존 토큰만** 쓴다 (신규 토큰 0건).
+ *
+ * `overflow` 를 선언하지 않는다 — 시트 본문의 스크롤은 `.haru-sheet__content`(`packages/ui`)
+ * 가 이미 소유하고, 여기에 새 클리핑 박스를 만들지 않는다 (`R-SHADOW-1` ①).
+ */
+
+/* ── ActionBar — Figma `Button/card` 329×45, ★ Save 87 + Start Session(flex) ──
+ * Home 활동 카드와 **같은 토큰**을 쓴다 (`--activity-card-action-*`). 시트 안에서도 1행이다.
+ */
+.haru-shelf-sheet__actions,
+.haru-book-sheet__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--activity-card-action-gap);
+  min-block-size: var(--activity-card-action-size);
+}
+
+/* `Start Session` 이 남는 폭을 전부 가져간다 — `★ Save` 가 `Saved` 로 길어지면 그만큼 준다. */
+.haru-shelf-sheet__actions > .haru-button,
+.haru-book-sheet__actions > .haru-button {
+  flex: 1 1 auto;
+}
+
+/* ── BookDetailSheet 본문 ──────────────────────────────────────────────── */
+
+.haru-book-sheet__book {
+  display: flex;
+  align-items: center;
+  gap: var(--activity-card-row-gap);
+  min-inline-size: 0;
+}
+
+/*
+ * `R-SHADOW-1` ② — 표지(`--shadow-cover`)는 drop 겹이 있고 번짐이 **아래 20 · 위 8 ·
+ * 좌우 14** 다 (2라운드-1 픽셀 프로브 실측, `book-shelf.css` 주석과 같은 값).
+ * 시트 본문이 길어져 `.haru-sheet__content` 가 스크롤하면 이 그림자가 잘릴 수 있으므로
+ * **표지 자리에 inset 을 직접** 둔다: padding 으로 자리를 만들고 같은 값의 음수 margin 으로
+ * 레이아웃 점유를 되돌린다. 크기를 선언하지 않으므로 `border-box` 가산 보정이 필요 없다
+ * (표지 치수는 `BookCover` 가 갖는다).
+ */
+.haru-book-sheet__cover {
+  display: inline-flex;
+  flex: none;
+  padding-block-start: var(--space-2);
+  padding-block-end: var(--space-5);
+  padding-inline: var(--space-3-5);
+  margin-block-start: calc(-1 * var(--space-2));
+  margin-block-end: calc(-1 * var(--space-5));
+  margin-inline: calc(-1 * var(--space-3-5));
+}
+
+/* Prompt pill 목록 — Figma 카드 목록과 **같은 간격** 6 (`--prompt-pill-gap`). */
+.haru-book-sheet__prompts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--prompt-pill-gap);
+  min-inline-size: 0;
+}
+
+.haru-book-sheet__gift {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+/* ── 진입점 (§7.1) ─────────────────────────────────────────────────────── */
+
+/*
+ * chevron 색은 Book List 행과 같다 (`#9AABAA` = `--color-fg-tertiary`).
+ * `ListRow` trailing 기본색은 `fg-secondary` 이므로 이 자리에서만 덮는다 —
+ * `IconTone` 에 `tertiary` 가 없어 `inherit` + 래퍼 색으로 처리한다.
+ */
+.haru-library-entry__chevron {
+  display: inline-flex;
+  align-items: center;
+  /* provisional: P-24 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-tertiary);
+}
+
+/* ── /library/add · /library/gift-requests (§7.2 · §7.3) ───────────────── */
+
+.haru-library-add,
+.haru-gift-requests {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-block: var(--space-6);
+}
+
+.haru-library-add__results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.haru-library-add__manual {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }

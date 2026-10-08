@@ -51,7 +51,7 @@ describe('scenario 목록 (API_CONTRACTS §5.4 catalogue)', () => {
    * 없었지만(상태 설정), 이제 이 그룹이 서재 **목록 조회**를 함께 다룬다 (Plan §8.1).
    * `favorites-empty` 가 특히 중요하다 — **저장 전 기본 상태**이고 가장 흔한 실제 상태다.
    */
-  it('공통 5종 + offline + Library 특화 12종이다', () => {
+  it('공통 5종 + offline + Library 특화 13종이다', () => {
     expect([...LIBRARY_SCENARIO_KEYS]).toStrictEqual([
       'success',
       'loading',
@@ -68,6 +68,7 @@ describe('scenario 목록 (API_CONTRACTS §5.4 catalogue)', () => {
       'user-entered-book',
       'gift-pending',
       'gift-duplicate',
+      'book-already-owned',
       'paged',
       'book-saved',
       'unsave',
@@ -283,6 +284,17 @@ describe('직접 등록 (FR-23) · 증정 (FR-22)', () => {
 
     expect(GiftRequestSchema.safeParse(created).success).toBe(true);
     expect(created.status).toBe('requested');
+  });
+
+  /* `/library/add` 중복 등록 — Design Spec §7.2 의 `InlineAlert tone=info` 경로. */
+  it('`book-already-owned` 는 `BOOK_ALREADY_OWNED` 다', async () => {
+    const { api } = libraryApi('book-already-owned');
+
+    await expect(
+      api.addOwnBook({ childId: CHILD_ID, body: { target: { bookId: BOOK } } }, mutation),
+    ).rejects.toSatisfy(
+      (error: unknown) => isHaruApiError(error) && error.code === 'BOOK_ALREADY_OWNED',
+    );
   });
 
   it('`gift-duplicate` 는 `GIFT_REQUEST_DUPLICATE` 다', async () => {

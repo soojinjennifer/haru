@@ -304,3 +304,188 @@ test.describe('서재 캐러셀 표지 그림자가 트랙 안에서 잘리지 �
     });
   }
 });
+
+/*
+ * ───────────────────────────────────────────────────────────────────────────
+ * ⭐ `Sheet contentShadowInset` 의 **첫 실사용처** — `LibraryShelfSheet` ("See all")
+ *
+ * `.haru-sheet__content { overflow-y: auto }` 는 **기존 선언**이고(Stage 2) "See all" 은 전체
+ * 목록이라 실제로 스크롤한다 → 그 박스가 `ListGroup` 의 `--shadow-bubble` 을 자른다.
+ *
+ * 번짐은 **픽셀 프로브 실측**이다 (빌드 산출물 `apps/web/dist/assets/index-*.css` · 흰 배경 ·
+ * `deviceScaleFactor: 1` · 순백 대비 채널차 합):
+ *
+ *   | 임계값 | 위 | 아래 | 좌 | 우 |
+ *   |---|---|---|---|---|
+ *   | Δ≥1 | **0** | **10** | **4** | **4** |
+ *   | Δ≥8 | 0 | 8 | 2 | 2 |
+ *
+ *   프로파일(아래) `35,35,32,31,28,19,16,10,4,3,0,…` — 10px 에서 완전히 사라진다.
+ *   `--shadow-bubble` 은 drop **1겹**(`0 6px 4px`)이라 **누락할 겹이 없고** 산술과 일치한다
+ *   (아래 6+4=10 · 위 −6+4<0 → 0 · 좌우 ±4).
+ *   방법 검정: 같은 방법으로 `--shadow-glass-rest`(3겹)를 재면 아래 **78** · 위 **22** ·
+ *   좌우 **50** 이 나와 기존 기록을 재현한다.
+ *
+ * **보정 전/후 실증 — 실제 시트에서 측정했다** (`R-SHADOW-1` ② · ⑥, 393×852 · 끝까지 스크롤):
+ *
+ *   | | 아래 +0..+12 (목록 하단 기준) | 우 +0..+6 |
+ *   |---|---|---|
+ *   | 보정 **있음** | `55 47 39 31 28 25 16 16 10 4 3 0 0` → **10px 복원** | `0 16 10 4 3 0 0` → **4px 복원** |
+ *   | 보정 **없음** | `22 0 0 0 0 0 0 0 0 0 0 0 0` → **완전 절단** | `0 0 0 0 0 0 0` → **완전 절단** |
+ *
+ *   (`아래+0` 은 상자 **안쪽** 마지막 픽셀이라 inset 겹 때문에 0 이 아니다 — 두 경우 모두.)
+ *   아래 두 테스트가 그 양쪽을 고정한다.
+ * 보정이 지워지면 "보정 있음" 이 실패하고, 프로브가 무의미해지면(= 아무 조건에서나 통과하면)
+ * "보정 없음" 이 실패한다.
+ */
+const SHEET_PROBE = { below: 4, side: 2 } as const;
+
+interface ProbeBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/** Shelf 시트를 열고 본문을 **끝까지 스크롤**한 뒤 목록 상자 좌표를 돌려준다. */
+async function openShelfSheetAtBottom(page: Page) {
+  await page.goto('/auth/log-in', { waitUntil: 'domcontentloaded' });
+  await page.getByLabel('Email').fill('sam@example.com');
+  await page.getByRole('textbox', { name: 'Password', exact: true }).fill('sunny-evening-8');
+  await page.getByRole('button', { name: 'Log in', exact: true }).click();
+  await expect(page.locator('.haru-activity-track')).toBeVisible();
+
+  await page
+    .getByRole('navigation', { name: 'Main' })
+    .getByRole('link', { name: 'Library' })
+    .click();
+  await expect(page.locator('.haru-library-shelves')).toBeVisible();
+
+  // 큐레이션은 9권이라 시트 본문이 **실제로** 스크롤한다.
+  await page.getByRole('button', { name: 'See all Our curated shelf' }).click();
+  const sheet = page.locator('.haru-sheet--inset-card');
+  await expect(sheet).toBeVisible();
+  await expect(sheet.locator('.haru-list-row').first()).toBeVisible();
+  await settle(page);
+
+  const scrollable = await scrollSheetContentToBottom(page);
+  expect(
+    scrollable,
+    '시트 본문이 스크롤하지 않으면 이 테스트는 아무것도 보지 못한다',
+  ).toBeGreaterThan(0);
+
+  const box = await sheet.locator('.haru-list-group').boundingBox();
+  expect(box).not.toBeNull();
+  return box as ProbeBox;
+}
+
+/**
+ * 시트 본문을 **끝까지** 내린다.
+ *
+ * ⚠️ 한 번만 대입하면 안 된다 — 스타일을 바꿔 내용 높이가 줄면 Chrome 의 **scroll
+ * anchoring** 이 `scrollTop` 을 되돌려, 목록 하단이 클립 선에서 2~3px 떨어진 채로 측정된다
+ * (실측: 보정 제거 직후 Δ 프로파일이 `55,16,7,2,0…` 로 3px 남았다). 프레임마다 다시 대입해
+ * **최댓값에 도달한 것을 단언**한다.
+ */
+async function scrollSheetContentToBottom(page: Page): Promise<number> {
+  const scrollable = await page.evaluate(async () => {
+    const content = document.querySelector('.haru-sheet__content');
+    if (content === null) throw new Error('시트 본문을 찾지 못했다');
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      content.scrollTop = content.scrollHeight;
+      await new Promise((resolve) => {
+        requestAnimationFrame(resolve);
+      });
+    }
+    return {
+      max: content.scrollHeight - content.clientHeight,
+      top: Math.round(content.scrollTop),
+    };
+  });
+
+  expect(scrollable.top, '본문이 끝까지 내려가지 않았다 (scroll anchoring)').toBe(scrollable.max);
+  await settle(page);
+  return scrollable.max;
+}
+
+/** 목록 상자 아래·우측 바깥에서 그림자 Δ 를 잰다. */
+async function measureSheetShadow(page: Page, box: ProbeBox) {
+  const probes = [
+    {
+      name: '아래',
+      x: Math.round(box.x + box.width / 2),
+      y: Math.round(box.y + box.height) - 1 + SHEET_PROBE.below,
+    },
+    {
+      name: '우',
+      x: Math.round(box.x + box.width) - 1 + SHEET_PROBE.side,
+      y: Math.round(box.y + box.height / 2),
+    },
+  ] as const;
+
+  const withShadow = await Promise.all(probes.map((probe) => pixelAt(page, probe.x, probe.y)));
+  await page.addStyleTag({
+    content: '.haru-sheet .haru-list-group { box-shadow: none !important; }',
+  });
+  await settle(page);
+  const withoutShadow = await Promise.all(probes.map((probe) => pixelAt(page, probe.x, probe.y)));
+
+  return probes.map((probe, index) => ({
+    name: probe.name,
+    x: probe.x,
+    y: probe.y,
+    delta: distance(withShadow[index] as Rgb, withoutShadow[index] as Rgb),
+  }));
+}
+
+test.describe('시트 본문 그림자 inset — 보정 **있음** (R-SHADOW-1 · 첫 실사용처)', () => {
+  for (const viewport of VIEWPORTS) {
+    test(`${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await hideDevPanel(page);
+
+      const box = await openShelfSheetAtBottom(page);
+      const results = await measureSheetShadow(page, box);
+
+      for (const result of results) {
+        expect(
+          result.delta,
+          `${result.name} (${result.x}, ${result.y}) 에서 목록 그림자가 보이지 않는다 (delta ${result.delta})`,
+        ).toBeGreaterThanOrEqual(MIN_SHADOW_DELTA);
+      }
+    });
+  }
+});
+
+test.describe('시트 본문 그림자 inset — 보정 **없음** 이면 전면 절단된다 (프로브가 실제로 문다)', () => {
+  for (const viewport of VIEWPORTS) {
+    test(`${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await hideDevPanel(page);
+
+      await openShelfSheetAtBottom(page);
+
+      /*
+        보정을 **런타임에 되돌린다** (`R-BASELINE-1` ⑥ 의 토글 방식). padding 과 음수 margin
+        짝을 지우면 `overflow-y: auto` 박스의 경계가 곧 목록의 경계가 되어 그림자가 사라진다.
+      */
+      await page.addStyleTag({
+        content:
+          '.haru-sheet__content--shadow-inset { padding: 0 !important; margin: 0 !important; }',
+      });
+      await scrollSheetContentToBottom(page);
+
+      const reBox = await page.locator('.haru-sheet .haru-list-group').boundingBox();
+      expect(reBox).not.toBeNull();
+      const results = await measureSheetShadow(page, reBox as ProbeBox);
+
+      for (const result of results) {
+        expect(
+          result.delta,
+          `${result.name} (${result.x}, ${result.y}) 에서 그림자가 **보였다** — 보정 없이도 통과하면 프로브가 무의미하다 (delta ${result.delta})`,
+        ).toBeLessThan(MIN_SHADOW_DELTA);
+      }
+    });
+  }
+});

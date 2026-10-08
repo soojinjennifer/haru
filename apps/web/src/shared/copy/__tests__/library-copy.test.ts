@@ -7,14 +7,18 @@
  */
 import { describe, expect, it } from 'vitest';
 
+import { GiftRequestStatusSchema } from '@haru/contracts';
+
 import {
   finishedMeta,
+  giftRequestStatusCopy,
   lastReadMeta,
   libraryCopy,
   librarySectionEmpty,
   librarySectionTitle,
   nightsMeta,
   ratingText,
+  requestedMeta,
 } from '../library-copy';
 
 /** 2026-03-03T12:00:00Z — 정오라 대부분의 타임존에서 같은 날짜가 된다. */
@@ -112,5 +116,65 @@ describe('`ratingText` — 서버 값 표시 (가공하지 않는다)', () => {
 
   it('등급·우열 문구를 더하지 않는다 — 접두는 Figma 의 `Rated ` 뿐이다', () => {
     expect(libraryCopy.ratedPrefix).toBe('Rated ');
+  });
+});
+
+describe('`requestedMeta` — `Requested {date}` (§7.3)', () => {
+  it('날짜 조각을 이어 붙인다', () => {
+    expect(requestedMeta(NOON)).toMatch(/^Requested .+$/);
+  });
+});
+
+describe('`giftRequestStatusCopy` — contract 6종 (FR-22, §7.3)', () => {
+  it('enum 6종을 **빠짐없이** 덮는다 (값이 늘면 컴파일·이 테스트가 잡는다)', () => {
+    expect(Object.keys(giftRequestStatusCopy).sort()).toStrictEqual(
+      [...GiftRequestStatusSchema.options].sort(),
+    );
+  });
+
+  it('`rejected` 는 아이·보호자에 대한 판정 표현을 쓰지 않는다', () => {
+    expect(giftRequestStatusCopy.rejected).toBe('Not approved');
+    /* 진단·판정 어휘 금지 (`rules/frontend.md` §8). */
+    for (const label of Object.values(giftRequestStatusCopy)) {
+      expect(label).not.toMatch(/fail|bad|poor|behind|worse|better/i);
+    }
+  });
+});
+
+describe('2라운드-2 문구 — 진단·판정·비교 표현이 없다', () => {
+  const sentences = [
+    ...Object.values(libraryCopy.shelfSheet),
+    ...Object.values(libraryCopy.entryActions),
+    libraryCopy.bookSheet.promptsUnavailable,
+    libraryCopy.bookSheet.requestBook,
+    libraryCopy.add.noResultsTitle,
+    libraryCopy.add.noResultsDescription,
+    libraryCopy.add.duplicateTitle,
+    libraryCopy.add.duplicateDescription,
+    libraryCopy.giftRequests.noticeTitle,
+    libraryCopy.giftRequests.noticeDescription,
+    libraryCopy.giftRequests.emptyTitle,
+    libraryCopy.giftRequests.emptyDescription,
+  ];
+
+  it('모두 영어 문구이며 비어 있지 않다', () => {
+    for (const sentence of sentences) {
+      expect(typeof sentence).toBe('string');
+      expect(sentence.length).toBeGreaterThan(0);
+      // 한글이 섞이면 사용자 노출 언어 규칙 위반이다 (영어 1차).
+      expect(sentence).not.toMatch(/[\u3131-\uD79D]/);
+    }
+  });
+
+  it('판정·비교·개발 단계 노출 어휘가 없다', () => {
+    for (const sentence of sentences) {
+      expect(sentence).not.toMatch(/coming soon|not yet available|score|rank|compare/i);
+    }
+  });
+
+  it('`D-15` 접수 안내에 수치·기한이 없다 (운영 확정 전 약속 금지, approvals §8.2)', () => {
+    const notice = `${libraryCopy.giftRequests.noticeTitle} ${libraryCopy.giftRequests.noticeDescription}`;
+    expect(notice).not.toMatch(/\d/);
+    expect(notice).not.toMatch(/day|week|business/i);
   });
 });

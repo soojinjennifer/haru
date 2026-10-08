@@ -631,13 +631,17 @@ test.describe('Library 2라운드 화면 baseline', () => {
     /*
       `R-BASELINE-1` ② — Playwright 의 element screenshot 은 **요소 bounding box** 를 찍으므로
       그 위에 떠 있는 `sticky` 탭바가 함께 들어온다. 실제로 첫 생성본에 탭바와 중앙 버튼이
-      목록 3·4행 위에 찍혀 있었다. 목록은 마지막 블록이므로 **끝까지 스크롤하면** 탭바 위로
-      완전히 올라온다 (목록 299 < 탭바 위 가용 높이).
+      목록 3·4행 위에 찍혀 있었다. **끝까지 스크롤하면** 탭바 위로 완전히 올라온다.
+
+      ⚠️ 2라운드-2 에서 목록은 더 이상 마지막 블록이 아니다 — 아래에 `LibraryEntryActions`
+      (`ListGroup` 2행)가 생겼다. 그래서 `.haru-list-group` 이 **2개**가 되었고 선택자를
+      `.haru-library-shelves` 안으로 좁혔다 (Figma `30:140` 대조 대상은 서재 목록 하나다).
     */
     await page.evaluate(() => {
       // 스크롤 컨테이너는 **앱 컬럼 바깥의 AppShell 뷰포트**다 (`document.scrollingElement` 가 아니다).
       for (
-        let node = document.querySelector('.haru-list-group')?.parentElement ?? null;
+        let node =
+          document.querySelector('.haru-library-shelves .haru-list-group')?.parentElement ?? null;
         node !== null;
         node = node.parentElement
       ) {
@@ -650,7 +654,7 @@ test.describe('Library 2라운드 화면 baseline', () => {
     });
     await settle(page);
 
-    const list = page.locator('.haru-list-group');
+    const list = page.locator('.haru-library-shelves .haru-list-group');
     const overlap = await list.evaluate((node) => {
       const bar = document.querySelector('.haru-app-shell__bar-bottom');
       if (bar === null) return 0;
@@ -671,5 +675,114 @@ test.describe('Library 2라운드 화면 baseline', () => {
     await logInToLibrary(page, 'library:empty');
 
     await expect(page).toHaveScreenshot('s3-library-empty.png', FRAME_SNAPSHOT);
+  });
+});
+
+/**
+ * Library 2라운드-2 — **시트 2종 · 진입점 · 하위 화면 2종** baseline.
+ *
+ * | baseline | 대상 | Figma |
+ * |---|---|---|
+ * | `s3-library-shelf-sheet` | `LibraryShelfSheet` 떠 있는 카드 | `163:1898` `type=shelf` · `163:2347` |
+ * | `s3-library-book-sheet` | `BookDetailSheet` 떠 있는 카드 | `145:1085` |
+ * | `s3-library-entry-actions` | 진입점 `ListGroup` 2행 | 없음 — §7.1 (`C-13` ②) |
+ * | `s3-library-add` | `/library/add` 전체 프레임 | 없음 — §7.2 |
+ * | `s3-library-gift-requests` | `/library/gift-requests` 전체 프레임 | 없음 — §7.3 |
+ *
+ * `R-BASELINE-1`: ① `settle()` 로 정착 보장(표지 디코드 포함) ② dev 패널은 `beforeEach` 가
+ * 가린다 ③ 신규 baseline 은 저장 후 **눈으로 확인**했다.
+ *
+ * 시트는 **요소 클립**이다 — scrim 전체를 담으면 뒤 화면의 스크롤 위치까지 기준이 되어 시트와
+ * 무관한 변화에 깨진다. scrim 자체는 `s3-sheet-scrim` 이 이미 고정한다.
+ */
+test.describe('Library 2라운드-2 시트 · 진입점 baseline', () => {
+  test('s3-library-shelf-sheet — Figma 163:1898 (`type=shelf`)', async ({ page }) => {
+    await logInToLibrary(page);
+
+    await page.getByRole('button', { name: 'See all Our curated shelf' }).click();
+    const sheet = page.locator('.haru-sheet--inset-card');
+    await expect(sheet).toBeVisible();
+    await expect(sheet.locator('.haru-list-row').first()).toBeVisible();
+    await page.waitForFunction(() =>
+      [...document.images].every((image) => image.complete && image.naturalWidth > 0),
+    );
+    await settle(page);
+
+    await expect(sheet).toHaveScreenshot('s3-library-shelf-sheet.png', REGION_SNAPSHOT);
+  });
+
+  test('s3-library-book-sheet — Figma 145:1085', async ({ page }) => {
+    await logInToLibrary(page);
+
+    await page.locator('.haru-shelf-item--pressable').first().click();
+    const sheet = page.locator('.haru-sheet--inset-card');
+    await expect(sheet).toBeVisible();
+    // Prompt 가 도착하기 **전에** 찍으면 Skeleton 이 기준이 된다 (`R-BASELINE-1` ①).
+    await expect(sheet.locator('.haru-prompt-pill').first()).toBeVisible();
+    await page.waitForFunction(() =>
+      [...document.images].every((image) => image.complete && image.naturalWidth > 0),
+    );
+    await settle(page);
+
+    await expect(sheet).toHaveScreenshot('s3-library-book-sheet.png', REGION_SNAPSHOT);
+  });
+
+  test('s3-library-entry-actions — 진입점 2행 (§7.1, Figma 없음)', async ({ page }) => {
+    await logInToLibrary(page);
+
+    const entry = page.getByRole('list', { name: 'Library actions' });
+    await expect(entry).toBeVisible();
+    /*
+      `R-BASELINE-1` ② — 요소 bounding box 를 찍으므로 위에 떠 있는 sticky 탭바가 함께
+      들어올 수 있다. 진입점은 **마지막 블록**이라 끝까지 스크롤하면 탭바 위로 올라온다.
+    */
+    await page.evaluate(() => {
+      for (
+        let node = document.querySelector('.haru-library-shelves')?.parentElement ?? null;
+        node !== null;
+        node = node.parentElement
+      ) {
+        if (node.scrollHeight > node.clientHeight) {
+          node.scrollTop = node.scrollHeight;
+          return;
+        }
+      }
+      throw new Error('스크롤 컨테이너를 찾지 못했다');
+    });
+    await settle(page);
+
+    const overlap = await entry.evaluate((node) => {
+      const bar = document.querySelector('.haru-app-shell__bar-bottom');
+      if (bar === null) return 0;
+      return node.getBoundingClientRect().bottom - bar.getBoundingClientRect().top;
+    });
+    expect(overlap, '진입점이 탭바에 가려진 채로 baseline 에 들어갔다').toBeLessThanOrEqual(0);
+
+    await expect(entry).toHaveScreenshot('s3-library-entry-actions.png', REGION_SNAPSHOT);
+  });
+
+  test('s3-library-add — `/library/add` (§7.2, Figma 없음)', async ({ page }) => {
+    await logInToLibrary(page);
+
+    await page.getByRole('button', { name: 'Add a book you own' }).click();
+    await expect(page.getByRole('textbox', { name: 'Title' })).toBeVisible();
+    await settle(page);
+
+    await expect(page).toHaveScreenshot('s3-library-add.png', FRAME_SNAPSHOT);
+  });
+
+  test('s3-library-gift-requests — `/library/gift-requests` (§7.3, Figma 없음)', async ({
+    page,
+  }) => {
+    await logInToLibrary(page);
+
+    await page.getByRole('button', { name: 'Gift requests' }).click();
+    await expect(page.getByRole('list', { name: 'Gift requests' })).toBeVisible();
+    await page.waitForFunction(() =>
+      [...document.images].every((image) => image.complete && image.naturalWidth > 0),
+    );
+    await settle(page);
+
+    await expect(page).toHaveScreenshot('s3-library-gift-requests.png', FRAME_SNAPSHOT);
   });
 });

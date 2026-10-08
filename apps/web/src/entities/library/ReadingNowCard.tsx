@@ -21,10 +21,14 @@
  *
  * 높이를 고정하지 않는다 — 118 은 결과값이고 텍스트 200% 확대에서 늘어나야 한다 (§9.1).
  *
- * ── 이번 라운드에는 **비대화형**이다 ──
- * §6.1 은 "카드 탭 → `BookDetailSheet`" 를 정하지만 **시트는 다음 작업**이다. 아무 일도 하지
- * 않는 `<button>` 을 만들지 않으려고 `<div>` 로 둔다 — 시트가 생기는 라운드에서 함께 버튼이
- * 된다 (§9.4 의 카드 접근성 이름도 그때 붙는다).
+ * ── `onPress` (시트 라운드에서 연결) ──
+ * §6.1 "카드 탭 → `BookDetailSheet`". 주면 root 가 `<button>` 이 된다 — `.haru-reading-now`
+ * 는 1라운드부터 `border: 0` · `background-color` · `font-family` · `color: inherit` ·
+ * `text-align: start` 를 갖고 있어 UA 기본값이 이미 되돌려져 있고, rest 상태의 렌더가 바뀌지
+ * 않는다. 면·테두리를 새로 입히지 않는다 (Figma 에 눌림 상태 표현이 없다).
+ *
+ * 접근성 이름(§9.4)은 **카드 안의 텍스트**(제목·부제·메타)로 계산된다 — 진행 바는 자체 이름을
+ * 갖고 `aria-hidden` 이 아니므로 `aria-label` 로 덮지 않는다.
  */
 import { ProgressBar, Text } from '@haru/ui';
 import type { LibraryBook } from '@haru/contracts';
@@ -43,6 +47,8 @@ export interface ReadingNowCardProps {
   progressLabel: string;
   /** 진행 상태를 텍스트로도 전달한다 (`aria-valuetext`). */
   progressValueText?: string | undefined;
+  /** 주면 카드 전체가 `<button>` 이 된다 (§6.1 — `BookDetailSheet` 열기). */
+  onPress?: (() => void) | undefined;
 }
 
 export function ReadingNowCard({
@@ -52,11 +58,21 @@ export function ReadingNowCard({
   meta,
   progressLabel,
   progressValueText,
+  onPress,
 }: ReadingNowCardProps) {
   const ratio = book.readingProgress?.progressRatio ?? null;
+  /*
+    진행 바는 `role="progressbar"` 다 — 버튼 **안**에 두면 대화형 요소 안의 ARIA 구조가
+    되지만 포커스 대상이 아니므로 중첩 버튼 문제는 없다. `<button>` 경로에서도 같은 DOM 을
+    쓰는 이유는 rest 렌더를 1px 도 바꾸지 않기 위해서다.
+  */
+  const Root = onPress === undefined ? 'div' : 'button';
 
   return (
-    <div className="haru-reading-now">
+    <Root
+      className="haru-reading-now haru-focus-ring"
+      {...(onPress === undefined ? {} : { type: 'button' as const, onClick: onPress })}
+    >
       <BookCover
         title={title}
         author={book.book?.author ?? book.userEnteredAuthor ?? undefined}
@@ -90,6 +106,6 @@ export function ReadingNowCard({
           </Text>
         )}
       </span>
-    </div>
+    </Root>
   );
 }
