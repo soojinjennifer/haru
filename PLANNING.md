@@ -23,16 +23,21 @@ Author: plan-agent (2026-09-14)
 | Stage | 제목 | Backend 처리 | 상태 |
 |---|---|---|---|
 | 0 | Frontend Architecture + Figma Mapping + Agent Setup + Design System + API Contract Planning | 설계만 | **승인 완료 (2026-09-14)** |
-| 1 | Frontend Foundation + Shared UI + Router + Layout + Design Tokens + Mock Infrastructure (웹 전용, `apps/mobile` 없음 — #7) | 없음 | 시작 전 |
-| 2 | Auth + Consent + Onboarding + Child Profile (Frontend) | Mock | 시작 전 |
-| 3 | Home + Activity Card + Library + Book Selection + Recommendation (Frontend) | Mock | 시작 전 |
-| 4 | Storytime Session + Recording Client + Pause/Resume + Prompt Drawer + Local Recording + Upload UX (+ Capacitor 셸 `apps/mobile`·네이티브 녹음 플러그인·네이티브 Auth/Push Adapter·portrait lock — #7, #12) | Upload Contract + Mock | 시작 전 |
+| 1 | Frontend Foundation + Shared UI + Router + Layout + Design Tokens + Mock Infrastructure (웹 전용, `apps/mobile` 없음 — #7) | 없음 | **완료 — `PASS (accepted: D-01, S1-G-2)`** (`docs/qa/stage-1-qa-report.md`, 2회차) |
+| 2 | Auth + Consent + Onboarding + Child Profile (Frontend) | Mock | **완료 — `PASS`** (`stage-2-qa-report.md` 2회차). 온보딩 설문 4단계 재구성은 별도 `PASS` (`stage-2-rework-qa-report.md` §R-0, 3회차) |
+| 3 | Home + Activity Card + Library + Book Selection + Recommendation (Frontend) | Mock | **완료 — `PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`** (`stage-3-qa-report.md` §12, 3회차 · 2026-10-09). 결정 기록 `stage-3-approvals.md` §28 |
+| 4 | Storytime Session + Recording Client + Pause/Resume + Prompt Drawer + Local Recording + Upload UX (+ Capacitor 셸 `apps/mobile`·네이티브 녹음 플러그인·네이티브 Auth/Push Adapter·portrait lock — #7, #12) | Upload Contract + Mock | 시작 전 — ⚠️ **Stage 3 이월 3건을 In Scope 로 올린다**: `QA-3-001`(push 권한 기능군, High) · `QA-3-002`(Activity Card 오프라인 캐시 `D-11`) · `QA-3-003`(`D-4` 에셋 파이프라인 — `P3-BIP-19` 와 함께 **Stage 8 게이트**). + 기존 이월 `AC-3-22`~`26` 5건. 근거: `stage-3-approvals.md` §26.1·§27.6·§28.6 |
 | 5 | Reflection + Async Analysis Status + Short Feedback (Frontend) | Analysis Mock | 시작 전 |
 | 6 | Personalization + Profile Update + Recommendation Loop (Frontend) | Recommendation Mock | 시작 전 |
 | 7 | 4-Week Report + History + Highlight Audio + PDF UX (Frontend) | Report Mock | 시작 전 |
 | 8 | Frontend Final QA + Accessibility + Responsive + Regression + 이월 기능(필수: 데이터 관리·탈퇴, C-15 / 선택: 동의 이력 보기, C-19) + Mock 데모 웹 프리뷰 배포(C-18) + Backend Handoff Package | Handoff 문서 7종 → **STOP** | 시작 전 |
 
-Stage 1 구현은 사용자의 명시적 승인 전까지 시작하지 않는다 (CONFIRMED). Stage 요청은 Plan/Design Spec 승인이 아니다 (rules/workflow.md §3).
+Stage 요청은 Plan/Design Spec 승인이 아니다 (rules/workflow.md §3). **한 Stage 승인은 다음 Stage 로 확장되지 않는다** — Stage Verdict 보고 후 멈추고 다음 Stage 지시를 기다린다 (§4).
+
+**Orchestrator 미처리 후속 작업** (`stage-3-approvals.md` §28.6):
+1. **가값 6건 항목별 재제시** (Stage 0 `#10-4`) — `P-01` · `P-02` · `P-04` · `P-16` · `P-23` · `P-24`. `S3-PROV-2`(dev gallery 미등재) 해소로 **이제 6건 전부에 절차가 성립한다.** 사용자 승인 필요
+2. **Stage 8 게이트**: `QA-3-003`(에셋 파이프라인) + `P3-BIP-19`(상용 그림책 표지 교체 — **법무 확인 필요**. Figma 에셋에 *The Most Magnificent Thing* · *Grumpy Monkey* · *After the Fall* · *Where the Wild Things Are* 가 들어 있다)
+3. **PRD 수정 대상** (`D-24` 절차 — OneDrive 원본 + 저장소 사본 동일 패스): `LN-1`(책 평점) · `LN-2`(다회차 진행) · `LN-3`(책 저장) · `LN-6`(하단 탭 3탭 서술) · `LN-7`(서재 설명). `LN-4`·`LN-5` 는 미결
 
 ## 2. 개발 범위 — Frontend-only (CONFIRMED, 사용자 지시 2026-09-14)
 

@@ -1769,3 +1769,109 @@ expect(viewport).toContain('--layout-tabbar-height');
 ### 26.7 QA 가 PASS 로 확인한 것 (기록)
 
 Scope 위반 **0** · `z.object(` contracts 밖 **0건** · 신규 `any`/`@ts-ignore` **0건** · Mock fixture 하드코딩 **0건** · Adapter 선택 지점 **1곳** · 임의 HEX/arbitrary value 신규 **0건**(걸린 것은 전부 주석·공식 브랜드 에셋) · logger 화이트리스트 PII 차단 · **`ListGroup`/`ListRow` 정규화의 Stage 2 회귀 0건** · **200% 텍스트 확대에서 가로 넘침 0px**(QA 가 실화면 측정, 테스트 공백이었다) · Figma `26:21`·`30:74` 직접 대조 결과 차이가 **전부 승인 번호를 가진 것**
+
+## 27. Stage 3 QA 2차 결과와 최종 수용 결정 (2026-10-09, user)
+
+리포트: `docs/qa/stage-3-qa-report.md` (1021줄, §11 재검증 신설). 대상 커밋 `80ee2be`. **2차 Verdict: `INCOMPLETE`** (1차 `FAIL` → 재검증 4건 전부 `PASS`, `FAIL` 0).
+
+### 27.1 ⚠️ §26.1 의 전제가 틀렸다 — QA 가 자기 1차 집계 오류를 찾았다
+
+§26.1 에서 내가 *"`PARTIAL` 3건"* 으로 적고 *"`QA-3-008`·`009` 로 전부 해소된다"* 를 전제했는데, **실제 `PARTIAL` 은 6건**이었다. QA 1차 §1 Summary 가 `AC-3-78`·`AC-3-86`·`AC-3L-24` **세 건을 세지 않았다**(QA 자신의 오류).
+→ 그래서 `PASS (accepted: QA-3-001, QA-3-002, QA-3-003)` 산식이 성립해 보였을 뿐이다.
+→ **QA 가 임의로 `PASS` 로 메우지 않고 `INCOMPLETE` 로 보고했다.** `rules/qa.md` 와 "Agent 는 스스로 승인하지 않는다" 를 지킨 올바른 처리다.
+
+`AC-3-78` 은 PARTIAL 사유(결함 5건)가 해소되어 **QA 가 `PASS` 로 재판정**했고 근거를 리포트 §4·§11.5 에 명시했다.
+
+### 27.2 결정 — `AC-3-86` 중 **보호자 직접 입력 부분만 폐기 표기** (user)
+
+`AC-3-86` 원문은 저장 대상을 *"카탈로그 책은 `bookId`, **보호자 직접 입력 옵션은 `title`(+`author?`)**"* 로 요구한다. 그런데 **그 선택지 자체가 `conversation_only` 폐기(§12.12)와 함께 사라졌다** — `packages/contracts/src/activity/option.ts:24` 가 *"`userEnteredBook` 이 사라졌다"* 고 적고 있고, AC 자신도 *"`conversation_only` 는 `G-12` 결정 전 검증 불가"* 라는 주석을 달고 있다.
+**결정 기록은 0건이었다** (Orchestrator 가 approvals 전수 grep 으로 확인) — `AC-3-34` 와 **같은 종류의 결정 공백**이다.
+
+**결정**: **카탈로그 책 저장 부분은 그대로 판정**하고, **보호자 직접 입력 부분만 폐기로 표기**한다.
+⚠️ Library 의 `userEnteredTitle`(`library/library-book.ts:45`)은 **남는다** — 그것은 `/library/add`(`FR-23`) 경로용이며 Activity Card 저장과 별개다.
+
+### 27.3 결정 — 남은 3건 **모두 수용** (user)
+
+| ID | 내용 | 수용 사유 |
+|---|---|---|
+| **`AC-3L-24`** | `GiftRequestStatus` **6종 표시를 재현할 Mock 시나리오 없음** — fixture 에 `shipped`·`requested` **2종만** (Orchestrator 확인: `mocks/fixtures/library.ts:331-332`) | 고칠 수 있는 항목이지만 사용자가 수용을 택했다. **증정 상태 4종은 화면 확인 없이 남는다** |
+| **`NV-1`** | **Safari / iOS 실기기 미확인** — `overflow-x: clip` · `:has()` · `inert` · `backface-visibility`+`rotateY` · `scroll-snap`+`dvh` 가 Chromium 에서만 확인됨 | 현 환경에서 불가 (실기기 필요) |
+| **`NV-2`** | 뒤집기 중간 프레임 ActionBar **잔상**(~170ms) + 저장 실패 `InlineAlert` 동시 상황의 잔여 빈 자리 | 현 환경에서 불가 (60fps 녹화 필요) |
+
+### 27.4 최종 Stage Verdict 산정
+
+수용 항목 전체: **`QA-3-001` · `QA-3-002` · `QA-3-003`**(§26.1) + **`AC-3L-24` · `NV-1` · `NV-2`**(§27.3) + `AC-3-86` 부분 폐기(§27.2) + `AC-3-34` 폐기(§26.5).
+→ `rules/qa.md` §2 에 따라 **항목별 명시 수용**이 성립한다. **최종 Verdict 는 stage-qa-agent 가 판정한다** — Orchestrator 가 계산해 선언하지 않는다.
+
+### 27.5 QA 가 자기 측정으로 바로잡은 것 (기록)
+
+`QA-3-004` 재검증 중 `pushState`+`popstate` 로 흉내 낸 이동에서 *"스택인데 121px 로 남음"* 이 관측됐으나, **해제 렌더 전 같은 프레임을 읽은 것**이었다. 실제 링크 클릭으로 다시 재니 **16px 정상**이었다.
+→ **인공 이동 값을 결함으로 올리지 않았다.** 측정 방법이 만든 허상을 스스로 걸러낸 사례로 기록한다.
+
+또 QA 는 **구현자 handoff 의 "실측했다" 서술을 증거로 쓰지 않고 수치를 다시 쟀다** (자작 Playwright 스크립트, Mock Adapter 직접 호출, 변조 시뮬레이션). `rules/qa.md` 의 "구현자의 handoff 메모는 증거가 아니다" 를 지킨 것이다.
+
+### 27.6 Stage 4 Plan 에 올릴 이월 항목 (재확인)
+
+**이월은 삭제가 아니다.** Stage 4 Plan 작성 시 In Scope 로 올린다:
+- **`QA-3-001` (High)** — `PushPermissionPort` + Web 구현 + 사전 안내 UX + `push-permission-denied` 시나리오 + `notification-preferences`/`push-devices` contracts + **`PushPlatform` enum**
+- **`QA-3-002` (Medium)** — Activity Card 오프라인 캐시(`D-11`) + `offline-cached-card`(캐시 카드 + Offline Banner 동시) + 폐기·로그아웃 삭제
+- **`QA-3-003` (Medium)** — `D-4` 에셋 파이프라인(AVIF/WebP/PNG · `<picture>`+`srcset` · 해상도 상한 · `assets:optimize`) — `P3-BIP-19`(표지 에셋 교체)와 함께 **Stage 8 게이트**
+
+### 27.7 남은 가값 — 활성 6건
+
+`P-01` · `P-02` · `P-04` · `P-16` · `P-23` · `P-24` — **전부 dev gallery 등재 완료**(차집합 0, QA 확인). 해제: `P-05`. 수용 예외: `D-01` 유지.
+→ **Stage 0 `#10-4` 항목별 재제시가 이제 6건 전부에 성립한다** (`S3-PROV-2` 해소).
+
+## 28. Stage 3 최종 Verdict (2026-10-09, stage-qa-agent 3회차)
+
+리포트: `docs/qa/stage-3-qa-report.md` (1193줄, §12 신설). 대상 커밋 `80ee2be`.
+
+### 28.1 Verdict
+
+> **`PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`**
+
+### 28.2 ⚠️ §27.4 정정 — `accepted:` 에는 **수용만** 넣는다
+
+내가 §27.4 에서 수용 6건과 폐기 2건을 **"수용 항목 전체"로 묶어** 적었는데, QA 가 바로잡았다.
+`rules/qa.md` 기록 형식상 `accepted:` 괄호에는 **항목별 명시 수용만** 들어가고, **폐기는 판정 대상에서 물러난 것**이라 괄호에 넣지 않는다. 그래서 2회차가 예상한 7건이 아니라 **6건**이다.
+
+| 구분 | 항목 |
+|---|---|
+| **수용 6건** (괄호 안) | `QA-3-001` · `QA-3-002` · `QA-3-003` (§26.1) + `AC-3L-24` · `NV-1` · `NV-2` (§27.3) |
+| **폐기 2건** (괄호 밖) | `AC-3-34` 전부 폐기(§26.5) · `AC-3-86` 보호자 직접 입력 분기만 폐기(§27.2) |
+
+`AC-3-86` 은 요구사항이 줄어든 뒤 **잔여 범위를 QA 가 다시 측정해 `PASS`** 로 올렸다.
+
+### 28.3 전수 집계 (QA 가 전 행 기계 추출 + 누락 22행 개별 확인 + 합 검산)
+
+| 대상 | `PASS` | `FAIL`(전부 수용) | `PARTIAL` | `NOT VERIFIED` | 그 밖 | 합 |
+|---|---|---|---|---|---|---|
+| Stage 3 Plan | **71** | **6** | 0 | 0 | 폐기 1 · 무효 2 · Out of Scope 3 · 이월 5 | **88** ✅ |
+| Library Plan | **38** | 0 | **1**(수용) | 0 | — | **39** ✅ |
+| AC 밖 | — | — | — | **2**(수용) | `PENDING` 12 · Finding 9 | — |
+
+**합계: `PASS` 109 · `FAIL` 6 · `PARTIAL` 1 · `NOT VERIFIED` 2 · `BACKEND_INTEGRATION_PENDING` 12**
+**수용으로 덮이지 않은 항목 0건** — `FAIL` 6 AC 는 전부 `QA-3-001`/`002`/`003` 에 1:1 매핑된다.
+
+1회차 집계 오류(§27.1)의 재발을 막으려 **전 행을 기계 추출한 뒤 추출에서 빠진 22행을 한 건씩 직접 확인**했다. 집계 누락 0건.
+
+### 28.4 ⚠️ 1회차 증거 인용 2곳이 오기였다 (QA 자체 발견)
+
+1회차가 `AC-3-86` 의 카탈로그 경로 근거로 `MockLibraryApi.test.ts:312` · `home.spec.ts:187` 을 적었는데, 그 줄을 직접 열어 보니 전자는 **`AC-3-36` Idempotency 블록**, 후자는 **`G-13` Save 토글 테스트**였다 — **저장 대상 단정이 아니다.**
+실제 단정은 `home-stage3.test.tsx:644` 의 `expect(saves[0]?.payload).toStrictEqual({ target: { bookId: DECK_BOOKS[0]?.id } })` 다.
+→ **판정을 올릴 때 인용 위치를 검산해서 나온 발견**이다. 리포트 §4.1 을 바로잡았다.
+
+### 28.5 수용의 대가 (명시해 둔다)
+
+- **`GiftRequestStatus` 의 `approved`·`delivered`·`cancelled`·`rejected` 4종은 화면 확인 없이 남는다** (`AC-3L-24`) — **고칠 수 있었던 항목**이다
+- **Safari / iOS 실기기 미확인** (`NV-1`) — `overflow-x: clip` · `:has()` · `inert` · `backface-visibility`+`rotateY` · `scroll-snap`+`dvh` 가 Chromium 에서만 확인됨
+- 뒤집기 중간 프레임 잔상·잔여 빈 자리 (`NV-2`)
+- push 권한 · 오프라인 캐시 · 에셋 파이프라인 **3개 기능군이 Stage 3 에 없다** (Stage 4 이월)
+
+### 28.6 Orchestrator 후속 작업
+
+1. **`PLANNING.md` 진행 상태 갱신** — Stage 3 완료
+2. **가값 6건 항목별 재제시** (Stage 0 `#10-4`) — `P-01` · `P-02` · `P-04` · `P-16` · `P-23` · `P-24`. `S3-PROV-2` 가 해소되어 **이제 6건 전부에 절차가 성립한다**. 재제시는 Orchestrator 소관이며 **사용자 승인이 필요하다**
+3. **Stage 4 Plan 에 이월 3건을 In Scope 로 올린다** (`QA-3-001`·`002`·`003`) + 이미 이월된 `AC-3-22`~`26` 5건
+4. **Stage 8 게이트로 남는 것**: `QA-3-003`(에셋 파이프라인) + `P3-BIP-19`(상용 그림책 표지 교체 — **법무 확인 필요**)
+5. **Stage 4 는 사용자 지시가 있을 때 시작한다** (`rules/workflow.md` §4 — 한 Stage 승인은 다음 Stage 로 확장되지 않는다)

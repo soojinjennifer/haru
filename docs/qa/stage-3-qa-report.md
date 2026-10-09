@@ -1,7 +1,9 @@
 # Stage 3 QA Report — Home · Activity Card · Library · Book Selection · Recommendation (Frontend)
 
-Status: 작성 2026-10-09 (stage-qa-agent)
-대상 커밋: `61fee89` — *feat(library): give the sheet cover its shadow and open a QA entry point*
+Status: 작성 2026-10-09 · 재검증 2회차 2026-10-09 · **최종 판정 3회차 2026-10-09 (stage-qa-agent)**
+대상 커밋: 1회차 `61fee89` — *feat(library): give the sheet cover its shadow and open a QA entry point* / 2회차·**3회차 `80ee2be` — *fix: keep the toast off the tab bar and honour idempotency keys in the mock*** (3회차는 **코드 변경 0** — 문서 변경만)
+
+> **2회차 결과는 §11 에 있다.** §1 Summary · §4 Requirement Matrix · §6 · §8 · §10 은 2회차 결과로 **갱신**했고, §5 Findings 와 §2·§3·§9 의 1회차 측정 기록은 **이력으로 보존**한다 (판정 변화는 각 Finding 머리에 표시).
 판정 기준: `.claude/rules/qa.md` · `docs/plans/stage-3-plan.md` (APPROVED 2026-10-05) · `docs/plans/stage-3-library-plan.md` (APPROVED 2026-10-06) · `docs/design/stage-3-design-spec.md` · `docs/design/stage-3-library-design-spec.md` · **`docs/decisions/stage-3-approvals.md` §12~§25 (단일 기준)**
 
 > **증거 표기 규칙** — 이 리포트는 두 가지를 구분한다.
@@ -14,50 +16,117 @@ Status: 작성 2026-10-09 (stage-qa-agent)
 
 ## 1. Summary
 
-### Stage Verdict: **`FAIL`**
+### Stage Verdict (3회차 최종, 커밋 `80ee2be`): **`PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`**
 
-| 판정 | 건수 |
-|---|---|
-| `FAIL` | **5** (요구사항 기준 7 AC) |
-| `PARTIAL` | 3 |
-| `NOT VERIFIED` | 2 |
-| `BACKEND_INTEGRATION_PENDING` | 11 (신규) + 1 (갱신) |
-| `PASS` | 나머지 |
+1회차 `FAIL` → 2회차 `INCOMPLETE` → **3회차 `PASS (accepted: …)`**.
+3회차는 **코드 변경이 없다.** 바뀐 것은 **사용자 결정 문서**(approvals §27, 2026-10-09)와 그 결정이 반영된 **Plan 문구**뿐이다. QA 는 8개 명령을 **전부 다시 돌려 기준선과 동일함을 확인**했고(§12.1), 2회차가 차단 요인으로 남긴 4건을 결정에 따라 재산정했다(§12.2).
 
-**산정 근거** (`rules/qa.md` §2): `FAIL` ≥ 1 이므로 Stage Verdict 는 `FAIL` 이다. 사용자가 항목별로 명시 수용한 잔여 항목은 없으므로 `PASS (accepted: …)` 로 기록할 수 있는 항목도 없다.
+| 판정 | 1회차 | 2회차 | **3회차** | 변화 |
+|---|---|---|---|---|
+| `PASS` | — | — | **109** (Stage 3 Plan 71 + Library 38) | `AC-3-86` **PARTIAL → PASS** (범위 축소 후 잔여 조건 충족, QA 실측) |
+| `FAIL` | 5 Finding / 7 AC | 3 Finding / 6 AC | **3 Finding / 6 AC — 전부 수용** | 판정 유지, Verdict 산정 제외 |
+| `PARTIAL` | 6 AC (Summary 는 3 으로 **잘못 적었다** — §11.5) | 2 AC | **1 AC** (`AC-3L-24` — **수용**) | `AC-3-86` PASS 로 이동 |
+| `NOT VERIFIED` | 2 | 2 | **2 — 전부 수용** (`NV-1` · `NV-2`) | approvals §27.3 |
+| `BACKEND_INTEGRATION_PENDING` | 11 신규 + 1 갱신 | 11 신규 + 1 갱신 | **11 신규 + 1 갱신 (12)** | — |
+| 판정 대상 아님 | — | 1 | **11** = 폐기 1 (`AC-3-34`) · 부분 폐기 1 (`AC-3-86` 의 보호자 직접 입력 분기) · 무효 2 (`AC-3-11`·`AC-3-17`) · Out of Scope 3 (`AC-3-39`~`41`, `D-18`) · Stage 4 이월 5 (`AC-3-22`~`26`) | approvals §26.5 · §27.2 |
 
-### 무엇이 잘 되어 있는가 (판정과 무관하게 기록)
+#### 전수 집계 — ID 목록 (QA 가 §4 Matrix 전 행을 다시 세었다, `[QA 실행]`)
 
-- **8개 검증 명령 전부 통과** — `test` 1596 / `test:e2e` 271, 기준선과 일치
-- **시각 baseline 스테일 0건** — `--update-snapshots=all` 전량 재생성 후 74종 **전부 바이트 동일** (QA 가 직접 확인). `R-BASELINE-1` ③-1 이 요구하는 검사다
-- **Scope 위반 0건** — `apps/api/` · `supabase/` · `apps/mobile/` 추적 파일 0건, Stage 4~8 route·scenario key 0건
+**Stage 3 Plan — 88 ID**
+
+| 구분 | 건수 | ID |
+|---|---|---|
+| `PASS` | **71** | `AC-3-01`~`10` · `AC-3-12`~`16` · `AC-3-18`~`21` · `AC-3-27`~`33` · `AC-3-35`~`38` · `AC-3-45` · `AC-3-47`~`48` · `AC-3-50` · `AC-3-52`~`88` (행별 증거는 §4.1) |
+| `FAIL` (전부 수용) | **6** | `AC-3-42` · `AC-3-43` · `AC-3-44` (→`QA-3-001`) · `AC-3-46` · `AC-3-49` (→`QA-3-002`) · `AC-3-51` (→`QA-3-003`) |
+| `PARTIAL` | **0** | — |
+| `NOT VERIFIED` | **0** (AC 단위) | — (`NV-1`·`NV-2` 는 AC 가 아니라 별도 항목 — §7) |
+| 폐기 | **1** | `AC-3-34` (approvals §26.5) |
+| 무효 | **2** | `AC-3-11` · `AC-3-17` |
+| Out of Scope | **3** | `AC-3-39` · `AC-3-40` · `AC-3-41` (`D-18`, approvals §8.4) |
+| Stage 4 이월 | **5** | `AC-3-22` ~ `AC-3-26` |
+| 합 | **88** | 71 + 6 + 0 + 1 + 2 + 3 + 5 = 88 ✅ |
+
+**Library Plan — 39 ID**
+
+| 구분 | 건수 | ID |
+|---|---|---|
+| `PASS` | **38** | `AC-3L-01`~`23` · `25`~`39` |
+| `PARTIAL` (수용) | **1** | `AC-3L-24` |
+| 합 | **39** | 38 + 1 = 39 ✅ |
+
+**AC 밖 항목**
+
+| 구분 | 건수 | ID |
+|---|---|---|
+| `NOT VERIFIED` (수용) | **2** | `NV-1` (Safari / iOS 실기기) · `NV-2` (뒤집기 중간 프레임 · 저장 실패 동시 잔여 빈 자리) |
+| `BACKEND_INTEGRATION_PENDING` | **12** | 신규 11 = `P3-BIP-16` ~ `P3-BIP-26` / 갱신 1 = `P3-BIP-15` (§8) |
+| Finding | **9** | `QA-3-001`~`003` **FAIL(수용)** · `QA-3-004`~`007` **PASS** · `QA-3-008` **해소** · `QA-3-009` **폐기** |
+
+> **1회차 집계 오류를 3회차에도 다시 검증했다.** 2회차에서 1회차 Summary 가 `PARTIAL` 을 3 으로 적은 오류를 찾았으므로(§11.5, approvals §27.1), 3회차는 §4.1·§4.2 **표 전 행을 기계적으로 추출해 재집계**했다 — 추출에서 빠진 22행(표기 접두 `✎`/`✓`, 취소선, 묶음 행 `AC-3-39`·`40`·`41`)을 **한 건씩 직접 확인**해 보강했고, 합이 88 / 39 로 맞는 것을 검산했다. **집계 누락 0건.**
+
+### 산정 근거 (`rules/qa.md` §2)
+
+1. **`FAIL` 6 AC (Finding 3건) — 사용자 수용.** `QA-3-001`(push 권한 기능군) · `QA-3-002`(오프라인 캐시) · `QA-3-003`(에셋 파이프라인)을 사용자가 항목별로 명시 수용했다 (approvals §26.1). 규칙대로 **요구사항 판정은 `FAIL` 로 남기고**(`AC-3-42`·`43`·`44`·`46`·`49`·`51`) Verdict 계산에서만 수용 항목으로 처리한다. **6 AC 전부가 이 세 Finding 에 1:1 로 매핑**되는 것을 확인했다 (§4.1 각 행, `[QA 실행]`) — 수용 범위 밖의 `FAIL` 은 **0건**이다.
+2. **`AC-3-86` — 수용이 아니라 요구사항 범위가 줄었다 → `PASS`.** 사용자 결정(approvals §27.2)이 *"보호자 직접 입력 옵션은 `title`(+`author?`)"* **분기만 폐기**하고 *"카탈로그 책 저장 부분은 그대로 판정"* 하도록 정했고, 그 표기가 `docs/plans/stage-3-plan.md:1041` 에 반영됐다(`[QA 실행]` diff 확인). 2회차 PARTIAL 의 **미충족 조건이 그 분기 하나였으므로**, 남은 조건을 QA 가 다시 측정해 충족을 확인했다 → **`PASS`** (§12.2). 그래서 `AC-3-86` 은 `accepted:` 목록에 넣지 않는다.
+3. **`AC-3L-24` · `NV-1` · `NV-2` — 사용자 수용** (approvals §27.3). 판정은 각각 `PARTIAL` · `NOT VERIFIED` 로 **남기고** Verdict 계산에서만 수용 항목으로 처리한다. ⚠️ `AC-3L-24` 는 **고칠 수 있는 항목**(`GiftRequestStatus` fixture/시나리오 추가)인데 사용자가 수용을 택했다 — **증정 상태 4종(`approved`·`delivered`·`cancelled`·`rejected`)은 화면 확인 없이 남는다.**
+4. **수용으로 덮이지 않는 잔여 항목: 0건.** `FAIL` 6 AC → 수용 / `PARTIAL` 1 → 수용 / `NOT VERIFIED` 2 → 수용 / 그 밖의 판정은 전부 `PASS` 또는 `BACKEND_INTEGRATION_PENDING` 이다. `rules/qa.md` §2 — *"In Scope 항목이 모두 `PASS` 또는 `BACKEND_INTEGRATION_PENDING`"* + 항목별 명시 수용 → **`PASS (accepted: …)`**.
+5. **가값(`P-xx`)은 FAIL 사유가 아니다** (`rules/qa.md` §2). 활성 6건을 §6 에 기록했고 3회차에 변화 없음을 확인했다.
+
+> **수용 문자열 전체**: `PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`
+> 괄호 안 6건이 **사용자가 항목별로 명시 수용**한 전부다 (approvals §26.1 3건 + §27.3 3건).
+> 괄호에 **넣지 않은** 결정 2건은 수용이 아니라 **요구사항 폐기·축소**다 — `AC-3-34` **전부 폐기**(§26.5) · `AC-3-86` **보호자 직접 입력 분기만 폐기**(§27.2, 잔여 범위는 `PASS`). approvals §27.4 는 이 4종(수용 6 + 폐기 2)을 묶어 *"수용 항목 전체"* 로 적었으나, `rules/qa.md` 의 기록 형식상 **`accepted:` 에는 수용만 넣고 폐기는 판정 대상에서 물러난 것으로 적는다.**
+
+### 2회차에서 해소된 것 (`[QA 실행]`)
+
+| ID | 1회차 | 2회차 | QA 가 직접 확인한 것 |
+|---|---|---|---|
+| `QA-3-004` | FAIL (Medium) | **PASS** | Toast ↔ 탭바 **겹침 −23px**, 탭 3개 `elementFromPoint` 전부 탭바 (393·320) |
+| `QA-3-005` | FAIL (Medium) | **PASS** | Mock Adapter 직접 호출 7항목 — 재생·`IDEMPOTENCY_KEY_REUSED`·보관함 분리·`retry` 미보관 |
+| `QA-3-006` | FAIL (Low) | **PASS** | `P-23` 등재 + 재발 방지 가드가 **실제로 문다**(변조 시뮬레이션) |
+| `QA-3-007` | FAIL (Low) | **PASS** | handoff §3 **10건**, §9 ⑨ 전제 정정 확인 |
+| `QA-3-008` | PARTIAL ×2 | **해소** | Plan `AC-3-56`(32종) · `AC-3-59`(29종) 문구 정정 확인 |
+| `QA-3-009` | PARTIAL | **폐기** | Plan `AC-3-34` 취소선 + 폐기 사유 확인 |
+
+### 8개 명령 (2회차, `[QA 실행]`)
+
+`typecheck` · `lint` · `lint:boundaries` · `test` **1611 passed / 117 files** · `build` · `format:check` · `assert:no-mocks` · `test:e2e` **273 passed (단독 5.8분)** — **전부 exit 0**, 기준선(1611 / 273)과 일치. 전량 재생성(`--update-snapshots=all`) 후 baseline **74종 바이트 동일**. 상세는 §11.1.
+
+### 무엇이 잘 되어 있는가 (1회차 기록 유지)
+
+- **Scope 위반 0건** — `apps/api/` · `supabase/` 추적 파일 **0건**(2회차 재확인: `apps/` = `web` 하나, `packages/` = `config`·`contracts`·`design-tokens`·`ui`), Stage 4~8 route·scenario key 0건
 - **Contract / Mock 경계가 깨끗하다** — `z.object(` 가 `packages/contracts` 밖에 0건, 신규 `any`/`@ts-ignore` 0건, Mock fixture 하드코딩 0건, Adapter 선택 지점 1곳
 - **Figma 대조** — Home `26:21` · Library L-1 `30:74` 를 QA 가 직접 받아 구현 baseline 과 대조했고, 차이는 **전부 승인 번호가 있는 것**이었다
 
-### 무엇이 Stage Verdict 를 `FAIL` 로 만드는가
+### 2회차의 차단 요인 4건이 어떻게 해소됐는가 (3회차)
 
-**셋은 "구현되지 않은 In Scope 기능군"** 이고, **둘은 "구현했는데 동작이 요구와 다른 것"** 이다.
+2회차는 `PARTIAL` 2 + `NOT VERIFIED` 2 를 남겨 `INCOMPLETE` 였다. 3회차에 네 건 전부 처리됐다 — **코드 수정 0건**, 처리 경로는 서로 다르다.
 
-1. **`QA-3-001` (High)** — push 권한 Port·Web 구현·Mock·contracts 가 **통째로 없다**. approvals §8.4 가 *"D-16(push 권한 Port + Web + Mock)은 **그대로 유효**하다"* 로 명시했고 Plan §3.1 도 *"push 권한 Port·Web·Mock·contracts 정의는 Stage 3 유지(D-16)"* 라고 적는다. 이월 승인이 없다
-2. **`QA-3-002` (Medium)** — Activity Card **오프라인 캐시**(`D-11`)와 `offline-cached-card` 시나리오가 없다
-3. **`QA-3-003` (Medium)** — `D-4` 에셋 파이프라인(AVIF + WebP + PNG · `<picture>`+`srcset` · `assets:optimize`)이 **처음 실사용되는 Stage** 인데 PNG 단일 `<img>` 뿐이다
-4. **`QA-3-004` (Medium)** — ⭐ **QA 가 직접 측정해 찾은 신규 결함.** 탭 화면에서 **Toast 가 하단 탭바를 완전히 덮고 탭 3개의 클릭을 가로막는다.** 소스 가드 테스트는 CSS 규칙 문자열만 보고 **클래스가 실제로 붙는지는 보지 않았다**
-5. **`QA-3-005` (Medium)** — `MockLibraryApi` 가 `Idempotency-Key` 를 **받기만 하고 보관·재생하지 않는다**. `AC-3-36` 이 요구하는 Mock replay 가 없다
+| 차단 요인 (2회차) | 3회차 처리 | 경로 |
+|---|---|---|
+| **`AC-3-86` PARTIAL** — *"보호자 직접 입력 옵션 = `title`(+`author?`)"* 분기가 화면 경로로 없다 | **`PASS`** | **요구사항 축소** (수용 아님). 사용자 결정 §27.2 가 그 분기만 폐기하고 카탈로그 부분은 판정 유지로 정했다. QA 가 잔여 조건을 **다시 측정**해 충족 확인 (§12.2) |
+| **`AC-3L-24` PARTIAL** — `GiftRequestStatus` 6종 재현 Mock 시나리오 없음 | **`PARTIAL` 유지 + 수용** | **사용자 수용** §27.3. 고칠 수 있는 항목이나 사용자가 수용을 택했다 |
+| **`NV-1`** Safari / iOS 실기기 미검증 | **`NOT VERIFIED` 유지 + 수용** | **사용자 수용** §27.3 (현 환경 불가). 수동 절차 §7 |
+| **`NV-2`** 뒤집기 중간 프레임 잔상 · 저장 실패 동시 잔여 빈 자리 | **`NOT VERIFIED` 유지 + 수용** | **사용자 수용** §27.3 (60fps 녹화 필요). 수동 절차 §7 |
 
-> ⚠️ **handoff `§9 ⑨` 의 전제가 사실이 아니다.** *"Toast 가 실제로 마운트되는 Stage 3 화면이 없어 실행 증거가 없다"* 고 적혀 있으나, `ActivityCardDeck`(저장 실패) 과 `AddOwnBookForm`(등록 성공)이 **둘 다 Toast 를 띄운다**. 그래서 QA 가 실행 측정을 할 수 있었고, 그 결과가 `QA-3-004` 다.
+> 2회차 §11.12 가 제시한 두 경로 중 **`AC-3-86` 은 (B) 잔여 항목 처리**(결정 공백 해소 → 범위 축소 → 잔여 조건 재측정)로, **나머지 3건은 (A) 사용자 추가 수용**으로 끝났다. 그래서 `accepted:` 목록은 2회차가 예상한 7건이 아니라 **6건**이다.
 
-### 오판 방지 — 아래는 `FAIL` 로 보지 않았다
+### 수용으로 덮이지 않은 항목
+
+**없다 (0건).** §4.1·§4.2 전수 재집계에서 `PASS`·`BACKEND_INTEGRATION_PENDING`·수용 6건·판정 대상 아님 11건 밖에 남는 항목이 **0** 임을 확인했다. 합 검산: Stage 3 Plan 88 = 71 + 6 + 1 + 2 + 3 + 5, Library 39 = 38 + 1.
+
+### 1회차에 `FAIL` 로 보지 않은 것 (유지)
 
 | 분류 | 처리 | 근거 |
 |---|---|---|
-| Figma 에 없는데 구현한 것 **10건** | 전부 승인분 — Finding 아님 | handoff §3 의 9건 + **버블 닫기(x) 버튼**(handoff §3 누락분, approvals §13.4 + 사용자 지시 2026-10-05) |
+| Figma 에 없는데 구현한 것 **10건** | 전부 승인분 — Finding 아님 | handoff §3 (2회차에 **10건으로 정정 확인**) |
 | Figma 에 있는데 뺀 것 **8건** | 전부 사용자 결정 — Finding 아님 | `L-OPEN-14` · `L-D1` · `L-OPEN-02` · `L-OPEN-21` · `L-R2D-02` 등 |
-| 무효가 된 허용 차이 **5건** | 판정 근거로 쓰지 않았다 | `AD-S3-4`(전제 오류 — `163:1633` 은 **Favorites**) · `AD-S3-6`·`7`·`8`(뒤집힘) · `AD-S3-19`(철회) |
-| 응답 필드에 `.max()` 없음 | **의도된 설계** — Finding 아님 | approvals §13.3 (`characterLine` 선례). 길이 요구는 `P3-BIP-26` 으로 넘긴다 |
-| `favorites-empty` | **정상 화면** (처음 쓰는 사용자) — 예외 아님 | `L-OPEN-13` · `AC-3L-08` |
-| `P-24` 연한 회색 1.56:1 | **승인된 가값** — Finding 아님. §6 목록에 기록 | approvals §20.4 |
-| Library 의 Offline = Error 같은 경로 | 승인된 Design Spec §7.4 (`:595`) 대로 | approvals §20.1 |
+| 무효가 된 허용 차이 **5건** | 판정 근거로 쓰지 않았다 | `AD-S3-4`·`6`·`7`·`8`·`19` |
+| 응답 필드에 `.max()` 없음 | **의도된 설계** — Finding 아님 | approvals §13.3. 길이 요구는 `P3-BIP-26` |
+| `favorites-empty` | **정상 화면** — 예외 아님 | `L-OPEN-13` · `AC-3L-08` |
+| `P-24` 연한 회색 1.56:1 | **승인된 가값** — §6 목록에 기록 | approvals §20.4 |
+| Library 의 Offline = Error 같은 경로 | 승인된 Design Spec §7.4 | approvals §20.1 |
 | `Start Session` 전면 비활성 | `D-3` (approvals §13.10) | — |
+| **2회차 범위 초과 2건** | **Orchestrator 승인분 — Finding 아님.** 부작용 검증 결과는 §11.6 | `ToastProvider` 공개 API 변경 · `A11yPage` `C-5` + 재발 방지 테스트 |
 
 ---
 
@@ -145,7 +214,7 @@ git diff --stat e2e/__screenshots__        → (빈 출력)
 | `AC-3-04` | **PASS** | `[QA 실행]` `test:e2e` — `tabs.spec.ts` 3건(Home→Library · Library→Home · Home→Progress, 전부 SPA·`document` 요청 0건) + `home.spec.ts:42`. 탭 3개, `/session` 탭 없음 |
 | `AC-3-05` | **PASS** | `[QA 실행]` `shared/config/tabs.ts` 실측 — `book` · `haru:tab-center-home` · `chart-no-axes-column-increasing` = `S1-D2-5` 확정값. 활성 구분은 `v3-tab-bar` baseline + `a11y.spec` 통과 |
 | ✎ `AC-3-06` | **PASS** | `[QA 실행]` `test:e2e` — `home.spec.ts:146` *"카드 하단이 탭바를 덮지 않고 탭바 아래 16px 이 남는다"*, `:169` *"ActionBar 가 1행이고 `Save` 가 최소 87px 이다 (320px 포함)"*, `responsive.spec` 4폭 전부 통과. Rev 4 의 **320px FAIL(M-01) 해소 확인** |
-| `AC-3-07` | **FAIL** | → **`QA-3-004`**. Sheet 부분은 PASS (`library.spec.ts:249~308` 시트 기하 + scrim baseline 2종). **Toast 하단 offset 은 실측 결과 규칙과 불일치** |
+| `AC-3-07` | ~~FAIL~~ → **PASS** (2회차) | `[QA 실행 2회차]` QA 독립 측정(393·320) — Toast 하단 `743` ↔ 탭바 상단 `766` = **겹침 −23px**, 탭 3개 중심 `elementFromPoint` 가 **전부 탭바**. 스택 화면(`/auth/reset-password`)은 보정 **미적용**·하단 16px. `inset-block-end` 16 → **121px**. Sheet 부분은 1회차 PASS 유지. → §11.2 `QA-3-004` |
 | `AC-3-08` | **PASS** | `[QA 실행]` `tabs.spec.ts:161`(수식 키 클릭 분기) · `a11y.spec.ts` 터치 타깃 표 + `home.spec.ts:505` 키보드 경로. `aria-current` 는 `v3-tab-bar` + 단위 테스트 |
 
 #### Home · Activity Card (§11.3)
@@ -183,9 +252,9 @@ git diff --stat e2e/__screenshots__        → (빈 출력)
 | `AC-3-31` | **PASS** | `[QA 실행]` `MockLibraryApi.test.ts:155` + `s3-library-list.png` 4행째 `Goodnight Moon` **`GM` placeholder** 육안 확인 |
 | `AC-3-32` | **PASS** | `[QA 실행]` `TextLink.tsx:91` — `external` 이면 `target="_blank" rel="noopener noreferrer"`. `BookDetailSheet.tsx:441` 이 `purchaseUrl` 에 사용. Prompt 표시는 `library.spec`·`library-sheets.test.tsx` |
 | `AC-3-33` | **PASS** | `[QA 실행]` `MockLibraryApi.test.ts:278` *"증정 신청은 `requested` 로 시작한다"* + `library-entry-screens.test.tsx`. 배송지 입력 필드 grep **0건** |
-| `AC-3-34` | **PARTIAL** | `[QA 실행]` `library:gift-pending` 시나리오로 **배송 상태 `Tag` 는 표시**된다(`MockLibraryApi.test.ts:164`). 그러나 `§13` 이 요구하는 *"보유 책 직접 입력 또는 **대화 전용 세션** 안내"* 중 **대화 전용 세션 안내는 없다** — `ActivityOptionKind.conversation_only` 가 approvals §12.12 로 폐기되었기 때문이다. **미충족 조건**: 증정 대기 중 대체 행동 안내가 "직접 등록" 1개뿐. 폐기 결정이 이 AC 를 어떻게 바꾸는지는 **결정 기록에 없다** → §5 `QA-3-009` |
+| ~~`AC-3-34`~~ | **폐기 — 판정 대상 아님** (2회차) | 사용자 결정 2026-10-09 (approvals §26.5 `QA-3-009`) 로 **AC 자체가 폐기**됐다. `docs/plans/stage-3-plan.md:584` 가 취소선 + 폐기 사유로 갱신된 것을 `[QA 실행]` 확인했다. 근거: 대화 전용 세션이 approvals §12.12 로 폐기됐다. 배송 상태 표시는 `AC-3-33`·`AC-3-35` 가 덮는다. ⟨1회차 기록⟩ `[QA 실행]` `library:gift-pending` 시나리오로 **배송 상태 `Tag` 는 표시**된다(`MockLibraryApi.test.ts:164`). 그러나 `§13` 이 요구하는 *"보유 책 직접 입력 또는 **대화 전용 세션** 안내"* 중 **대화 전용 세션 안내는 없다** — `ActivityOptionKind.conversation_only` 가 approvals §12.12 로 폐기되었기 때문이다. **미충족 조건**: 증정 대기 중 대체 행동 안내가 "직접 등록" 1개뿐. 폐기 결정이 이 AC 를 어떻게 바꾸는지는 **결정 기록에 없다** → §5 `QA-3-009` |
 | `AC-3-35` | **PASS** | `[QA 실행]` `MockLibraryApi.test.ts:300` *"`gift-duplicate` 는 `GIFT_REQUEST_DUPLICATE` 다"* + `BookDetailSheet` 가 `InlineAlert tone="info"` 로 처리(오류 화면 아님) |
-| `AC-3-36` | **FAIL** | → **`QA-3-005`**. `MockLibraryApi` 에 `Idempotency-Key` 보관·재생·`IDEMPOTENCY_KEY_REUSED` 경로가 **0건** |
+| `AC-3-36` | ~~FAIL~~ → **PASS** (2회차) | `[QA 실행 2회차]` QA 가 **Mock Adapter 를 직접 호출**해 7항목 측정 — 같은 key+같은 body = 응답 **바이트 동일 + `id` 동일**(요청 로그 2건, 생성 1건) / 같은 key+다른 body = **`IDEMPOTENCY_KEY_REUSED`**(`addOwnBook`·`createGiftRequest` 양쪽) / 다른 key = 별도 리소스 / 두 호출 보관함 **분리** / `retry` 1회차 실패 **미보관**. → §11.3 `QA-3-005` |
 | `AC-3-37` | **PASS** | `[QA 실행]` `library:empty` + `s3-library-empty.png` baseline. 진입점 2행(`/library/add` · `/library/gift-requests`)이 `LibraryShelves` **밖**에 있어 Empty 상태에서도 다음 행동으로 연결된다(`library.spec.ts:502`) |
 | `AC-3-38` | **PASS** | `[QA 실행]` `MockLibraryApi.test.ts:222` *"`paged` 는 `nextCursor` 를 주고 2페이지에서 끝난다"* + `library.spec` 시트 sentinel. 중복·유실 없음은 Mock 결정성 테스트가 고정 |
 
@@ -194,26 +263,26 @@ git diff --stat e2e/__screenshots__        → (빈 출력)
 | AC | 판정 | 증거 |
 |---|---|---|
 | `AC-3-39`·`40`·`41` | — | **Out of Scope** (`D-18`, approvals §8.4). FAIL 아님. `TimeOfDay` contracts 는 `common/time-of-day.ts` 로 **존재 확인** |
-| `AC-3-42` | **FAIL** | → **`QA-3-001`** |
-| `AC-3-43` | **FAIL** | → **`QA-3-001`** |
-| `AC-3-44` | **FAIL** | → **`QA-3-001`** |
+| `AC-3-42` | **FAIL** (수용 — Stage 4 이월) | → **`QA-3-001`**. 판정은 `FAIL` 로 남긴다. Stage Verdict 산정에서는 사용자 수용 항목으로 처리한다 (approvals §26.1) |
+| `AC-3-43` | **FAIL** (수용 — Stage 4 이월) | → **`QA-3-001`** |
+| `AC-3-44` | **FAIL** (수용 — Stage 4 이월) | → **`QA-3-001`** |
 | `AC-3-45` | **PASS** | `[QA 실행]` `apps/web/package.json` dependencies = `@haru/{contracts,design-tokens,ui}` · `@tanstack/react-query` · `react` · `react-dom` · `react-router` · `zod` **7종뿐**. push provider SDK · 광고 · 제3자 분석 SDK **0건**. root devDeps 에도 없음 |
 
 #### 오프라인 · 캐시 (§11.7)
 
 | AC | 판정 | 증거 |
 |---|---|---|
-| `AC-3-46` | **FAIL** | → **`QA-3-002`** |
+| `AC-3-46` | **FAIL** (수용 — Stage 4 이월) | → **`QA-3-002`** |
 | `AC-3-47` | **PASS** | `[QA 실행]` `library:offline`·`activity-cards:offline` 시나리오가 `NetworkError` 로 차단하고 안내한다(`MockLibraryApi.test.ts:407` · `ActivityCardDeck.tsx:52` `isOffline` 분기). 로컬 outbox grep **0건** |
 | `AC-3-48` | **PASS** | `[QA 실행]` 로컬 저장소 전수 검사 — `localStorage` 사용처는 **온보딩 draft 1종**(`shared/lib/onboarding-draft.ts`, 키 `haru.onboarding.draft.v1`)뿐. `lastHighlightLine`·아이 이름·서재 목록·증정 배송 정보 저장 **0건**. (단 Activity Card 캐시 자체가 없어 공허하게 충족된다 — `QA-3-002` 와 묶인다) |
-| `AC-3-49` | **FAIL** | → **`QA-3-002`**. 검사 대상 캐시가 존재하지 않는다 |
+| `AC-3-49` | **FAIL** (수용 — Stage 4 이월) | → **`QA-3-002`**. 검사 대상 캐시가 존재하지 않는다 |
 | `AC-3-50` | **PASS** | `[QA 실행]` 서재 — `library:offline` 에서 `ErrorState` + Retry 1개 렌더(빈 화면·무한 로딩 아님), `LibraryShelves.tsx:143` 이 `isError` 를 Empty 보다 **앞에** 둔다. 알림 설정 부분은 Out of Scope(`D-18`). ⚠ 관찰: Library 는 승인된 Design Spec §7.4(`:595` *"Offline 은 Error 와 같은 경로"*)대로 **오프라인 전용 문구를 쓰지 않는다** — 사용자는 "We could not load your library" 를 본다. 승인 범위 안이라 Finding 아님 |
 
 #### 에셋 (§11.8)
 
 | AC | 판정 | 증거 |
 |---|---|---|
-| `AC-3-51` | **FAIL** | → **`QA-3-003`** |
+| `AC-3-51` | **FAIL** (수용 — Stage 4 이월) | → **`QA-3-003`** |
 | `AC-3-52` | **PASS** | `[QA 실행]` `BookCover.tsx` 는 `coverUrl: string` 만 받고 경로 규칙을 모른다. 번들 에셋 매핑은 `shared/assets/book-covers/index.ts` + `mocks/fixtures/` 에만 있다 |
 | `AC-3-53` | **PASS** | `[QA 실행]` `s3-library.png` · `s3-library-list.png` · `s3-home.png` 육안 대조 — 표지 ↔ 제목이 **전부 일치**한다(Figma L-1 의 placeholder 불일치를 복사하지 않았다). 카탈로그 외 책만 이니셜 placeholder |
 
@@ -223,10 +292,10 @@ git diff --stat e2e/__screenshots__        → (빈 출력)
 |---|---|---|
 | `AC-3-54` | **PASS** | `[QA 실행]` `z.object(` grep — `apps/web/src` · `packages/ui/src` **0건**(테스트 제외). `pnpm typecheck` exit 0 |
 | `AC-3-55` | **PASS** | `[QA 실행]` `contracts/src/__tests__/library.test.ts` 통과 + `LibraryBookSchema` 가 `BookSummarySchema` 를 포함. `BookSummary` 변경 없음 |
-| `AC-3-56` | **PARTIAL** | `[QA 실행]` `enums.test.ts:253` `expect(ENUM_SNAPSHOTS).toHaveLength(32)` 통과. 신규 enum 중 `PromptKind`·`AgeBand`·`LibraryFilter`·`BookSource` **4종 존재**, **`PushPlatform` 없음**. 총수 31 → 32 는 Library Plan §7.3 승인분이라 문제 아님. **미충족 조건**: `PushPlatform` — `QA-3-001` 에 종속 |
+| `AC-3-56` | ~~PARTIAL~~ → **PASS** (2회차) | `[QA 실행 2회차]` AC 문구가 정정됐다 (`stage-3-plan.md:628`, approvals §26.5 `QA-3-008`) — 실제 신규는 `LibrarySectionKey`·`LibraryFilter`·`BookSource` 이며 **29 → 32종**, `PushPlatform` 은 **Stage 4 이월**(`QA-3-001`). QA 확인: `enums.test.ts:252` `toHaveLength(32)` 통과 + `enums.test.ts:21~22` 에 `LibraryFilterSchema`·`LibrarySectionKeySchema` import, `:43~46` 주석이 29→32 경위를 고정. ⟨1회차 기록⟩ `[QA 실행]` `enums.test.ts:253` `expect(ENUM_SNAPSHOTS).toHaveLength(32)` 통과. 신규 enum 중 `PromptKind`·`AgeBand`·`LibraryFilter`·`BookSource` **4종 존재**, **`PushPlatform` 없음**. 총수 31 → 32 는 Library Plan §7.3 승인분이라 문제 아님. **미충족 조건**: `PushPlatform` — `QA-3-001` 에 종속 |
 | `AC-3-57` | **PASS** | `[QA 실행]` `activity-card.test.ts` 통과 (`options` 길이 3 강제) |
 | `AC-3-58` | **PASS** | `[QA 실행]` `packages/contracts/package.json` 런타임 의존 = `zod` 1건. clock 주입 팩토리는 `rules/` 테스트가 고정 |
-| `AC-3-59` | **PARTIAL** | `[QA 실행]` `error-envelope.test.ts:15` `expect(ERROR_CODES).toHaveLength(29)`. AC 원문은 "신규 0건(28종 유지)" 인데 **`BOOK_ALREADY_OWNED`(409) 1건이 추가**되어 29 다. 이것은 Library Plan §7.4 의 승인된 신규이므로 **결함이 아니라 AC 문구가 낡은 것**이다. 미충족 조건: AC 문구 갱신 필요 (`QA-3-010`) |
+| `AC-3-59` | ~~PARTIAL~~ → **PASS** (2회차) | `[QA 실행 2회차]` AC 문구가 정정됐다 (`stage-3-plan.md:631`) — `BOOK_ALREADY_OWNED` 1건 추가로 **29종**. QA 확인: `error-envelope.test.ts:14~17` `expect(ERROR_CODES).toHaveLength(29)` + 중복 0 통과. (1회차의 `QA-3-010` 참조는 **오타**다 — 이 항목은 `QA-3-008` 이다.) ⟨1회차 기록⟩ `[QA 실행]` `error-envelope.test.ts:15` `expect(ERROR_CODES).toHaveLength(29)`. AC 원문은 "신규 0건(28종 유지)" 인데 **`BOOK_ALREADY_OWNED`(409) 1건이 추가**되어 29 다. 이것은 Library Plan §7.4 의 승인된 신규이므로 **결함이 아니라 AC 문구가 낡은 것**이다. 미충족 조건: AC 문구 갱신 필요 (`QA-3-010`) |
 
 #### Mock Infrastructure (§11.10)
 
@@ -265,7 +334,7 @@ git diff --stat e2e/__screenshots__        → (빈 출력)
 | AC | 판정 | 증거 |
 |---|---|---|
 | `AC-3-77` | **PASS** | §8 참조 |
-| `AC-3-78` | **PARTIAL** | `[QA 실행]` 8개 명령 **전부 통과**, 신규 `any`/`@ts-ignore` grep **0건**. 그러나 `AC-3-78` 은 "전부 통과"만 보는 AC 라 §5 의 실동작 결함 5건을 잡지 못한다 — 통과 사실만 PASS, AC 의 취지(출하 가능 상태)는 §1 Verdict 가 대신한다 |
+| `AC-3-78` | ~~PARTIAL~~ → **PASS** (2회차) | `[QA 실행 2회차]` 8개 명령 **전부 통과** (`test` **1611**/117 files · `test:e2e` **273** 단독 5.8분 · 전량 재생성 5.9분, §11.1), 신규 `any`/`@ts-ignore` 0건(`git show 80ee2be` 전수 — 코드 추가분 0, 문서 언급만). PARTIAL 사유였던 "§5 의 실동작 결함 5건" 은 **2건 수정 확인 + 3건 사용자 수용(이월)** 으로 해소됐다. 남은 PARTIAL(`AC-3-86`·`AC-3L-24`)·`NOT VERIFIED` 2건은 명령 통과와 무관한 별개 항목이며 Stage Verdict 가 반영한다 |
 | `AC-3-79` | **PASS** | `[QA 실행]` `pnpm assert:no-mocks` exit 0 — 3개 sentinel 전부 0건(4파일 검사). dev gallery·Scenario Panel·request-log 가 Production 산출물에 없음 |
 
 #### Prompt 단계·페이지 태그 (§11.14)
@@ -283,7 +352,7 @@ git diff --stat e2e/__screenshots__        → (빈 출력)
 | `AC-3-83` | **PASS** | `[QA 실행]` `contracts/src/__tests__/activity-card.test.ts` 통과(상한 없음·`.min(1)`). `slice(` grep → Prompt 목록에 쓰인 곳 0건. `s3-home.png` 가 pill **4개 전부 노출**을 보인다. `books` fixture 는 5개 |
 | `AC-3-84` | **PASS** | `[QA 실행]` `MockLibraryApi.test.ts:332` *"같은 책을 두 번 저장해도 **같은 응답**이다"* · `:340` 상한 없음 · `:352` `RESOURCE_NOT_FOUND`. `library-api.ts` 표가 `saveBook` = IK **보내지 않는다** 로 고정 |
 | `AC-3-85` | **PASS** | `[QA 실행]` **QA 직접 측정** — `library:error` 로 Home 에서 `★ Save` 클릭 후 라벨이 `Save` → `Save` 로 **낙관 갱신이 롤백**되고 `We couldn't save that book. Try again.` Toast 가 떴다. `library:retry` 시나리오가 재시도 경로를 재현 |
-| `AC-3-86` | **PARTIAL** | `[QA 실행]` 카탈로그 책 경로(`bookId`)는 `MockLibraryApi.test.ts:312`·`home.spec.ts:187` 로 확인. **미충족 조건**: *"보호자 직접 입력 옵션 = `title`(+`author?`)"* 분기는 **Home 카드에 그 경로가 없다** — `ActivityOptionKind.conversation_only` 폐기(§12.12)와 `userEnteredBook` 필드 삭제로 카드는 항상 카탈로그 책이다. Mock 레벨 `saveBook({title})` 은 `:322` 로 검증되나 **화면 경로는 미검증**. handoff §9 ⑩ 과 같은 판단 |
+| `AC-3-86` | ~~PARTIAL~~ → **PASS** (3회차) | `[QA 실행 3회차]` **요구사항 범위가 줄었다** — 사용자 결정(approvals §27.2)으로 *"보호자 직접 입력 옵션 = `title`(+`author?`)"* 분기가 **폐기**되고(`stage-3-plan.md:1041` 반영 확인) 카탈로그 부분만 판정 대상이다. 잔여 조건을 QA 가 **다시 측정**했다: ① `home-stage3.test.tsx:644` — 저장 요청 payload 가 `{ target: { bookId: DECK_BOOKS[0].id } }` 로 **보이는 카드의 책과 일치**(verbose 재실행 8 passed) ② **QA 자작 Playwright 측정** — 카드 3장이 각자 Save 를 갖고, `End` 로 **3번째 카드 스냅**(live region `Option 3 of 3: Grumpy Monkey: Play All Day`) 후 그 카드의 Save 를 누르면 **그 카드만** `Saved`/`aria-pressed=true`, 1·2번째는 `Save`/`false` 유지 → **스냅 위치가 바뀌면 대상도 바뀐다** ③ `ActivityCardDeck.tsx:126` 이 `option.book.id` 를 옵션 단위로 닫는다. ⚠️ 1회차가 적은 증거 위치(`MockLibraryApi.test.ts:312`·`home.spec.ts:187`)는 **다른 단정을 가리키는 오기**였다 — 3회차에 바로잡았다. ⚠️ Library 의 `userEnteredTitle`(`/library/add`, `FR-23`)은 **남는다** |
 | `AC-3-87` | **PASS** | `[QA 실행]` `home.spec.ts:104` *"트랙 공식이 성립한다 — 카드 = W − 28, peek = 8"* + `:59` 좌우 버튼 DOM 부재. 4폭 통과 |
 | `AC-3-88` | **PASS** | `[QA 실행]` `ActivityCard.date` 를 기기 날짜와 비교하는 분기 grep **0건**, 날짜 문자열 렌더 0건. `home.spec.ts:443` 이 배너 부재를 고정 |
 
@@ -314,7 +383,7 @@ git diff --stat e2e/__screenshots__        → (빈 출력)
 | `AC-3L-21` | **PASS** | `[QA 실행]` `library-entry-screens.test.tsx:184`. (IK **보관·재생**은 `AC-3-36` 소관 → `QA-3-005`) |
 | `AC-3L-22` | **PASS** | `[QA 실행]` `MockLibraryApi.test.ts:259` + `library:user-entered-book` + `s3-library-list.png` placeholder |
 | `AC-3L-23` | **PASS** | `[QA 실행]` `MockLibraryApi.test.ts:278`·`:300` |
-| `AC-3L-24` | **PARTIAL** | `[QA 실행]` `s3-library-gift-requests.png` baseline + 배송지 입력 필드 **0건** 확인. **미충족 조건**: `GiftRequestStatus` enum 은 6종(`enums.test.ts:261` 고정)이나 `library:gift-pending` fixture 는 **2건만** 보여 준다 — "상태 6종을 표시한다"를 실행으로 확인할 시나리오가 없다 |
+| `AC-3L-24` | **PARTIAL** (수용 — approvals §27.3) | `[QA 실행]` `s3-library-gift-requests.png` baseline + 배송지 입력 필드 **0건** 확인. **미충족 조건**: `GiftRequestStatus` enum 은 6종(`enums.test.ts:261` 고정)이나 `library:gift-pending` fixture 는 **2건만** 보여 준다(`mocks/fixtures/library.ts:331-332` — `shipped`·`requested`) — "상태 6종을 표시한다"를 실행으로 확인할 시나리오가 없다. **3회차: 판정 `PARTIAL` 유지 + 사용자 수용**(approvals §27.3). 고칠 수 있는 항목이나 사용자가 수용을 택했고, **`approved`·`delivered`·`cancelled`·`rejected` 4종은 화면 확인 없이 남는다** |
 | `AC-3L-25` | **PASS** | `[QA 실행]` `TextLink.tsx:91` `rel="noopener noreferrer"`(AC 가 요구한 `noreferrer` 포함) |
 | `AC-3L-26` | **PASS** | `[QA 실행]` `z.object(` 앱 내 0건 + `pnpm typecheck` exit 0 |
 | `AC-3L-27` | **PASS** | `[QA 실행]` `MockLibraryApi.test.ts` 전 시나리오 schema `safeParse` 통과 (§4.1 `AC-3-60` 참조) |
@@ -336,6 +405,8 @@ git diff --stat e2e/__screenshots__        → (빈 출력)
 ## 5. Findings
 
 ### `QA-3-001` | Severity: **High**
+
+> **2회차 (2026-10-09)**: 판정 **`FAIL` 유지**. 사용자가 **명시 수용**해 Stage 4 로 이월했다 (approvals §26.1). Stage Verdict 산정에서만 수용 항목으로 처리한다. 재구현 여부는 묻지 않았다 — Stage 4 Plan In Scope 항목은 §11.10.
 
 **Requirement**: `AC-3-42` · `AC-3-43` · `AC-3-44` (+ `AC-3-56` 부분) / FR-08 Frontend 부분 / `D-16`
 
@@ -367,6 +438,8 @@ Port · Web 구현 · 사전 안내 UX · Mock 시나리오 · contracts **5개 
 
 ### `QA-3-002` | Severity: **Medium**
 
+> **2회차**: 판정 **`FAIL` 유지** · **사용자 명시 수용**(Stage 4 이월, approvals §26.1). → §11.10
+
 **Requirement**: `AC-3-46` · `AC-3-49` / PRD §11 NFR 오프라인 / `D-11`
 
 **Steps to reproduce**
@@ -394,6 +467,8 @@ Activity Card 로컬 캐시가 존재하지 않는다. `activity-cards:offline` 
 
 ### `QA-3-003` | Severity: **Medium**
 
+> **2회차**: 판정 **`FAIL` 유지** · **사용자 명시 수용**(Stage 4 이월, approvals §26.1). → §11.10
+
 **Requirement**: `AC-3-51` / C-17 / Stage 1 `D-4`
 
 **Steps to reproduce**
@@ -419,6 +494,8 @@ Stage 1 `D-4` (`stage-1-approvals.md:18`, **O 승인**):
 ---
 
 ### `QA-3-004` | Severity: **Medium**  ⭐ QA 가 직접 측정해 찾은 신규 결함
+
+> **2회차: `FAIL` → `PASS`.** QA 가 다시 측정해 겹침 **−23px** · 탭 3개 hit-test 전부 탭바를 확인했다. 아래 측정값은 **1회차(결함 상태) 기록**이다. → §11.2
 
 **Requirement**: `AC-3-07` / `§16 D-1` / Design Spec §4.12 · §6.2
 
@@ -480,6 +557,8 @@ expect(viewport).toContain('--layout-tabbar-height');
 
 ### `QA-3-005` | Severity: **Medium**
 
+> **2회차: `FAIL` → `PASS`.** QA 가 Mock Adapter 를 직접 호출해 7항목을 확인했다. → §11.3
+
 **Requirement**: `AC-3-36` / `P3-BIP-12` Frontend 부분
 
 **Steps to reproduce**
@@ -504,6 +583,8 @@ expect(viewport).toContain('--layout-tabbar-height');
 
 ### `QA-3-006` | Severity: **Low**
 
+> **2회차: `FAIL` → `PASS`.** `P-23` 등재 + 재발 방지 가드가 실제로 무는 것을 확인했다. → §11.4
+
 **Requirement**: Stage 0 `#10-4` 가값 재제시 절차의 선행 조건 (`S3-PROV-2`, approvals §21.5)
 
 **Steps to reproduce**
@@ -520,6 +601,8 @@ expect(viewport).toContain('--layout-tabbar-height');
 
 ### `QA-3-007` | Severity: **Low**
 
+> **2회차: `FAIL` → `PASS`.** handoff §3 **10건** · §9 ⑨ 전제 정정 확인. → §11.5
+
 **Requirement**: 인계 문서 정확성 (`rules/workflow.md` §6 — handoff 가 QA 의 판정 근거다)
 
 **내용 2건**
@@ -534,6 +617,8 @@ expect(viewport).toContain('--layout-tabbar-height');
 
 ### `QA-3-008` | Severity: **Low**
 
+> **2회차: 해소.** Plan `AC-3-56`(32종) · `AC-3-59`(29종) 문구 정정 확인 → 두 AC **`PASS`**. → §11.5
+
 **Requirement**: `AC-3-59` · `AC-3-56` 문구 ↔ 구현 불일치 (결함이 아니라 **AC 문구가 낡음**)
 
 - `AC-3-59` = *"Error Code **신규 추가 0건**(28종 유지)"* ↔ 실제 **29종**(`BOOK_ALREADY_OWNED` 409). 이 추가는 Library Plan §7.4 승인분이다.
@@ -546,6 +631,8 @@ expect(viewport).toContain('--layout-tabbar-height');
 ---
 
 ### `QA-3-009` | Severity: **Low**
+
+> **2회차: 해소.** 사용자 결정으로 **`AC-3-34` 가 폐기**됐다 (approvals §26.5, `stage-3-plan.md:584`) → **판정 대상 아님**. → §11.5
 
 **Requirement**: `AC-3-34` / PRD §13 (증정 배송 대기 예외 처리)
 
@@ -569,7 +656,7 @@ expect(viewport).toContain('--layout-tabbar-height');
 | `P-02` | 비텍스트 요소 대비 | 디자이너 대기 | ✅ |
 | `P-04` | — (Stage 1 §9) | 디자이너 대기 | ✅ |
 | `P-16` | — (Stage 2 `D-14`) | 디자이너 대기 | ✅ |
-| **`P-23`** | `--color-prompt-tag-fg` (Stage 3 Home 라운드) | 디자이너 대기 | ❌ **미등재 → `QA-3-006`** |
+| **`P-23`** | `--color-prompt-tag-fg` (Stage 3 Home 라운드) | 디자이너 대기 | ✅ **2회차 등재 확인** (`provisionalItems.ts:178`) + A11yPage 대비 쌍 `C-5` |
 | **`P-24`** | `--color-fg-tertiary` = `--haru-ink-400`. **7 사용처 전부 AA(4.5)·대형 텍스트(3.0) 미달, 최악 1.56:1** | 디자이너 확인 요청 | ✅ |
 
 **해제된 가값**: `P-05`(scrim) — 근거가 "DESIGN_TOKEN_MAP 제안" → **"Figma 실측"** 으로 바뀌어 해제(`L-NEW-09`, approvals §20.2). 감시 baseline `s3-sheet-scrim`·`s3-dialog-scrim` **존재 확인**, 둘 다 전량 재생성에서 바이트 동일.
@@ -581,6 +668,8 @@ expect(viewport).toContain('--layout-tabbar-height');
 ---
 
 ## 7. NOT VERIFIED — 수동 테스트 절차
+
+> **3회차: `NV-1` · `NV-2` 모두 사용자 수용**(approvals §27.3, 2026-10-09). 판정은 `NOT VERIFIED` 로 **유지**하고 Verdict 산정에서만 수용 항목으로 처리한다. 아래 수동 절차는 **남는다** — 실기기·60fps 녹화가 가능해지면 수행한다.
 
 ### `NV-1` — Safari / iOS / Android 실기기
 
@@ -635,9 +724,9 @@ expect(viewport).toContain('--layout-tabbar-height');
 | `P3-BIP-19` | **표지 에셋 교체 게이트** — 현재는 Figma 상용 그림책 표지(Mock 전용 임시). **Stage 8 배포 전 필수**(`L-D4` · approvals §14.4 법무 확인) | `AC-3-52` PASS · `AC-3-53` PASS | `BACKEND_HANDOFF.md` + **Stage 8 배포 체크리스트** |
 | `P3-BIP-20` | **커서 페이지네이션** `nextCursor` 불투명 문자열, 같은 정렬에서 중복·누락 없음 | `AC-3-38` PASS · `AC-3L-18` PASS | `BACKEND_HANDOFF.md` |
 | `P3-BIP-21` | **`BOOK_ALREADY_OWNED`(409)** 재등록 — 화면은 오류가 아니라 안내 | `AC-3-30` PASS (`library:book-already-owned`) | `ERROR_CODES.md` |
-| `P3-BIP-22` | **`Idempotency-Key` 서버 24h 보관·재생** | ⚠ **전송은 `AC-3-30`·`AC-3L-21` PASS, Mock 재현은 `AC-3-36` FAIL → `QA-3-005`.** 조건 ③ 위반이므로 **Mock 부분은 PENDING 이 아니라 FAIL** 이다. 서버 보관만 PENDING | `BACKEND_HANDOFF.md` · `ERROR_CODES.md` |
+| `P3-BIP-22` | **`Idempotency-Key` 서버 24h 보관·재생** | **2회차 갱신** — 전송 `AC-3-30`·`AC-3L-21` PASS, **Mock 재현 `AC-3-36` PASS** (1회차 FAIL → 수정 확인, §11.3). `rules/qa.md` §1 조건 ③ 충족 → 이제 **서버 측 24h 보관·만료만** PENDING 이다 | `BACKEND_HANDOFF.md` · `ERROR_CODES.md` |
 | `P3-BIP-23` | **`GET /v1/books/:bookId/prompts?childId=`** — 연령대·역량별 세트. 카탈로그 외 책은 호출 0건 | `AC-3-32` PASS · `AC-3L-19` PASS | `BACKEND_HANDOFF.md` |
-| `P3-BIP-24` | **증정 요청 상태 전이** `requested → approved → shipped → delivered` / `cancelled` · `rejected`. 전이 규칙·알림은 서버 소유 | `AC-3L-24` **PARTIAL**(6종 표시를 재현할 시나리오 없음) · `AC-3-33` PASS | `BACKEND_HANDOFF.md` · `DATA_REQUIREMENTS.md` |
+| `P3-BIP-24` | **증정 요청 상태 전이** `requested → approved → shipped → delivered` / `cancelled` · `rejected`. 전이 규칙·알림은 서버 소유 | `AC-3L-24` **PARTIAL**(6종 표시를 재현할 시나리오 없음 — **수용**, approvals §27.3) · `AC-3-33` PASS. contract 는 6종을 표현한다(`enums.test.ts:261`)므로 `rules/qa.md` §1 조건 ③ 은 충족 — PENDING 유지 | `BACKEND_HANDOFF.md` · `DATA_REQUIREMENTS.md` |
 | `P3-BIP-25` | **`LibraryBook.purchaseUrl` 허용 도메인 보장** | `AC-3-32` PASS · `AC-3L-25` PASS (`rel="noopener noreferrer"`) | `BACKEND_HANDOFF.md` |
 | `P3-BIP-26` | **`BookPromptsResponse.reason` 생성 책임 = 서버.** ① 1~2문장 ② 진단·판정·비교 금지 ③ **길이 상한은 contract 에 없다**(§13.3 — 초과해도 화면이 깨지지 않아야) ④ 없으면 `null`·줄 생략 ⑤ 카탈로그 외 책은 호출 없음 | `AC-3-13` PASS · `books:no-reason` 시나리오 존재 확인 | `BACKEND_HANDOFF.md` · `ANALYSIS_PIPELINE_REQUIREMENTS.md` |
 
@@ -645,7 +734,7 @@ expect(viewport).toContain('--layout-tabbar-height');
 
 | ID | 갱신 내용 | Frontend 부분 | Handoff 대상 |
 |---|---|---|---|
-| `P3-BIP-15` | 저장/해제 응답은 `SavedBook` **현행 유지**(`L-OPEN-20`). 서버는 저장 직후 `overview` 가 **즉시 일관**(read-after-write)이어야 한다 | `AC-3-84`·`85` PASS · `AC-3-86` PARTIAL · `AC-3L-06`·`07`·`31` PASS | `BACKEND_HANDOFF.md` · `DATA_REQUIREMENTS.md` |
+| `P3-BIP-15` | 저장/해제 응답은 `SavedBook` **현행 유지**(`L-OPEN-20`). 서버는 저장 직후 `overview` 가 **즉시 일관**(read-after-write)이어야 한다 | `AC-3-84`·`85` PASS · **`AC-3-86` PASS (3회차)** · `AC-3L-06`·`07`·`31` PASS | `BACKEND_HANDOFF.md` · `DATA_REQUIREMENTS.md` |
 
 ### 8.3 Handoff 에 추가로 남길 요구
 
@@ -657,8 +746,8 @@ expect(viewport).toContain('--layout-tabbar-height');
 
 | 항목 | 왜 PENDING 이 아닌가 |
 |---|---|
-| push 권한 (`QA-3-001`) | 요구된 것은 Frontend **Port + Web 구현 + Mock + contract 정의**다. 실제 발송만 `P3-BIP-08`. PENDING 조건 ①(Frontend 부분이 별도 판정) 을 충족할 구현물이 없다 → **FAIL** |
-| Idempotency Mock 재현 (`QA-3-005`) | `rules/qa.md` §1 — Mock 이 contract 와 다르면 **FAIL** |
+| push 권한 (`QA-3-001`) | 요구된 것은 Frontend **Port + Web 구현 + Mock + contract 정의**다. 실제 발송만 `P3-BIP-08`. PENDING 조건 ①(Frontend 부분이 별도 판정) 을 충족할 구현물이 없다 → **FAIL** (2회차: 판정 유지, Stage 4 이월 수용 — approvals §26.1) |
+| Idempotency Mock 재현 (~~`QA-3-005`~~) | `rules/qa.md` §1 — Mock 이 contract 와 다르면 **FAIL**. **2회차에 수정 확인되어 이 칸은 해소**됐다. 서버 보관은 `P3-BIP-22` 로 남는다 |
 | 오프라인 캐시 (`QA-3-002`) | 순수 Frontend 기능(`localStorage`)이다. Backend 의존 0 |
 | 에셋 파이프라인 (`QA-3-003`) | 빌드 타임 Frontend 작업이다. Backend 의존 0 |
 
@@ -718,11 +807,389 @@ Stage 2 가 추정으로 정한 기본값을 Figma 실측으로 **전역 교체*
 | 회차 | 일시 | 대상 | Verdict | 비고 |
 |---|---|---|---|---|
 | 1 | 2026-10-09 | 커밋 `61fee89` | **`FAIL`** | 최초 Stage 3 QA. Finding 9건(High 1 · Medium 4 · Low 4) |
+| 2 | 2026-10-09 | 커밋 `80ee2be` | **`INCOMPLETE`** | 재검증 4건 **전부 PASS**(`QA-3-004`·`005`·`006`·`007`) · `QA-3-008` 해소(AC 문구 정정 확인) · `QA-3-009` 폐기 확인. `QA-3-001`·`002`·`003` 은 판정 `FAIL` 유지 + **사용자 수용**(Stage 4 이월)으로 Verdict 산정 제외. 남은 차단 요인은 **PARTIAL 2 (`AC-3-86`·`AC-3L-24`) + `NOT VERIFIED` 2 (`NV-1`·`NV-2`)** → §11 |
+| 3 | 2026-10-09 | 커밋 `80ee2be` (**코드 변경 0** — 문서 변경만) | **`PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`** | 사용자 결정(approvals §27)으로 차단 요인 4건 처리: `AC-3-86` **PARTIAL → PASS**(범위 축소 + QA 잔여 조건 재측정) · `AC-3L-24`·`NV-1`·`NV-2` **판정 유지 + 수용**. 8개 명령 전부 재실행 — 기준선 일치(`test` 1611/117 · `test:e2e` 273). baseline 전량 재생성 스테일 **0건**. **전수 재집계로 수용 미적용 잔여 0건 확인** → §12 |
 
-### 다음 라운드 안내
+### 1회차가 남긴 다음 라운드 안내 (이력)
 
 - `QA-3-001` ~ `QA-3-005` 가 수정 대상이다. 수정은 **development-agent** 가 한다.
-- `QA-3-001`·`QA-3-002`·`QA-3-003` 은 **세 기능군이 통째로 없는 것**이라 구현량이 크다. 사용자가 이 셋을 **Stage 3 에서 이월**하기로 결정하면 `rules/qa.md` §2 에 따라 항목별 명시 수용(`PASS (accepted: QA-3-001, …)`)으로 처리할 수 있다 — **QA 가 스스로 수용을 가정하지 않았다.**
-- `QA-3-004` 는 **수정 비용이 작고 영향이 크다**(탭 3개 클릭 차단). 재검증 시 **CSS 문자열 가드가 아니라 렌더 측정**으로 고정되었는지를 본다.
-- `QA-3-009` 는 결정 공백이라 development-agent 가 아니라 **사용자 결정**이 먼저 필요하다.
+- `QA-3-001`·`QA-3-002`·`QA-3-003` 은 **세 기능군이 통째로 없는 것**이라 구현량이 크다. 사용자가 이 셋을 **Stage 3 에서 이월**하기로 결정하면 `rules/qa.md` §2 에 따라 항목별 명시 수용으로 처리할 수 있다 — **QA 가 스스로 수용을 가정하지 않았다.** → **2026-10-09 사용자 결정(approvals §26.1)으로 세 건 모두 명시 수용되었다.**
+- `QA-3-004` 는 **수정 비용이 작고 영향이 크다**(탭 3개 클릭 차단). 재검증 시 **CSS 문자열 가드가 아니라 렌더 측정**으로 고정되었는지를 본다. → **2회차에서 그렇게 확인했다** (§11.2).
+- `QA-3-009` 는 결정 공백이라 development-agent 가 아니라 **사용자 결정**이 먼저 필요하다. → **2026-10-09 `AC-3-34` 폐기 결정**으로 해소.
 - 재검증 시 **항목 번호를 유지**하고 판정 변화를 이 표에 기록한다.
+
+
+---
+
+## 11. 재검증 2회차 — 커밋 `80ee2be` (2026-10-09)
+
+> **증거 표기** — 이 절의 모든 수치는 **`[QA 실행]`** 이다. 비교군으로 인용한 handoff·approvals·Plan 문장은 **`[문서 인용]`** 으로 표시한다.
+> 작업 트리: 검증 시작·종료 모두 `git status --porcelain` **빈 출력** — QA 가 Product Code 를 수정하지 않았다. 측정 스크립트는 저장소 밖(scratchpad)에 두고 사용 후 제거했으며, 제거 후 `git status` 가 비어 있음을 확인했다.
+
+### 11.1 8개 명령  `[QA 실행]`
+
+| # | 명령 | 결과 | 소요 | 숫자 |
+|---|---|---|---|---|
+| 1 | `pnpm typecheck` | ✅ exit 0 | 8.7s | `tsc --noEmit` × 3 (root · e2e · workspace) |
+| 2 | `pnpm lint` | ✅ exit 0 | 6.9s | 0 problems |
+| 3 | `pnpm lint:boundaries` | ✅ exit 0 | 1.0s | **no dependency violations** (587 modules · 2072 dependencies) |
+| 4 | `pnpm test` | ✅ exit 0 | 31.8s | **1611 passed / 1611 · 117 files** (기준선 1611 / 117 일치) |
+| 5 | `pnpm build` | ✅ exit 0 | 1.3s | `index.js` 577.59 kB (gzip 172.55) · `index.css` 122.63 kB (gzip 18.52). chunk>500kB 경고 1건(기존) |
+| 6 | `pnpm format:check` | ✅ exit 0 | 4.0s | All matched files use Prettier code style |
+| 7 | `pnpm assert:no-mocks` | ✅ exit 0 | 0.2s | `__HARU_MOCK_SENTINEL__` 0 · `__HARU_DEV_SENTINEL__` 0 · `haru-dev-` 0 |
+| 8 | `pnpm test:e2e` | ✅ exit 0 | **5.8m (347s)** | **273 passed / 273 · 0 failed** (기준선 273 일치) |
+
+- **`test:e2e` 는 단독 실행했다.** 다른 Playwright·dev 서버 프로세스를 먼저 종료한 뒤 돌렸고, 소요 **5.8분**은 정상 대역(4~6분)이다. 20분대 지연·허위 실패는 재현되지 않았다.
+- `test` 가 1596 → **1611** (+15), 파일 116 → **117** (+1) 이다. 증가분은 수정 라운드가 추가한 런타임 단정이며 QA 가 파일별로 확인했다: `layouts.test.tsx` Toast 배선 5건 · `MockLibraryApi.test.ts` IK 7건 · 신규 `provisional-registry.test.ts` 3건.
+
+#### 시각 baseline 스테일 검사  `[QA 실행]`
+
+```
+pnpm test:e2e --update-snapshots=all        → 273 passed (5.9m, exit 0)
+git status --porcelain e2e/__screenshots__  → (빈 출력)
+git diff --stat e2e/__screenshots__         → (빈 출력)
+find e2e/__screenshots__ -name '*.png' | wc -l → 74
+```
+
+**전량 재생성 후 74종 전부 바이트 동일 — 스테일 0건.** 기본 `changed` 모드로는 드러나지 않는 오염(approvals §23.2 `frame-1024` 유형)이 현재 없음을 확인했다. Toast 를 담은 baseline 은 `v9-toast.png`(dev gallery 컷) 1종이며 이것도 바이트 동일이다 — gallery 는 `BottomTabBar` 를 직접 렌더하고 `TabLayout` 을 쓰지 않아 탭바 보정이 켜지지 않는다는 `[문서 인용]` handoff §14 ①의 주장이 **실측으로 확인**됐다.
+
+#### spec 별 통과 내역 (273건)  `[QA 실행]`
+
+`visual` 72 · `shadow` 52 · **`onboarding` 40** · `library` 26 · `home` 22 · **`consent` 15** · **`auth` 13** · `scenarios` 11 · `responsive` 8 · **`tabs` 7** · `a11y` 5 · `book-cover` 2.
+Stage 1·2 회귀 경로(`onboarding`·`consent`·`auth` **68건**)가 전건 통과했다 — §11.6 ①의 회귀 확인 근거다.
+
+---
+
+### 11.2 `QA-3-004` (Medium) — Toast 가 탭 3개 클릭을 막았다 → **PASS**
+
+**판정 변화**: 1회차 `FAIL` → 2회차 **`PASS`**. 영향 AC: `AC-3-07`.
+
+**QA 가 직접 측정했다** (`[QA 실행]`). 1회차와 같은 경로를 쓰되, **구현자가 추가한 e2e 를 믿지 않고 독립 스크립트로** 쟀다 (Playwright Chromium, `deviceScaleFactor: 1`, dev 서버 `http://127.0.0.1:4321`).
+
+재현: `/auth/log-in?scenario=library:error` → `sam@example.com` / `sunny-evening-8` → Home → Activity Card `★ Save` 클릭(저장 실패 Toast) → 측정.
+
+| 측정 | 393×852 | 320×568 | 1회차 (결함 상태) |
+|---|---|---|---|
+| viewport class | `haru-toast-viewport haru-toast-viewport--tabbar` | 동일 | `haru-toast-viewport` (수식어 없음) |
+| `inset-block-end` | **121px** | **121px** | 16px |
+| Toast top / bottom | 693 / **743** | 409 / **459** | 786 / 836 |
+| 탭바 top / bottom | **766** / 836 | **482** / 552 | 766 / 836 |
+| 겹침 (toast.bottom − bar.top) | **−23px** | **−23px** | **+70px (50px 가림)** |
+| 탭 3개 중심 `elementFromPoint` | Library·Home·Progress **전부 `.haru-tab-bar` 내부** | 동일 | 전부 `haru-toast …` |
+
+**스택 화면 회귀도 직접 쟀다** — 보정을 하드코딩했다면 여기서 Toast 가 떠야 한다.
+
+| 경로 | 측정값 |
+|---|---|
+| `/auth/reset-password?token=mock-reset-token` 성공 Toast | 수식어 **미부착** · `inset-block-end` **16px** · 화면 하단 간격 **16px** · 탭바 없음 |
+| **탭 → 스택 실제 in-app 이동** (`/` Toast 띄운 상태에서 설정 진입) | 이동 직후 `/settings` 에서 수식어 **해제** · 16px · Toast 는 계속 열려 있음(ToastProvider 가 router 밖이므로 살아남는다) — 즉 **참조 수 해제가 실동작한다** |
+| `/library/add` 등록 성공 → `/library` 자동 이동 | 스택 구간 16px → 탭 화면 정착 후 **121px** · 겹침 **−35px** · 탭 3개 전부 클릭 가능 |
+
+> ⚠️ **1회차 방식의 함정을 기록한다.** 처음에 `history.pushState` + `PopStateEvent` 로 탭→스택 이동을 흉내 내 쟀을 때 *"스택인데 수식어가 남아 있다(121px)"* 로 보였다. 같은 프레임에서 읽어 **React 의 해제 렌더 전 상태**를 잰 것이었고, **실제 사용자 경로(링크 클릭)로 다시 재니 16px 로 정상**이었다. 인공 이동으로 잰 값을 결함으로 올리지 않았다.
+
+**수단이 런타임으로 옮겨졌는지 확인** (approvals §26.3 의 요구):
+
+| 층 | 통과 확인 |
+|---|---|
+| e2e 393px | `tabs.spec.ts:178` *"Toast 가 떠 있어도 탭 3개가 가려지지 않는다 (`QA-3-004`)"* ✅ 811ms · `tabs.spec.ts:248` *"탭바가 없는 화면의 Toast 는 보정 없이 하단 16 에 머문다 (역방향)"* ✅ 733ms — QA 가 실행 로그에서 **이름과 통과를 직접 확인**했다 |
+| jsdom | `layouts.test.tsx` *"Toast 탭바 보정 배선 (`QA-3-004`)"* **5건 전부 통과** — `TabLayout`+`tabBar` 부착 / `tabBar` 없는 `TabLayout` 미부착 / `StackLayout` 미부착 / `FullscreenLayout` 미부착 / **탭→스택 전환 해제** |
+| 소스 가드 | `stage3-css-guards.test.ts:78` 유지 + *"선언 존재만 증명한다"* 주석 |
+
+**배선 지점 확인**: `TabLayout.tsx:42` `useToastTabBarInset(tabBar !== undefined)`. `router.tsx` 의 `TabLayout` 사용 **3곳(`/`·`/library`·`/progress`)이 전부 `tabBar={<AppTabBar />}` 를 넘기고**, 스택 화면은 `StackLayout` 이다 (`[QA 실행]` grep). `withTabBar` 를 넘기던 곳은 저장소에 **0건**이었고 지금도 0건이다.
+
+---
+
+### 11.3 `QA-3-005` (Medium) — Mock 이 `Idempotency-Key` 를 버렸다 → **PASS**
+
+**판정 변화**: 1회차 `FAIL` → 2회차 **`PASS`**. 영향 AC: `AC-3-36` (+ `P3-BIP-22` 의 Frontend 부분).
+
+**QA 가 Mock Adapter 를 직접 호출해 측정했다** (`[QA 실행]`). 구현자가 추가한 테스트를 증거로 쓰지 않고, 저장소 밖 1회성 vitest project(`--config` 로 주입, Product Code·기존 테스트 **무수정**)에서 `createMockLibraryApi` 를 조립해 호출했다. 측정 결과:
+
+| # | 시나리오 | 측정값 | 판정 |
+|---|---|---|---|
+| ① | `addOwnBook` 같은 key + 같은 body | `firstId` = `replayId` = `89530a6d-…ccc6`, **응답 바이트 동일**, 요청 로그 `POST /v1/children/:childId/library/books` **2건** | ✅ 재생. 생성은 1회 — `idFactory` 가 두 번째 id 를 만들지 않았다 |
+| ② | `addOwnBook` 같은 key + **다른 body** | `HaruApiError` · code **`IDEMPOTENCY_KEY_REUSED`** | ✅ |
+| ③ | `addOwnBook` 다른 key | `secondId` = `ca615341-…a316` ≠ `firstId` | ✅ 별도 리소스 |
+| ④ | `createGiftRequest` 가 같은 key 사용 | `giftId` = `d299de4c-…c304` ≠ `addId` | ✅ **보관함 분리** (섞이면 등록 응답이 증정으로 재생된다) |
+| ⑤ | `createGiftRequest` 같은 key + 같은 body | 응답 바이트 동일 | ✅ 재생 |
+| ⑥ | `createGiftRequest` 같은 key + 다른 body | **`IDEMPOTENCY_KEY_REUSED`** | ✅ |
+| ⑦ | `library:retry` 1회차 실패 후 같은 key 재시도 | 1회차 throw, **2회차 성공** (`source: 'library_add'`, 정상 `LibraryBook`) | ✅ 실패는 미보관 — 재시도가 막히지 않는다 |
+
+구현 확인: `MockLibraryApi.ts:190~191` 보관함 2개(`addBookIdempotency` · `giftIdempotency`), `:196~211` `replay()`, `:338~339`·`:432~433` **요청 로그 직후·시나리오 분기보다 앞**에서 판정, `:380`·`:453` 성공 시에만 보관. Stage 2 선례(`MockConsentApi` · `MockOnboardingApi`)와 같은 구조다.
+
+구현자 테스트도 **이름과 통과를 직접 확인**했다 — `MockLibraryApi.test.ts` *"Idempotency-Key 보관·재생 (AC-3-36 · P3-BIP-22)"* **7건 전부 통과**. 신규 Error Code **0건**(`ERROR_CODES` 29종 유지, `error-envelope.test.ts` 통과) — `IDEMPOTENCY_KEY_REUSED` 는 기존 코드다.
+
+---
+
+### 11.4 `QA-3-006` (Low) — `P-23` dev gallery 등재 → **PASS**
+
+**판정 변화**: 1회차 `FAIL` → 2회차 **`PASS`**.
+
+| 검사 | 측정값 `[QA 실행]` |
+|---|---|
+| 토큰 소스의 활성 가값 | `grep -rn 'provisional' packages/design-tokens/src/` → `P-01 P-02 P-04 P-16 **P-23** P-24` (6건) |
+| dev gallery 목록 | `provisionalItems.ts` → `P-01`~`P-17` + **`P-23`**(`:178`) + `P-24`(`:187`) |
+| 미등재 차집합 | **0건** |
+| ⚠️ `P-18`~`P-22` | **등재 대상이 아니다** — 토큰 자체가 없다. 1회차에 QA 가 approvals §21.5 기록을 정정한 내용이며, `provisionalItems.ts:173~175` 주석과 handoff §7 이 그대로 반영했다 |
+| 활성 가값 고정 테스트 | `packages/design-tokens/__tests__/fonts.test.ts` + `provisional-registry.test.ts` 3건 통과 |
+
+**재발 방지 가드가 실제로 무는지 확인했다** (`[QA 실행]`). Product Code 를 고치지 않기 위해, `provisional-registry.test.ts` 의 판정 로직(토큰 CSS `provisional: P-xx` 전수 ↔ gallery 목록 차집합)을 **실제 토큰 소스와 변조된 목록**에 그대로 적용했다:
+
+```
+inTokens            = ["P-01","P-02","P-04","P-16","P-23","P-24"]
+missing (현재 상태)  = []            ← 통과
+missing (P-23 등재 제거) = ["P-23"]   ← toStrictEqual([]) 위반 → 깨진다
+```
+
+→ **수단을 제거하면 깨진다.** 기존 `gallery-helpers.test.ts` 의 "지금 목록이 이것이다" 식 단정은 새 가값이 생겨도 알려주지 않았고(그래서 `P-23` 이 한 라운드 내내 빠져 있었다), 이번 가드는 **토큰 소스를 기준**으로 비교한다.
+
+---
+
+### 11.5 `QA-3-007` (Low) — handoff 정정 2건 → **PASS** / `QA-3-008`·`QA-3-009` 처리
+
+**`QA-3-007`** 판정 변화: 1회차 `FAIL` → 2회차 **`PASS`**.
+
+| 대상 | 2회차 확인 `[QA 실행]` |
+|---|---|
+| handoff **§3** | 표가 **①~⑩ 10건**이다. ⑩ = **캐릭터 버블 닫기(×) 버튼**(Figma `50:176` 없음, 승인 근거 approvals §13.4 `W-2` + `stage-3-home-handoff.md` §B2, 크기 40 유지). 표 아래에 *"⑩ 은 `QA-3-007` 로 추가되었다"* 경위까지 적혀 있다 |
+| handoff **§9 ⑨** | 전제가 정정됐다 — *"⚠️ 이 칸의 전제가 틀렸다 … `ActivityCardDeck.tsx:49`(저장 실패)와 `AddOwnBookForm.tsx:68`(등록 성공)이 둘 다 Toast 를 띄운다"*. QA 가 `grep -rn 'useToast(' apps/web/src` 로 **호출 지점 3곳**(`ActivityCardDeck` · `AddOwnBookForm` · `ResetPasswordPage`)을 독립 확인했다 — 온보딩·설정 화면은 Toast 를 **마운트하지 않는다** |
+| handoff **§7** | `S3-PROV-2` 가 *"대상은 `P-23` 1건"* 으로 정정되고 해소 표시됐다 |
+
+**`QA-3-008`** (AC 문구 낡음) — **해소**. `[QA 실행]` 확인:
+
+| AC | 정정된 문구 (`stage-3-plan.md`) | 구현 실측 |
+|---|---|---|
+| `AC-3-56` | `:628` — 신규는 `LibrarySectionKey`·`LibraryFilter`·`BookSource`, **29 → 32종**. `PushPlatform` 은 **Stage 4 이월**로 명시 | `enums.test.ts:252` `toHaveLength(32)` 통과 · `:21~22` 에 두 schema import · `:43~46` 주석이 29→32 경위 고정 → **일치** |
+| `AC-3-59` | `:631` — `BOOK_ALREADY_OWNED` 1건 추가로 **29종** | `error-envelope.test.ts:14~17` `toHaveLength(29)` + 중복 0 통과 → **일치** |
+
+→ 두 AC 는 **`PASS`**. 1회차가 AC-3-59 행에 적은 `QA-3-010` 은 **오타**이며 `QA-3-008` 이다 (QA-3-010 이라는 Finding 은 존재하지 않는다).
+
+**`QA-3-009`** — **판정 대상에서 물러났다.** `stage-3-plan.md:584` 가 `AC-3-34` 를 취소선 + *"**폐기** (사용자 결정 2026-10-09, approvals §26.5)"* 로 갱신한 것을 확인했다. 근거는 대화 전용 세션 자체의 폐기(§12.12)이며, 배송 상태 표시는 `AC-3-33`·`AC-3-35` 가 덮는다.
+
+**⚠️ 1회차 Summary 집계 오류를 정정한다** (`[QA 실행]` 자기 검증). 1회차 §1 은 `PARTIAL` 을 **3** 으로 적었으나, §4 Matrix 의 `PARTIAL` 행은 실제로 **6건**이었다 — `AC-3-34` · `AC-3-56` · `AC-3-59` (Finding 연결분 3건) + **`AC-3-78` · `AC-3-86` · `AC-3L-24`** (Finding 없이 PARTIAL 로 둔 3건). Summary 가 뒤쪽 3건을 세지 않았다. 이 누락 때문에 "`PARTIAL` 3건은 `QA-3-008`·`QA-3-009` 로 전부 해소된다" 는 추론이 성립해 보였으나, **실제로는 `AC-3-86`·`AC-3L-24` 2건이 남는다.** §1 표를 정정했다.
+
+---
+
+### 11.6 승인된 범위 초과 2건 — 부작용 검증  `[QA 실행]`
+
+둘 다 **Orchestrator 승인분**이므로 Finding 으로 올리지 않았다. 지시받은 대로 부작용만 쟀다.
+
+#### ① `packages/ui` 공개 API 변경 — `ToastProvider.withTabBar` prop 제거 + `useToastTabBarInset` export
+
+| 검사 | 결과 |
+|---|---|
+| 깨진 사용처 | **0건.** `grep -rn 'withTabBar' packages apps e2e` → 남은 것은 **주석·테스트 설명 문자열뿐**이고 prop 전달 0건. `ToastProviderProps` 는 이제 `children` 단일 필드다 |
+| **스택 화면 Toast 위치가 틀어졌는지** | **틀어지지 않았다.** `/auth/reset-password` 실측 **16px · 수식어 미부착**(§11.2 표). 탭→스택 **실제 in-app 이동**에서도 16px 로 해제 |
+| 보정이 켜지는 조건 | `TabLayout.tsx:42` 가 **`tabBar !== undefined`** 일 때만 등록한다 → `tabBar` 없는 `TabLayout`(Stage 1 `/` 형태)에서도 켜지지 않는다. jsdom 5건 중 2건이 이 경우를 단정하고 통과 |
+| Toast 를 띄우는 화면 전수 | `useToast()` 호출 **3곳** — `ActivityCardDeck`(탭) · `AddOwnBookForm`(스택→탭) · `ResetPasswordPage`(스택). **온보딩·설정 화면은 Toast 를 마운트하지 않는다** → 그 경로에 위치 변화가 생길 여지가 애초에 없다 |
+| 참조 수(`tabBarCount`) 설계 | `ToastProvider.tsx:91`·`:150`. StrictMode 의 mount→unmount→mount 와 route 전환의 "새 Layout 마운트 + 옛 Layout 정리" 동시 커밋에서 boolean 이 뒤집히는 문제를 피한다 — jsdom "탭 화면에서 스택 화면으로 바뀌면 보정이 해제된다" 1건 + QA 의 실 이동 측정으로 양쪽 확인 |
+| Stage 1·2 회귀 | `onboarding` 40 · `consent` 15 · `auth` 13 = **68 e2e 전건 통과** · Stage 2 단위(`onboarding-screens` · `home-settings` · `rework-css-guards`) 통과 · baseline **74종 바이트 동일**(`s2-*` 전부 포함) |
+| 레이어 경계 | `lint:boundaries` **no violations**. `packages/ui` → `design-tokens` 외 의존 추가 없음 |
+
+> 판단: 이 변경이 **같은 결함의 재발 경로를 없앤다**는 점은 측정과 일치한다 — 보정은 이제 "탭바를 렌더하는 지점" 이 소유하며, 넘길 자리가 없는 prop 이 남아 있지 않다.
+
+#### ② `A11yPage` 대비 쌍 `C-5`(`P-23`, 1.72:1) + `provisional-registry.test.ts`
+
+| 검사 | 결과 |
+|---|---|
+| **재발 방지 테스트가 실제로 무는지** | **문다.** 변조 시뮬레이션에서 `P-23` 등재를 제거하면 차집합이 `["P-23"]` 이 되어 `toStrictEqual([])` 가 깨진다 (§11.4). 세 번째 단정(`waiting` 인데 토큰 주석이 없는 항목 = `P-17` 하나)도 양방향 누락을 잡는다 |
+| 시각 baseline 영향 | **0건.** a11y dev 페이지는 baseline 이 **없다**(`find e2e/__screenshots__ -iname '*a11y*'` → 0건). 전량 재생성에서도 74종 바이트 동일 |
+| 가값 목록 테스트 | `gallery-helpers.test.ts` *"P-01 … P-17 + P-23 + P-24 를 제시한다"* · *"확정 12건 / 디자이너 대기 7건"* 통과 |
+| Production 영향 | dev 전용 경로다. `assert:no-mocks` 가 `__HARU_DEV_SENTINEL__` · `haru-dev-` **0건**을 보증 |
+| 1.72:1 수치 | A11yPage 규칙대로 **실제 렌더 결과에서 측정**하게 되어 있다. QA 는 Chromium 렌더 기준 수치 자체를 재검증하지 않았다 — `P-23` 은 **디자이너 대기 가값**이고 `rules/qa.md` §2 에 따라 FAIL 사유가 아니다 (§6 목록에 기록) |
+
+---
+
+### 11.7 2회차 Scope · Privacy 재확인  `[QA 실행]`
+
+| 항목 | 결과 |
+|---|---|
+| Backend 코드 생성 | **0건.** `git ls-files` 결과를 `apps/api/` · `supabase/` 접두로 필터 → **0건**. `apps/` = `web` 하나, `packages/` = `config`·`contracts`·`design-tokens`·`ui` |
+| 커밋 `80ee2be` 변경 파일 | 16개 — `packages/ui` 2 · `apps/web` 7(테스트 5 포함) · `e2e` 1 · `docs` 4. **`apps/api`·`supabase` 0** |
+| 신규 `any` / `@ts-ignore` / `eslint-disable` | **0건** (`git show 80ee2be` 추가 줄 전수 — 걸린 것은 문서 문장뿐) |
+| contracts 밖 schema 선언 | 변경 없음 (`packages/contracts` 미수정 — 커밋 파일 목록으로 확인) |
+| Mock Data 하드코딩 | 변경 없음. IK 보관함은 **Adapter 인스턴스 내부 상태**이고 fixture 가 아니다 |
+| 동의 전 아동 데이터 전송 | 1회차 PASS 유지 — `consent.spec.ts` 15건 + `MockLibraryApi.test.ts` 요청 로그 검사 통과 |
+
+---
+
+### 11.8 `BACKEND_INTEGRATION_PENDING` 최종 목록 (2회차)
+
+**신규 11 + 갱신 1 = 12건**, 1회차와 **항목 수 동일**. 내용이 바뀐 것은 하나다.
+
+| ID | 2회차 상태 |
+|---|---|
+| `P3-BIP-16` 책 평점 집계 | 유지 |
+| `P3-BIP-17` 다회차 진행 (`plannedNights` 출처 미결) | 유지 |
+| `P3-BIP-18` 서재 섹션 1회 조회 | 유지 |
+| `P3-BIP-19` 표지 에셋 교체 게이트 (Stage 8 배포 전 필수) | 유지 |
+| `P3-BIP-20` 커서 페이지네이션 | 유지 |
+| `P3-BIP-21` `BOOK_ALREADY_OWNED`(409) | 유지 |
+| **`P3-BIP-22`** IK **서버** 24h 보관·재생 | **갱신** — Frontend/Mock 부분이 `AC-3-36` **PASS** 로 바뀌어 `rules/qa.md` §1 조건 ③ 충족. 이제 **서버 보관·만료만** PENDING |
+| `P3-BIP-23` 책별 Prompt 세트 | 유지 |
+| `P3-BIP-24` 증정 요청 상태 전이 | 유지 (Frontend `AC-3L-24` **PARTIAL** — 6종 재현 시나리오 없음) |
+| `P3-BIP-25` `purchaseUrl` 허용 도메인 | 유지 |
+| `P3-BIP-26` `reason` 생성 책임 | 유지 |
+| `P3-BIP-15` (갱신분) `SavedBook` 현행 유지 + read-after-write | 유지 |
+
+**PENDING 으로 처리하지 않은 것**: `QA-3-001`(push 권한 — Frontend Port/Mock/contract 가 요구이므로 `FAIL`, 수용·이월) · `QA-3-002`(순수 Frontend `localStorage`) · `QA-3-003`(빌드 타임 Frontend). 상세는 §8.4.
+
+---
+
+### 11.9 남은 가값(provisional) — 2회차
+
+**활성 6건: `P-01` · `P-02` · `P-04` · `P-16` · `P-23` · `P-24`.** 전부 dev gallery 등재 확인(2회차에 `P-23` 등재 확인으로 **차집합 0**). 해제 1건 `P-05`(scrim — 근거가 Figma 실측으로 바뀜). 수용 예외 `D-01`(Accent 버튼 흰 라벨 2.07:1) 유지. 상세는 §6.
+
+가값은 `rules/qa.md` §2 에 따라 **FAIL 사유가 아니다.** Stage 0 `#10-4` 의 항목별 재제시는 이제 **6건 전부에 대해 성립한다** — 1회차에는 `P-23` 이 빠져 있어 성립하지 않았다.
+
+---
+
+### 11.10 Stage 4 Plan 에 올려야 할 이월 항목 (사용자 수용분)
+
+approvals §26.1 — *"⚠️ 세 건은 Stage 4 Plan 에 In Scope 로 반드시 올린다. 이월은 삭제가 아니다"* `[문서 인용]`. QA 는 **재구현 여부를 묻지 않았고** 이월 사실만 기록한다.
+
+| ID | Sev | Stage 4 Plan 에 올릴 In Scope | 영향 AC (Stage 3 판정 `FAIL` 유지) |
+|---|---|---|---|
+| **`QA-3-001`** | **High** | `shared/platform/pushPermission.ts` `PushPermissionPort`(`getStatus`·`request`·`getToken`) · Web 구현(`Notification.permission`) · 권한 사전 안내 UX · `push-permission-denied` 시나리오 · contracts `notification-preferences`/`push-devices` · **`PushPlatform` enum**(`AC-3-56` 의 원문 포함분) · adapter 선택 지점 1곳 | `AC-3-42` · `AC-3-43` · `AC-3-44` |
+| **`QA-3-002`** | Medium | Activity Card **오프라인 캐시**(`D-11`) — 저장소 · `schemaVersion` 불일치/parse 실패/날짜 경과 폐기 · 로그아웃 삭제 · `offline-cached-card` 시나리오(캐시 카드 + Offline Banner 동시) | `AC-3-46` · `AC-3-49` (`AC-3-48` 은 공허 충족 상태) |
+| **`QA-3-003`** | Medium | `D-4` 에셋 파이프라인 — AVIF + WebP + PNG fallback · `<picture>`+`srcset` · 해상도 상한(1440/696/360/216) · `pnpm assets:optimize`(`sharp`) 산출물 커밋 | `AC-3-51` (표지 에셋 교체 `P3-BIP-19` 와 함께 Stage 8 게이트) |
+
+⚠️ Stage 4 Plan 작성은 **plan-agent** 소관이다. QA 는 `docs/plans/**` 를 수정하지 않았다.
+
+---
+
+### 11.11 2회차에서 QA 가 **직접 실행·측정한 것** vs **문서를 인용한 것**
+
+| 구분 | 내용 |
+|---|---|
+| **`[QA 실행]` — 명령** | 8개 검증 명령 전부(§11.1) + `test:e2e --update-snapshots=all` 전량 재생성 + 대상 테스트 4파일 verbose 재실행(83 passed) + `git status`/`git diff`/`git show`/`git ls-files` |
+| **`[QA 실행]` — 브라우저 실측** | Toast ↔ 탭바 기하·hit-test (393 · 320) · 스택 화면 Toast 위치(`/auth/reset-password`) · **탭→스택 실 이동 해제** · `/library/add` 성공 Toast 의 스택→탭 전이 — 모두 **QA 자작 Playwright 스크립트**(저장소 밖, 사용 후 제거) |
+| **`[QA 실행]` — Mock 직접 호출** | `createMockLibraryApi` 를 QA 가 조립해 IK 7항목 측정(§11.3). 1회성 vitest project 를 `--config` 로 주입, Product Code·기존 테스트 **무수정** |
+| **`[QA 실행]` — 변조 시뮬레이션** | `provisional-registry.test.ts` 의 판정 로직을 실제 토큰 소스 + 변조 목록에 적용해 **가드가 무는지** 확인(§11.4). Product Code 를 고치지 않기 위해 테스트 파일 변조 대신 **같은 로직을 외부에서 재현**했다 |
+| **`[QA 실행]` — 정적 확인** | `withTabBar` 전수 grep · `useToast()` 호출 지점 전수 · `router.tsx` 의 `TabLayout`/`StackLayout` 사용 전수 · `provisional` 주석 ↔ gallery 목록 차집합 · enum/Error Code 총수 테스트 · baseline 74종 개수 |
+| **`[문서 인용]`** | approvals §26 (수용 결정 · NV 유지 · Low 4건 처리) · handoff §3·§7·§9·§14 (수정 경위·설계 사유) · `stage-3-plan.md:584`·`:628`·`:631` (AC 문구 정정) · `rules/qa.md` §1~§3 (판정 규칙) |
+| **증거로 쓰지 않은 것** | 구현자 handoff 의 *"실측했다"* 서술. §11.2·§11.3 의 수치는 **QA 가 다시 쟀다**. 구현자 테스트는 **이름·통과 로그를 직접 확인**한 범위에서만 보조 증거로 썼다 |
+
+---
+
+### 11.12 다음 라운드 안내 (2회차) — **이력. 3회차 §12 로 대체됨**
+
+> ⚠️ 아래는 **2회차 시점의 안내**다. 그 뒤 사용자 결정(approvals §27)으로 차단 요인 4건이 모두 처리되어 **3회차 Verdict 는 `PASS (accepted: …)`** 다 (§1 · §12). 아래 2번의 두 경로 중 **`AC-3-86` 은 (B)**, **나머지 3건은 (A)** 로 끝났고, 그래서 2번이 예상한 `accepted:` 7건은 실제로 **6건**이 됐다 (`AC-3-86` 은 수용이 아니라 요구사항 축소 — §12.2).
+
+1. **Stage Verdict 는 `INCOMPLETE` 다 — 다음 Stage 진입 불가** (`rules/workflow.md` §4).
+2. `PASS` 로 가는 경로는 둘 중 하나다. **QA 가 고르지 않는다.**
+   - **(A) 사용자 추가 수용** — `AC-3-86` · `AC-3L-24` · `NV-1` · `NV-2` 를 **항목별로 명시 수용**하면 `PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3-86, AC-3L-24, NV-1, NV-2)` 로 기록한다.
+   - **(B) 잔여 항목 처리** — `AC-3-86` 은 **결정 공백**이다(`AC-3-34` 처럼 폐기·재정의 중 사용자 결정 필요, `docs/plans/**` 는 plan-agent 소관). `AC-3L-24` 는 **development-agent** 가 `GiftRequestStatus` 6종 fixture/시나리오를 추가하면 QA 가 실행으로 확인할 수 있다. `NV-1`·`NV-2` 는 §7 의 수동 절차(실기기 · 60fps 화면 녹화)가 필요하며 현재 환경에서는 수행할 수 없다.
+3. **`QA-3-001`·`QA-3-002`·`QA-3-003` 은 Stage 4 Plan 에 In Scope 로 올라가야 한다** (§11.10). 이월은 삭제가 아니다.
+4. 재검증 시 **항목 번호를 유지**하고 판정 변화를 §10 에 기록한다.
+
+---
+
+## 12. 최종 판정 3회차 — 커밋 `80ee2be` · 코드 변경 0 (2026-10-09)
+
+> **대상 상태**: 2회차와 **같은 커밋**(`80ee2be`). 바뀐 것은 `docs/decisions/stage-3-approvals.md` §27(사용자 결정)과 `docs/plans/stage-3-plan.md:1041`(그 결정의 Plan 반영)뿐이다. `git status --porcelain` 이 검증 시작 시 **문서 3개만** 변경 상태였고 `apps/**`·`packages/**`·`e2e/**` 는 **무변경**임을 확인했다 (`[QA 실행]`).
+> 3회차 과제는 **Verdict 산정 + 문서 반영 확인 + 기준선 재확인**이다. 새 Finding 발굴을 위한 전면 재감사는 하지 않았다. 수용·폐기된 7건의 재구현·재측정도 하지 않았다.
+
+### 12.1 8개 명령 — 기준선 재확인  `[QA 실행]`
+
+| # | 명령 | 결과 | 소요 | 숫자 | 기준선 대비 |
+|---|---|---|---|---|---|
+| 1 | `pnpm typecheck` | ✅ exit 0 | 8s | `tsc --noEmit` × 3 (root · e2e · workspace) | 일치 |
+| 2 | `pnpm lint` | ✅ exit 0 | 8s | 0 problems | 일치 |
+| 3 | `pnpm lint:boundaries` | ✅ exit 0 | 1s | **no dependency violations** (587 modules · 2072 dependencies) | 일치 |
+| 4 | `pnpm test` | ✅ exit 0 | 33s | **1611 passed / 1611 · 117 files** | **기준선 1611 / 117 정확 일치** |
+| 5 | `pnpm build` | ✅ exit 0 | 1s | `built in 640ms`, design-token 산출물 2종 | 일치 |
+| 6 | `pnpm format:check` | ✅ exit 0 | 4s | — | 일치 |
+| 7 | `pnpm assert:no-mocks` | ✅ exit 0 | 0s | `__HARU_MOCK_SENTINEL__` 0 · `__HARU_DEV_SENTINEL__` 0 · `haru-dev-` 0 (4파일) | 일치 |
+| 8 | `pnpm test:e2e` | ✅ exit 0 | **6.0m (359s)** | **273 passed / 273 · 0 failed** | **기준선 273 정확 일치** |
+
+- **`test:e2e` 는 단독 실행했다.** 1~7 이 **전부 끝난 뒤** 시작했고, 동시에 다른 Playwright·dev 서버 프로세스를 돌리지 않았다. 소요 **6.0분**은 정상 대역(4~6분)이며 **20분대 지연·허위 실패는 재현되지 않았다.**
+- 코드 변경이 없으므로 **숫자가 기준선과 달라야 할 이유가 없고, 실제로 달라지지 않았다.** 기준선과 다른 결과는 **0건**이다.
+
+#### 시각 baseline 스테일 검사 — 전량 재생성  `[QA 실행]`
+
+```
+pnpm test:e2e --update-snapshots=all        → 273 passed (6.1m / 367s, exit 0)   ← 단독 실행
+git status --porcelain e2e/__screenshots__  → (빈 출력)
+git diff --stat e2e/__screenshots__         → (빈 출력)
+find e2e/__screenshots__ -name '*.png' | wc -l → 74
+```
+
+**baseline 74종 전량 재생성 후 변경 0바이트 — 스테일 0건.** 기본 `changed` 모드로는 드러나지 않는 오염(approvals §23.2 `frame-1024` dev 패널 유형)이 현재 없음을 **3회차에도 직접 확인**했다. 파일 수 74 도 2회차와 동일하다.
+
+### 12.2 `AC-3-86` 재측정 — `PARTIAL` → `PASS`  `[QA 실행]`
+
+사용자 결정(approvals §27.2)으로 **보호자 직접 입력 분기가 폐기**되어 판정 대상이 *"저장 대상 = 현재 보이는 옵션의 카탈로그 책(`bookId`), 스냅 위치가 바뀌면 대상도 바뀐다"* 로 **줄었다.** 2회차 PARTIAL 의 미충족 조건이 폐기된 분기 **하나뿐**이었으므로, QA 는 잔여 조건을 **자기 측정으로 다시 확인**했다.
+
+| 측정 | 방법 | 결과 |
+|---|---|---|
+| ① 요청 payload = 보이는 카드의 책 | `pnpm vitest run apps/web/__tests__/home-stage3.test.tsx -t "Save" --reporter=verbose` → **8 passed**. `:644` 가 `expect(saves[0]?.payload).toStrictEqual({ target: { bookId: DECK_BOOKS[0]?.id } })` 를 단언하고 `PUT …/saved-books` 요청이 **1회**임도 같은 테스트가 고정 | **충족** |
+| ② 스냅 위치가 바뀌면 대상도 바뀐다 | **QA 자작 Playwright 스크립트**(저장소 밖, 사용 후 제거). 393×852 · Mock `success` · 로그인 후 카드 3장 확인(`Where the Wild Things Are` · `The Most Magnificent Idea` · `Grumpy Monkey: Play All Day`) → `End` 로 스냅, live region `Option 3 of 3: Grumpy Monkey: Play All Day` → **3번째 카드의 Save 클릭** | 클릭 전 3장 모두 `Save`/`false` → 클릭 후 **3번째만** `Saved`/`aria-pressed=true`, 1·2번째는 `Save`/`false` **유지**. 저장 상태가 **덱 전역이 아니라 옵션 단위**다 → **충족** |
+| ③ 바인딩 지점 | `apps/web/src/features/activity-card-deck/ui/ActivityCardDeck.tsx:126` — `save.toggle({ bookId: option.book.id, saved: !option.saved })` 가 `option` 단위로 닫힌다 | **충족** (보조 증거) |
+
+⚠️ **1회차 증거 위치가 오기였다.** 1회차는 카탈로그 경로 근거로 `MockLibraryApi.test.ts:312`·`home.spec.ts:187` 을 적었는데, QA 가 그 줄을 직접 열어 보니 전자는 **`AC-3-36` Idempotency 블록**, 후자는 **`G-13` Save 토글 테스트**였다 — 저장 대상 단정이 아니다. 실제 단정은 `home-stage3.test.tsx:644` 다. 3회차에 §4.1 행을 바로잡았다. **판정을 올리면서 인용 위치를 검산한 결과다.**
+
+⚠️ **Library 의 `userEnteredTitle` 은 폐기 대상이 아니다.** `packages/contracts/src/library/library-book.ts` 의 `userEnteredTitle` 과 `/library/add`(`FR-23`) 경로는 **그대로 남는다** — 폐기된 것은 **Activity Card 의 보호자 직접 입력 선택지**(`contracts/src/activity/option.ts:24`, `conversation_only` 폐기와 함께 사라진 `userEnteredBook`)뿐이다. `AC-3-30`·`AC-3-31`·`AC-3L-21` 은 3회차에도 **PASS 유지**다.
+
+### 12.3 문서 반영 확인 4건  `[QA 실행]`
+
+| 대상 | 위치 | 확인 결과 |
+|---|---|---|
+| **`AC-3-86`** | `docs/plans/stage-3-plan.md:1041` | ✅ **반영됨**. `~~보호자 직접 입력 옵션은 `title`(+`author?`)~~ → **이 부분만 폐기** (사용자 결정 2026-10-09, `approvals §27.2`)` + `contracts/src/activity/option.ts:24` 근거 + *"Library 의 `userEnteredTitle` 은 남는다"* 주의까지 기재. PENDING 칸의 `G-12` 미결 주석도 제거됨. `git diff docs/plans/stage-3-plan.md` 에서 **이 1줄만** 변경된 것을 확인 |
+| **`AC-3-34`** | `docs/plans/stage-3-plan.md:584` | ✅ **반영됨**. ID·요구사항·검증 방법 전부 **취소선** + *"**폐기** (사용자 결정 2026-10-09, `approvals §26.5` `QA-3-009`)"* + 근거(`approvals §12.12` 대화 전용 세션 폐기) + 대체 커버(`AC-3-33`·`AC-3-35`) 기재 |
+| **`AC-3-56`** | `docs/plans/stage-3-plan.md:628` | ✅ **반영됨**. `31종`·`PushPlatform` 포함 → **32종**, `PushPlatform` **Stage 4 이월**(`QA-3-001`), 신규 3종(`LibrarySectionKey`·`LibraryFilter`·`BookSource`) 명기 + *"결함이 아니라 AC 문구 문제"* |
+| **`AC-3-59`** | `docs/plans/stage-3-plan.md:631` | ✅ **반영됨**. "신규 0건(28종 유지)" → **29종**, `BOOK_ALREADY_OWNED` 1건 추가 근거 기재 |
+
+`AC-3-34`·`56`·`59` 는 2회차 시점에 이미 반영돼 있었고(2회차가 확인), 3회차 `git diff` 에서 **새로 바뀐 Plan 줄은 `:1041` 하나**다. 세 건은 현재 문서 상태를 다시 읽어 **유지됨**을 확인했다.
+
+### 12.4 Scope · 작업 트리 재확인  `[QA 실행]`
+
+```
+git ls-files | grep -E '^(apps/api|supabase)/' | wc -l   → 0
+ls apps                                                   → web
+ls packages                                               → config contracts design-tokens ui
+git status --porcelain                                    → docs 3개만 (approvals · plan · 이 리포트)
+```
+
+**Scope 위반 0건.** Backend 런타임 코드·`apps/mobile`(Stage 4) 생성 0건. QA 는 Product Code 를 수정하지 않았다 — 측정 스크립트는 저장소 밖 scratchpad 에 두고 사용 후 제거했으며, `dev` 서버도 측정 후 종료했다.
+
+### 12.5 남은 가값(provisional) — 3회차
+
+활성 **6건**: `P-01` · `P-02` · `P-04` · `P-16` · `P-23` · `P-24` — **변화 없음**(§6). `packages/design-tokens/__tests__/fonts.test.ts:157` 이 6종을 고정하고, 6건 전부 dev gallery 등재 완료(차집합 0, 2회차 확인). 해제: `P-05`. 수용 예외: `D-01` 유지.
+approvals §27.7 — **Stage 0 `#10-4` 항목별 재제시가 6건 전부에 성립한다**(`S3-PROV-2` 해소). 재제시는 **Orchestrator 소관**이며 QA 가 수행하지 않는다. 가값은 `rules/qa.md` §2 에 따라 **FAIL 사유가 아니다.**
+
+### 12.6 Stage 4 Plan 에 올릴 이월 항목 (변동 없음)
+
+§11.10 과 동일하다. **이월은 삭제가 아니다** — Stage 4 Plan **In Scope** 로 올라가야 한다 (작성은 **plan-agent** 소관, QA 는 `docs/plans/**` 를 수정하지 않았다).
+
+| ID | Sev | Stage 4 In Scope | Stage 3 판정 (유지) |
+|---|---|---|---|
+| **`QA-3-001`** | **High** | `PushPermissionPort`(`getStatus`·`request`·`getToken`) + Web 구현(`Notification.permission`) + 권한 사전 안내 UX + `push-permission-denied` 시나리오 + contracts `notification-preferences`/`push-devices` + **`PushPlatform` enum** + adapter 선택 지점 1곳 | `AC-3-42`·`43`·`44` **FAIL(수용)** |
+| **`QA-3-002`** | Medium | Activity Card 오프라인 캐시(`D-11`) + `schemaVersion` 불일치·parse 실패·날짜 경과 폐기 + 로그아웃 삭제 + `offline-cached-card` 시나리오(캐시 카드 + Offline Banner 동시) | `AC-3-46`·`AC-3-49` **FAIL(수용)** (`AC-3-48` 은 공허 충족 상태) |
+| **`QA-3-003`** | Medium | `D-4` 에셋 파이프라인 — AVIF + WebP + PNG fallback · `<picture>`+`srcset` · 해상도 상한(1440/696/360/216) · `pnpm assets:optimize`(`sharp`) 산출물 커밋 | `AC-3-51` **FAIL(수용)**. `P3-BIP-19`(표지 에셋 교체)와 함께 **Stage 8 게이트** |
+
+추가로 Stage 4 이후에 남는 것:
+- **`AC-3L-24`** (수용) — `GiftRequestStatus` `approved`·`delivered`·`cancelled`·`rejected` **4종은 화면 확인 없이 남는다.** fixture/시나리오를 추가하면 QA 가 실행으로 확인할 수 있다 (사용자가 수용을 택했으므로 Stage 3 차단 요인은 아니다)
+- **`NV-1`** (수용) — 실기기가 확보되면 §7 절차로 Safari / iOS / Android 확인
+- **`NV-2`** (수용) — 60fps 녹화 수단이 확보되면 §7 절차로 확인
+- **`AC-3-22`~`26`** — Stage 3 Plan 이 이미 Stage 4 로 이월한 5건 (판정 대상 아님)
+
+### 12.7 3회차에서 QA 가 **직접 실행·측정한 것** vs **문서를 인용한 것**
+
+| 구분 | 내용 |
+|---|---|
+| **`[QA 실행]` — 명령** | 8개 검증 명령 **전부 재실행**(§12.1, `test:e2e` 단독) + `test:e2e --update-snapshots=all` **전량 재생성**(단독) + `git status`/`git diff`/`git ls-files` + `pnpm vitest run … -t "Save" --reporter=verbose`(8 passed) |
+| **`[QA 실행]` — 브라우저 실측** | `AC-3-86` 옵션 단위 저장 바인딩 — dev 서버 `127.0.0.1:4319` 기동 후 **QA 자작 Playwright 스크립트**로 카드 3장 · `End` 스냅 · 3번째 카드 Save 클릭 · 3장 라벨/`aria-pressed` 전후 비교 (저장소 밖, 사용 후 제거, dev 서버 종료 확인) |
+| **`[QA 실행]` — 전수 재집계** | §4.1·§4.2 **표 전 행 기계 추출 + 누락 22행 개별 확인 + 합 검산**(88 / 39). 1회차 집계 오류(approvals §27.1)의 재발을 막기 위한 절차다 |
+| **`[QA 실행]` — 정적 확인** | `stage-3-plan.md:1041`·`:584`·`:628`·`:631` 4건 현재 문자열 직접 확인 + `git diff` 로 **변경된 Plan 줄이 `:1041` 하나**임을 확인 · `ActivityCardDeck.tsx:126` 바인딩 · `home-stage3.test.tsx:644`·`:714-721` 단정 위치 · 1회차 인용 위치 오기 2건 검산 · Scope grep |
+| **`[문서 인용]`** | **approvals §27**(사용자 결정 — `AC-3-86` 부분 폐기 · 남은 3건 수용 · 가값 6건 · 이월 재확인) · approvals §26(1·5·6) · `rules/qa.md` §1~§3 (판정·Verdict·Severity 규칙) · `rules/workflow.md` §4 (Stage Gate) |
+| **증거로 쓰지 않은 것** | 구현자 handoff 의 *"실측했다"* 서술 · Orchestrator 의 산식 제시 · **1회차가 적은 증거 위치**(검산 결과 2건이 오기였다 — §12.2) |
+| **하지 않은 것** | 수용·폐기된 7건(`QA-3-001`·`002`·`003` · `AC-3L-24` · `NV-1` · `NV-2` + 폐기 `AC-3-34`·`AC-3-86` 부분)의 **재구현·재측정** · 새 Finding 발굴 목적의 전면 재감사 · Product Code 수정 · `docs/decisions/**`·`docs/plans/**`·`docs/design/**`·`.claude/rules/**` 수정 |
+
+### 12.8 다음 단계
+
+1. **Stage Verdict: `PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`** — `rules/workflow.md` §4 에 따라 **다음 Stage 진입이 가능**하다. 단 **사용자 지시가 있을 때** 시작한다. QA 는 Verdict 보고 후 멈춘다.
+2. **Orchestrator 할 일**: `PLANNING.md` 진행 상태 갱신 · 가값 6건 **항목별 재제시**(Stage 0 `#10-4`) · Stage 4 착수 지시 대기.
+3. **Stage 4 Plan(plan-agent) 할 일**: §12.6 의 이월 3건을 **In Scope 로 등재**. `AC-3-22`~`26` 도 함께 다룬다.
+4. **Stage 8 게이트로 남는 것**: `QA-3-003`(에셋 파이프라인) + `P3-BIP-19`(표지 에셋 교체 — 상용 그림책 표지 Mock 전용, 법무 확인).
+5. 재검증이 다시 필요해지면 **항목 번호를 유지**하고 판정 변화를 §10 에 기록한다.
