@@ -1,6 +1,6 @@
 # Stage 3 Library Design Spec
 
-Status: **DRAFT** — 승인 대기 (작성 2026-10-06, design-agent)
+Status: **APPROVED (2026-10-06, user)** — 승인 기록: `docs/decisions/stage-3-approvals.md` §20.1
 
 **Based on**
 - Figma `YWWu3AFEJpRxvw0T5klq0k` page `16:2` section `31:204` — L-1 `30:74` · L-2 `145:1132` · L-3 `163:1669` (+ 오버레이 `145:1450`/`145:1085` · `163:1807`/`163:2347`), page `8:2` 컴포넌트 `113:1992` · `113:1991` · `163:2145` · `163:1898` — **전건 2026-10-06 재실측**

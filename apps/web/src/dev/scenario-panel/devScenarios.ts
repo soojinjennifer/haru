@@ -9,6 +9,7 @@
  * EmptyState 는 이 그룹으로 확인한다 (Plan §8.1 · §8.2).
  */
 import { activityScenarioGroup } from '../../mocks/activities/MockActivityApi';
+import { booksScenarioGroup } from '../../mocks/books/MockBooksApi';
 import { healthScenarioGroup } from '../../mocks/health/MockHealthApi';
 import { homeScenarioGroup } from '../../mocks/home/MockHomeApi';
 import { libraryScenarioGroup } from '../../mocks/library/MockLibraryApi';
@@ -39,5 +40,7 @@ export const DEV_SCENARIO_GROUPS: readonly ScenarioGroupDefinition<string>[] = [
   activityScenarioGroup,
   // Stage 3 Home 재구현 — `★ Save` 저장/해제 (API_CONTRACTS §3.7)
   libraryScenarioGroup,
+  // Library 2라운드-3 — 책 상세 prompts (`no-reason` 포함, API_CONTRACTS §5.4)
+  booksScenarioGroup,
   statesScenarioGroup,
 ];

@@ -162,9 +162,22 @@
  *
  * ⚠️ 본문 안에 **또 다른 가로 클리핑 박스**가 있으면 그쪽도 같은 자리를 가져야 한다 —
  * 여기만 켜면 안쪽 박스가 먼저 자른다 (`library.css` `.haru-book-sheet__flip` 참고).
+ *
+ * ★ **위쪽 8** 도 함께 둔다 (사용자 결정 2026-10-09 ①). 표지가 본문 **첫 블록**이라 자기
+ * 위쪽 자리(`.haru-book-sheet__cover` 의 `padding-block-start: 8` + 음수 margin)가 본문
+ * content box **밖**으로 나가고, 이 요소의 위쪽 padding 선이 그것을 전면 절단했다
+ * (실측 보정 전 위 Δ `0 0 0 …`). 아래쪽과 달리 `padding-block-end` 식 "빈 스크롤 영역"
+ * 문제가 없다 — 음수 `margin-block-start` 가 같은 양을 되돌리므로 **content box 가 그대로**고
+ * 헤더↔본문 간격(= 시트 flex `gap` 12)이 움직이지 않는다 (실측: 보정 전후 모두 12).
+ *
+ * 안쪽 `__flip` 상자는 **세로로는 자르지 않는다** — `overflow-x: clip` 은 다른 축을 scroll
+ * container 로 만들지 않아 `overflow-y` 가 `visible` 로 남는다 (실측 computed `oy: visible`).
+ * 그래서 위쪽은 이 한 박스만 처리하면 된다 (좌우는 두 박스 모두 필요했다).
  */
 .haru-sheet__content--shadow-inset-cover {
+  padding-block-start: var(--sheet-content-shadow-inset-block-start-cover);
   padding-inline: var(--sheet-content-shadow-inset-inline-cover);
+  margin-block-start: calc(-1 * var(--sheet-content-shadow-inset-block-start-cover));
   margin-inline: calc(-1 * var(--sheet-content-shadow-inset-inline-cover));
 }
 

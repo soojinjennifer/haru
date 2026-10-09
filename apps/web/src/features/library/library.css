@@ -138,6 +138,34 @@
 }
 
 /*
+ * ★ 시트 표지의 **그림자와 radius** (사용자 결정 2026-10-09 ①).
+ *
+ * Figma `145:1085` 의 책 블록은 Home 카드 `163:2649` 와 **같은 규격**이고, 그 규격의 출처인
+ * `85:536` 이 `--shadow-cover`(drop `0 6px 14px` + inset highlight) + radius **10** 을 갖는다.
+ * 즉 Figma 에는 그림자가 있다. 그런데 구현에는 없었다 — `BookCover md` **기본값에는 그림자가
+ * 없고**(`book.css`) Home 만 `.haru-activity-card__book .haru-book-cover` 로 덮기 때문이다
+ * (2라운드-3 e2e 가 `box-shadow: none` 을 고정하고 있었다).
+ *
+ * ⚠️ **`BookCover` 기본값을 바꾸지 않는다.** `md` 에 그림자를 넣으면 Home 과 같은 선언이
+ * 중복되고, `sm`(Book List 썸네일 — Figma `30:142` 는 그림자 없음)까지 번질 위험이 있다.
+ * 그래서 Home 과 **같은 방식으로 이 시트 범위에만** 덮는다. Library 목록(`lg`)·캐러셀은
+ * 자기 규격(radius 12)을 그대로 쓴다.
+ *
+ * 그림자 자리는 네 방향 모두 이미 있다 — 위 8 · 아래 20 은 위 `.haru-book-sheet__cover`,
+ * 좌우 14 는 `__flip` + `Sheet contentShadowInset="cover"`. 위쪽은 그 둘 **밖**의 클립 선
+ * (`.haru-sheet__content` 의 위쪽 padding 선)이 자르므로 `Sheet` 쪽에 자리를 더했다
+ * (`--sheet-content-shadow-inset-block-start-cover`).
+ */
+.haru-book-sheet__cover .haru-book-cover {
+  border-radius: var(--book-cover-radius-xl);
+  box-shadow: var(--shadow-cover);
+}
+
+.haru-book-sheet__cover .haru-book-cover img {
+  border-radius: var(--book-cover-radius-xl);
+}
+
+/*
  * 책 블록의 텍스트 열 — `저자 · 역량` + **추천 이유**(`BookPromptsResponse.reason`).
  * Home 카드 `.haru-activity-card__book-text` 와 같은 구성이며 같은 간격 토큰을 쓴다.
  * 이유가 `null` 이면 자식이 하나뿐이라 2라운드-2 와 **같은 모양**이 된다.

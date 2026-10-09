@@ -1,6 +1,6 @@
 # Stage 3 — Library Figma 전수 대조 (구현 전)
 
-Status: **DRAFT** — 사용자 결정 대기
+Status: **결정 완료** — `L-OPEN-01`~`22` 전건 처리 (`docs/decisions/stage-3-approvals.md` §15~§20). 구현은 커밋 `b45a152`·`0e1f338`·`6a66fb9`·`bd34f94`
 작성: design-agent, 2026-10-06
 대상: Figma `YWWu3AFEJpRxvw0T5klq0k` · page `16:2` MVP_KeyScreen_V.2 (+ page `8:2` Design Guide 의 Library 계열 컴포넌트)
 범위: **대조와 명세만.** Production Code 0줄. Playwright 미사용 (Library 구현물이 없어 측정 대상이 없고, 동시에 다른 작업이 baseline 을 다루고 있어 회피).

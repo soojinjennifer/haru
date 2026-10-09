@@ -1,6 +1,6 @@
 # Stage 3 Library Plan — 서재 (Frontend)
 
-Status: **DRAFT** — 사용자 승인 대기
+Status: **APPROVED (2026-10-06, user)** — 승인 기록: `docs/decisions/stage-3-approvals.md` §20.1
 작성: plan-agent, 2026-10-06
 범위: Stage 3 의 **Library 라운드**. Home 라운드(`docs/plans/stage-3-plan.md`)는 별도이며 이 문서가 그것을 대체하지 않는다.
 

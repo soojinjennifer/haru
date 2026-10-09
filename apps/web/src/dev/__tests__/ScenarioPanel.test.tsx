@@ -71,7 +71,7 @@ describe('ScenarioPanel', () => {
 
     expect(
       screen.getByText(
-        '?scenario=health:success,home:success,activity-cards:success,library:success,__states:success',
+        '?scenario=health:success,home:success,activity-cards:success,library:success,books:success,__states:success',
       ),
     ).toBeTruthy();
   });

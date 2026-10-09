@@ -712,6 +712,19 @@ test.describe('Library 2라운드-2 시트 · 진입점 baseline', () => {
     await expect(sheet).toHaveScreenshot('s3-library-shelf-sheet.png', REGION_SNAPSHOT);
   });
 
+  /*
+   * ⚠️ 2라운드-5(사용자 결정 2026-10-09 ①)에서 **이 baseline 1종만** 재생성했다 — 시트 표지에
+   * `--shadow-cover` + radius 10 이 생겼다 (`library.css` 가 시트 범위에만 덮는다).
+   * 변화를 픽셀 클러스터로 분해해 **전부 설명한 뒤** 재생성했다 (실측, 365×554 클립):
+   *   변화 픽셀 **4322개 · 연결 성분 1개**, bounding box x 4…89 · y 60…170
+   *   = 표지 상자(x 18…75 · y 68…150) ⊕ 번짐 **위 8 · 아래 20 · 좌우 14** 와 **정확히 일치**
+   *   ├ 표지 **밖** 4190개 = 새로 그려진 drop shadow (상 442 · 하 1138 · 좌 1123 · 우 1123 ·
+   *   │  모서리 364). 네 방향 실측 번짐과 같다
+   *   ├ 표지 **안** 132개 = radius 8 → 10 (img) · 상자 radius 신설. **전부 모서리 11px 안**이다
+   *   └ 표지 안에서 모서리 11px 밖 = **0개** → 표지 이미지가 움직이지도 재샘플되지도 않았다
+   * 설명되지 않는 변화는 **없다**. Home·목록·캐러셀 baseline 은 **1종도 변하지 않았다**
+   * (`BookCover` 기본값을 건드리지 않았다 — 전체 `test:e2e` 에서 다른 baseline 전부 통과).
+   */
   test('s3-library-book-sheet — Figma 145:1085', async ({ page }) => {
     await logInToLibrary(page);
 

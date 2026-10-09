@@ -23,6 +23,7 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
       home: 'success',
       'activity-cards': 'success',
       library: 'success',
+      books: 'success',
       __states: 'success',
     });
   });
@@ -52,6 +53,7 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
       home: 'error',
       'activity-cards': 'error',
       library: 'error',
+      books: 'error',
       __states: 'error',
     });
   });
@@ -66,6 +68,7 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
       home: 'success',
       'activity-cards': 'success',
       library: 'success',
+      books: 'success',
       __states: 'empty',
     });
   });
@@ -99,6 +102,7 @@ describe('serializeSelection / withGroupKey', () => {
       home: 'error',
       'activity-cards': 'books-exhausted',
       library: 'retry',
+      books: 'no-reason',
       __states: 'error',
     };
     const restored = resolveSelection(DEV_SCENARIO_GROUPS, {
@@ -219,14 +223,17 @@ describe('DEV_SCENARIO_GROUPS — Catalogue 준수 (AC-1-40)', () => {
     'book-already-owned',
     'paged',
     'unsave',
+    // Library 2라운드-3 — 책 상세 prompts 에 `reason` 이 없는 응답 (`L-R2B-01`).
+    'no-reason',
   ];
 
-  it('패널이 다루는 그룹은 health · home · activity-cards · library · __states 다', () => {
+  it('패널이 다루는 그룹은 health · home · activity-cards · library · books · __states 다', () => {
     expect(DEV_SCENARIO_GROUPS.map((group) => group.group)).toStrictEqual([
       'health',
       'home',
       'activity-cards',
       'library',
+      'books',
       '__states',
     ]);
   });

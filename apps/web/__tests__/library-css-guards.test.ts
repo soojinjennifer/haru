@@ -886,3 +886,64 @@ describe('2라운드-4 — `BookDetailSheet` 뒷면 면 색 · ActionBar · 표�
     );
   });
 });
+
+/*
+ * ───────────────────────────────────────────────────────────────────────────
+ * 2라운드-5 — 시트 표지에 `--shadow-cover` 를 **실제로 켠다** (사용자 결정 2026-10-09 ①)
+ *
+ * 2라운드-4 까지는 **자리만** 있었다. 표지에 그림자가 없다는 사실(= `BookCover md` 기본값에
+ * 그림자가 없고 Home 만 덮는다)을 e2e 가 `box-shadow: none` 으로 고정하고 있었다.
+ * Figma `145:1085` 의 책 블록은 Home 카드 `163:2649` 와 같은 규격이고 그 출처 `85:536` 이
+ * 그림자 + radius 10 을 가지므로, **시트 범위에만** 덮어 Figma 를 따른다.
+ */
+describe('2라운드-5 — 시트 표지 그림자 (`--shadow-cover` + radius 10)', () => {
+  it('시트 범위에서만 덮는다 — `BookCover` 기본값(`book.css`)은 건드리지 않았다', () => {
+    const scoped = rule(SHELVES_CSS, '.haru-book-sheet__cover .haru-book-cover');
+    expect(scoped).toMatch(/box-shadow:\s*var\(--shadow-cover\);/);
+    expect(scoped).toMatch(/border-radius:\s*var\(--book-cover-radius-xl\);/);
+    /* 이미지도 같은 radius — Home 과 **같은 처리**다 (`activity-card.css`). */
+    expect(rule(SHELVES_CSS, '.haru-book-sheet__cover .haru-book-cover img')).toMatch(
+      /border-radius:\s*var\(--book-cover-radius-xl\);/,
+    );
+
+    /*
+      ⚠️ `md`(Home·시트 표지)와 `sm`(Book List 썸네일 — Figma `30:142` 는 그림자 없음) 의
+      **기본값에는 그림자가 없다**. 기본값을 바꾸면 Home 과 Library 목록·캐러셀이 전부 변한다.
+    */
+    expect(rule(BOOK_CSS, '.haru-book-cover--md')).not.toMatch(/box-shadow/);
+    expect(rule(BOOK_CSS, '.haru-book-cover--sm')).not.toMatch(/box-shadow/);
+    /* Home 의 override 는 그대로다 (같은 값·같은 radius). */
+    const home = rule(
+      codeOf(read('apps', 'web', 'src', 'entities', 'activity-card', 'activity-card.css')),
+      '.haru-activity-card__book .haru-book-cover',
+    );
+    expect(home).toMatch(/box-shadow:\s*var\(--activity-card-cover-shadow\);/);
+  });
+
+  it('위쪽 자리(8)가 `.haru-sheet__content` 에 있고 `padding`↔음수 `margin` 이 짝이다', () => {
+    expect(COMPONENT_TOKENS).toMatch(/--sheet-content-shadow-inset-block-start-cover:\s*8px;/);
+
+    const content = rule(SHEET_CSS, '.haru-sheet__content--shadow-inset-cover');
+    expect(content).toMatch(
+      /padding-block-start:\s*var\(--sheet-content-shadow-inset-block-start-cover\);/,
+    );
+    expect(content).toMatch(
+      /margin-block-start:\s*calc\(-1 \* var\(--sheet-content-shadow-inset-block-start-cover\)\);/,
+    );
+    /*
+      짝이어야 **헤더↔본문 간격이 유지된다** — 실측(393×852, dev 서버): 보정 전후 모두
+      header bottom 340.15625 → content **content box** top 352.15625 = 간격 **12**
+      (= 시트 flex `gap` `--space-3`). border box 만 8 위로 늘어난다 (352.15625 → 344.15625).
+    */
+  });
+
+  it('위쪽은 `__flip` 에 자리가 **필요 없다** — `overflow-x: clip` 은 세로를 자르지 않는다', () => {
+    const flip = rule(SHELVES_CSS, '.haru-book-sheet__flip');
+    expect(flip).toMatch(/overflow-x:\s*clip;/);
+    /* 세로 `overflow` 를 선언하지 않는다 → computed `overflow-y: visible` (실측). */
+    expect(flip).not.toMatch(/overflow-y:/);
+    /* 그래서 세로 자리도 두지 않는다 — 두면 레이아웃만 흔든다. */
+    expect(flip).not.toMatch(/padding-block/);
+    expect(flip).not.toMatch(/margin-block/);
+  });
+});

@@ -284,6 +284,28 @@
    * 아래/위(20 / 8)는 `library.css` 의 `.haru-book-sheet__cover` 가 따로 갖는다.
    */
   --sheet-content-shadow-inset-inline-cover: 14px;
+  /*
+   * 같은 표지 그림자의 **위쪽** 자리 (사용자 결정 2026-10-09 ①). 좌우와 **다른 토큰**인
+   * 이유는 번짐이 비대칭이기 때문이다 — `--shadow-cover` 는 offset-y 가 `+6` 이라 아래로
+   * 밀려 있다.
+   * **픽셀 프로브 실측** (2026-10-09, dev 서버 · 393×852 · dSF 1 · 실제 `BookCover md` 에
+   * `--shadow-cover` 를 적용한 뒤 네 방향 동시 측정):
+   *   아래 `99 91 86 80 72 65 58 52 44 24 22 17 12 11 10 9 9 5 3 3 0 …` → **20**
+   *   좌   `52 46 38 33 30 22 16 13 13  9  9  6  3  3 0 …`             → **14**
+   *   우   `52 46 41 34 30 25 19 16 13  9  9  6  3  3 0 …`             → **14**
+   *   위   보정 **전** `0 0 0 …` → **전면 절단**
+   *        보정 **후** `17 15 13 9 9 6 3 3 0 …` → **8**
+   *   (위쪽 Δ 가 좌우보다 **낮다** — offset-y `+6` 이 그림자를 아래로 밀어 위쪽은 꼬리만
+   *    남는다. 그래서 e2e 프로브 거리는 좌우 4 가 아니라 **2** 다.)
+   * 산술 검산: Chrome 의 blur 번짐 폭 = blur radius **14**, offset-y +6 →
+   *   아래 6 + 14 = **20** · 위 14 − 6 = **8** · 좌우 ±14. 네 값 모두 실측과 일치한다.
+   * 추정이 아니다 — drop 1겹이라 빠뜨릴 겹이 없다.
+   *
+   * ⚠️ 아래 20 · 좌우 14 와 달리 이 값은 **`.haru-sheet__content` 의 위쪽 클립 선**에서만
+   * 필요하다. 표지 자신의 위쪽 자리(8)는 `library.css` `.haru-book-sheet__cover` 가 이미
+   * 갖고 있고, 그 자리가 본문 content box **밖**으로 나가 있어 잘렸다.
+   */
+  --sheet-content-shadow-inset-block-start-cover: 8px;
   --dialog-radius: var(--radius-card);
   --toast-radius: var(--radius-surface);
   --skeleton-radius: var(--radius-control);

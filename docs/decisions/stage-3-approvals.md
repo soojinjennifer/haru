@@ -1625,3 +1625,81 @@ AA 띠는 **"모양이 아니라 커버리지"** 임을 픽셀로 규정했다 �
 재생성 2건은 **진입점 블록이 흐름에 들어온 결과**다: `s3-library-empty`(빈 상태는 내용이 짧아 블록이 뷰포트 안에 들어왔다) · `s3-library-list`(목록이 마지막 블록이 아니게 되어 스크롤 위치가 바뀌고 반투명 glass 뒤 배경 gradient 가 달라졌다 — 채널 최대 Δ **8**).
 **런타임 토글로 확정**: 진입점 블록을 흐름에서 빼고 같은 절차로 찍으면 두 baseline 모두 **커밋본과 0 픽셀 차이**. 이 실험이 "대화형 전환(`div`→`button`)이 rest 렌더를 바꾸지 않았다"는 증거이기도 하다.
 `--update-snapshots=all` 후 위 7건 외 변경 **없음** — **Home 7종 · `s3-sheet-scrim` · `s3-dialog-scrim` 포함 전부 바이트 동일.**
+
+## 25. Library 2라운드-3·4 결과와 마무리 결정 (2026-10-09)
+
+커밋 `bd34f94`(뒤집기 · `reason` · 뒷면 Figma 정합) 이후 분.
+
+### 25.1 사용자 결정 2건
+
+| ID | 항목 | 결정 |
+|---|---|---|
+| **`L-R2D-01`** | 시트 표지에 `--shadow-cover` 가 없다 (Figma `85:536` 에는 있다) | **그림자를 넣는다** (+ radius 10, 위쪽 자리 8 도 함께) |
+| **`L-R2D-02`** | 뒷면 시트 헤더가 책 제목이다 (Figma 뒷면은 `Prompt of this book`) | **현재대로 두고 차이 등록** — 헤더는 책 제목 유지, Figma 문구는 본문 h3 에 남는다. 시트를 여는 스크린리더가 어떤 책인지 계속 알 수 있다 |
+
+### 25.2 ⚠️ Orchestrator 지시의 전제가 또 틀렸다 — 그림자가 "잘린" 게 아니라 "없었다"
+
+§24 에서 내가 `L-R2B` 보고를 받아 *"앞면 표지 좌측 그림자 14px 가 잘린다"* 를 **결함으로 지시**했는데, 재측정 결과:
+
+- **`BookCover md` 자체에는 그림자가 없다.** Home 만 `.haru-activity-card__book .haru-book-cover` 가 `--activity-card-cover-shadow` 를 덮는다. `BookDetailSheet` 는 그 범위 밖이라 **`box-shadow: none`** 이었다
+- 즉 **자리는 잘려 있던 것이 맞고 고친 것도 맞지만, 화면 픽셀은 1개도 바뀌지 않았다** — 앞면 baseline 이 **바이트 동일**한 것으로 증명됐다
+- 그래서 `L-R2D-01`(그림자 자체를 넣을지)이 **별도 결정**으로 올라왔고 승인됐다
+
+**교훈**: "그림자가 잘린다"는 보고를 받으면 **그림자가 존재하는지부터** 확인한다. 자리 문제와 존재 문제는 다르다.
+
+### 25.3 ⭐ 프로브 방식 — 1점 Δ 로는 위쪽을 판정할 수 없다 (측정 교훈)
+
+좌우에 쓴 **1점 고정거리 Δ** 방식이 위쪽에서 **오탐**을 냈다.
+
+- 320px 에서 `.haru-book-sheet__book` 이 `align-items: center` 이고 텍스트 열이 표지보다 높아(좁은 폭 줄바꿈) **표지가 2.58px 내려간다**(표지 top 116.578 ↔ 본문 content box top 114)
+- 그만큼은 **보정 없이도 우연히 살아 있어** 프로브가 "보정 없이도 보인다"로 읽혔다. **e2e 가 320 에서 FAIL 해서 드러났다**
+- → 위쪽은 **번짐 폭을 센다**: 보정 있음 **8/8/8/8**(320·393·600·1024) ↔ 없음 **3/0/0/0**
+
+`.claude/rules/frontend.md` `R-SHADOW-1` ③ 의 "픽셀 프로브로 실측한다" 에 **측정 지점이 요소와 함께 움직일 수 있다**는 조건이 붙는다.
+
+### 25.4 `--shadow-cover` 네 방향 실측 (산술 검산 일치)
+
+| 방향 | 번짐 |
+|---|---|
+| 아래 | **20** |
+| 위 | **8** |
+| 좌 · 우 | **14** |
+
+검산: blur radius **14**, offset-y **+6** → 아래 6+14=20 · 위 14−6=8 · 좌우 ±14. **네 값 전부 실측과 일치.** drop 1겹이라 빠뜨릴 겹 없음.
+
+**좌우와 위쪽의 차이**: 좌우는 **바깥 상자만 켜면 무효**다(안쪽 `.haru-book-sheet__flip` 의 `overflow-x: clip` 이 먼저 자른다). 위쪽은 **한 박스로 끝난다** — `overflow-x: clip` 은 다른 축을 scroll container 로 만들지 않아 `overflow-y` 가 `visible` 로 남는다(실측 computed `{ x: 'clip', y: 'visible' }`).
+
+**헤더↔본문 간격은 불변**이다: `border-box` + `flex: 1 1 auto` 라 음수 margin 이 늘린 8 을 padding 이 흡수한다 — 간격 **12**(= 시트 flex gap) 유지, content box top·높이 불변.
+
+### 25.5 Orchestrator 가 빠뜨린 절차 — `Status:` 갱신
+
+`rules/workflow.md` §3 이 *"승인되면 해당 문서의 `Status:` 를 `APPROVED (YYYY-MM-DD, user)` 로 갱신한다"* 를 **Orchestrator 책임**으로 정했는데, §20.1 에서 승인을 받고도 **갱신을 빠뜨렸다.**
+그 상태로 QA 에 넘기면 **Stage Gate 불충족으로 읽힌다.** development-agent 가 발견해 보고했고 Orchestrator 가 갱신했다:
+
+| 문서 | 갱신 후 |
+|---|---|
+| `docs/plans/stage-3-library-plan.md` | `APPROVED (2026-10-06, user)` |
+| `docs/design/stage-3-library-design-spec.md` | `APPROVED (2026-10-06, user)` |
+| `docs/design/stage-3-home-figma-audit.md` | **반영 완료** (결정 §12~§13, 구현 `9173b2b`) |
+| `docs/design/stage-3-library-figma-audit.md` | **결정 완료** (`L-OPEN-01`~`22` 전건) |
+
+`docs/plans/stage-3-plan.md` · `docs/design/stage-3-design-spec.md` 는 이미 `APPROVED (2026-10-05, user)` 였다.
+
+### 25.6 QA 인계 입구 — `docs/qa/stage-3-handoff.md`
+
+`rules/workflow.md` §6 이 지정한 파일인데 인계 메모가 **5개로 쪼개져** 있었다. 통합 입구를 만들고 기존 5개는 **지우지 않고 참조**한다.
+담긴 것: 구현 범위 + 메모 포인터 · **재현 경로**(URL · 시나리오 키 · 로그인 자격 · dev 패널) · **승인 근거 표 2종**(Figma 에 없는데 만든 **9건** / Figma 에 있는데 뺀 **8건**, 승인번호 명시) · **무효 허용차이 5건** · `BACKEND_INTEGRATION_PENDING` · 가값(`P-24` · `P-05` 해제 · `S3-PROV-2`) · **시각 회귀 설정 변경 + `--update-snapshots=all` 주의** · 미해결 · 알려진 제약.
+
+### 25.7 `books` 시나리오 그룹 등록 (QA 오판 방지)
+
+`booksScenarioGroup`(7 key, `no-reason` 포함)이 `DEV_SCENARIO_GROUPS` 에 **등록되지 않아** URL·`sessionStorage` 로만 전환됐다 — QA 가 패널에서 찾다가 "시나리오 없음"으로 오판할 수 있었다. 등록했다(6그룹).
+1라운드의 "키 증가 → 패널 넘침" 재발 조건이 아님을 실측 확인: 본문 `clientHeight` 가 **이미 60dvh 캡값**(511 @852 · 341 @568)과 일치해 key 추가는 `scrollHeight` 만 늘린다. **CSS 수정 0줄, 새 `overflow` 선언 없음.**
+baseline **74종 전량 재생성 후 바이트 동일** — 패널은 `position: fixed` + `hideDevPanel` 로 가려져 기준 이미지에 영향이 없다.
+
+### 25.8 남은 미해결 (QA 에 그대로 넘긴다)
+
+- 둥근 모서리 AA 띠의 **원인 커밋 미특정** (가설 다수를 실측으로 반증, 제품 회귀일 수 없는 대역으로 규정)
+- **Safari / iOS 실기기 미확인** — 모든 측정이 Chromium(darwin, dSF 1)
+- 뒤집기 중간 프레임 ActionBar **잔상**(~170ms, 약 15% 투명도)
+- 저장 실패 `InlineAlert` + 뒤집기 동시 상황의 **잔여 빈 자리** (코드 추론, 미재현)
+- `S3-PROV-2` — dev gallery 가값 목록에 `P-18`~`P-23` **미등재** (기존 공백, 가값 재제시 전 선행 조건)

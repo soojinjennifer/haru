@@ -715,14 +715,27 @@ test('뒷면 목록 안에는 drop shadow 자식이 **없다** (좌우 자리는
  * 로 **14** 이고, offset-x 가 0 이라 좌우가 대칭이다. 그래서 자리 값도 **14** 다 —
  * 1라운드가 등록한 좌우 4(`--shadow-bubble` 기준)로는 10px 이 모자란다.
  *   아래 **20** · 위 **8** 도 같은 패스에서 쟀고(아래 `99 91 86 … 3 3 0`), 그 자리는
- *   `.haru-book-sheet__cover` 가 이미 갖는다. ⚠️ **위 8 은 지금도 잘린다** — 자리를
- *   만들려면 본문 **위쪽**에도 inset 이 필요하고 그건 이번 결정 범위(좌우) 밖이다.
+ *   `.haru-book-sheet__cover` 가 이미 갖는다.
  *
- * ── ⚠️ 전제: 지금 이 표지에는 drop shadow 가 **없다** ──
- * `BookCover md` 는 그림자를 갖지 않고(`book.css`), Home 에서만 `activity-card.css` 가
- * `--activity-card-cover-shadow` 를 덮는다. 시트 표지는 그 범위 밖이라 `box-shadow: none`
- * 이다 (아래 마지막 테스트가 이 사실을 고정한다). 그래서 자리의 작동 여부는 **주입해서**
- * 잰다 — 뒷면 목록과 같은 방식이다. 표지에 그림자가 생기는 날 자리는 이미 준비되어 있다.
+ * ── 2라운드-5 (사용자 결정 2026-10-09 ①) — 그림자를 **실제로 켰다** + 위쪽 자리 ──
+ * 2라운드-4 까지 이 표지는 `box-shadow: none` 이었다 (`BookCover md` 기본값에 그림자가 없고
+ * Home 만 `activity-card.css` 로 덮었다). Figma `145:1085` 의 책 블록은 Home 카드 `163:2649`
+ * 와 같은 규격이고 그 출처 `85:536` 이 그림자 + radius 10 을 가지므로, `library.css` 가
+ * **시트 범위에만** 덮어 Figma 를 따른다 (`BookCover` 기본값은 그대로 — Home·목록·캐러셀 불변).
+ *   위쪽 8 도 이 패스에서 자리를 만들었다 (`--sheet-content-shadow-inset-block-start-cover`).
+ *   실측 (393×852 · dSF 1 · dev 서버 · 표지 위쪽 1…26px):
+ *     보정 전 `0 0 0 …`                    → 번짐 **0** (전면 절단)
+ *     보정 후 `17 15 13 9 9 6 3 3 0 …`     → 번짐 **8**
+ *   위쪽 Δ 가 좌우(52…)보다 **낮다** — offset-y `+6` 이 그림자를 아래로 밀어 위쪽은 꼬리만
+ *   남는다. 고정 거리 1점 Δ 로는 임계값(`MIN_SHADOW_DELTA` 8)과 너무 가깝고, 320 에는
+ *   **우연한 여유 2.58px** 까지 있어서 오탐한다 — 그래서 위쪽은 **번짐 폭을 센다**
+ *   (`measureCoverTopBleed` 주석에 네 폭 프로파일과 320 의 사유가 있다).
+ *
+ * ── 측정 방법: 여전히 **ON/OFF 토글**로 Δ 를 잰다 ──
+ * 표지에 그림자가 생겼지만 측정은 그림자를 끈 상태와 비교해야 **그림자 기여분만** 분리된다
+ * (시트 면은 반투명이라 절대 색만으로는 판정할 수 없다). ON 주입은 이제 "없는 것을 만든다"가
+ * 아니라 "실제 선언을 `!important` 로 재확인한다" 는 뜻이다 — 아래 마지막 테스트가 실제
+ * computed 값이 `--shadow-cover` 임을 따로 고정한다.
  */
 const COVER_PROBE_PX = 4;
 const COVER_SHADOW_ON =
@@ -750,7 +763,49 @@ async function measureCoverLeftShadow(page: Page): Promise<number> {
   return distance(withShadow, withoutShadow);
 }
 
-test.describe('표지 그림자 자리 — 보정 **있음** (`contentShadowInset="cover"` + flip 상자)', () => {
+/**
+ * 표지 **위쪽** 번짐이 **몇 px 까지 보이는지** 잰다 (2라운드-5).
+ *
+ * ⚠️ 위쪽은 좌우처럼 "한 점에서 Δ 를 본다" 로 판정할 수 없다. 320 에서는 책 블록
+ * (`.haru-book-sheet__book`)이 `align-items: center` 이고 **텍스트 열이 표지보다 높아**
+ * (좁은 폭에서 제목·이유가 더 줄바꿈된다) 표지가 **2.58px 아래로 내려간다** (실측:
+ * 표지 top 116.578 vs 본문 content box top 114). 그만큼은 보정이 없어도 우연히 살아 있어서
+ * 고정 거리 프로브가 "보정 없이도 보인다" 로 오탐했다. 그래서 **번짐 폭 자체**를 센다.
+ *
+ * 실측 (dev 서버 · dSF 1 · ON/OFF 토글 Δ, 표지 위쪽 1…14px):
+ *   보정 있음  320 `17 16 13 9 9 6 3 3 0 …` · 393 `17 15 13 9 9 6 3 3 0 …`
+ *              600 `16 14 13 9 9 6 3 3 0 …` · 1024 `16 14 13 9 9 6 3 3 0 …`  → 네 폭 모두 **8**
+ *   보정 없음  320 `17 16 13 0 …` → **3** (위 우연한 여유) · 393·600·1024 `0 …` → **0**
+ */
+const COVER_TOP_BLEED_SCAN_PX = 14;
+/** Δ 바닥 — 프로파일이 `… 3 3 0 0` 으로 **정확히 0 으로 떨어진다** (네 폭 모두). */
+const COVER_TOP_BLEED_FLOOR = 2;
+
+async function measureCoverTopBleed(page: Page): Promise<number> {
+  const box = await page.locator('.haru-book-sheet__cover .haru-book-cover').boundingBox();
+  expect(box).not.toBeNull();
+  const points = Array.from({ length: COVER_TOP_BLEED_SCAN_PX }, (_unused, index) => ({
+    x: Math.round((box?.x ?? 0) + (box?.width ?? 0) / 2),
+    y: Math.round(box?.y ?? 0) - 1 - index,
+  }));
+
+  await page.addStyleTag({ content: COVER_SHADOW_ON });
+  await settle(page);
+  const withShadow: Rgb[] = [];
+  for (const point of points) withShadow.push(await pixelAt(page, point.x, point.y));
+
+  await page.addStyleTag({ content: COVER_SHADOW_OFF });
+  await settle(page);
+  const withoutShadow: Rgb[] = [];
+  for (const point of points) withoutShadow.push(await pixelAt(page, point.x, point.y));
+
+  const profile = withShadow.map((value, index) => distance(value, withoutShadow[index] as Rgb));
+  const firstGap = profile.findIndex((delta) => delta < COVER_TOP_BLEED_FLOOR);
+
+  return firstGap === -1 ? profile.length : firstGap;
+}
+
+test.describe('표지 그림자 **좌우** 자리 — 보정 **있음** (`contentShadowInset="cover"` + flip 상자)', () => {
   for (const viewport of VIEWPORTS) {
     test(`${viewport.width}px`, async ({ page }) => {
       await page.setViewportSize(viewport);
@@ -767,7 +822,7 @@ test.describe('표지 그림자 자리 — 보정 **있음** (`contentShadowInse
   }
 });
 
-test.describe('표지 그림자 자리 — 보정 **없음** 이면 전면 절단된다 (2라운드-3 상태)', () => {
+test.describe('표지 그림자 **좌우** 자리 — 보정 **없음** 이면 전면 절단된다 (2라운드-3 상태)', () => {
   for (const viewport of VIEWPORTS) {
     test(`${viewport.width}px`, async ({ page }) => {
       await page.setViewportSize(viewport);
@@ -811,20 +866,112 @@ test('안쪽 clip 박스(`__flip`)만 되돌려도 다시 잘린다 — 두 박�
   );
 });
 
-test('시트 표지에는 지금 drop shadow 가 **없다** (자리는 주입해서 잰다)', async ({ page }) => {
+/*
+ * ── 위쪽 자리 (2라운드-5, 사용자 결정 2026-10-09 ①) ──
+ * 좌우와 달리 **한 박스만** 처리한다: `.haru-book-sheet__flip` 은 `overflow-x: clip` 이고
+ * `overflow-y` 를 선언하지 않아 computed 가 `visible` 이다 (`clip` 은 다른 축을 scroll
+ * container 로 만들지 않는다). 아래 세 번째 테스트가 그 사실을 **역검증**한다 —
+ * flip 쪽에만 자리를 되돌려도 위쪽 그림자는 그대로 보인다.
+ */
+/** 위쪽 번짐 설계치 — 토큰 `--sheet-content-shadow-inset-block-start-cover` 와 같은 8. */
+const COVER_TOP_BLEED_PX = 8;
+
+test.describe('표지 그림자 **위쪽** 자리 — 보정 **있음** (`padding-block-start` 8)', () => {
+  for (const viewport of VIEWPORTS) {
+    test(`${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await hideDevPanel(page);
+
+      await openBookSheetFront(page);
+      const bleed = await measureCoverTopBleed(page);
+
+      /* **전량**이 보여야 한다 — 1px 이라도 잘리면 자리 계산이 틀린 것이다. */
+      expect(bleed, `위쪽 번짐이 ${bleed}px 만 보인다 (설계 ${COVER_TOP_BLEED_PX})`).toBe(
+        COVER_TOP_BLEED_PX,
+      );
+    });
+  }
+});
+
+test.describe('표지 그림자 **위쪽** 자리 — 보정 **없음** 이면 잘린다 (2라운드-4 상태)', () => {
+  for (const viewport of VIEWPORTS) {
+    test(`${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await hideDevPanel(page);
+
+      await openBookSheetFront(page);
+      /* 위쪽 자리만 **런타임에 되돌린다** (`R-BASELINE-1` ⑥ 토글) — 좌우는 그대로 둔다. */
+      await page.addStyleTag({
+        content:
+          '.haru-sheet__content--shadow-inset-cover { padding-block-start: 0 !important; margin-block-start: 0 !important; }',
+      });
+      const bleed = await measureCoverTopBleed(page);
+
+      /*
+        실측: 393·600·1024 는 **0**(전면 절단), 320 은 **3** — 320 에서는 텍스트 열이 표지보다
+        높아 표지가 2.58px 내려가 그만큼이 우연히 살아 있다 (`measureCoverTopBleed` 주석).
+        그래서 "0 이어야 한다" 가 아니라 "**전량(8)보다 적다**" 로 둔다 — 보정 없이 통과하면
+        위 테스트가 무의미해진다는 것만 막으면 된다.
+      */
+      expect(
+        bleed,
+        `자리 없이도 번짐 전량이 보였다 — 프로브가 무의미하다 (bleed ${bleed})`,
+      ).toBeLessThan(COVER_TOP_BLEED_PX);
+    });
+  }
+});
+
+test('위쪽은 `__flip` 자리를 되돌려도 **그대로 보인다** — 세로를 자르는 박스가 아니다', async ({
+  page,
+}) => {
   await hideDevPanel(page);
   await openBookSheetFront(page);
 
-  const shadow = await page.evaluate(() => {
+  /*
+    좌우는 **두 박스** 모두 자리가 필요했는데(바깥만 켜면 안쪽이 먼저 자른다) 위쪽은
+    **한 박스**로 끝난다. 근거는 `overflow-x: clip` 이 다른 축을 scroll container 로 만들지
+    않는다는 것이고, 그 사실을 computed 값과 프로브로 둘 다 고정한다.
+  */
+  const overflow = await page.evaluate(() => {
+    const flip = document.querySelector('.haru-book-sheet__flip');
+    if (flip === null) throw new Error('flip 상자를 찾지 못했다');
+    const style = getComputedStyle(flip);
+    return { x: style.overflowX, y: style.overflowY };
+  });
+  expect(overflow).toStrictEqual({ x: 'clip', y: 'visible' });
+
+  /* flip 의 좌우 자리를 통째로 없애도 **위쪽**은 영향이 없다 (좌우 테스트와 대조된다). */
+  await page.addStyleTag({
+    content:
+      '.haru-book-sheet__flip { padding-inline: 0 !important; margin-inline: 0 !important; }',
+  });
+  const bleed = await measureCoverTopBleed(page);
+
+  expect(bleed, `위쪽 번짐이 flip 상자에 잘렸다 (bleed ${bleed})`).toBe(COVER_TOP_BLEED_PX);
+});
+
+test('시트 표지에 Figma `85:536` 의 `--shadow-cover` + radius 10 이 **있다**', async ({ page }) => {
+  await hideDevPanel(page);
+  await openBookSheetFront(page);
+
+  const style = await page.evaluate(() => {
     const cover = document.querySelector('.haru-book-sheet__cover .haru-book-cover');
     if (cover === null) throw new Error('시트 표지를 찾지 못했다');
-    return getComputedStyle(cover).boxShadow;
+    const cs = getComputedStyle(cover);
+    return { shadow: cs.boxShadow, radius: cs.borderRadius };
   });
 
   /*
-    이 단언이 실패하면 **좋은 쪽의 변화**다 — 표지에 Figma `85:536` 의 `--shadow-cover` 가
-    생겼다는 뜻이고, 자리는 이미 준비되어 있으므로 위 두 테스트를 주입 없이 재도록 바꾸면 된다.
-    (Figma 에는 그림자가 있는데 구현에 없다는 사실 자체는 **승인 대기 보고 항목**이다.)
+    2라운드-4 까지는 `none` 이었다 (`BookCover md` 기본값에 그림자가 없고 Home 만 덮었다).
+    사용자 결정 2026-10-09 ① 로 `library.css` 가 **시트 범위에만** 덮는다.
+    겹 구성: drop `0 6px 14px ink28%` + inset highlight `0 1px 0 white50%` (`--shadow-cover`).
+    실측 computed (dev 서버 · 393×852):
+      `color(srgb 0.368627 0.45098 0.439216 / 0.28) 0px 6px 14px 0px,
+       rgba(255, 255, 255, 0.5) 0px 1px 0px 0px inset`
   */
-  expect(shadow).toBe('none');
+  expect(style.shadow).not.toBe('none');
+  expect(style.shadow).toMatch(/0px 6px 14px 0px/);
+  expect(style.shadow).toMatch(/0px 1px 0px 0px inset/);
+  /* radius 10 = `--book-cover-radius-xl` (Figma `85:536`). 목록(`lg`)의 12 와 다르다. */
+  expect(style.radius).toBe('10px');
 });

@@ -1,6 +1,6 @@
 # Stage 3 Home — Figma 전수 대조 감사 (Visual Gap Audit)
 
-Status: DRAFT
+Status: **반영 완료** — 결정은 `docs/decisions/stage-3-approvals.md` §12~§13, 구현은 커밋 `9173b2b` (Visual Gap 3차 검토까지 통과)
 작성: design-agent, 2026-10-05 — **1차 감사 → 2차 재실측·구현 명세 → 3차 명세 마무리**
 근거 규칙: `CLAUDE.md` ⛔ 최우선 규칙 — "Figma 를 그대로 구현한다" (사용자 지시 2026-10-05)
 결정 정본: `docs/decisions/stage-3-approvals.md` **§12 · §12.8 · §12.10 · §12.11**
