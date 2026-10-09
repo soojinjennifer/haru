@@ -1,6 +1,6 @@
 # Stage 3 — development-agent → stage-qa-agent **통합 인계 메모**
 
-Status: 작성 2026-10-09 (development-agent)
+Status: 작성 2026-10-09 (development-agent) · **QA 수정 라운드 반영 2026-10-09 → §14**
 대상 Agent: `stage-qa-agent` (`.claude/rules/workflow.md` §6 이 지정하는 인계 파일)
 
 > 이 문서는 **QA 의 입구**다. 구현 자랑이 아니라 **판정 근거와 재현 경로**가 목적이다.
@@ -223,6 +223,12 @@ dev 전용이며 Production 빌드에 **존재하지 않는다** (`assert:no-moc
 | ⑦ | 캐러셀 **`overflow-x` 예외** (`.haru-shelf-track`) | — | **`L-NEW-01`** (approvals §20.1) — `AppColumn` 안쪽 `overflow-*` 금지의 **두 번째 예외**(첫 번째는 Home 가로 트랙). 조건 3개를 충족해야 한다: ① 그림자 보호 구조(`R-SHADOW-1` ②) ② **세로·가로 양축** 픽셀 프로브 회귀 테스트(`R-SHADOW-1` ⑥) ③ 근거 주석 — 셋 다 적용됨 |
 | ⑧ | `BookDetailSheet` 뒷면에서 **ActionBar 를 레이아웃에서 뺀다** | `86:482` 뒷면에 ActionBar **없음** | 사용자 결정 2026-10-09 ② — Figma 를 따르는 쪽이다. 구현 수단(음수 margin 400ms 보간)의 사유는 `library.css` 주석에 있다 |
 | ⑨ | dev Scenario Panel 본문 `max-block-size: 60dvh` + `overflow-y: auto` | — | approvals §21.6 — dev 전용, Production 영향 0 |
+| ⑩ | **캐릭터 버블 닫기(×) 버튼** (Home) | `50:176` 에 **없음** | **approvals §13.4 `W-2`** + `stage-3-home-handoff.md` §B2 — 사용자 지시로 추가했다. 크기 **40 유지**가 그 결정의 내용이다("닫기 버튼 자체가 Figma 에 없으므로 … 결정: 40 을 유지한다"). 허용 차이 등록 + 디자이너 확인 대상(`D-REQ-2`) |
+
+> **⑩ 은 `QA-3-007` 로 추가되었다 (2026-10-09).** 그전까지 이 표는 ①~⑨ 9건이었고 ⑩ 이 빠져 있었다.
+> ①~⑨ 는 Library 라운드 산출물이고 ⑩ 은 **Home 라운드** 산출물이라, 통합 입구를 만들 때
+> Home 라운드 메모(`stage-3-home-handoff.md` §B2)에서 옮겨 적히지 않았다. 이 표는 "승인분 전부"를
+> 선언하므로 1건이라도 빠지면 QA 가 최우선 규칙 #2 위반으로 오판할 수 있다.
 
 ---
 
@@ -299,13 +305,15 @@ dev 전용이며 Production 빌드에 **존재하지 않는다** (`assert:no-moc
 | **`P-05`** | scrim | **해제** — 근거가 "DESIGN_TOKEN_MAP 제안" → **"Figma 실측"** 으로 바뀌었다 (`L-NEW-09`, approvals §19·§20.1). 감시 baseline `s3-sheet-scrim` · `s3-dialog-scrim` 신규 |
 | 남은 목록 | `P-01` · `P-02` · `P-04` · `P-16` · `P-23` · `P-24` (`fonts.test.ts` 가 고정) |
 
-### ⚠️ `S3-PROV-2` — dev gallery 가값 목록에 `P-18`~`P-23` 이 **미등재**다
+### ~~⚠️ `S3-PROV-2` — dev gallery 가값 목록 미등재~~ → **해소 (2026-10-09, `QA-3-006`)**
 
-Home 라운드에서 만든 가값(`P-23` `--color-prompt-tag-fg` 등)이 dev gallery `provisionalItems.ts` 에 **등재되지 않았다**.
-**기존 공백**이며 Library 범위 밖이라 1라운드가 고치지 않았다 (옳은 판단). 이번 라운드 범위도 아니다.
+**대상은 `P-23`(`--color-prompt-tag-fg`) 1건이었다.** 이 문서가 처음 적은 `P-18`~`P-23` 6건은 틀렸다 —
+`P-18`~`P-22` 는 **토큰 자체가 없어 등재 대상이 아니다**(`P-20` `--toggle-*` 은 확정, 나머지는 미생성).
+QA 가 `provisional` 주석 전수 조사로 approvals §21.5 의 기록을 정정했다 (approvals §26.5).
 
-→ **가값 재제시(Stage 0 `#10-4`) 전 선행 조건이다.** 목록이 불완전하면 항목별 재제시 자체가 성립하지 않는다.
-→ approvals **§21.5**. 이번에 추가된 `P-24` 는 등재되어 있다.
+등재 기준은 **`packages/design-tokens` 의 `provisional` 주석**이며 현재 활성 가값은
+`P-01 · P-02 · P-04 · P-16 · P-23 · P-24` 6건, dev gallery 목록도 같은 6건을 담는다.
+수정 내용은 **§14 ③**.
 
 ---
 
@@ -341,7 +349,7 @@ Home 라운드에서 만든 가값(`P-23` `--color-prompt-tag-fg` 등)이 dev ga
 | ⑥ | **뒤집기 중간 프레임의 ActionBar 잔상** | ActionBar 는 `Sheet.footer` 라 뒤집히지 않고 음수 margin + opacity 로 400ms 에 걸쳐 접힌다. 전환 **중간 프레임**에 반투명 ActionBar 가 뒷면 위에 겹쳐 보인다. `prefers-reduced-motion` 에서는 전이가 꺼져 나타나지 않는다 |
 | ⑦ | **저장 실패 `InlineAlert` + 뒤집기 동시 상황의 잔여 빈 자리** | 접기 양은 CSS 상수(ActionBar 45 + 시트 gap 12 = 57)다. 실패 알림이 함께 떠 있으면 footer 가 45 보다 높아 **그 차이만큼 빈 자리가 남는다**. 내용 손실·겹침은 없다. CSS 로는 footer 의 실제 높이를 알 수 없다 |
 | ⑧ | **320×568 뒷면에서 본문을 63px 더 내릴 수 있다** | 앞면의 넘친 높이가 스크롤 영역에 남아 **빈 자리가 보인다**. 내용 손실 없음. 없애려면 뒤집힌 동안 앞면을 접어야 하는데 전환 중 앞면이 갑자기 사라진다 |
-| ⑨ | **`AC-3-07` Toast 하단 offset** | 식은 `AD-S3-14` 대로 고쳤고 소스 가드로 고정했으나 **Toast 가 실제로 마운트되는 Stage 3 화면이 없어** 실행 증거가 없다 → QA 판정 필요 (`stage-3-home-handoff.md` §2.2) |
+| ⑨ | ~~**`AC-3-07` Toast 하단 offset**~~ → **해소 (2026-10-09, `QA-3-004`)** | ⚠️ **이 칸의 전제가 틀렸다.** 원문은 *"Toast 가 실제로 마운트되는 Stage 3 화면이 없어 실행 증거가 없다"* 였는데, `ActivityCardDeck.tsx:49`(저장 실패)와 `AddOwnBookForm.tsx:68`(등록 성공)이 **둘 다 Toast 를 띄운다**. 경위와 수정은 **§14** |
 | ⑩ | **`AC-3-86`** "보호자 직접 입력 책" 분기 | 부분 충족 — `stage-3-home-handoff.md` §R8 ④ |
 
 ---
@@ -496,3 +504,170 @@ Figma `86:482` 의 `Prompt of this book` 은 **본문 h3** 에 남는다. → §
 | `pnpm assert:no-mocks` | ✅ |
 
 `apps/api/` · `supabase/` **미생성 확인** ✅
+
+---
+
+## 14. QA 수정 라운드 (`docs/qa/stage-3-qa-report.md` → 2026-10-09)
+
+> 대상은 **사용자가 이월하지 않은 `FAIL` 2건 + Low 2건**이다.
+> **이월 3건은 손대지 않았다** — `QA-3-001`(push 권한 기능군) · `QA-3-002`(오프라인 캐시) ·
+> `QA-3-003`(에셋 파이프라인)은 사용자 결정으로 **Stage 4 In Scope** 다 (approvals §26.1).
+> `QA-3-008`(AC 문구 낡음) · `QA-3-009`(`AC-3-34` 폐기 표기)는 **Plan 문서 소유**라 건드리지 않았다.
+
+### ① `QA-3-004` (Medium) — Toast 가 탭바를 덮어 탭 3개 클릭을 막았다
+
+**원인.** `ToastProvider` 는 "화면당 Toast 1개" 를 보장하려고 **앱 조립 지점**
+(`AppProviders.tsx` — router **바깥**)에 한 번 마운트된다. 그 지점은 현재 route 가 탭 화면인지
+스택 화면인지 알 수 없는데, 탭바 보정은 `withTabBar` **prop** 으로만 켤 수 있었다.
+→ 넘길 수 있는 자리가 없어 저장소 전체에서 **0건**, `.haru-toast-viewport--tabbar` 는
+**도달 불가 코드**였다. 측정값: Toast `y 786–836` ↔ 탭바 `y 766–836`(**50px 겹침**),
+`--z-toast`(60) > `--z-tabbar`(20) → 탭 3개 중심의 `elementFromPoint` 가 전부 Toast.
+
+**수정 (구조를 바꿨다 — prop → 런타임 등록).**
+
+| 파일 | 내용 |
+|---|---|
+| `packages/ui/src/feedback/ToastProvider.tsx` | `withTabBar` **prop 을 없애고** `useToastTabBarInset()` 등록 hook 을 신설. provider 안에 **참조 수**(`tabBarCount`)를 두고 `> 0` 일 때 수식어를 붙인다 |
+| `packages/ui/src/index.ts` | `useToastTabBarInset` export |
+| `apps/web/src/app/layouts/TabLayout.tsx` | `useToastTabBarInset(tabBar !== undefined)` — **탭바를 실제로 렌더하는 지점**이 소유자다 |
+
+**어디서 넘기기로 했는지 + 왜.** `AppProviders` 에 하드코딩하지 **않았다** — `true` 로 고정하면
+탭바가 없는 온보딩·설정·`/library/add` Toast 가 탭바 높이(70+overhang)만큼 떠서 **스택 화면이
+깨진다**. `TabLayout` 은 탭바 슬롯의 유일한 소유자이고, **`tabBar` 가 주어졌을 때만** 등록하므로
+탭바가 없는 `TabLayout` 사용(Stage 1 `/`)에서도 보정이 켜지지 않는다.
+참조 수를 세는 이유: route 전환은 "새 Layout 마운트 + 옛 Layout 정리" 가 한 커밋에 일어나고
+StrictMode 는 effect 를 mount→unmount→mount 로 두 번 돈다 — boolean 이면 순서에 따라 뒤집힌다.
+
+**스택 화면 회귀 확인** (실행):
+- `e2e/tabs.spec.ts` "탭바가 없는 화면의 Toast 는 보정 없이 하단 16 에 머문다" — `/auth/reset-password`
+  성공 Toast 에서 `--tabbar` **미부착** + `window.innerHeight − rect.bottom === 16` 실측
+- jsdom: `StackLayout` · `FullscreenLayout` · **tabBar 없는 `TabLayout`** 3종 미부착 + **탭→스택
+  전환에서 보정 해제**
+- 시각 baseline: 전량 재생성 후 **74종 바이트 동일** (dev gallery 는 `BottomTabBar` 를 직접
+  렌더하고 `TabLayout` 을 쓰지 않으므로 `v9-toast` 컷의 Toast 위치가 바뀌지 않는다)
+
+**검증 수단을 CSS 문자열에서 런타임으로 옮겼다** (approvals §26.3):
+
+| 층 | 파일 | 무엇을 단정하는가 |
+|---|---|---|
+| e2e (393px) | `e2e/tabs.spec.ts` | Toast 가 떠 있는 상태에서 **Toast bottom ≤ 탭바 top** + 탭 3개 중심 `elementFromPoint` 가 탭바 |
+| jsdom | `apps/web/src/app/layouts/__tests__/layouts.test.tsx` | Layout 별 **클래스 적용 여부** (4건) |
+| 소스 가드 | `apps/web/__tests__/stage3-css-guards.test.ts` | 기존 단정 유지 + **"이것은 선언 존재만 증명한다"** 주석 + 런타임 테스트 포인터 |
+
+**수정 전 FAIL 출력** (원문):
+
+```
+  ✘  1 [chromium] › e2e/tabs.spec.ts:178:3 › Toast 가 떠 있어도 탭 3개가 가려지지 않는다 (`QA-3-004`)
+
+    Error: Toast 가 탭바를 덮는다 {"toastPresent":true,"barPresent":true,
+    "viewportClass":"haru-toast-viewport","insetBlockEnd":"16px",
+    "toast":{"top":786,"bottom":836},"bar":{"top":766,"bottom":836},
+    "links":[{"label":"Library","inTabBar":false,"inToast":true,
+              "topNode":"haru-toast haru-toast--error haru-toast--open"},
+             {"label":"Home","inTabBar":false,"inToast":true,"topNode":"…"},
+             {"label":"Progress","inTabBar":false,"inToast":true,"topNode":"…"}]}
+
+    expect(received).toBeLessThanOrEqual(expected)
+    Expected: <= 766
+    Received:    836
+```
+
+→ 수정 후 **7 passed** (`e2e/tabs.spec.ts` 전체).
+
+⚠️ **`.click()` 을 주 단정으로 쓰지 않은 이유**: Toast 는 4s 뒤 자동 해제되므로, 가려져 있어도
+Playwright 가 기다리는 동안 Toast 가 사라져 클릭이 **늦게 성공**한다 — 결함을 통과시킨다.
+hit-test 는 즉시·결정적이며, Toast 존재 확인을 **같은 `evaluate` 안**에서 하므로 헛돌 수 없다.
+
+### ② `QA-3-005` (Medium) — `MockLibraryApi` 가 `Idempotency-Key` 를 버렸다
+
+**원인.** `ApiMutationOptions.idempotencyKey` 를 받아서 쓰지 않았다. 같은 키로 두 번 호출하면
+리소스가 두 번 만들어지고 `IDEMPOTENCY_KEY_REUSED` 경로가 0건이었다 (`AC-3-36`).
+
+**Stage 2 선례와 맞춘 방식** — `MockConsentApi.ts:101·214` · `MockOnboardingApi.ts:137·396` 과
+**같은 구조**다:
+
+1. 모듈 수준 `fingerprint(request) = JSON.stringify(request)` (Adapter 경계 parse 를 통과한 뒤라
+   키 순서가 정규화되어 **결정적**이다)
+2. Adapter 인스턴스 안의 `Map<key, { body, response }>` — **호출별로 분리**
+   (`addBookIdempotency` · `giftIdempotency`). 섞으면 등록 응답이 증정 신청으로 재생된다
+3. 판정 위치도 선례와 같다: **요청 로그 직후, 시나리오 분기보다 앞**. 한 번 성공한 요청은 그 뒤
+   scenario 가 무엇이든 같은 응답을 돌려줘야 재시도가 안전하다
+4. 같은 key + 같은 body → **최초 응답 그대로 재생**(`idFactory.next()` 를 다시 돌리지 않으므로
+   `id` 까지 동일) / 같은 key + 다른 body → **`IDEMPOTENCY_KEY_REUSED`**(기존 Error Code,
+   **신규 0건**) / 실패한 시도는 **보관하지 않는다**(`retry` 1회차 → 같은 key 재시도 성공)
+
+대상은 **`Idempotency-Key` 필수인 비멱등 POST 2종**이다 (`shared/api/library-api.ts` 표):
+`addOwnBook` · `createGiftRequest`. `saveBook`/`unsaveBook` 은 본래 멱등이고 IK 를 보내지 않으므로
+그대로다 (`savedAt` 고정 맵이 이미 멱등을 보장한다).
+
+**테스트 7건** (`apps/web/src/mocks/__tests__/MockLibraryApi.test.ts`, Stage 2 블록과 동일 구성):
+재생(2) · 다른 body 거절(2) · 다른 key 분리(1) · `retry` 1회차 미보관(1) · **두 호출 보관함 분리**(1).
+수단을 제거하면 **4건이 깨진다**(실측: 재생 반환 제거 → 2 FAIL, 보관 자체 제거 → 4 FAIL).
+
+**남는 PENDING**: 서버 측 24h 보관은 그대로 `P3-BIP-22` 다 (§6).
+
+### ③ `QA-3-006` (Low) — `P-23` dev gallery 등재
+
+- `apps/web/src/dev/ui-gallery/provisionalItems.ts` — **`P-23`**(`--color-prompt-tag-fg`) 추가.
+  `P-18`~`P-22` 는 **만들지 않았다** — 토큰 자체가 없어 등재 대상이 아니다 (approvals §26.5 가
+  이 문서 §7 의 "`P-18`~`P-23` 6건" 기록을 정정했다)
+- `apps/web/src/dev/ui-gallery/A11yPage.tsx` — 대비 쌍 **`C-5`**(`--color-prompt-tag-fg` on
+  `--color-prompt-tag-bg`, 가값 `P-23`) 추가. 이 페이지의 규칙이 *"수치는 문서에서 옮겨 적지 않고
+  **실제 렌더 결과에서 측정**한다"* 이고, 가값 재제시(Stage 0 `#10-4`)에는 측정값이 필요하다.
+  `P-24` 가 `B-3` 을 갖는 것과 같은 짝이다. **a11y 페이지는 시각 baseline 이 없다** → 영향 0
+- **재발 방지 (신규)** `apps/web/__tests__/provisional-registry.test.ts` — **토큰 소스를 기준**으로
+  비교한다: `packages/design-tokens/src/**` 의 `provisional: P-xx` 주석 전수 ↔ dev gallery 목록.
+  기존 단정(`gallery-helpers.test.ts`)은 "지금 목록이 이것이다" 라 **새 가값이 생겨도 알려주지
+  않았다** — 그래서 `P-23` 이 한 라운드 내내 빠져 있었다
+
+> ⚠️ 이 ③ 이 **`QA-3-006` 의 지시 범위를 한 칸 넘는다**: QA 의 `Suspected area` 는
+> `provisionalItems.ts` 1개였고, `A11yPage.tsx` 의 `C-5` 와 재발 방지 테스트는 내 판단으로 넣었다.
+> 근거는 `P-24` 선례(목록 + `B-3` 대비 행이 같이 들어왔다)와 가값 재제시의 성립 조건이다.
+> **되돌리라면 되돌린다.**
+
+### ④ `QA-3-007` (Low) — 이 문서 정정 2건
+
+| 위치 | 정정 |
+|---|---|
+| **§3** | "Figma 에 없는데 구현한 것" 이 **9건 → 10건**. 빠진 것은 **캐릭터 버블 닫기(×) 버튼**(승인 근거 approvals **§13.4 `W-2`** + `stage-3-home-handoff.md` §B2). 경위: ①~⑨ 는 Library 라운드 산출물이고 ⑩ 은 **Home 라운드** 산출물이어서, 통합 입구를 만들 때 Home 라운드 메모에서 옮겨 적히지 않았다 |
+| **§9 ⑨** | 전제가 **틀렸다**. *"Toast 가 실제로 마운트되는 Stage 3 화면이 없어 실행 증거가 없다"* → `ActivityCardDeck.tsx:49`(저장 실패)·`AddOwnBookForm.tsx:68`(등록 성공)이 **둘 다 띄운다**. 내가 **소스 가드(CSS 문자열)를 증거로 받아들이고 실행 측정을 생략**했고, 그 생략 때문에 `QA-3-004` 를 놓쳤다. QA 가 전제를 믿지 않고 직접 쟀기 때문에 드러났다 |
+| **§7** | `S3-PROV-2` 블록 — 대상이 `P-18`~`P-23` 6건이 아니라 **`P-23` 1건**이었음을 반영하고 해소로 표시 |
+
+### ⑤ 생성·수정 파일 (이 라운드)
+
+```
+수정  packages/ui/src/feedback/ToastProvider.tsx                     withTabBar prop → useToastTabBarInset 등록
+수정  packages/ui/src/index.ts                                       useToastTabBarInset export
+수정  apps/web/src/app/layouts/TabLayout.tsx                         tabBar 가 있을 때만 보정 등록
+수정  apps/web/src/mocks/library/MockLibraryApi.ts                   IK 보관·재생 2종 (addOwnBook · createGiftRequest)
+수정  apps/web/src/dev/ui-gallery/provisionalItems.ts                P-23 등재
+수정  apps/web/src/dev/ui-gallery/A11yPage.tsx                       대비 쌍 C-5 (P-23)
+수정  apps/web/src/app/layouts/__tests__/layouts.test.tsx            Toast 보정 배선 런타임 단정 5건
+수정  apps/web/src/mocks/__tests__/MockLibraryApi.test.ts            IK 보관·재생 7건
+수정  apps/web/src/dev/__tests__/gallery-helpers.test.ts             P-23 반영 (대기 6 → 7)
+수정  apps/web/__tests__/stage3-css-guards.test.ts                   "선언 존재만 증명한다" 주석 + 런타임 포인터
+수정  e2e/tabs.spec.ts                                               Toast ↔ 탭 hit-test 2건 (정·역방향)
+신규  apps/web/__tests__/provisional-registry.test.ts                토큰 provisional 주석 ↔ gallery 목록 대조
+수정  docs/qa/stage-3-handoff.md                                     §3 ⑩ · §7 · §9 ⑨ 정정 + 이 §14
+```
+
+**시각 baseline: 변경 0종.** `--update-snapshots=all` 전량 재생성 후 `git status e2e/__screenshots__`
+가 **비어 있다**(74종 바이트 동일). Toast 를 담은 baseline 은 `v9-toast`(dev gallery 컷) 1종인데,
+gallery 는 `BottomTabBar` 를 직접 렌더하고 `TabLayout` 을 쓰지 않아 **보정이 켜지지 않는다**.
+
+### ⑥ 검증 명령 결과 (8/8)
+
+| 명령 | 결과 |
+|---|---|
+| `pnpm install --frozen-lockfile` | ✅ (의존성 변경 없음) |
+| `pnpm typecheck` | ✅ |
+| `pnpm lint` | ✅ |
+| `pnpm lint:boundaries` | ✅ no dependency violations (587 modules · 2072 dependencies) |
+| `pnpm format:check` | ✅ |
+| `pnpm test` | ✅ **1611 passed** / 117 files (1596 → **+15**: Toast 배선 5 · IK 7 · 가값 가드 3) |
+| `pnpm build` | ✅ |
+| `pnpm test:e2e` | ✅ **273 passed** (271 → **+2**) · **단독 실행 5.7분** |
+| `pnpm assert:no-mocks` | ✅ |
+| `--update-snapshots=all` | ✅ 재생성 후 baseline diff **0종** |
+
+`apps/api/` · `supabase/` **미생성** 재확인 (`ls apps` → `web` 만, `supabase` 없음).

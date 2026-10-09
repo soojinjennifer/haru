@@ -1,3 +1,4 @@
+import { useToastTabBarInset } from '@haru/ui';
 import type { ReactNode } from 'react';
 import { Outlet } from 'react-router';
 
@@ -28,8 +29,18 @@ export interface TabLayoutProps {
  *
  * 중앙 버튼 overhang 여백은 `.haru-app-shell__bar-bottom` 의 `padding-block-start` 가 소유한다
  * (Stage 3 Design Spec §2.1 — `pt-3` 리터럴을 토큰 참조로 바꿨다, `AD-S3-13`).
+ *
+ * ── Toast 하단 보정의 **소유자가 여기다** (`QA-3-004`) ──
+ * `ToastProvider` 는 router 바깥(앱 조립 지점)에 한 번 마운트되므로 현재 화면에 탭바가 있는지
+ * 모른다. 그 결과 탭바 보정 CSS(`.haru-toast-viewport--tabbar`)가 아무도 켜 주지 않는
+ * 도달 불가 코드였고, Toast 가 탭 3개를 50px 덮어 클릭을 전부 가로막았다.
+ * 탭바를 실제로 렌더하는 지점이 여기뿐이므로 **`tabBar` 슬롯이 있을 때만** 보정을 요청한다 —
+ * `tabBar` 가 없으면(Stage 1 `/`) 탭바도 없고 보정도 없다. 스택·풀스크린 Layout 은 등록하지
+ * 않으므로 온보딩·설정 Toast 위치는 그대로다.
  */
 export function TabLayout({ topBar, tabBar, children }: TabLayoutProps) {
+  useToastTabBarInset(tabBar !== undefined);
+
   return (
     <AppShell>
       {topBar === undefined ? null : (

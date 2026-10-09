@@ -34,24 +34,61 @@ export interface ToastController {
 
 const ToastContext = createContext<ToastController | null>(null);
 
+/** 하단 탭바 존재를 ToastProvider 에 알리는 등록 창구 (`QA-3-004`). */
+interface ToastViewportRegistry {
+  retain: () => void;
+  release: () => void;
+}
+
+const ToastViewportContext = createContext<ToastViewportRegistry | null>(null);
+
+/**
+ * "이 화면에는 BottomTabBar 가 있다" 를 ToastProvider 에 **런타임으로** 알린다 (`QA-3-004`).
+ *
+ * ── 왜 prop 이 아니라 등록인가 ──
+ * ToastProvider 는 Toast 를 화면당 1개로 묶기 위해 **앱 조립 지점**(router 바깥)에 한 번
+ * 마운트된다. 그 지점은 현재 route 가 탭 화면인지 스택 화면인지 알 수 없다. 그래서 과거
+ * `withTabBar` prop 은 **아무도 넘길 수 없는 자리에 있었고**, 탭바 보정 CSS 가 Production 에서
+ * 도달 불가 코드였다 (탭 3개 클릭이 Toast 에 막혔다 — approvals §26.2).
+ * 반대로 prop 을 참으로 하드코딩하면 탭바가 없는 온보딩·설정 Toast 가 탭바 높이만큼 뜬다.
+ * 그래서 **탭바를 실제로 렌더하는 Layout** 이 자기 생명주기 동안만 보정을 요청한다.
+ *
+ * 참조 수를 세는 이유: route 전환은 "새 Layout 마운트"와 "옛 Layout 정리"가 한 커밋 안에서
+ * 일어나고, StrictMode 는 effect 를 mount → unmount → mount 로 두 번 돈다. boolean 이면
+ * 순서에 따라 값이 뒤집힐 수 있다.
+ */
+export function useToastTabBarInset(present = true): void {
+  const registry = useContext(ToastViewportContext);
+
+  useEffect(() => {
+    if (registry === null || !present) return undefined;
+
+    registry.retain();
+    return () => {
+      registry.release();
+    };
+  }, [registry, present]);
+}
+
 interface QueuedToast extends ToastOptions {
   id: number;
 }
 
 export interface ToastProviderProps {
   children: ReactNode;
-  /** BottomTabBar 가 있는 Layout 이면 하단 offset 에 탭바 높이를 더한다 (§4.12). */
-  withTabBar?: boolean;
 }
 
 /**
  * ToastProvider — Design Spec §4.12.
  *
  * 앱 컬럼 폭 안 하단에 Toast 하나를 렌더한다. 큐를 두지 않는다(양육자 화면 단순화).
+ *
+ * 하단 offset 은 탭바 유무로 갈린다 — 탭 화면은 `useToastTabBarInset` 등록으로 보정된다.
  */
-export function ToastProvider({ children, withTabBar = false }: ToastProviderProps) {
+export function ToastProvider({ children }: ToastProviderProps) {
   const [toast, setToast] = useState<QueuedToast | null>(null);
   const [open, setOpen] = useState(false);
+  const [tabBarCount, setTabBarCount] = useState(0);
   const nextId = useRef(0);
   const { mounted, state } = usePresence(open, MOTION_DURATION_MS.fast);
 
@@ -98,31 +135,47 @@ export function ToastProvider({ children, withTabBar = false }: ToastProviderPro
 
   const controller = useMemo<ToastController>(() => ({ show, dismiss }), [show, dismiss]);
 
+  const registry = useMemo<ToastViewportRegistry>(
+    () => ({
+      retain: () => {
+        setTabBarCount((count) => count + 1);
+      },
+      release: () => {
+        setTabBarCount((count) => Math.max(0, count - 1));
+      },
+    }),
+    [],
+  );
+
+  const withTabBar = tabBarCount > 0;
+
   return (
     <ToastContext.Provider value={controller}>
-      {children}
-      {mounted && toast && typeof document !== 'undefined'
-        ? createPortal(
-            <div
-              className={
-                withTabBar
-                  ? 'haru-toast-viewport haru-toast-viewport--tabbar'
-                  : 'haru-toast-viewport'
-              }
-            >
-              <Toast
-                key={toast.id}
-                message={toast.message}
-                tone={toast.tone ?? 'neutral'}
-                action={toast.action}
-                onDismiss={dismiss}
-                dismissLabel={toast.dismissLabel}
-                state={state}
-              />
-            </div>,
-            document.body,
-          )
-        : null}
+      <ToastViewportContext.Provider value={registry}>
+        {children}
+        {mounted && toast && typeof document !== 'undefined'
+          ? createPortal(
+              <div
+                className={
+                  withTabBar
+                    ? 'haru-toast-viewport haru-toast-viewport--tabbar'
+                    : 'haru-toast-viewport'
+                }
+              >
+                <Toast
+                  key={toast.id}
+                  message={toast.message}
+                  tone={toast.tone ?? 'neutral'}
+                  action={toast.action}
+                  onDismiss={dismiss}
+                  dismissLabel={toast.dismissLabel}
+                  state={state}
+                />
+              </div>,
+              document.body,
+            )
+          : null}
+      </ToastViewportContext.Provider>
     </ToastContext.Provider>
   );
 }

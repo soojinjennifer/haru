@@ -308,6 +308,98 @@ describe('직접 등록 (FR-23) · 증정 (FR-22)', () => {
   });
 });
 
+/*
+  `AC-3-36` · `QA-3-005` — 비멱등 POST 2종의 `Idempotency-Key` **보관·재생**.
+
+  Stage 2 `MockConsentApi.test.ts` "Idempotency-Key 보관·재생 (AC-2-16 · S2-R12)" 와 같은 네
+  단정(재생 · 다른 body 거절 · 다른 key 분리 · retry 1회차 미보관)을 쓴다. 넘기기만 하고 버리면
+  재시도가 리소스를 두 번 만들고 `IDEMPOTENCY_KEY_REUSED` 경로가 재현되지 않는다.
+*/
+describe('Idempotency-Key 보관·재생 (AC-3-36 · P3-BIP-22)', () => {
+  const KEY = { idempotencyKey: '88888888-8888-4888-8888-888888888888' };
+  const OTHER_KEY = { idempotencyKey: '99999999-9999-4999-8999-999999999999' };
+  const ADD_BODY = { target: { bookId: BOOK } };
+
+  it('addOwnBook — 같은 key + 같은 body → 최초 응답을 그대로 재생한다', async () => {
+    const { api, requestLog } = libraryApi('success');
+
+    const first = await api.addOwnBook({ childId: CHILD_ID, body: ADD_BODY }, KEY);
+    const replay = await api.addOwnBook({ childId: CHILD_ID, body: ADD_BODY }, KEY);
+
+    // **id 까지** 같아야 한다 — 다르면 리소스가 두 번 만들어진 것이다.
+    expect(JSON.stringify(replay)).toBe(JSON.stringify(first));
+    expect(replay.id).toBe(first.id);
+    // 요청은 두 번 나갔지만 생성은 한 번이다.
+    expect(
+      requestLog
+        .entries()
+        .filter((entry) => entry.operation === 'POST /v1/children/:childId/library/books'),
+    ).toHaveLength(2);
+  });
+
+  it('addOwnBook — 같은 key + 다른 body → `IDEMPOTENCY_KEY_REUSED`', async () => {
+    const { api } = libraryApi('success');
+    await api.addOwnBook({ childId: CHILD_ID, body: ADD_BODY }, KEY);
+
+    await expect(
+      api.addOwnBook({ childId: CHILD_ID, body: { target: { bookId: OTHER_BOOK } } }, KEY),
+    ).rejects.toSatisfy(
+      (error: unknown) => isHaruApiError(error) && error.code === 'IDEMPOTENCY_KEY_REUSED',
+    );
+  });
+
+  it('addOwnBook — 다른 key 면 별도 요청으로 처리된다', async () => {
+    const { api } = libraryApi('success');
+    const first = await api.addOwnBook({ childId: CHILD_ID, body: ADD_BODY }, KEY);
+    const second = await api.addOwnBook({ childId: CHILD_ID, body: ADD_BODY }, OTHER_KEY);
+
+    expect(second.id).not.toBe(first.id);
+  });
+
+  it('addOwnBook — `retry` 1회차 실패는 보관되지 않아 같은 key 로 재시도하면 성공한다', async () => {
+    const { api } = libraryApi('retry');
+
+    await expect(api.addOwnBook({ childId: CHILD_ID, body: ADD_BODY }, KEY)).rejects.toSatisfy(
+      isHaruApiError,
+    );
+    await expect(api.addOwnBook({ childId: CHILD_ID, body: ADD_BODY }, KEY)).resolves.toMatchObject(
+      { source: 'library_add' },
+    );
+  });
+
+  it('createGiftRequest — 같은 key + 같은 body → 최초 응답을 그대로 재생한다', async () => {
+    const { api } = libraryApi('success');
+
+    const first = await api.createGiftRequest({ childId: CHILD_ID, body: { bookId: BOOK } }, KEY);
+    const replay = await api.createGiftRequest({ childId: CHILD_ID, body: { bookId: BOOK } }, KEY);
+
+    expect(JSON.stringify(replay)).toBe(JSON.stringify(first));
+    expect(replay.id).toBe(first.id);
+  });
+
+  it('createGiftRequest — 같은 key + 다른 body → `IDEMPOTENCY_KEY_REUSED`', async () => {
+    const { api } = libraryApi('success');
+    await api.createGiftRequest({ childId: CHILD_ID, body: { bookId: BOOK } }, KEY);
+
+    await expect(
+      api.createGiftRequest({ childId: CHILD_ID, body: { bookId: OTHER_BOOK } }, KEY),
+    ).rejects.toSatisfy(
+      (error: unknown) => isHaruApiError(error) && error.code === 'IDEMPOTENCY_KEY_REUSED',
+    );
+  });
+
+  /* 두 호출의 보관함이 **분리**되어 있다 — 섞이면 등록 응답이 증정 신청으로 재생된다. */
+  it('두 호출이 같은 key 를 써도 서로 간섭하지 않는다', async () => {
+    const { api } = libraryApi('success');
+
+    const added = await api.addOwnBook({ childId: CHILD_ID, body: ADD_BODY }, KEY);
+    const gift = await api.createGiftRequest({ childId: CHILD_ID, body: { bookId: BOOK } }, KEY);
+
+    expect(GiftRequestSchema.safeParse(gift).success).toBe(true);
+    expect(gift.id).not.toBe(added.id);
+  });
+});
+
 describe('저장 — contracts parse · 멱등 (§3.7.3)', () => {
   it('bookId 로 저장하면 `SavedBook` 이 돌아온다', async () => {
     const { api } = libraryApi('success');

@@ -31,6 +31,12 @@
  * **멱등**: 같은 책을 두 번 저장해도 같은 응답(`savedAt` 포함)이며 오류가 아니다. 그래서 이
  * Adapter 는 `savedAt` 을 **처음 저장 시각에 고정**한다 (주입 clock 기준).
  *
+ * **`Idempotency-Key`** (`AC-3-36` · `QA-3-005`): 비멱등 POST 2종(`addOwnBook` ·
+ * `createGiftRequest`)은 키를 **보관**한다. 같은 key + 같은 body 는 최초 응답을 그대로
+ * 재생하고(새 리소스를 만들지 않는다), 같은 key + 다른 body 는 `IDEMPOTENCY_KEY_REUSED` 다.
+ * Stage 2 `MockConsentApi` · `MockOnboardingApi` 와 **같은 방식**이다 — 서버 보관(24h)은
+ * `P3-BIP-22` 로 Backend 몫이다.
+ *
  * **결정성**: 같은 key 를 반복 호출하면 같은 응답 바이트가 나온다 — 시각은 주입 clock 의
  * 기준 시각에서 상대 오프셋으로만 만든다 (`fixtures/library.ts`).
  *
@@ -148,6 +154,17 @@ const OVERVIEW_SHAPES: Partial<Record<LibraryScenarioKey, LibraryOverviewShape>>
   'gift-pending': 'gift-pending',
 };
 
+/**
+ * 같은 key 로 두 번 들어온 요청이 **같은 요청**인지 판단하는 기준 (서버 규약과 동일).
+ *
+ * `MockConsentApi` · `MockOnboardingApi` 의 `fingerprint` 와 같은 방식이다 — Stage 2 선례를
+ * 그대로 따른다 (`QA-3-005`). 요청은 Adapter 경계에서 이미 schema parse 를 통과했으므로
+ * 키 순서가 정규화되어 있고, `JSON.stringify` 비교가 결정적이다.
+ */
+function fingerprint(request: AddOwnBookRequest | CreateGiftRequestRequest): string {
+  return JSON.stringify(request);
+}
+
 export interface MockLibraryApiDeps {
   store: ScenarioStore;
   clock: Clock;
@@ -161,6 +178,36 @@ export function createMockLibraryApi(deps: MockLibraryApiDeps): LibraryApi {
 
   /** 저장된 책 id → 최초 저장 시각. 멱등성을 이 맵이 보장한다. */
   const savedAtById = new Map<string, string>();
+
+  /**
+   * `Idempotency-Key` → (요청 지문, 최초 응답). 실제 서버는 24h 보관한다 (`P3-BIP-22`).
+   *
+   * `addOwnBook` · `createGiftRequest` 는 **비멱등 POST** 이고 `Idempotency-Key` 가 필수다
+   * (`shared/api/library-api.ts` 표). 보관이 없으면 같은 키로 재시도할 때 리소스가 두 번
+   * 만들어지고 `IDEMPOTENCY_KEY_REUSED` 경로가 재현되지 않는다 (`AC-3-36` · `QA-3-005`).
+   * 응답을 **그대로** 재생하므로 `idFactory.next()` 가 두 번째 id 를 만들지 않는다.
+   */
+  const addBookIdempotency = new Map<string, { body: string; response: LibraryBook }>();
+  const giftIdempotency = new Map<string, { body: string; response: GiftRequest }>();
+
+  /**
+   * 보관된 응답을 재생하거나, 같은 키가 **다른 body** 로 재사용되면 거절한다.
+   *
+   * `undefined` 를 돌려주면 "처음 보는 키" 다 — 호출자가 평소 경로로 진행한다.
+   */
+  function replay<T>(
+    bucket: Map<string, { body: string; response: T }>,
+    key: string,
+    body: string,
+  ): T | undefined {
+    const stored = bucket.get(key);
+    if (stored === undefined) return undefined;
+
+    // 같은 key + 같은 body → 최초 응답 재생. 새 리소스를 만들지 않는다.
+    if (stored.body === body) return stored.response;
+
+    return fail('IDEMPOTENCY_KEY_REUSED', 'That idempotency key was used with another body.');
+  }
 
   function fail(code: ErrorCode, message: string): never {
     throw HaruApiError.fromEnvelope(
@@ -284,6 +331,14 @@ export function createMockLibraryApi(deps: MockLibraryApiDeps): LibraryApi {
       });
       requestLog?.record(ADD_BOOK_OPERATION, parsed);
 
+      /*
+        멱등 판정이 **시나리오 분기보다 앞**이다 (Stage 2 선례와 같은 자리) — 한 번 성공한
+        요청은 그 뒤 scenario 가 무엇이든 같은 응답을 돌려줘야 재시도가 안전하다.
+      */
+      const body = fingerprint(parsed);
+      const replayed = replay(addBookIdempotency, options.idempotencyKey, body);
+      if (replayed !== undefined) return replayed;
+
       const scenario = store.resolve(libraryScenarioGroup);
       const attempt = consumeAttempt(store, libraryScenarioGroup.group, options.signal);
 
@@ -298,25 +353,32 @@ export function createMockLibraryApi(deps: MockLibraryApiDeps): LibraryApi {
       const run = (): LibraryBook => {
         const { target } = parsed;
 
-        if ('bookId' in target) {
-          const book = findLibraryBook(target.bookId);
-          if (book === undefined) fail('RESOURCE_NOT_FOUND', 'Unknown book.');
+        const added = (): LibraryBook => {
+          if ('bookId' in target) {
+            const book = findLibraryBook(target.bookId);
+            if (book === undefined) fail('RESOURCE_NOT_FOUND', 'Unknown book.');
+
+            return parseResponse(
+              LibraryBookSchema,
+              createAddedBookFixture(idFactory.next(), { book }),
+              { operation: ADD_BOOK_OPERATION, direction: 'response' },
+            );
+          }
 
           return parseResponse(
             LibraryBookSchema,
-            createAddedBookFixture(idFactory.next(), { book }),
+            createAddedBookFixture(idFactory.next(), {
+              title: target.title,
+              author: target.author,
+            }),
             { operation: ADD_BOOK_OPERATION, direction: 'response' },
           );
-        }
+        };
 
-        return parseResponse(
-          LibraryBookSchema,
-          createAddedBookFixture(idFactory.next(), {
-            title: target.title,
-            author: target.author,
-          }),
-          { operation: ADD_BOOK_OPERATION, direction: 'response' },
-        );
+        // 성공한 응답만 보관한다 — 실패한 시도는 같은 key 로 재시도해 성공할 수 있어야 한다.
+        const response = added();
+        addBookIdempotency.set(options.idempotencyKey, { body, response });
+        return response;
       };
 
       return deliver(
@@ -367,6 +429,10 @@ export function createMockLibraryApi(deps: MockLibraryApiDeps): LibraryApi {
       });
       requestLog?.record(GIFT_CREATE_OPERATION, parsed);
 
+      const body = fingerprint(parsed);
+      const replayed = replay(giftIdempotency, options.idempotencyKey, body);
+      if (replayed !== undefined) return replayed;
+
       const scenario = store.resolve(libraryScenarioGroup);
       const attempt = consumeAttempt(store, libraryScenarioGroup.group, options.signal);
 
@@ -378,11 +444,14 @@ export function createMockLibraryApi(deps: MockLibraryApiDeps): LibraryApi {
         const book = findLibraryBook(parsed.bookId);
         if (book === undefined) fail('RESOURCE_NOT_FOUND', 'Unknown book.');
 
-        return parseResponse(
+        const response = parseResponse(
           GiftRequestSchema,
           createGiftRequestFixture(clock, book, idFactory.next()),
           { operation: GIFT_CREATE_OPERATION, direction: 'response' },
         );
+
+        giftIdempotency.set(options.idempotencyKey, { body, response });
+        return response;
       };
 
       return deliver(

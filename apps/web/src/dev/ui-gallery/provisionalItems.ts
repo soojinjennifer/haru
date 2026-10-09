@@ -10,7 +10,8 @@
  * 확정 12건 (`docs/decisions/stage-1-approvals.md` §9.1 의 10건 + §9.3 `P-10`, 2026-09-22·23 user
  * + `stage-3-approvals.md` §20.2 `P-05`, 2026-10-06 user):
  *   P-03 · P-05 · P-06 · P-07 · P-08 · P-09 · P-10 · P-11 · P-12 · P-13 · P-14 · P-15
- * 디자이너 대기 6건: P-01 · P-02 · P-04 · P-16 · **P-17**(Stage 2 신규 — 결정 `D-14`)
+ * 디자이너 대기 7건: P-01 · P-02 · P-04 · P-16 · **P-17**(Stage 2 신규 — 결정 `D-14`)
+ * + **P-23**(Stage 3 Home 라운드 신규 — approvals §9.2 ⑫, `QA-3-006` 으로 등재)
  * + **P-24**(Library 1라운드 신규 — `stage-3-approvals.md` §20.4).
  */
 
@@ -166,6 +167,21 @@ export const PROVISIONAL_ITEMS: readonly ProvisionalItem[] = [
     status: 'waiting',
     decision:
       '디자이너 대기 — Stage 2 신규 (stage-2-approvals §4 D-14). 보완: 라벨이 상태를 전달 + aria-pressed + hit area 44',
+  },
+  /*
+    Home 라운드 신규 — Library 범위 밖이라 1라운드가 등재하지 않았다 (`S3-PROV-2` · `QA-3-006`).
+    `P-18`~`P-22` 는 **토큰 자체가 없어 등재 대상이 아니다** (approvals §26.5 — `P-20` 은
+    `--toggle-*` 확정, 나머지는 미생성). 활성 가값은 `P-01 · P-02 · P-04 · P-16 · P-23 · P-24` 다
+    (`packages/design-tokens/__tests__/fonts.test.ts` 가 그 목록을 고정한다).
+  */
+  {
+    id: 'P-23',
+    title: 'Prompt 단계·페이지 배지 글자색 --color-prompt-tag-fg',
+    adopted: 'Figma 실측 유지 — cyan 배경(--color-prompt-tag-bg) 위 흰 라벨',
+    where: '/a11y 대비표 C-5 · Home Activity Card 뒷면 Prompt 단계·페이지 배지',
+    status: 'waiting',
+    decision:
+      '디자이너 대기 — 대비 1.72:1 (AA 4.5 미달). P-02 에 흡수하지 않는다: 역량 팔레트가 바뀌어도 이 Tier-3 토큰은 해소되지 않는다 (approvals §9.2 ⑫ · Design Spec §6.4)',
   },
   {
     id: 'P-24',

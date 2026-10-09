@@ -15,9 +15,15 @@ import { expect, test, type Page } from '@playwright/test';
 
 import { gotoApp } from './support/gallery';
 
-/** 로그인해서 `/` 에 착지한다 — 기본 `me` 는 온보딩까지 마친 사용자다. */
-async function logIn(page: Page): Promise<void> {
-  await gotoApp(page, '/auth/log-in');
+/**
+ * 로그인해서 `/` 에 착지한다 — 기본 `me` 는 온보딩까지 마친 사용자다.
+ *
+ * `scenario` 를 주면 `?scenario=` 로 Mock 시나리오를 고정한다. URL 계층이 1순위이고
+ * ScenarioStore 는 앱 시작 시 한 번 읽으므로, 로그인 후 SPA 이동에도 선택이 유지된다.
+ */
+async function logIn(page: Page, scenario?: string): Promise<void> {
+  const query = scenario === undefined ? '' : `?scenario=${encodeURIComponent(scenario)}`;
+  await gotoApp(page, `/auth/log-in${query}`);
 
   await page.getByLabel('Email').fill('sam@example.com');
   await page.getByRole('textbox', { name: 'Password', exact: true }).fill('sunny-evening-8');
@@ -151,6 +157,125 @@ test.describe('BottomTabBar 이동 (`X-1`)', () => {
       );
       expect(hit.inTabBar, `${name} 탭 중심 hit-test (${String(hit.tag)})`).toBe(true);
     }
+  });
+
+  /*
+    `QA-3-004` (2026-10-09) — **Toast 가 떠 있어도 탭 3개를 클릭할 수 있다.**
+
+    QA 측정: 탭 화면에서 Toast 가 `y 786–836`, 탭바가 `y 766–836` 으로 **50px 겹쳤고**
+    `--z-toast`(60) > `--z-tabbar`(20) 이라 탭 3개 중심의 `elementFromPoint` 가 **전부 Toast**
+    를 돌려줬다. 원인은 `haru-toast-viewport--tabbar` 수식어를 **아무도 붙이지 않은 것**이다.
+
+    왜 CSS 가드로는 안 되는가: `stage3-css-guards.test.ts` 는 그 클래스 **규칙 안에 토큰이
+    있는지만** 봤다. 규칙이 존재한다는 사실은 적용된다는 뜻이 아니다 (approvals §26.3).
+    그래서 여기서는 **실제 렌더 좌표의 hit-test** 로 단정한다.
+
+    `.click()` 을 주 단정으로 쓰지 않는 이유: Toast 는 4s 뒤 자동 해제되므로, 가려져 있어도
+    Playwright 가 기다리는 동안 Toast 가 사라져 클릭이 **늦게 성공**한다 — 결함을 통과시킨다.
+    hit-test 는 즉시·결정적이다. 측정과 Toast 존재 확인을 **같은 evaluate 안**에서 하므로
+    Toast 가 이미 사라진 상태로 헛돌 수도 없다.
+  */
+  test('Toast 가 떠 있어도 탭 3개가 가려지지 않는다 (`QA-3-004`)', async ({ page }) => {
+    // `library:error` → Activity Card 의 `★ Save` 가 실패해 error Toast 가 뜬다.
+    await logIn(page, 'library:error');
+    await expect(page.locator('.haru-activity-track')).toBeVisible();
+    expect(page.viewportSize()).toEqual({ width: 393, height: 852 });
+
+    await page.getByRole('button', { name: 'Save', exact: true }).first().click();
+    await expect(page.locator('.haru-toast')).toBeVisible();
+
+    const probe = await page.evaluate(() => {
+      const toast = document.querySelector('.haru-toast');
+      const viewport = document.querySelector('.haru-toast-viewport');
+      const bar = document.querySelector('.haru-tab-bar');
+      if (toast === null || viewport === null || bar === null) {
+        return {
+          ok: false as const,
+          toastPresent: toast !== null,
+          barPresent: bar !== null,
+        };
+      }
+
+      const toastRect = toast.getBoundingClientRect();
+      const barRect = bar.getBoundingClientRect();
+
+      const links = [...bar.querySelectorAll('a')].map((link) => {
+        const rect = link.getBoundingClientRect();
+        const node = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+        return {
+          label: (link.textContent ?? '').trim(),
+          inTabBar: node !== null && node.closest('.haru-tab-bar') !== null,
+          inToast: node !== null && node.closest('.haru-toast-viewport') !== null,
+          topNode: node === null ? null : node.className,
+        };
+      });
+
+      return {
+        ok: true as const,
+        toastPresent: true,
+        barPresent: true,
+        viewportClass: viewport.className,
+        insetBlockEnd: getComputedStyle(viewport).insetBlockEnd,
+        toast: { top: Math.round(toastRect.top), bottom: Math.round(toastRect.bottom) },
+        bar: { top: Math.round(barRect.top), bottom: Math.round(barRect.bottom) },
+        links,
+      };
+    });
+
+    expect(probe.toastPresent, 'Toast 가 떠 있는 상태에서 재야 한다').toBe(true);
+    expect(probe.barPresent, '탭바가 있어야 한다').toBe(true);
+    if (!probe.ok) throw new Error(`측정 실패 ${JSON.stringify(probe)}`);
+
+    const diagnostic = JSON.stringify(probe);
+
+    // ① 기하 — Toast 아래 끝이 탭바 위 끝보다 위에 있어야 한다 (겹침 0).
+    expect(probe.toast.bottom, `Toast 가 탭바를 덮는다 ${diagnostic}`).toBeLessThanOrEqual(
+      probe.bar.top,
+    );
+
+    // ② hit-test — 탭 3개 중심의 최상단 요소가 탭바여야 한다.
+    expect(probe.links).toHaveLength(3);
+    for (const link of probe.links) {
+      expect(link.inToast, `${link.label} 탭 중심이 Toast 에 가려짐 ${diagnostic}`).toBe(false);
+      expect(link.inTabBar, `${link.label} 탭 중심 hit-test ${diagnostic}`).toBe(true);
+    }
+  });
+
+  /*
+    `QA-3-004` 의 반대 방향 — **탭바가 없는 스택 화면에서는 보정하지 않는다.** 보정을
+    하드코딩하면(`withTabBar` 를 항상 참) 온보딩·설정 Toast 가 탭바 높이만큼 떠 버린다.
+  */
+  test('탭바가 없는 화면의 Toast 는 보정 없이 하단 16 에 머문다 (`QA-3-004` 역방향)', async ({
+    page,
+  }) => {
+    // 토큰이 없으면 만료 안내만 뜬다 (`auth.spec.ts` AC-2-09) — 폼을 보려면 토큰이 필요하다.
+    await gotoApp(page, '/auth/reset-password?token=mock-reset-token');
+
+    await page.getByLabel('New password', { exact: true }).fill('sunny-evening-8');
+    await page.getByLabel('Confirm password', { exact: true }).fill('sunny-evening-8');
+    await page.getByRole('button', { name: 'Save new password', exact: true }).click();
+
+    await expect(page.locator('.haru-toast')).toBeVisible();
+
+    const probe = await page.evaluate(() => {
+      const viewport = document.querySelector('.haru-toast-viewport');
+      if (viewport === null) return null;
+      const rect = viewport.getBoundingClientRect();
+      return {
+        hasTabBarModifier: viewport.classList.contains('haru-toast-viewport--tabbar'),
+        hasTabBar: document.querySelector('.haru-tab-bar') !== null,
+        insetBlockEnd: getComputedStyle(viewport).insetBlockEnd,
+        gapToBottom: Math.round(window.innerHeight - rect.bottom),
+      };
+    });
+
+    expect(probe).not.toBeNull();
+    expect(probe?.hasTabBar, '이 화면에는 탭바가 없어야 한다').toBe(false);
+    expect(
+      probe?.hasTabBarModifier,
+      `스택 화면에 탭바 보정이 붙었다 ${JSON.stringify(probe)}`,
+    ).toBe(false);
+    expect(probe?.gapToBottom, JSON.stringify(probe)).toBe(16);
   });
 
   /*

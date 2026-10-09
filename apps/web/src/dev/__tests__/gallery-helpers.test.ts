@@ -55,24 +55,28 @@ describe('contrastRatio (WCAG 2.x 상대 휘도)', () => {
 
 describe('가값 승인 자료 목록 (Plan §17-3)', () => {
   /*
-   * P-01 … P-17 은 Stage 1·2 항목이고, **P-24** 는 Library 1라운드 신규
-   * (`--color-fg-tertiary` = `#9aabaa`, `stage-3-approvals.md` §20.4)다.
-   * P-18 … P-23 은 이 목록에 없다 — 토큰 가값인 `P-23`(`--color-prompt-tag-fg`) 미등재는
-   * Stage 3 Home 라운드에서 생긴 **기존 공백**이며 이 라운드의 범위가 아니다.
+   * P-01 … P-17 은 Stage 1·2 항목이고, **P-23**(Home 라운드 `--color-prompt-tag-fg`) ·
+   * **P-24**(Library 1라운드 `--color-fg-tertiary` = `#9aabaa`, `stage-3-approvals.md` §20.4)
+   * 가 Stage 3 신규다.
+   *
+   * `P-18`~`P-22` 는 **토큰이 존재하지 않아 등재 대상이 아니다** — `P-20`(`--toggle-*`)은
+   * 확정됐고 나머지는 토큰으로 만들어지지 않았다 (approvals §26.5 가 §21.5 기록을 정정).
+   * 등재 기준은 **`packages/design-tokens` 의 `provisional` 주석** 이다.
    */
-  it('P-01 … P-17 + P-24 를 제시한다', () => {
+  it('P-01 … P-17 + P-23 + P-24 를 제시한다', () => {
     expect(PROVISIONAL_ITEMS.map((item) => item.id)).toStrictEqual([
       ...Array.from({ length: 17 }, (_, index) => `P-${String(index + 1).padStart(2, '0')}`),
+      'P-23',
       'P-24',
     ]);
   });
 
-  it('확정 12건 / 디자이너 대기 6건으로 사용자 결정이 반영되어 있다', () => {
+  it('확정 12건 / 디자이너 대기 7건으로 사용자 결정이 반영되어 있다', () => {
     const waiting = PROVISIONAL_ITEMS.filter((item) => item.status === 'waiting').map(
       (item) => item.id,
     );
-    // `P-05` 는 Figma 실측값 채택으로 해제됐다 (`L-NEW-09`), `P-24` 가 새로 들어왔다.
-    expect(waiting).toStrictEqual(['P-01', 'P-02', 'P-04', 'P-16', 'P-17', 'P-24']);
+    // `P-05` 는 Figma 실측값 채택으로 해제됐다 (`L-NEW-09`), `P-23`·`P-24` 가 새로 들어왔다.
+    expect(waiting).toStrictEqual(['P-01', 'P-02', 'P-04', 'P-16', 'P-17', 'P-23', 'P-24']);
     expect(PROVISIONAL_ITEMS.filter((item) => item.status === 'confirmed')).toHaveLength(12);
   });
 

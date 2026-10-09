@@ -1,4 +1,4 @@
-import { useScrollContainerRef } from '@haru/ui';
+import { ToastProvider, useScrollContainerRef, useToast } from '@haru/ui';
 import { render, screen } from '@testing-library/react';
 import { useEffect, type RefObject } from 'react';
 import { MemoryRouter } from 'react-router';
@@ -82,6 +82,107 @@ describe('Layout 3종 (Design Spec §2.3)', () => {
 
     expect(container.querySelector('.haru-app-column')).not.toBeNull();
     expect(container.querySelector('.haru-app-background')).not.toBeNull();
+  });
+});
+
+/**
+ * Toast 하단 보정이 **실제로 적용되는지** (`QA-3-004`).
+ *
+ * 이 결함을 놓친 가드는 `stage3-css-guards.test.ts` 였다 — `.haru-toast-viewport--tabbar`
+ * **규칙 안에 토큰이 있는지만** 보고, 그 클래스가 붙는지는 보지 않았다. CSS 문자열 검사는
+ * "선언이 존재한다" 만 증명한다 (approvals §26.3). 그래서 여기서는 **렌더 결과의 클래스**를
+ * 단정한다. 실제 좌표·hit-test 는 `e2e/tabs.spec.ts` 가 393px 에서 측정한다.
+ *
+ * jsdom 에는 레이아웃이 없으므로 **좌표가 아니라 적용 여부**가 여기서 셀 수 있는 신호다.
+ */
+describe('Toast 탭바 보정 배선 (`QA-3-004`)', () => {
+  function Trigger() {
+    const toast = useToast();
+    useEffect(() => {
+      toast.show({ message: 'probe' });
+    }, [toast]);
+    return null;
+  }
+
+  function viewportClass(): string {
+    const viewport = document.querySelector('.haru-toast-viewport');
+    if (viewport === null) throw new Error('Toast viewport 가 렌더되지 않았다');
+    return viewport.className;
+  }
+
+  function renderWithToast(node: React.ReactNode) {
+    return render(
+      <MemoryRouter>
+        <ToastProvider>{node}</ToastProvider>
+      </MemoryRouter>,
+    );
+  }
+
+  it('TabLayout + tabBar → 탭바 보정 수식어가 붙는다', () => {
+    renderWithToast(
+      <TabLayout tabBar={<nav aria-label="tabs">tabs</nav>}>
+        <Trigger />
+      </TabLayout>,
+    );
+
+    expect(viewportClass()).toContain('haru-toast-viewport--tabbar');
+  });
+
+  /* 탭바가 없으면 보정도 없다 — 하드코딩 `true` 로 때우면 이 단정이 깨진다. */
+  it('TabLayout 이지만 tabBar 가 없으면 보정하지 않는다 (Stage 1 `/`)', () => {
+    renderWithToast(
+      <TabLayout>
+        <Trigger />
+      </TabLayout>,
+    );
+
+    expect(viewportClass()).not.toContain('haru-toast-viewport--tabbar');
+  });
+
+  it.each([
+    [
+      'StackLayout',
+      <StackLayout key="stack">
+        <Trigger />
+      </StackLayout>,
+    ],
+    [
+      'FullscreenLayout',
+      <FullscreenLayout key="full">
+        <Trigger />
+      </FullscreenLayout>,
+    ],
+  ])('%s 의 Toast 는 보정 없이 그대로다 (온보딩·설정 회귀 방지)', (_name, node) => {
+    renderWithToast(node);
+
+    expect(viewportClass()).not.toContain('haru-toast-viewport--tabbar');
+  });
+
+  /* 탭 → 스택 이동에서 보정이 **풀린다**. 안 풀리면 설정 화면 Toast 가 떠 버린다. */
+  it('탭 화면에서 스택 화면으로 바뀌면 보정이 해제된다', () => {
+    const { rerender } = render(
+      <MemoryRouter>
+        <ToastProvider>
+          <TabLayout tabBar={<nav aria-label="tabs">tabs</nav>}>
+            <Trigger />
+          </TabLayout>
+        </ToastProvider>
+      </MemoryRouter>,
+    );
+
+    expect(viewportClass()).toContain('haru-toast-viewport--tabbar');
+
+    rerender(
+      <MemoryRouter>
+        <ToastProvider>
+          <StackLayout>
+            <Trigger />
+          </StackLayout>
+        </ToastProvider>
+      </MemoryRouter>,
+    );
+
+    expect(viewportClass()).not.toContain('haru-toast-viewport--tabbar');
   });
 });
 

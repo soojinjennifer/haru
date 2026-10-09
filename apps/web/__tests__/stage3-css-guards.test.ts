@@ -67,6 +67,13 @@ describe('탭바 하단 여백 — D-1 (§2.1)', () => {
     expect(barBottom).not.toContain('--layout-tabbar-height');
   });
 
+  /*
+    ⚠ 이 단정은 **선언이 존재한다** 만 증명한다. 그 클래스가 실제로 붙는지는 보지 않으므로,
+    이것만으로는 `QA-3-004`(아무도 수식어를 붙이지 않아 Toast 가 탭 3개를 덮었다)를 잡지 못한다
+    — approvals §26.3. **적용 여부**는 런타임에서 본다:
+      - `apps/web/src/app/layouts/__tests__/layouts.test.tsx` "Toast 탭바 보정 배선" (클래스 적용)
+      - `e2e/tabs.spec.ts` "Toast 가 떠 있어도 탭 3개가 가려지지 않는다" (393px 좌표 + hit-test)
+  */
   it('Toast 하단 offset 에 overhang 이 더해져 있다 (AD-S3-14)', () => {
     const viewport = /\.haru-toast-viewport--tabbar\s*\{([^}]*)\}/.exec(TOAST_CSS)?.[1] ?? '';
     expect(viewport).toContain('--layout-tabbar-height');

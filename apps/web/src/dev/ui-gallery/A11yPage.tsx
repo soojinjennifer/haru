@@ -2,8 +2,9 @@
  * `/__dev/ui/a11y` — focus 순회 · 터치 타깃 오버레이 · 대비 값 표시 (Design Spec §11-5 · §9.3 · §9.4).
  *
  * 수치는 문서에서 옮겨 적지 않고 **실제 렌더 결과에서 측정**한다.
- * 그래야 가값(P-01 · P-02 · P-03 · P-11 · **P-24**) 승인 자료가 토큰 값과 어긋나지 않는다
- * (Plan §17-3). `B-3` 은 Library `LT-1` 재매핑으로 **P-01 → P-24** 로 소속이 바뀌었다.
+ * 그래야 가값(P-01 · P-02 · P-03 · P-11 · **P-24** · **P-23**) 승인 자료가 토큰 값과 어긋나지
+ * 않는다 (Plan §17-3). `B-3` 은 Library `LT-1` 재매핑으로 **P-01 → P-24** 로 소속이 바뀌었고,
+ * `C-5`(`P-23`)는 `QA-3-006` 으로 추가되었다.
  */
 import {
   Button,
@@ -91,6 +92,20 @@ const CONTRAST_PAIRS: readonly ContrastPair[] = [
     background: '--color-capability-agency-bg',
     threshold: 4.5,
     marker: '가값 P-02',
+  },
+  /*
+    Prompt 단계·페이지 배지 흰 라벨 — `P-23`. `C-3`·`C-4`(역량 배지)와 **같은 종류이지만 다른
+    가값**이다: 역량 팔레트를 바꿔도 이 Tier-3 토큰은 해소되지 않는다 (Design Spec §6.4).
+    가값 재제시(Stage 0 #10-④)에는 측정값이 필요하므로 여기에서 **렌더 결과로** 잰다
+    (`QA-3-006` — 목록 등재와 함께 들어온다).
+  */
+  {
+    id: 'C-5',
+    label: 'Prompt 단계·페이지 배지 글자',
+    foreground: '--color-prompt-tag-fg',
+    background: '--color-prompt-tag-bg',
+    threshold: 4.5,
+    marker: '가값 P-23',
   },
   {
     id: 'D-1',

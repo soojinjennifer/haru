@@ -1703,3 +1703,69 @@ baseline **74종 전량 재생성 후 바이트 동일** — 패널은 `position
 - 뒤집기 중간 프레임 ActionBar **잔상**(~170ms, 약 15% 투명도)
 - 저장 실패 `InlineAlert` + 뒤집기 동시 상황의 **잔여 빈 자리** (코드 추론, 미재현)
 - `S3-PROV-2` — dev gallery 가값 목록에 `P-18`~`P-23` **미등재** (기존 공백, 가값 재제시 전 선행 조건)
+
+## 26. Stage 3 QA 결과와 수용 결정 (2026-10-09, user)
+
+리포트: `docs/qa/stage-3-qa-report.md` (728줄). 대상 커밋 `61fee89`. **Stage Verdict: `FAIL`** (`FAIL` 5 Finding / 7 AC).
+
+8개 명령은 **전부 통과**했고 Orchestrator 측정과 일치한다 (`test` 1596 · `test:e2e` 271 passed 단독 6.1분).
+QA 가 `--update-snapshots=all` 로 **스테일 baseline 0건 / 74종 바이트 동일**도 확인했다 — §23.2 의 교훈이 QA 절차에 반영됐다.
+
+### 26.1 명시 수용 — Stage 4 로 이월 (사용자 결정)
+
+`rules/qa.md` §2 에 따라 **항목별 명시 수용**이며 Stage Verdict 는 **`PASS (accepted: QA-3-001, QA-3-002, QA-3-003)`** 으로 기록한다.
+
+| ID | Sev | 내용 | 수용 사유 |
+|---|---|---|---|
+| **`QA-3-001`** | **High** | **push 권한 기능군 전체 미구현** — `PushPermissionPort` · Web 구현 · 사전 안내 UX · `push-permission-denied` 시나리오 · `notification-preferences`/`push-devices` contracts · `PushPlatform` enum **6개 전부 0건**. Orchestrator 확인: 앞 둘은 **0 파일**, 나머지는 **`docs/API_CONTRACTS.md` 와 dev 테스트에만** 존재(구현 없음) | 알림 설정 화면(`C13-19`)이 **디자이너 Figma 대기** 상태라 도달 Stage 로 이월하는 것이 자연스럽다 |
+| **`QA-3-002`** | Medium | Activity Card **오프라인 캐시(`D-11`) 미구현** — `offline-cached-card` key 0건, `localStorage` 사용처는 온보딩 draft 1종뿐 | 기능군 전체 미구현이라 수정 비용이 크다 |
+| **`QA-3-003`** | Medium | **`D-4` 에셋 파이프라인 미구현** — AVIF/WebP 0개, `<picture>`/`srcset` 0건, `assets:optimize`·`sharp` 0건 | 〃. 표지 에셋 교체(`L-D4`·`P3-BIP-19`)가 Stage 8 게이트이므로 그때 함께 보는 것이 낫다 |
+
+⚠️ **세 건은 Stage 4 Plan 에 In Scope 로 반드시 올린다.** 이월은 삭제가 아니다.
+⚠️ QA 가 **스스로 수용을 가정하지 않았다** — 올바른 처리다 (`rules/qa.md`: Agent 는 스스로 승인하지 않는다).
+
+### 26.2 즉시 수정 — 남은 `FAIL` 2건
+
+| ID | Sev | 내용 |
+|---|---|---|
+| **`QA-3-004`** | Medium | **Toast 가 하단 탭바를 50px 덮어 탭 3개 클릭을 전부 가로막는다** (393·320 양쪽 재현 100%) |
+| **`QA-3-005`** | Medium | **`MockLibraryApi` 가 `Idempotency-Key` 를 받기만 하고 버린다** — 보관·재생·`IDEMPOTENCY_KEY_REUSED` 0건. Stage 2 `MockConsentApi`·`MockOnboardingApi` 는 구현되어 있어 **선례와도 불일치**. `rules/qa.md` §1 "Mock 이 Contract 와 다르면 PENDING 이 아니라 `FAIL`" (AC-3-36) |
+
+**`QA-3-004` 원인 (Orchestrator 코드 확인)**: `ToastProvider` 의 `withTabBar` 기본값이 `false` 인데 **`AppProviders.tsx:39` 가 인자 없이 마운트**하고, 저장소 전체에서 `withTabBar` 를 넘기는 곳이 **0건**이다 → `haru-toast-viewport--tabbar` 는 **Production 도달 불가 코드**다.
+
+### 26.3 ⭐ 또 "도달 불가 코드 위에서 통과하는 테스트" — 6번째 사례
+
+`QA-3-004` 를 놓친 가드는 `apps/web/__tests__/stage3-css-guards.test.ts:70` 이다:
+
+```ts
+const viewport = /\.haru-toast-viewport--tabbar\s*\{([^}]*)\}/.exec(TOAST_CSS)?.[1] ?? '';
+expect(viewport).toContain('--layout-tabbar-height');
+```
+
+**CSS 규칙 안에 토큰이 있는지만 보고, 그 클래스가 실제로 붙는지는 보지 않는다.** `e2e/` 전체에서 `toast` 는 gallery 컷 1건뿐이었다.
+
+이 세션에서 같은 유형이 반복됐다: ① `s2-onboarding-childinfo` 가 버그 상태를 담았다 ② 테스트가 `Go back → 1/15` 라는 버그를 기대값으로 단정했다 ③ drag 시작점을 옮겨 회귀를 가렸다 ④ `s2-vpc-failed` 가 과도기 프레임을 담았다 ⑤ `frame-1024` 가 dev 패널을 담았다 ⑥ **이번 건**.
+→ **CSS 문자열 가드는 "선언이 존재한다"만 증명하고 "적용된다"는 증명하지 못한다.** 적용 여부는 런타임(`e2e` 또는 Testing Library)에서 단정해야 한다.
+
+### 26.4 QA 가 자기 측정으로 찾은 것 (handoff 전제 오류)
+
+`docs/qa/stage-3-handoff.md` §9 ⑨ 가 *"Toast 가 마운트되는 Stage 3 화면이 없다"* 고 적었으나 **틀렸다** — `ActivityCardDeck.tsx:49`(저장 실패)·`AddOwnBookForm.tsx:68`(등록 성공)이 둘 다 띄운다. **그 전제 때문에 실행 측정이 생략됐고**, QA 가 직접 런타임 측정을 해서 결함을 찾았다.
+→ handoff 메모의 전제를 그대로 믿지 않고 측정한 것이 올바른 QA 수행이다.
+
+### 26.5 Low 4건 처리
+
+| ID | 처리 |
+|---|---|
+| `QA-3-006` | `P-23`(`--color-prompt-tag-fg`) dev gallery 미등재 → **수정한다.** `S3-PROV-2` 의 실제 내용이며, `P-18`~`P-22` 는 **토큰 자체가 없어 대상이 아니다**(§21.5 의 내 기록을 QA 가 정정했다) |
+| `QA-3-007` | handoff §3 의 "Figma 에 없는데 구현한 것" 이 **9건이 아니라 10건**(버블 닫기 x 버튼 누락, 승인 근거는 §13.4) + §9 ⑨ 전제 오류 → **handoff 수정** |
+| `QA-3-008` | `AC-3-59`(28→29) · `AC-3-56`(31→32) **AC 문구가 낡음, 결함 아님** → Plan 문구 정정 대상으로 기록 |
+| **`QA-3-009`** | **AC-3-34("대화 전용 세션 안내")를 폐기로 표기한다** (사용자 결정 2026-10-09) — 해당 기능은 §12.12 로 폐기됐다(*"책 없이 대화만 하는 카드가 있을 수 없음"*). **AC 도 폐기로 맞춘다.** 판정 대상에서 물러난다 |
+
+### 26.6 `NOT VERIFIED` 2건 (그대로 유지)
+
+- **`NV-1` Safari / iOS 실기기** — `overflow-x: clip` · `:has()` · `inert` · `backface-visibility` + `rotateY` · `scroll-snap` + `dvh` 가 **Chromium 에서만** 확인됨. 수동 절차는 QA 리포트 §7
+- **`NV-2`** 뒤집기 중간 프레임 ActionBar 잔상(~170ms, `animations: disabled` 로는 포착 불가) + 저장 실패 `InlineAlert` 동시 상황의 잔여 빈 자리
+
+### 26.7 QA 가 PASS 로 확인한 것 (기록)
+
+Scope 위반 **0** · `z.object(` contracts 밖 **0건** · 신규 `any`/`@ts-ignore` **0건** · Mock fixture 하드코딩 **0건** · Adapter 선택 지점 **1곳** · 임의 HEX/arbitrary value 신규 **0건**(걸린 것은 전부 주석·공식 브랜드 에셋) · logger 화이트리스트 PII 차단 · **`ListGroup`/`ListRow` 정규화의 Stage 2 회귀 0건** · **200% 텍스트 확대에서 가로 넘침 0px**(QA 가 실화면 측정, 테스트 공백이었다) · Figma `26:21`·`30:74` 직접 대조 결과 차이가 **전부 승인 번호를 가진 것**
