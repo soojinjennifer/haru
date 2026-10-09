@@ -290,6 +290,51 @@ describe('BookPrompts — PromptSet 재사용 (FR-20)', () => {
     expect(BookPromptsResponseSchema.safeParse(bad).success).toBe(false);
   });
 
+  /*
+   * `reason` — 사용자 결정 2026-10-09 (`L-R2B-01`). 서버가 만든 추천 이유 문장이며
+   * `BookDetailSheet` 가 Figma `145:1085` 의 책 블록 3번째 줄로 그린다.
+   * 선정 근거(왜 `LibraryBook` 이 아닌가)는 `src/books/prompts.ts` 주석에 있다.
+   */
+  it('`reason` 이 **선택**이다 — 없어도 parse 된다 (화면이 줄을 생략한다)', () => {
+    const parsed = BookPromptsResponseSchema.parse({ bookId: BOOK.id, promptSet });
+    expect(parsed.reason).toBeUndefined();
+
+    const explicitNull = BookPromptsResponseSchema.parse({
+      bookId: BOOK.id,
+      promptSet,
+      reason: null,
+    });
+    expect(explicitNull.reason).toBeNull();
+  });
+
+  it('`reason` 에 길이 상한이 없다 (`characterLine` 선례 — 길면 화면이 통째로 빈다)', () => {
+    const long = 'a'.repeat(4_000);
+    const parsed = BookPromptsResponseSchema.parse({
+      bookId: BOOK.id,
+      promptSet,
+      reason: long,
+    });
+
+    expect(parsed.reason).toHaveLength(4_000);
+  });
+
+  it('`LibraryBook` 에는 `reason` 을 두지 않는다 (목록 표현은 그대로다)', () => {
+    const parsed = LibraryBookSchema.parse({
+      id: '44444444-4444-4444-8444-000000000001',
+      book: BOOK,
+      ownership: 'owned',
+      source: 'library_add',
+      capability: null,
+      saved: false,
+      savedAt: null,
+      readCount: 0,
+      sessionCount: 0,
+      averageRating: null,
+    });
+
+    expect('reason' in parsed).toBe(false);
+  });
+
   it('세트 단위 coachingLine 을 되살리지 않는다 (§12.14 로 삭제됐다)', () => {
     const parsed = BookPromptsResponseSchema.parse({ bookId: BOOK.id, promptSet });
     expect('coachingLine' in parsed.promptSet).toBe(false);

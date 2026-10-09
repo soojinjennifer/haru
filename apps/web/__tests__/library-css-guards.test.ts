@@ -414,8 +414,13 @@ describe('`L-NEW-01` 캐러셀 가로 트랙 — overflow 예외와 그림자 �
       (match) => (match[1] ?? '').trim(),
     );
     expect(owners).toStrictEqual(['.haru-shelf-track']);
-    // feature CSS 와 `ReadingNowCard` 는 클리핑 박스를 만들지 않는다.
-    expect(SHELVES_CSS).not.toMatch(/overflow(-x|-y)?\s*:/);
+    /*
+      feature CSS 에는 가로 **스크롤** 박스가 없다. 2라운드-3 의 `overflow-x: clip` 은
+      스크롤 박스가 아니며(다른 축을 건드리지 않는다) 클립 선이 `.haru-sheet__content` 와
+      같은 x 라 새로 자르는 것이 없다 — 아래 describe 가 조건을 고정한다.
+    */
+    expect(SHELVES_CSS).not.toMatch(/overflow-x:\s*(auto|scroll|hidden)/);
+    expect(READING_NOW_CSS).not.toMatch(/overflow(-x|-y)?\s*:/);
   });
 
   it('그림자 자리 = 실측 번짐(위 8 · 아래 20)이고 **음수 margin 과 짝**이다', () => {
@@ -617,8 +622,103 @@ describe('`R-SHADOW-1` 2라운드-2 — 시트 본문 inset 의 첫 실사용처
     expect(cover).not.toMatch(/(^|[\s;])(block|inline)-size:/);
   });
 
-  it('feature CSS 가 **여전히** 클리핑 박스를 만들지 않는다 (`overflow` 0건)', () => {
-    expect(SHELVES_CSS).not.toMatch(/overflow(-x|-y)?\s*:/);
+  it('feature CSS 의 `overflow` 선언은 **2건뿐**이다 (뒤집기 가로 clip · 뒷면 목록 세로 스크롤)', () => {
+    const owners = [...SHELVES_CSS.matchAll(/([^{}]+)\{([^}]*overflow[^}]*)\}/g)].map((match) =>
+      (match[1] ?? '').trim(),
+    );
+
+    expect(owners).toStrictEqual(['.haru-book-sheet__flip', '.haru-book-sheet__notes']);
+    /* 단축 `overflow:` 를 쓰지 않는다 — 두 축을 한꺼번에 스크롤 박스로 만들지 않기 위해서다. */
+    expect(SHELVES_CSS).not.toMatch(/(^|[\s;])overflow:\s/);
+  });
+});
+
+/*
+ * 2라운드-3 — `BookDetailSheet` 뒤집기(사용자 결정 2026-10-09)
+ *
+ * 고정하는 것
+ *   ① 뒷면은 **앞면 높이를 그대로** 쓴다 (`position: absolute; inset: 0`) — 뒤집어도 시트
+ *      높이가 변하지 않는다. `inset-card` 는 아래가 고정이라 높이가 바뀌면 윗변이 튄다
+ *   ② `__flip-inner` 에 `position: relative` 가 있다 — rest 상태에는 `transform` 이 없어
+ *      포함 블록이 생기지 않으므로 이게 없으면 ①이 엉뚱한 조상에 걸린다
+ *   ③ 앞면에 `display` 를 선언하지 않는다 (2라운드-2 의 블록 흐름 유지 = 앞면 baseline 보호)
+ *   ④ `R-SHADOW-1` — 새 `overflow` 박스에 **아래 자리**가 있고 **음수 margin 이 없다**
+ *      (스크롤 박스의 padding 은 스크롤 영역에 포함된다. 음수 margin 을 더하면 박스가
+ *      뒷면 밖으로 삐져나와 `.haru-sheet__content` 에 잘린다)
+ *   ⑤ `prefers-reduced-motion` 에서 전이를 끈다
+ */
+describe('2라운드-3 — `BookDetailSheet` 뒤집기 (코칭 노트 뒷면)', () => {
+  it('뒷면이 앞면 높이를 그대로 쓴다 (`absolute` + `inset: 0`) — 시트 높이가 변하지 않는다', () => {
+    const back = rule(SHELVES_CSS, '.haru-book-sheet__face--back');
+
+    expect(back).toMatch(/position:\s*absolute;/);
+    expect(back).toMatch(/inset:\s*0;/);
+    expect(back).toMatch(/transform:\s*rotateY\(180deg\);/);
+    /* 높이를 **직접 선언하지 않는다** — 선언하면 앞면과 어긋나 윗변이 튄다. */
+    expect(back).not.toMatch(/block-size:/);
+  });
+
+  it('`__flip-inner` 가 포함 블록이다 (`position: relative`) + 두 면이 `backface-visibility: hidden`', () => {
+    expect(rule(SHELVES_CSS, '.haru-book-sheet__flip-inner')).toMatch(/position:\s*relative;/);
+    expect(rule(SHELVES_CSS, '.haru-book-sheet__flip-inner')).toMatch(
+      /transform-style:\s*preserve-3d;/,
+    );
+    expect(rule(SHELVES_CSS, '.haru-book-sheet__face')).toMatch(/backface-visibility:\s*hidden;/);
+  });
+
+  it('앞면에는 `display` 를 선언하지 않는다 (2라운드-2 블록 흐름 그대로)', () => {
+    expect(SHELVES_CSS).not.toMatch(/\.haru-book-sheet__face--front\s*\{/);
+  });
+
+  it('`R-SHADOW-1` — 뒷면 목록에 아래 자리(10)가 있고 **음수 margin 이 없다**', () => {
+    const notes = rule(SHELVES_CSS, '.haru-book-sheet__notes');
+
+    expect(notes).toMatch(/overflow-y:\s*auto;/);
+    expect(notes).toMatch(/overscroll-behavior-y:\s*contain;/);
+    expect(notes).toMatch(/padding-block-end:\s*var\(--sheet-content-shadow-inset-block-end\);/);
+    /* 스크롤 박스에서는 음수 margin 이 **해롭다** (위 ④). */
+    expect(notes).not.toMatch(/margin/);
+    /* 남는 높이를 채우고 줄어들 수 있어야 한다 — 아니면 뒷면이 넘친다. */
+    expect(notes).toMatch(/flex:\s*1 1 auto;/);
+    expect(notes).toMatch(/min-block-size:\s*0;/);
+  });
+
+  it('뒷면이 **보이는 높이**로 줄어든다 — 본문 flex + 두 단계 `min-block-size: 0`', () => {
+    /*
+      320×568 실측 결함: 시트가 상한에 걸리면 앞면(430)이 본문(367)보다 길어지고, 뒷면이
+      `inset: 0` 으로 그 높이를 받아 **마지막 항목이 ActionBar 뒤로 숨었다**.
+      세 선언이 **함께** 있어야 고쳐진다 — 하나라도 빠지면 뒷면이 다시 밀려난다.
+    */
+    const scoped = rule(SHELVES_CSS, '.haru-sheet__content:has(> .haru-book-sheet__flip)');
+    expect(scoped).toMatch(/display:\s*flex;/);
+    expect(scoped).toMatch(/flex-direction:\s*column;/);
+    expect(rule(SHELVES_CSS, '.haru-book-sheet__flip')).toMatch(/min-block-size:\s*0;/);
+    expect(rule(SHELVES_CSS, '.haru-book-sheet__flip-inner')).toMatch(/min-block-size:\s*0;/);
+    /* 다른 시트 본문은 건드리지 않는다 — `:has()` 로 이 시트에만 건다. */
+    expect(SHELVES_CSS).not.toMatch(/\.haru-sheet__content\s*\{/);
+  });
+
+  it('뒤집기 상자는 `overflow-x: clip` 이다 — 거울상이 된 표지 그림자 자리가 가로로 끌리지 않는다', () => {
+    const flip = rule(SHELVES_CSS, '.haru-book-sheet__flip');
+
+    expect(flip).toMatch(/overflow-x:\s*clip;/);
+    /* `hidden`/`auto` 를 쓰면 **세로도** 스크롤 박스가 되어 클립 선이 새로 생긴다. */
+    expect(flip).not.toMatch(/overflow-y/);
+    expect(flip).toMatch(/perspective:\s*1200px;/);
+  });
+
+  it('`prefers-reduced-motion` 에서 뒤집기 전이를 끈다', () => {
+    const reduced = /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{([\s\S]*?)\n\}/.exec(
+      SHELVES_CSS,
+    );
+
+    expect(reduced?.[1] ?? '').toMatch(/\.haru-book-sheet__flip-inner[\s\S]*transition:\s*none;/);
+  });
+
+  it('헤더 2버튼 gap 이 터치 타깃 겹침(3 + 3)보다 크다', () => {
+    expect(rule(SHELVES_CSS, '.haru-book-sheet__header-actions')).toMatch(
+      /gap:\s*var\(--space-2\);/,
+    );
   });
 });
 
@@ -668,5 +768,121 @@ describe('2라운드-2 — 대화형 전환이 rest 렌더를 바꾸지 않는�
 
   it('진입점 행 높이 토큰이 56(media 없는 기본 행)이다 — Book List 74 를 쓰지 않는다', () => {
     expect(COMPONENT_TOKENS).toMatch(/--library-entry-row-height-min:\s*56px;/);
+  });
+});
+
+/*
+ * 2라운드-4 — 뒷면을 Figma `86:482` 에 맞춘다 (사용자 결정 2026-10-09 ① · ② · ③)
+ *
+ * 고정하는 것
+ *   ① 면 색은 **시트 전체**가 받는다 (`Sheet surface="spring"`) — 기존 시트 외형 불변
+ *      (수식자 클래스에만 색이 있고, 전환은 base 에 있어 **되돌아올 때도** 같은 길이다)
+ *   ② 뒷면에는 ActionBar 가 없다 — footer 를 **음수 margin**(= ActionBar 높이 + 시트 gap)
+ *      으로 레이아웃에서 뺀다. `block-size: 0` 도 `overflow` 접기도 쓸 수 없다
+ *   ③ `R-SHADOW-1` — 표지 자리(좌우 **14**)를 `.haru-sheet__content` 와
+ *      `.haru-book-sheet__flip` **둘 다** 가져야 한다 (안쪽 clip 박스가 먼저 자른다)
+ */
+describe('2라운드-4 — `BookDetailSheet` 뒷면 면 색 · ActionBar · 표지 그림자 자리', () => {
+  it('① 면 색 `spring` 은 **수식자에만** 있고 기본 면은 그대로다', () => {
+    expect(rule(SHEET_CSS, '.haru-sheet--surface-spring')).toMatch(
+      /background-color:\s*var\(--color-surface-spring\);/,
+    );
+    /* 기본 면이 바뀌면 Stage 2 시트 baseline 이 전부 움직인다. */
+    expect(rule(SHEET_CSS, '.haru-sheet')).toMatch(
+      /background-color:\s*var\(--color-surface-strong\);/,
+    );
+    /* 그 semantic 토큰이 Figma `86:482` 면(`color/spring green/86` = #d3e3de) 이다. */
+    expect(COLOR_TOKENS).toMatch(/--color-surface-spring:\s*var\(--haru-mist-200\);/);
+    expect(read('packages', 'design-tokens', 'src', 'primitive', 'color.css')).toMatch(
+      /--haru-mist-200:\s*#d3e3de;/,
+    );
+  });
+
+  it('① 면 색 전환이 **base** 에 있고 뒤집기와 같은 길이다 (복귀도 전환된다)', () => {
+    const base = rule(SHEET_CSS, '.haru-sheet');
+
+    expect(base).toMatch(/transition-property:\s*background-color;/);
+    expect(base).toMatch(/transition-duration:\s*var\(--motion-duration-slow\);/);
+    /* 수식자 쪽에만 두면 클래스가 빠질 때 **즉시** 돌아와 색이 튄다. */
+    expect(rule(SHEET_CSS, '.haru-sheet--surface-spring')).not.toMatch(/transition/);
+    /* 뒤집기와 같은 길이여야 중간 프레임에서 면과 내용이 어긋나지 않는다. */
+    expect(rule(SHELVES_CSS, '.haru-book-sheet__flip-inner')).toMatch(
+      /transition-duration:\s*var\(--motion-duration-slow\);/,
+    );
+    /* `prefers-reduced-motion` 에서는 끈다 (뒤집기가 즉시이므로 색도 즉시). */
+    expect(SHEET_CSS).toMatch(
+      /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.haru-sheet \{[^}]*transition:\s*none;/,
+    );
+  });
+
+  it('② ActionBar 를 **음수 margin** 으로 뺀다 — 끌어올리는 양 = ActionBar 높이 + 시트 gap', () => {
+    const hidden = rule(
+      SHELVES_CSS,
+      ".haru-sheet__footer:has(> .haru-book-sheet__action-bar[data-hidden='true'])",
+    );
+
+    expect(hidden).toMatch(
+      /margin-block-start:\s*calc\(-1 \* \(var\(--activity-card-action-size\) \+ var\(--space-3\)\)\);/,
+    );
+    expect(hidden).toMatch(/opacity:\s*0;/);
+    expect(hidden).toMatch(/pointer-events:\s*none;/);
+    /*
+      ⚠️ `--space-3` 은 `Sheet.css` 의 flex `gap` 이다. 둘이 어긋나면 footer 가 제자리에
+      머물지 않고 접힌 뒤 빈 자리가 남는다 — 두 값이 같은지 여기서 고정한다.
+    */
+    expect(rule(SHEET_CSS, '.haru-sheet')).toMatch(/gap:\s*var\(--space-3\);/);
+    /* 다른 시트의 footer 는 건드리지 않는다 — 선택자가 **늘 `:has()` 로 좁혀져** 있어야 한다. */
+    expect(SHELVES_CSS).not.toMatch(/\.haru-sheet__footer\s*[,{]/);
+  });
+
+  it('② 접기에 `block-size: 0`·`overflow` 를 쓰지 않는다 (보간 불가 · 버튼 그림자 절단)', () => {
+    const owner = ".haru-sheet__footer:has(> .haru-book-sheet__action-bar[data-hidden='true'])";
+    const hidden = rule(SHELVES_CSS, owner);
+
+    expect(hidden).not.toMatch(/block-size/);
+    expect(hidden).not.toMatch(/overflow/);
+    /* feature CSS 의 `overflow` 선언 수가 늘지 않았다 (뒤집기 clip · 뒷면 목록 2건 그대로). */
+    const owners = [...SHELVES_CSS.matchAll(/([^{}]+)\{([^}]*overflow[^}]*)\}/g)].map((match) =>
+      (match[1] ?? '').trim(),
+    );
+    expect(owners).toStrictEqual(['.haru-book-sheet__flip', '.haru-book-sheet__notes']);
+  });
+
+  it('② 접기 전환도 `prefers-reduced-motion` 에서 꺼진다', () => {
+    expect(SHELVES_CSS).toMatch(
+      /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.haru-sheet__footer:has\(> \.haru-book-sheet__action-bar\)[\s\S]*transition:\s*none;/,
+    );
+  });
+
+  it('③ 표지 전용 좌우 자리 토큰이 **14** 다 (`--shadow-bubble` 의 4 와 별개)', () => {
+    expect(COMPONENT_TOKENS).toMatch(/--sheet-content-shadow-inset-inline-cover:\s*14px;/);
+    expect(COMPONENT_TOKENS).toMatch(/--sheet-content-shadow-inset-inline:\s*4px;/);
+
+    /* 번짐이 다르다는 근거: `--shadow-cover` 는 blur 14 (drop 1겹). */
+    const shadows = codeOf(read('packages', 'design-tokens', 'src', 'semantic', 'shadow.css'));
+    const layers = splitShadowLayers(/--shadow-cover:([^;]*);/.exec(shadows)?.[1] ?? '');
+    const drops = layers.filter((layer) => !layer.startsWith('inset'));
+    expect(drops).toHaveLength(1);
+    expect(drops[0]).toMatch(/0 6px 14px/);
+  });
+
+  it('③ 자리를 `.haru-sheet__content` 와 `.haru-book-sheet__flip` **둘 다** 갖는다', () => {
+    const content = rule(SHEET_CSS, '.haru-sheet__content--shadow-inset-cover');
+    expect(content).toMatch(/padding-inline:\s*var\(--sheet-content-shadow-inset-inline-cover\);/);
+    expect(content).toMatch(
+      /margin-inline:\s*calc\(-1 \* var\(--sheet-content-shadow-inset-inline-cover\)\);/,
+    );
+    /* 아래쪽은 더하지 않는다 — 표지 아래 자리는 표지 자신이 갖고, 더하면 앞면에 빈 스크롤이 생긴다. */
+    expect(content).not.toMatch(/block-end/);
+
+    /*
+      안쪽 `overflow-x: clip` 박스가 **먼저 자른다** — 실측: content 만 켜면 좌측 Δ 가
+      `0 0 0 …` 로 그대로다. 둘이 같은 선에 있어야 한다.
+    */
+    const flip = rule(SHELVES_CSS, '.haru-book-sheet__flip');
+    expect(flip).toMatch(/padding-inline:\s*var\(--sheet-content-shadow-inset-inline-cover\);/);
+    expect(flip).toMatch(
+      /margin-inline:\s*calc\(-1 \* var\(--sheet-content-shadow-inset-inline-cover\)\);/,
+    );
   });
 });

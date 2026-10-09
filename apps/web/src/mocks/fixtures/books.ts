@@ -59,3 +59,30 @@ export function createBookSearchFixture(query: string, limit: number): SearchBoo
 export function createEmptyBookSearchFixture(): SearchBooksResponse {
   return SearchBooksResponseSchema.parse({ items: [], nextCursor: null });
 }
+
+/**
+ * 추천 이유 fixture — `BookPromptsResponse.reason` (사용자 결정 2026-10-09).
+ *
+ * **서버가 만드는 문장**이므로 Mock 도 응답 값으로만 돌려준다. 화면은 이 문자열을 그대로
+ * 그린다 (`rules/frontend.md` §8).
+ *
+ * 규칙
+ *  - 진단·판정·비교 표현을 쓰지 않는다. 관찰과 다음 대화 방향만 말한다 (§10 금지어).
+ *  - **결정적**이다 — 같은 `bookId` 는 항상 같은 문장을 받는다 (`capabilityFor` 와 같은 방식).
+ *  - Home 활동 카드의 `reason` 과 **문장이 같을 필요는 없다**: 카드의 이유는 카드 종류
+ *    (`book` / `reread_book`)와 그날의 추천 맥락에 달려 있어 **같은 책이라도 달라진다**
+ *    (`fixtures/activity-cards.ts` 의 `REREAD_SEED` 가 `DECK_BOOKS[0]` 에 다른 문장을 쓴다).
+ *    서재 시트의 이유는 "이 책을 왜 함께 읽는가" 이며 책 단위로 고정된다.
+ */
+const BOOK_REASONS: readonly string[] = [
+  'A big feeling gets a shape your child can point at and name.',
+  'The pages leave room for guessing, so your child can take the story somewhere of their own.',
+  'Short scenes and a steady rhythm — easy to follow together when the day was long.',
+  'Familiar enough to retell, which is where your child starts adding their own words.',
+];
+
+/** 책마다 결정적으로 고른다 — 같은 `bookId` 는 항상 같은 이유를 받는다. */
+export function createBookReasonFixture(bookId: string): string {
+  const sum = [...bookId].reduce((total, char) => total + (char.codePointAt(0) ?? 0), 0);
+  return BOOK_REASONS[sum % BOOK_REASONS.length] ?? (BOOK_REASONS[0] as string);
+}

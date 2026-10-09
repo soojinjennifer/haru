@@ -1567,3 +1567,61 @@ AA 띠는 **"모양이 아니라 커버리지"** 임을 픽셀로 규정했다 �
 
 **추가 결정 (2026-10-08, user)**: `s3-home` · `s3-home-deck` · `s3-home-deck-scrolled` **3종도 재생성한다.**
 같은 커밋 `eb6b1aa` 의 같은 결과물인데 **네 장 중 한 장만** 갱신되어, 두면 셋은 계속 **옛 BookCover 를 기준**으로 삼는다.
+
+## 24. Library 2라운드-2 (시트 2종 + 진입점 2종) 결과와 결정 (2026-10-09)
+
+구현: `docs/qa/stage-3-library-r2b-handoff.md`. 커밋 `6a66fb9`. Orchestrator 독립 검증 — 8개 통과, `test` **1559**, `test:e2e` **238 passed**, **Home 코드·baseline 변경 0건**.
+
+### 24.1 사용자 결정 2건 (2026-10-09)
+
+| ID | 항목 | 결정 |
+|---|---|---|
+| **`L-R2B-01`** | `BookDetailSheet` 추천 이유 줄 미렌더 | **Contract 에 `reason` 을 추가한다** |
+| **`L-R2B-02`** | `BookDetailSheet` 에서 코칭 노트를 볼 방법이 없다 | **뒤집는 방식으로** (Home 카드와 같이) |
+
+**`L-R2B-01`** — `ActivityCardOption` 은 `reason`(서버가 만든 추천 이유)을 요구하는데 `LibraryBook` + `BookPromptsResponse` 에 그 필드가 없어 지어낼 수 없었다. **지어내지 않은 판단은 옳다** (`rules/frontend.md` §8 — 생성 문구는 API 응답 값만 표시).
+→ **nullable 로 추가**하고 없으면 줄을 생략한다. 대체 문구를 만들지 않는다. **`.max()` 류 제약을 걸지 않는다**(`characterLine` 선례 §13.3). Backend 요구로 등록: **서재 책에도 이유 문구를 주어야 하며 문구 생성 책임은 서버에 있다.**
+
+**`L-R2B-02`** — 헤더 아이콘 자리가 하나뿐이고 §4.5 가 그것을 닫기로 확정해 뒤집기를 넣지 못했고, 그 결과 **`Prompt.coachingNote` 가 화면에서 도달 불가**였다.
+→ **Home 카드 뒷면(`86:482`)과 같은 뒤집기**로 한다. 뒷면 규격은 기존 사용자 결정을 따른다 — **Prompt 1개당 상세 코칭 노트 1개 매칭, 동일 개수 표시, 스크롤 가능.**
+→ **뒤집기 어포던스는 Figma 에 없는 요소이며 사용자가 그것을 승인했다.** 형태는 development-agent 가 설계하고 보고한다. **닫기 버튼은 유지**한다. 뒷면에서도 **`Start Session` 은 `D-3` 비활성**이다.
+→ ⚠️ 뒷면 목록이 스크롤되면 `overflow` 가 생겨 그림자가 잘린다 — **`R-SHADOW-1` inset 을 함께 설계**하고 보정 전/후 프로브 회귀 테스트를 붙인다.
+
+### 24.2 Orchestrator 가 받아들인 판단 8건 (별도 승인 불필요)
+
+1. **`Sheet` `footer` 슬롯 추가** — Figma `Button/card` ActionBar 는 카드 하단 **고정**이고 목록만 스크롤한다. 본문에 두면 CTA 가 스크롤로 사라지고 `contentShadowInset` 이 **무의미해진다** — 그것을 **프로브가 잡았다**. 미지정 시 아무것도 렌더하지 않아 `bottom`·`full` 시트 외형 불변(baseline 바이트 동일로 확인)
+2. **Shelf 시트 `★ Save` 를 `aria-disabled`** — `type=shelf` 에는 선택된 책이 없고 `type=selected` 변형은 미구현 확정(`L-OPEN-02`)이라 저장 대상이 정해지지 않는다. **Figma 요소를 빼지 않고** `Start Session` 과 같은 방식(`D-3`)으로 비활성. `SaveButton` 에 `disabled` prop 추가(기본 false → Home 불변)
+3. **시트 Error 는 §7.4 명세대로** — 본 화면이 `ErrorState` 1개로 줄인 이유는 *단일 조회인데 섹션이 4개*라서였다(§22.2 ①). **시트는 조회가 하나**라 §7.4 를 지켜도 자연히 1개다. 공통 불변식 유지: **실패를 빈 상태로 보여 주지 않는다**(`isError` 를 Empty 보다 앞에)
+4. **진입점 = `ListGroup` + `ListRow` 2행** — `Finished together` 와 같은 컴포넌트·idiom. **섹션 제목을 만들지 않고** 시각 비노출 `aria-label` 만 둔다(Figma 에 없는 문구 발명 회피). 폐기된 `LibraryFooterActions` 부재를 테스트가 고정
+5. **진입점을 `LibraryShelves` 밖(Page 조립)에** — 서재 조회가 실패·로딩 중일 때도 두 화면에 갈 수 있어야 한다
+6. **"See all" 행 부제: 세션 0회면 저자명** — `finishedMeta` 를 그대로 쓰면 큐레이션 목록에 `0 sessions` 가 찍혀 **결핍처럼 읽힌다**. `L-OPEN-15` 의 저자명 대체 규칙 적용
+7. **`useToggleLibrarySave` 신규** — §18.4("Home `useToggleSavedBook` 수정 금지 + Library 는 목록 재조회")를 지키는 유일한 경로. 중복은 mutation 배선뿐, 타입은 contracts 하나
+8. **Mock scenario `book-already-owned` 신설** + `API_CONTRACTS.md` §5.4 catalogue 등재 — Design Spec §7.2 의 중복 등록 안내를 재현할 key 가 없었다
+
+**기록만**: 증정 블록을 ActionBar 밖(본문 마지막)에 뒀다 — Figma `Button/card` 는 329×45 **1행**이라 버튼을 더 넣으면 그 요소 자체가 달라진다. `design-spec.md` §2.9 트리와 배치가 다르다. `D-17` Mock 전용 route 는 만들지 않았다(산출물 밖, 제약은 이미 충족).
+
+### 24.3 결함 수정 1건 + 측정 함정 1건 (신규)
+
+- **`inset-card` 시트가 393 에서 오른쪽으로 14px 넘쳤다** (`right = innerWidth + 14`). 1라운드가 opt-in 으로만 넣어둔 변형이 **처음 쓰이면서 드러난** 결함이며 `inline-size: auto` 로 고쳤다. e2e 기하 테스트가 고정한다
+- ⚠️ **측정 함정 (신규)**: 그림자 보정을 런타임에서 제거하면 Chrome **scroll anchoring** 이 `scrollTop` 을 되돌려 목록 하단이 클립 선에서 2~3px 떨어진 채 측정된다(실측 `55,16,7,2,0…`). **프레임마다 재대입하고 최댓값 도달을 단언**해야 한다
+
+### 24.4 `contentShadowInset` 실측 (1라운드 등록값과 일치)
+
+`--shadow-bubble` = drop **1겹** + inset ×2, 괄호 깊이로 전수 분리 → **빠뜨린 겹 없음.**
+
+| 임계값 | 위 | 아래 | 좌 | 우 |
+|---|---|---|---|---|
+| Δ≥1 | **0** | **10** | **4** | **4** |
+
+방법 검정: 같은 방법으로 `--shadow-glass-rest`(3겹)를 재면 **아래 78 · 위 22 · 좌우 50** — 기존 기록을 재현한다.
+
+**실제 시트에서 보정 전/후**: 보정 **없으면** 아래 프로파일이 `22, 0, 0, …` 로 **완전 절단**, 우측도 전부 0. 보정 **있으면** 아래 **10** · 우측 **4** 복원. 회귀 테스트 양방향 × 4폭 = **8건**.
+
+### 24.5 baseline — 신규 5 · 재생성 2 (원인 전부 규명)
+
+신규: `s3-library-shelf-sheet` · `s3-library-book-sheet`(**앞면**) · `s3-library-entry-actions` · `s3-library-add` · `s3-library-gift-requests`
+**육안 확인이 결함 1건을 잡았다** — 첫 생성본에서 `/library/add` 검색 입력이 `FieldGroup` 없이 배경 위에 떠 있었다.
+
+재생성 2건은 **진입점 블록이 흐름에 들어온 결과**다: `s3-library-empty`(빈 상태는 내용이 짧아 블록이 뷰포트 안에 들어왔다) · `s3-library-list`(목록이 마지막 블록이 아니게 되어 스크롤 위치가 바뀌고 반투명 glass 뒤 배경 gradient 가 달라졌다 — 채널 최대 Δ **8**).
+**런타임 토글로 확정**: 진입점 블록을 흐름에서 빼고 같은 절차로 찍으면 두 baseline 모두 **커밋본과 0 픽셀 차이**. 이 실험이 "대화형 전환(`div`→`button`)이 rest 렌더를 바꾸지 않았다"는 증거이기도 하다.
+`--update-snapshots=all` 후 위 7건 외 변경 **없음** — **Home 7종 · `s3-sheet-scrim` · `s3-dialog-scrim` 포함 전부 바이트 동일.**

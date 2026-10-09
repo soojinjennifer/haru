@@ -175,3 +175,60 @@ describe('Sheet — inset-card 변형 (Library §3.7–§3.9)', () => {
     expect(document.querySelector('.haru-sheet__content--shadow-inset')).not.toBeNull();
   });
 });
+
+/**
+ * 2라운드-4 — `surface` 와 `contentShadowInset="cover"` (사용자 결정 2026-10-09 ① · ③).
+ *
+ * 둘 다 **opt-in** 이다. 주지 않은 시트에는 class 가 붙지 않아 기존 외형이 그대로다 —
+ * 그 사실을 여기서 고정한다 (Stage 2 시트 baseline 보호).
+ */
+describe('Sheet — 면 색(`surface`) · 표지 그림자 자리(`contentShadowInset="cover"`)', () => {
+  it('`surface` 를 주지 않으면 면 class 가 **붙지 않는다**', () => {
+    render(
+      <Sheet open onClose={() => {}} title="Prompts">
+        <p>body</p>
+      </Sheet>,
+    );
+
+    const sheet = document.querySelector('.haru-sheet') as HTMLElement;
+    expect([...sheet.classList].some((name) => name.startsWith('haru-sheet--surface'))).toBe(false);
+  });
+
+  it('`surface="spring"` 이면 면 class 가 붙는다 (Figma `86:482` 뒷면 면)', () => {
+    render(
+      <Sheet open onClose={() => {}} title="Prompts" variant="inset-card" surface="spring">
+        <p>body</p>
+      </Sheet>,
+    );
+
+    expect(document.querySelector('.haru-sheet--surface-spring')).not.toBeNull();
+    /* 변형·상태 class 는 그대로다 — 면 색은 덧붙는 축이다. */
+    expect(document.querySelector('.haru-sheet--inset-card')).not.toBeNull();
+  });
+
+  it('`contentShadowInset="cover"` 는 **표지 전용** class 만 붙인다 (버블용과 섞이지 않는다)', () => {
+    const { unmount } = render(
+      <Sheet
+        open
+        onClose={() => {}}
+        title="Prompts"
+        variant="inset-card"
+        contentShadowInset="cover"
+      >
+        <p>body</p>
+      </Sheet>,
+    );
+
+    expect(document.querySelector('.haru-sheet__content--shadow-inset-cover')).not.toBeNull();
+    /* 번짐이 다르므로 두 자리를 함께 켜지 않는다 (좌우 14 vs 4 · 아래 10). */
+    expect(document.querySelector('.haru-sheet__content--shadow-inset')).toBeNull();
+    unmount();
+
+    render(
+      <Sheet open onClose={() => {}} title="Prompts" variant="inset-card" contentShadowInset>
+        <p>body</p>
+      </Sheet>,
+    );
+    expect(document.querySelector('.haru-sheet__content--shadow-inset-cover')).toBeNull();
+  });
+});

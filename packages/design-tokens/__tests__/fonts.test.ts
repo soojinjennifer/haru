@@ -143,7 +143,9 @@ describe('빌드 산출물 — CSS Variable export (AC-1-11)', () => {
     // Library 1라운드에서 19종 추가 · 1종 제거 → 150 (Library Design Spec §5.2 `LT-3`~`LT-14`
     // + §8.1 inset 레시피 2종. 제거는 `--activity-card-cover-radius` — 간격 토큰 오용을
     // `--book-cover-radius-xl` 로 통합했고 **값 10 은 그대로**라 렌더 변화가 0 이다).
-    expect(manifest.counts['component']).toBe(150);
+    // Library 2라운드-4(사용자 결정 2026-10-09 ③)에서 1종 추가 → 151
+    // (`--sheet-content-shadow-inset-inline-cover` — `--shadow-cover` 좌우 번짐 14 실측).
+    expect(manifest.counts['component']).toBe(151);
     // 2026-09-22 가값 승인 (stage-1-approvals §9) 후 남은 항목 = P-01 · P-02 · P-04 · P-05 · P-16.
     // Stage 3 에서 P-23(--color-prompt-tag-fg) 신설 (stage-3-approvals §9.2 ⑫).
     // Library 1라운드: **P-05 해제**(scrim 이 Figma 실측값이 되었다 — `L-NEW-09`) ·

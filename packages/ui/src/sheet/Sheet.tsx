@@ -19,12 +19,29 @@ import { Scrim } from './Scrim';
  */
 export type SheetVariant = 'bottom' | 'full' | 'inset-card';
 
+/**
+ * 시트 **면 색**. 지정하지 않으면 `--color-surface-strong` 이다 (기존 외형 그대로).
+ *
+ * `spring` 은 Figma `86:482`(`Prompt Card/Home` 뒷면)의 면 `color/spring green/86`
+ * (= semantic `--color-surface-spring`) 이다. **면 전체**가 바뀌어야 하는 경우에만 쓴다 —
+ * 카드 뒷면처럼 헤더·본문·ActionBar 자리가 **한 장의 뒷면**이어야 할 때다. 가운데만 칠하면
+ * 헤더·하단이 뒤집히지 않아 "가운데만 초록" 이 된다 (사용자 지시 2026-10-09 ①).
+ */
+export type SheetSurface = 'spring';
+
 export interface SheetProps {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
   variant?: SheetVariant;
+  /**
+   * 면 색 — **opt-in**. 지정하지 않으면 `--color-surface-strong` 이고, 기존 시트의 외형은
+   * 1픽셀도 바뀌지 않는다. 값이 바뀔 때는 `--motion-duration-slow` 로 **전환**된다
+   * (뒤집기와 같은 길이 — 중간 프레임에서 색이 튀지 않는다. `prefers-reduced-motion` 에서는
+   * 전환하지 않는다).
+   */
+  surface?: SheetSurface | undefined;
   /** 헤더 우측 슬롯 (닫기 IconButton 등). */
   trailing?: ReactNode;
   /**
@@ -43,12 +60,19 @@ export interface SheetProps {
   /** false 면 Esc·배경 탭으로 닫히지 않는다. */
   dismissible?: boolean;
   /**
-   * `R-SHADOW-1` — 본문(`overflow-y: auto`) 안에 drop shadow 요소(`ListGroup` =
-   * `--shadow-bubble`)가 있을 때 켠다. 그림자 자리(아래 10 · 좌우 4, **픽셀 프로브 실측**)를
+   * `R-SHADOW-1` — 본문(`overflow-y: auto`) 안에 drop shadow 요소가 있을 때 켠다. 그림자 자리를
    * padding 으로 만들고 음수 margin 으로 레이아웃 점유를 되돌린다 (Library Design Spec §8.1 ①).
    * 기본값 `false` — 켜지 않은 시트의 외형은 그대로다.
+   *
+   * | 값 | 대상 그림자 | 자리 (**픽셀 프로브 실측**) |
+   * |---|---|---|
+   * | `true` | `--shadow-bubble` (`ListGroup`) | 아래 10 · 좌우 4 |
+   * | `'cover'` | `--shadow-cover` (`BookCover`) | **좌우 14** (아래·위는 표지 자리가 따로 갖는다) |
+   *
+   * ⚠️ 번짐이 다르면 값도 다르다 — 한쪽 값을 다른 쪽에 쓰면 잘린다. 겹을 전부 합산하고
+   * 브라우저에서 재측정한 값만 쓴다 (`rules/frontend.md` §6-1 `R-SHADOW-1` ③).
    */
-  contentShadowInset?: boolean;
+  contentShadowInset?: boolean | 'cover';
 }
 
 /**
@@ -63,6 +87,7 @@ export function Sheet({
   title,
   children,
   variant = 'bottom',
+  surface,
   trailing,
   footer,
   initialFocus,
@@ -85,7 +110,12 @@ export function Sheet({
       <Scrim level="sheet" state={state} onClick={dismissible ? onClose : undefined} />
       <div
         ref={containerRef}
-        className={cx('haru-sheet', `haru-sheet--${variant}`, `haru-sheet--${state}`)}
+        className={cx(
+          'haru-sheet',
+          `haru-sheet--${variant}`,
+          `haru-sheet--${state}`,
+          surface === undefined ? undefined : `haru-sheet--surface-${surface}`,
+        )}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -103,7 +133,8 @@ export function Sheet({
         <div
           className={cx(
             'haru-sheet__content',
-            contentShadowInset && 'haru-sheet__content--shadow-inset',
+            contentShadowInset === true && 'haru-sheet__content--shadow-inset',
+            contentShadowInset === 'cover' && 'haru-sheet__content--shadow-inset-cover',
           )}
         >
           {children}

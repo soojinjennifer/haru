@@ -12,14 +12,17 @@
  * └ ActionBar  ★ Save + Start Session(비활성)
  * ```
  *
- * ── ⚠️ `ActivityOptionCard` 를 **재사용하지 못했다** (보고 대상) ──
+ * ── ⚠️ `ActivityOptionCard` 를 **재사용하지 못했다** (보고 대상, 2라운드-2 그대로) ──
  * Design Spec §3.8 은 "같은 규격이므로 `ActivityOptionCard` 재사용" 을 적지만, 그 컴포넌트는
  * `ActivityCardOption` 을 받는다. 서재가 가진 데이터는 `LibraryBook` + `BookPromptsResponse`
- * 이고 **`reason`(추천 이유 1~2문장) · `position` · `kind` 가 없다**. `reason` 은 서버가 만든
- * 문장이라 Frontend 가 지어낼 수 없다 (`rules/frontend.md` §8 — 생성 문구는 API 값만 표시).
- * 그래서 **같은 하위 부품**(`BookCover` · `PromptPill` · `SaveButton`)으로 같은 구성을 만들되
- * 추천 이유 줄은 **렌더하지 않는다**. → Figma 에 있는 요소 1개를 빼는 것이므로 보고한다
- * (최우선 규칙 #3). contract 에 `reason` 을 추가할지는 사용자 결정 사항이다.
+ * 이고 **`position` · `kind` 가 없다**. 그래서 **같은 하위 부품**(`BookCover` · `PromptPill` ·
+ * `CoachingNote` · `SaveButton`)으로 같은 구성을 만든다.
+ *
+ * ── 추천 이유 줄 (**해소됨** — 사용자 결정 2026-10-09) ──
+ * 2라운드-2 는 `reason` 이 contract 에 없어 이 줄을 **빼고** 보고했다. 사용자 결정으로
+ * **`BookPromptsResponse.reason`** 이 추가되었다 (선정 근거는 `packages/contracts/src/books/
+ * prompts.ts` 주석). 서버 문장을 **그대로** 그리고, `null` 이면 **줄 자체를 생략**한다 —
+ * 빈 문자열·대체 문구를 만들지 않는다 (`rules/frontend.md` §8).
  *
  * ── 헤더에 들어가는 것 ──
  * Figma 카드의 `Cardtitle` 행에는 역량 Tag 와 flip 아이콘이 있고 제목은 본문에 있다.
@@ -27,21 +30,46 @@
  * 확정되어 있다 (Design Spec §4.5 · `stage-3-design-spec.md` §2.8). 그래서
  *   ① 책 제목을 헤더로 올리고(타이포는 Figma 카드 제목과 같은 `headline`),
  *   ② 역량은 본문 부제에서 `저자 · 역량` 으로 보인다 (`ReadingNowCard` 와 같은 규칙),
- *   ③ flip 아이콘은 **넣지 않는다** — 24×24 슬롯이 하나이고 닫기가 그 자리를 쓴다.
- * ①·③ 도 Figma 와의 차이이므로 보고한다.
+ *   ③ trailing 에 **flip + 닫기 2개**를 둔다 (아래).
  *
- * ── 코칭 노트 ──
- * `Prompt.coachingNote` 는 Home 카드 **뒷면**이 1:1 로 그리는 데이터다 (§12.14). 이 시트에는
- * 뒤집기 면이 없으므로(③) 노트를 렌더하지 않는다 — 접힌 자리를 만들어 Figma 에 없는 UI 를
- * 추가하지 않는다. → 보고 대상.
+ * ── 코칭 노트 = **뒤집기** (사용자 결정 2026-10-09) ──
+ * `Prompt.coachingNote` 를 Home 카드 뒷면(`86:482`)과 **같은 방식**으로 보여 준다.
  *
- * ── `contentShadowInset` 을 켜지 않는다 ──
- * 본문의 자식 중 **drop shadow 를 가진 것이 없다**: `PromptPill` 은 `inset` 전용(outline) 또는
- * 면(tinted)이고, `BookCover md` 는 `--shadow-cover` 를 갖지만 본문이 스크롤될 만큼 길지 않을
- * 때는 잘릴 자리가 없다… 는 가정을 쓰지 않는다 — 실제로는 `--shadow-cover` 번짐(아래 20)이
- * 세로 스크롤 시 잘릴 수 있으므로 **표지 자리에 inset 을 직접 준다** (`library.css`
- * `.haru-book-sheet__cover`). 시트 본문 전체 inset(`contentShadowInset`)은 `ListGroup` 처럼
- * **본문 폭을 꽉 채우는** 그림자 상자를 위한 것이라 이 시트에는 맞지 않는다.
+ * **어포던스**: `Sheet.trailing` 은 `ReactNode` 라 **Shared UI 수정 없이** 두 개를 넣을 수
+ * 있다. `[flip][닫기]` 순서이며 **닫기는 바깥쪽(모서리) 자리를 그대로 지킨다** — 닫는 방법을
+ * 없애지 않는다. 두 버튼 다 `IconButton`(38×38 · hit 44) 이라 헤더 높이가 변하지 않는다.
+ * flip 은 `aria-pressed` 로 상태를 알리고, 뒷면에서도 **같은 자리의 같은 버튼**으로 되돌아온다
+ * (audit §11.5 "뒷면에도 같은 자리에 같은 아이콘"). 아이콘은 Home 과 같은 `haru:flip-to-back`.
+ * ⚠️ Figma `145:1085` 에는 이 두 번째 헤더 아이콘이 **없다** — 승인된 추가다.
+ *
+ * **뒷면 내용**: 앞면 pill 목록과 **같은 순서·같은 개수**로 `[pill, 코칭 노트]` 를 그린다.
+ * `coachingNote` 는 `kind === 'question'` 에만 강제되므로(`createPromptCoachingRefine`)
+ * `follow_up` 은 **pill 만** 남는다 — Figma `86:482` 의 마지막 항목도 노트 없는 pill 이고
+ * Home 뒷면도 같은 규칙이다. 목록을 **거르지 않는다**(`D-21` 과 같은 이유: 서버 배열을
+ * 프론트가 줄이지 않는다). 노트가 하나도 없으면 뒤집을 것이 없으므로 **flip 버튼을 내지 않는다**.
+ *
+ * **높이**: 뒷면은 `position: absolute; inset: 0` 으로 **앞면 높이를 그대로** 쓴다.
+ * 목록이 그 높이를 넘으면 **뒷면 본문만** 스크롤한다 (Home 뒷면과 같은 처리).
+ *
+ * ── 뒷면 = **면 전체가 초록 + ActionBar 없음** (사용자 결정 2026-10-09 ① · ②) ──
+ * Figma `86:482` 뒷면은 면이 `color/spring green/86` 이고 ActionBar 가 **없다**. 둘 다
+ * 시트 본문 **밖**의 사실이므로 `Sheet` 가 받는다: 면 색은 `surface="spring"`(opt-in),
+ * ActionBar 는 footer 를 뒤집힌 동안 레이아웃에서 빼서(`library.css`) 처리한다.
+ * ⚠️ 그래서 **뒤집으면 시트 높이가 57(45 + gap 12) 줄어든다** — 높이 상한에 걸리지 않은
+ * 화면(393×852)에서는 윗변이 그만큼 내려오고, 상한에 걸린 화면(320×568)에서는 높이가 그대로이고
+ * **본문이 57 늘어난다**(뒷면 목록이 그만큼 더 보인다). 두 경우 모두 음수 margin 전환이라
+ * 400ms 에 걸쳐 움직인다. 수치는 e2e 가 고정한다.
+ *
+ * ── `contentShadowInset="cover"` (`R-SHADOW-1` ③, 사용자 결정 2026-10-09 ③) ──
+ * 본문 자식 중 drop shadow 를 가진 것은 **표지 하나**다 (`PromptPill` 은 outline/면, `CoachingNote`
+ * 는 `material="none"`). 표지 자리의 아래·위(20 / 8)는 `library.css` `.haru-book-sheet__cover` 가
+ * 갖지만, **좌우 14 는 본문 밖**이라 거기서 만들 수 없다 — 2라운드-2 부터 좌측 14 가
+ * `.haru-sheet__content` 경계에서 전면 절단되어 있었다(실측 Δ `0 0 0 …`). 그래서 본문에
+ * `cover` 자리(좌우 14)를 켠다. `true`(`--shadow-bubble` 기준 4)로는 모자란다.
+ *
+ * 뒷면 목록은 **새 `overflow` 박스**이므로 `R-SHADOW-1` 을 다시 적용했다 — 자리는
+ * `library.css` `.haru-book-sheet__notes` 가 만들고, 번짐 실측과 보정 전/후 프로브는
+ * `e2e/shadow.spec.ts` 가 고정한다.
  */
 import {
   Button,
@@ -58,7 +86,7 @@ import { useState } from 'react';
 import type { LibraryBook, Prompt } from '@haru/contracts';
 
 import { BookCover, useBookPrompts } from '../../entities/book';
-import { PromptPill, SaveButton } from '../../entities/activity-card';
+import { CoachingNote, PromptPill, SaveButton } from '../../entities/activity-card';
 import { useCreateGiftRequest, useToggleLibrarySave } from '../../entities/library';
 import { ERROR_COPY, networkErrorCopy } from '../../shared/copy/error-copy';
 import { giftRequestStatusCopy, libraryCopy } from '../../shared/copy/library-copy';
@@ -78,6 +106,18 @@ export function BookDetailSheet({ open, book, onClose }: BookDetailSheetProps) {
   const bookId = book?.book?.id;
   const prompts = useBookPrompts(bookId, { enabled: open });
   /*
+    앞면 pill 목록 = 뒷면 항목 목록이다 (같은 배열, 같은 순서). `followUps` 를 `questions`
+    뒤에 이어 붙이는 것은 `PromptSet` 의 순서 그대로다.
+  */
+  const promptList: readonly Prompt[] =
+    prompts.promptSet === undefined
+      ? []
+      : [...prompts.promptSet.questions, ...prompts.promptSet.followUps];
+  /* 노트가 하나도 없으면 뒤집을 것이 없다 → flip 버튼도, 뒷면도 내지 않는다. */
+  const hasNotes = promptList.some(
+    (prompt) => prompt.coachingNote !== undefined && prompt.coachingNote !== null,
+  );
+  /*
     `★ Save` 라벨은 누른 **즉시** 바뀐다 — Figma 에 로딩 표현이 없어 지연을 숨기는 것이
     Figma 를 지키는 방법이다 (`G-13`, `useToggleSavedBook` 주석과 같은 근거).
 
@@ -93,26 +133,80 @@ export function BookDetailSheet({ open, book, onClose }: BookDetailSheetProps) {
   const saved =
     pending !== null && pending.bookId === bookId ? pending.saved : (book?.saved ?? false);
 
+  /*
+    뒤집힌 면도 **책에 묶어** 둔다 — `pending` 과 같은 이유다. 교체 전환으로 다른 책이
+    들어오면 id 가 어긋나 **앞면으로 자동 폴백**되므로 effect 로 동기화하지 않는다.
+    노트가 사라진 경우(조회 실패·재조회)에도 `hasNotes` 가 앞면을 강제한다.
+  */
+  const [face, setFace] = useState<{ bookId: string; back: boolean } | null>(null);
+  const back = hasNotes && face !== null && face.bookId === book?.id && face.back;
+
+  function close(): void {
+    setFace(null);
+    onClose();
+  }
+
   const title = book === undefined ? libraryCopy.title : bookTitle(book);
 
   return (
     <Sheet
       open={open}
-      onClose={onClose}
+      onClose={close}
       title={title}
       variant="inset-card"
+      /*
+        면 색 — 뒤집힌 동안 **시트 면 전체**가 Figma `86:482` 뒷면 색이 된다 (사용자 결정
+        2026-10-09 ①). 가운데(본문)만 칠하면 헤더·ActionBar 자리가 흰 채로 남아 "가운데만
+        초록" 이 되므로 면을 `Sheet` 가 받는다. 주지 않으면 기존 면 색 그대로다.
+      */
+      surface={back ? 'spring' : undefined}
+      /*
+        `R-SHADOW-1` ③ — 표지(`--shadow-cover`) **좌우 자리 14**. 2라운드-2 부터 좌측 14 가
+        `.haru-sheet__content` 경계에서 **전면 절단**되어 있었다 (실측 좌 Δ `0 0 0 …`).
+        `true`(= `--shadow-bubble` 기준 좌우 4 + 아래 10)로는 모자란다 — 번짐이 다르다.
+      */
+      contentShadowInset="cover"
+      /*
+        trailing 은 `ReactNode` 다 — Shared UI 를 고치지 않고 **한 요소 안에 두 버튼**을 둔다
+        (`.haru-sheet__trailing` 의 레이아웃 선언을 바꾸면 Stage 2 시트 baseline 이 움직인다).
+        닫기는 **바깥쪽 자리 그대로**이고 flip 이 그 안쪽에 붙는다.
+      */
       trailing={
-        <IconButton
-          icon={<Icon name="x" size="md" decorative />}
-          label={libraryCopy.closeSheet}
-          variant="plain"
-          onPress={onClose}
-        />
+        <div className="haru-book-sheet__header-actions">
+          {book !== undefined && hasNotes ? (
+            <IconButton
+              icon={<Icon name="haru:flip-to-back" size="md" decorative />}
+              label={back ? libraryCopy.bookSheet.showBook : libraryCopy.bookSheet.showNotes}
+              variant="plain"
+              aria-pressed={back}
+              onPress={() => {
+                if (book === undefined) return;
+                setFace({ bookId: book.id, back: !back });
+              }}
+            />
+          ) : null}
+          <IconButton
+            icon={<Icon name="x" size="md" decorative />}
+            label={libraryCopy.closeSheet}
+            variant="plain"
+            onPress={close}
+          />
+        </div>
       }
-      /* ActionBar 는 **본문 밖 고정**이다 (`Sheet.footer` 주석 — Figma `Button/card`). */
+      /*
+        ActionBar 는 **본문 밖 고정**이다 (`Sheet.footer` 주석 — Figma `Button/card`).
+        Figma `86:482` **뒷면에는 ActionBar 가 없다** → 뒤집힌 동안 레이아웃에서 빼고
+        (`library.css` 가 음수 margin 으로 400ms 에 걸쳐 접는다) 포커스·스크린리더에서도
+        제외한다. 앞면으로 돌아오면 그대로 돌아온다. 닫기·flip 은 헤더라 영향이 없다.
+      */
       footer={
         book === undefined ? undefined : (
-          <>
+          <div
+            className="haru-book-sheet__action-bar"
+            data-hidden={back}
+            inert={back}
+            aria-hidden={back}
+          >
             <div className="haru-book-sheet__actions">
               <SaveButton
                 saved={saved}
@@ -129,38 +223,107 @@ export function BookDetailSheet({ open, book, onClose }: BookDetailSheetProps) {
             {save.isError ? (
               <InlineAlert tone="error" title={libraryCopy.bookSheet.saveFailed} />
             ) : null}
-          </>
+          </div>
         )
       }
     >
       {book === undefined ? null : (
-        <>
-          <div className="haru-book-sheet__book">
-            <span className="haru-book-sheet__cover">
-              <BookCover
-                title={bookTitle(book)}
-                author={bookAuthor(book)}
-                coverUrl={book.book?.coverUrl ?? undefined}
-                decorative
-              />
-            </span>
-            {bookSubtitle(book) === undefined ? null : (
-              <Text as="span" variant="caption-1" tone="secondary" truncate={2}>
-                {bookSubtitle(book)}
-              </Text>
-            )}
+        <div className="haru-book-sheet__flip" data-face={back ? 'back' : 'front'}>
+          <div className="haru-book-sheet__flip-inner">
+            <div
+              className="haru-book-sheet__face haru-book-sheet__face--front"
+              inert={back}
+              aria-hidden={back}
+            >
+              <div className="haru-book-sheet__book">
+                <span className="haru-book-sheet__cover">
+                  <BookCover
+                    title={bookTitle(book)}
+                    author={bookAuthor(book)}
+                    coverUrl={book.book?.coverUrl ?? undefined}
+                    decorative
+                  />
+                </span>
+                <div className="haru-book-sheet__book-text">
+                  {bookSubtitle(book) === undefined ? null : (
+                    <Text as="span" variant="caption-1" tone="secondary" truncate={2}>
+                      {bookSubtitle(book)}
+                    </Text>
+                  )}
+                  {/*
+                    추천 이유 — **서버 문장 그대로**. `null` 이면 줄이 없다 (대체 문구 금지).
+                    Figma 카드 `145:1085` 의 책 블록 3번째 줄과 같은 자리다.
+                  */}
+                  {prompts.reason === null ? null : (
+                    <Text variant="footnote">{prompts.reason}</Text>
+                  )}
+                </div>
+              </div>
+
+              <PromptBlock hasCatalogueBook={bookId !== undefined} prompts={prompts} />
+
+              {/*
+                `key` 로 책마다 **새로 마운트**한다 — 신청 결과(`isSuccess`·`isError`)가 교체
+                전환 뒤의 다른 책에 남지 않는다. effect 로 초기화하지 않는 이유와 같다.
+              */}
+              <GiftBlock key={book.id} book={book} />
+            </div>
+
+            {hasNotes ? <NotesFace prompts={promptList} hidden={!back} /> : null}
           </div>
-
-          <PromptBlock hasCatalogueBook={bookId !== undefined} prompts={prompts} />
-
-          {/*
-            `key` 로 책마다 **새로 마운트**한다 — 신청 결과(`isSuccess`·`isError`)가 교체
-            전환 뒤의 다른 책에 남지 않는다. effect 로 초기화하지 않는 이유와 같다.
-          */}
-          <GiftBlock key={book.id} book={book} />
-        </>
+        </div>
       )}
     </Sheet>
+  );
+}
+
+interface NotesFaceProps {
+  prompts: readonly Prompt[];
+  hidden: boolean;
+}
+
+/**
+ * 뒷면 — Figma `86:482` (`Prompt Card/Home` `flip=back`) 의 구성을 시트 본문 자리에 그린다.
+ *
+ * - 제목은 Figma 문구 그대로 **단수형** `Prompt of this book`. 시트 헤더는 책 제목을
+ *   그대로 들고 있으므로 dialog 의 접근성 이름은 바뀌지 않는다.
+ * - `[pill, 코칭 노트]` 를 **앞면과 같은 순서·같은 개수**로 그린다. 노트가 없는 Prompt
+ *   (`follow_up`)는 **pill 만** 남는다 — Figma 뒷면의 마지막 항목도 그 모양이다.
+ * - 목록이 앞면 높이를 넘으면 **이 블록만** 스크롤한다. 그래서 `R-SHADOW-1` 의 inset 설계가
+ *   `library.css` 에 함께 있다.
+ * - 배경: 이 면은 **색을 갖지 않는다.** Figma 뒷면 색(`color/spring green/86`)은 시트 면
+ *   전체(`Sheet surface="spring"`)가 갖는다 — 가운데만 칠하면 헤더·ActionBar 자리가 흰
+ *   채로 남는다 (사용자 결정 2026-10-09 ①).
+ */
+function NotesFace({ prompts, hidden }: NotesFaceProps) {
+  return (
+    <div
+      className="haru-book-sheet__face haru-book-sheet__face--back"
+      inert={hidden}
+      aria-hidden={hidden}
+    >
+      <Text as="h3" variant="headline" weight="bold">
+        {libraryCopy.bookSheet.notesTitle}
+      </Text>
+      {/* 스크롤 영역의 키보드 도달 — Home 뒷면과 같은 사유다 (WCAG 2.1.1). */}
+      {/* eslint-disable jsx-a11y/no-noninteractive-tabindex */}
+      <div
+        className="haru-book-sheet__notes"
+        tabIndex={0}
+        role="group"
+        aria-label={libraryCopy.bookSheet.notesTitle}
+      >
+        {prompts.map((prompt) => (
+          <div key={prompt.id} className="haru-book-sheet__note-item">
+            <PromptPill prompt={prompt} tone="tinted" />
+            {prompt.coachingNote === undefined || prompt.coachingNote === null ? null : (
+              <CoachingNote>{prompt.coachingNote}</CoachingNote>
+            )}
+          </div>
+        ))}
+      </div>
+      {/* eslint-enable jsx-a11y/no-noninteractive-tabindex */}
+    </div>
   );
 }
 

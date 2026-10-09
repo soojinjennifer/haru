@@ -715,7 +715,7 @@ Home 상단 설정 아이콘(`26:44`) → 설정 목록. Stage 2는 `/` Home ske
 | POST | `/v1/children/:childId/library/books` (IK) | `AddOwnBook` = `{ target }` — **`SaveBookTarget` 재사용** (bookId \| title+author) | `LibraryBook` | VALIDATION_FAILED, IDEMPOTENCY_KEY_REUSED, (BOOK_ALREADY_OWNED) | FR-23, §8.1 |
 | PUT | `/v1/children/:childId/saved-books` | `SaveBook` (`target` = bookId \| title+author) | **`SavedBook`** (`saved=true`) — `LibraryBook` 전환을 검토했으나 **현행 유지**가 사용자 결정이다 (`L-OPEN-20`, `stage-3-approvals.md` §18.4). 그 대가로 저장/해제 후 `libraryKeys.overview` 를 무효화하고 재조회한다 | RESOURCE_NOT_FOUND, VALIDATION_FAILED | **Figma `★ Save` — approvals §12.8 `A-9`**. PRD 근거 없음(FR-20 범위 밖) → Figma 우선 + 사용자 결정. 설계 §3.7. **IK 불필요**(PUT = 상태 설정, 멱등) |
 | DELETE | `/v1/children/:childId/saved-books/:bookId` | — | **`SavedBook`** (`saved=false`) — 위와 같은 이유로 현행 유지 (`L-OPEN-20`) | RESOURCE_NOT_FOUND | 저장 해제 (`G-13` 토글) |
-| GET | `/v1/books/:bookId/prompts?childId=` | — | `BookPromptsResponse` = `{ bookId, promptSet }` — **`PromptSet` 재사용**(중복 선언 금지). 세트 단위 `coachingLine` 은 §12.14 로 삭제되었고 코칭 노트는 **`Prompt.coachingNote`**(질문 1개당 1개)다. 각 `Prompt` 는 `phase`·`pageRef`(optional)를 포함할 수 있다 (§3.6, D-8) | RESOURCE_NOT_FOUND | FR-20 "책별 Prompt 보기" |
+| GET | `/v1/books/:bookId/prompts?childId=` | — | `BookPromptsResponse` = `{ bookId, promptSet, reason? }` — **`PromptSet` 재사용**(중복 선언 금지). 세트 단위 `coachingLine` 은 §12.14 로 삭제되었고 코칭 노트는 **`Prompt.coachingNote`**(질문 1개당 1개)다. 각 `Prompt` 는 `phase`·`pageRef`(optional)를 포함할 수 있다 (§3.6, D-8). **`reason`(추천 이유 1~2문장, nullable)은 서버가 만든 문장이며 `BookDetailSheet` 가 Figma `145:1085` 의 책 블록 3번째 줄로 그린다 (사용자 결정 2026-10-09 `L-R2B-01`). 길이 제약 없음 — 요구는 `P3-BIP-26`** | RESOURCE_NOT_FOUND | FR-20 "책별 Prompt 보기" |
 | POST | `/v1/children/:childId/gift-requests` (IK) | `CreateGiftRequest` = **`{ bookId }` 만 — 배송지 필드 없음 (CONFIRMED 2026-10-02, §8 D-15)** | `GiftRequest` | GIFT_REQUEST_DUPLICATE | FR-22, §13. 배송지 수집·저장은 운영·법무 결정 후 별도 Stage (`P3-BIP-06`) |
 | GET | `/v1/children/:childId/gift-requests` | — | `Paginated<GiftRequest>` | CHILD_NOT_FOUND | §13 배송 상태 서재 확인 |
 | GET | `/v1/notification-preferences` | — | `NotificationPreferences` | — | FR-08, §7.8. **Contract 정의 유지** — D-18(2026-10-02, §8.4)은 **알림 설정 화면만** Stage 3 제외이며 contract 는 삭제하지 않는다 |
@@ -836,7 +836,7 @@ apps/web/src/
 | me / consents / auth(AuthGateway) | 2 | `success`, `loading`, `error`, `retry` | `consent-missing`, `consent-version-outdated`, `token-expired`, `provider-cancelled`, `onboarding-incomplete`, `vpc-pending`, `vpc-failed` |
 | onboarding / children profile | 2 | `success`, `loading`, `error`, `retry` | `draft-resume`, `persona-fallback`, `child-limit-reached`, `capability-all-missing` |
 | home / activity-cards | 3 | `success`, `loading`, `empty`, `error`, `retry` | `offline-cached-card`, `conversation-only-option`, `reread-option`, `books-exhausted`, `session-already-active` |
-| library / books / gift-requests / **saved-books** | 3 | `success`, `loading`, `empty`, `error`, `retry` | `gift-pending`, `gift-duplicate`, `book-already-owned`, `user-entered-book`, **`book-saved`** |
+| library / books / gift-requests / **saved-books** | 3 | `success`, `loading`, `empty`, `error`, `retry` | `gift-pending`, `gift-duplicate`, `book-already-owned`, `user-entered-book`, **`book-saved`**, **`no-reason`** |
 | notifications / push-devices | 3 | `success`, `loading`, `error`, `retry` | `push-permission-denied` |
 | sessions (create / transitions) | 4 | `success`, `loading`, `error`, `retry` | `invalid-transition`, `session-already-active`, `onboarding-incomplete`, `consent-missing`, `mic-permission-denied`, `recording-interrupted`, `auto-timeout`, `crash-recovered`, `abandoned` |
 | recordings (upload init / tokens / complete) | 4 | `success`, `loading`, `error`, `retry` | **`recording-upload-success`**, **`recording-upload-failure`**, `upload-retry`, `upload-token-expired`, `recording-incomplete`, `offline-queued`, `upload-stalled-48h`, `recording-deleted` (upload-tokens) |
@@ -889,6 +889,7 @@ apps/web/src/
 | `gift-duplicate` | — | `GIFT_REQUEST_DUPLICATE` | gift-requests | 3 | — |
 | `book-already-owned` | — | `BOOK_ALREADY_OWNED`(409) — `/library/add` 중복 등록 안내 (Design Spec §7.2 `InlineAlert tone=info`). Library 2라운드-2 에서 추가 | library (add book) | 3 | — |
 | `user-entered-book` | — | DB 외 직접 등록 책 포함 (범용 Prompt) | library, books | 3 | — |
+| `no-reason` | — | `GET /v1/books/:bookId/prompts` 응답에서 **`reason` 필드를 생략**한다 — 서버가 아직 추천 이유 문장을 갖고 있지 않은 경우. 화면은 **줄을 생략**해야 하며 대체 문구를 만들지 않는다 (`L-R2B-01`). Library 2라운드-3 에서 추가 | books (prompts) | 3 | — |
 | `book-saved` | — | 대상 책이 **이미 저장된 상태**(`LibraryBook.saved=true`) → 재저장이 같은 응답을 돌려주는 멱등성(§3.7.3)과 (`G-14` ⓑ 채택 시) 초기 표시 검증 | library, saved-books, activity-cards | 3 | — |
 | `unsave` | — | 저장 해제 성공 (`G-13` 토글) → `libraryKeys.overview` 무효화·재조회 | library, saved-books | 3 | — |
 | **`favorites-empty`** | — | `Favorites` 섹션만 0건, 나머지 정상. **저장 전 기본 상태 = 가장 흔한 실제 상태** — 섹션이 사라지지 않고 안내가 뜬다 | library (overview) | 3 | — |

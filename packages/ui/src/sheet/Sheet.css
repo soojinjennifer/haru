@@ -23,7 +23,24 @@
   background-color: var(--color-surface-strong);
   box-shadow: var(--shadow-glass-rest);
   transform: translateY(0);
+  /*
+   * 면 색 전환 — `surface` 를 **주는 시트에만** 실제로 일어난다 (다른 시트는 면 색이 바뀌지
+   * 않으므로 선언이 있어도 렌더가 같다). 전환을 base 에 두는 이유: 되돌아올 때
+   * (`--surface-*` 클래스가 빠질 때)도 같은 길이로 전환되어야 하는데, 수식자 쪽에만 두면
+   * 복귀가 **즉시**가 되어 색이 튄다.
+   */
+  transition-property: background-color;
+  transition-duration: var(--motion-duration-slow);
+  transition-timing-function: var(--motion-ease-standard);
   animation: haru-sheet-in var(--motion-duration-base) var(--motion-ease-standard);
+}
+
+/*
+ * 면 색 `spring` — Figma `86:482` 뒷면(`color/spring green/86`).
+ * **opt-in** 이다: `surface` 를 주지 않은 시트에는 이 클래스가 붙지 않는다.
+ */
+.haru-sheet--surface-spring {
+  background-color: var(--color-surface-spring);
 }
 
 .haru-sheet--full {
@@ -134,6 +151,23 @@
   margin-inline: calc(-1 * var(--sheet-content-shadow-inset-inline));
 }
 
+/*
+ * 같은 레시피의 **표지 전용 좌우** (`contentShadowInset="cover"`). 값이 다른 이유는
+ * 번짐이 다르기 때문이다 — `--shadow-cover`(`0 6px 14px`)의 좌우 번짐은 **픽셀 프로브
+ * 재측정값 14** 다 (`--sheet-content-shadow-inset-inline-cover` 주석에 프로파일).
+ *
+ * 아래쪽은 **더하지 않는다**: 표지의 아래·위 자리(20 / 8)는 표지 자신이 갖고 있고
+ * (`library.css` `.haru-book-sheet__cover`), 본문에 `padding-block-end` 를 더하면 앞면에
+ * 10px 짜리 빈 스크롤 영역이 생긴다.
+ *
+ * ⚠️ 본문 안에 **또 다른 가로 클리핑 박스**가 있으면 그쪽도 같은 자리를 가져야 한다 —
+ * 여기만 켜면 안쪽 박스가 먼저 자른다 (`library.css` `.haru-book-sheet__flip` 참고).
+ */
+.haru-sheet__content--shadow-inset-cover {
+  padding-inline: var(--sheet-content-shadow-inset-inline-cover);
+  margin-inline: calc(-1 * var(--sheet-content-shadow-inset-inline-cover));
+}
+
 /* ===== 모션 (§9.1) — enter translateY(100%) → 0, exit 반대 ============== */
 @keyframes haru-sheet-in {
   from {
@@ -184,6 +218,11 @@
 
   .haru-sheet {
     transform: none;
+    /*
+     * 면 색 전환도 끈다. 뒤집기(`rotateY`) 자체가 이 모드에서 즉시 바뀌므로, 색만 400ms
+     * 뒤따르면 **면과 내용이 어긋난 중간 상태**가 보인다.
+     */
+    transition: none;
   }
 
   .haru-sheet--closing {

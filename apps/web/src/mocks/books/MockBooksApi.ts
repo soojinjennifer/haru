@@ -13,6 +13,8 @@
  * | `error` | `INTERNAL_ERROR` Error Envelope |
  * | `retry` | 1회차 실패 → 2회차부터 성공 |
  * | `offline` | `NetworkError` |
+ * | `no-reason` | **Prompt 조회만** 달라진다 — `reason` 을 **생략**한다 (서버가 아직 문장을
+ *   갖고 있지 않은 경우). 검색은 `success` 와 같다 |
  *
  * Prompt 세트는 **Home 카드와 같은 fixture**(`createPromptSetFixture`)를 쓴다 — 같은 책의
  * Prompt 가 화면마다 달라 보이면 안 된다. `bookId` 를 seed 로 넣어 책마다 결정적으로 다르다.
@@ -45,7 +47,11 @@ import {
 import type { ApiRequestOptions } from '../../shared/api/health-api';
 import type { Clock } from '../../shared/lib/clock';
 import type { IdFactory } from '../../shared/lib/idFactory';
-import { createBookSearchFixture, createEmptyBookSearchFixture } from '../fixtures/books';
+import {
+  createBookReasonFixture,
+  createBookSearchFixture,
+  createEmptyBookSearchFixture,
+} from '../fixtures/books';
 import { findLibraryBook } from '../fixtures/library';
 import { createPromptSetFixture } from '../fixtures/prompt-sets';
 import type { RequestLog } from '../request-log';
@@ -58,6 +64,7 @@ export const BOOKS_SCENARIO_KEYS = [
   'error',
   'retry',
   'offline',
+  'no-reason',
 ] as const;
 
 export type BooksScenarioKey = (typeof BOOKS_SCENARIO_KEYS)[number];
@@ -169,6 +176,14 @@ export function createMockBooksApi(deps: MockBooksApiDeps): BooksApi {
               request.bookId.slice(-4),
               capabilityFor(request.bookId),
             ),
+            /*
+              `no-reason` 은 **필드를 통째로 빼서** 서버가 문장을 주지 않는 경우를 재현한다
+              (`reason` 은 nullable·optional 이다). 화면은 그 줄을 **생략**해야 하며 빈
+              문자열이나 대체 문구를 만들지 않는다.
+            */
+            ...(scenario === 'no-reason'
+              ? {}
+              : { reason: createBookReasonFixture(request.bookId) }),
           },
           { operation: PROMPTS_OPERATION, direction: 'response' },
         );

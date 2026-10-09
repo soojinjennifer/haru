@@ -274,6 +274,16 @@
    */
   --sheet-content-shadow-inset-block-end: 10px;
   --sheet-content-shadow-inset-inline: 4px;
+  /*
+   * 같은 레시피의 **표지(`--shadow-cover`) 전용 좌우 값**. 번짐이 다르므로 값도 다르다 —
+   * `--shadow-bubble`(blur 4) 은 좌우 4, `--shadow-cover`(`0 6px 14px`) 는 좌우 **14** 다.
+   * **픽셀 프로브 재측정** (2026-10-09, dev 서버 · 393×852 · dSF 1 · 실제 `BookCover md`):
+   *   우측 Δ 프로파일 `52 46 41 34 30 25 19 16 13 9 9 6 3 3 0 0 …` → 번짐 **14**
+   *   (좌측은 같은 시점 `0 0 0 …` — `.haru-sheet__content` 에 **전면 절단**되어 있었다)
+   * 추정이 아니다. drop 1겹이라 빠뜨릴 겹이 없고, 좌우는 offset-x 가 0 이라 대칭이다.
+   * 아래/위(20 / 8)는 `library.css` 의 `.haru-book-sheet__cover` 가 따로 갖는다.
+   */
+  --sheet-content-shadow-inset-inline-cover: 14px;
   --dialog-radius: var(--radius-card);
   --toast-radius: var(--radius-surface);
   --skeleton-radius: var(--radius-control);

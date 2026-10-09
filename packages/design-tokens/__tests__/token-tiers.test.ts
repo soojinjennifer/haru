@@ -210,8 +210,13 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
    *        `--sheet-content-shadow-inset-block-end` · `--sheet-content-shadow-inset-inline`
    *  제거: `--activity-card-cover-radius` (간격 토큰 오용 → `--book-cover-radius-xl` 로 통합,
    *        **값 10 동일이므로 렌더 변화 0**)
+   *
+   * Library 2라운드-4(사용자 결정 2026-10-09 ③)에서 **1종 추가** → 151.
+   *  추가: `--sheet-content-shadow-inset-inline-cover` — 같은 inset 레시피의 **표지 전용
+   *        좌우 값**이다. `--shadow-bubble`(좌우 4)과 `--shadow-cover`(좌우 **14**)의 번짐이
+   *        다르므로 값을 공유할 수 없다 (둘 다 픽셀 프로브 실측).
    */
-  it('Tier 3 토큰 150개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset + Library 1라운드)', () => {
+  it('Tier 3 토큰 151개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset + Library 1라운드 + 표지 그림자 자리)', () => {
     expect(components.map((d) => d.name).sort()).toEqual(
       [
         '--button-height-md',
@@ -361,6 +366,7 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
         '--sheet-inset-pad',
         '--sheet-content-shadow-inset-block-end',
         '--sheet-content-shadow-inset-inline',
+        '--sheet-content-shadow-inset-inline-cover',
         '--dialog-radius',
         '--toast-radius',
         '--skeleton-radius',

@@ -684,7 +684,8 @@ test.describe('Library 2라운드 화면 baseline', () => {
  * | baseline | 대상 | Figma |
  * |---|---|---|
  * | `s3-library-shelf-sheet` | `LibraryShelfSheet` 떠 있는 카드 | `163:1898` `type=shelf` · `163:2347` |
- * | `s3-library-book-sheet` | `BookDetailSheet` 떠 있는 카드 | `145:1085` |
+ * | `s3-library-book-sheet` | `BookDetailSheet` 떠 있는 카드 (**앞면**) | `145:1085` |
+ * | `s3-library-book-sheet-back` | 같은 시트의 **뒷면**(코칭 노트) | `86:482` 구성 |
  * | `s3-library-entry-actions` | 진입점 `ListGroup` 2행 | 없음 — §7.1 (`C-13` ②) |
  * | `s3-library-add` | `/library/add` 전체 프레임 | 없음 — §7.2 |
  * | `s3-library-gift-requests` | `/library/gift-requests` 전체 프레임 | 없음 — §7.3 |
@@ -725,6 +726,37 @@ test.describe('Library 2라운드-2 시트 · 진입점 baseline', () => {
     await settle(page);
 
     await expect(sheet).toHaveScreenshot('s3-library-book-sheet.png', REGION_SNAPSHOT);
+  });
+
+  /*
+   * 뒷면 — 사용자 결정 2026-10-09 (`L-R2B-02` → 2라운드-4 ① · ②). `s3-library-book-sheet` 는
+   * **앞면** 기준이라 이 상태를 보지 못한다.
+   *
+   * 2라운드-4 에서 이 기준이 바뀐 것 2가지 — 둘 다 Figma `86:482` 를 따른 것이다.
+   *   ① **면 전체가 초록**(`color/spring green/86`). 2라운드-3 은 흰 면(반투명)이었다
+   *   ② **ActionBar 가 없다.** 그래서 시트가 57(ActionBar 45 + gap 12) 짧아져 이미지 높이도
+   *      그만큼 줄어든다 (실측 554 → 497).
+   *
+   * 기준 프레임: 뒤집은 **직후**(목록 최상단). 스크롤 위치를 기준에 넣지 않는다 — 스크롤한
+   * 상태를 찍으면 항목 높이가 1px 만 달라져도 전체가 밀린다. 끝까지 내린 상태의 그림자 자리는
+   * `shadow.spec.ts` 의 프로브가 **픽셀로** 고정한다.
+   */
+  test('s3-library-book-sheet-back — 코칭 노트 뒷면 (Figma `86:482` 구성)', async ({ page }) => {
+    await logInToLibrary(page);
+
+    await page.locator('.haru-shelf-item--pressable').first().click();
+    const sheet = page.locator('.haru-sheet--inset-card');
+    await expect(sheet).toBeVisible();
+    await expect(sheet.locator('.haru-prompt-pill').first()).toBeVisible();
+    await page.waitForFunction(() =>
+      [...document.images].every((image) => image.complete && image.naturalWidth > 0),
+    );
+
+    await page.getByRole('button', { name: 'Show prompts and coaching notes' }).click();
+    await expect(sheet.locator('.haru-book-sheet__flip')).toHaveAttribute('data-face', 'back');
+    await settle(page);
+
+    await expect(sheet).toHaveScreenshot('s3-library-book-sheet-back.png', REGION_SNAPSHOT);
   });
 
   test('s3-library-entry-actions — 진입점 2행 (§7.1, Figma 없음)', async ({ page }) => {

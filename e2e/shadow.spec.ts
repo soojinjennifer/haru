@@ -489,3 +489,342 @@ test.describe('시트 본문 그림자 inset — 보정 **없음** 이면 전면
     });
   }
 });
+
+/*
+ * ───────────────────────────────────────────────────────────────────────────
+ * ⭐ `BookDetailSheet` **뒷면 목록** — 뒤집기로 생긴 새 `overflow` 박스
+ *   (사용자 결정 2026-10-09 `L-R2B-02`, `R-SHADOW-1` ② · ⑥)
+ *
+ * 뒷면의 `[pill, 코칭 노트]` 목록은 앞면 높이를 넘으면 **자기 안에서** 스크롤한다
+ * (`.haru-book-sheet__notes`). 그 박스의 하단 클립 선은 **마지막 항목의 하단과 정확히
+ * 겹치므로**, 자식에 drop shadow 가 하나라도 생기면 즉시 전면 절단된다.
+ *
+ * ── 실측 ① 지금 이 안의 자식은 **그림자를 갖지 않는다** ──
+ * `PromptPill--tinted` 는 면(배경)뿐이고 `CoachingNote` 는 `Surface material="none"`
+ * (= `box-shadow: none`) 이다. 뒷면 전 자식의 `getComputedStyle().boxShadow` 가 **전부
+ * `none`** 이고, 마지막 항목 **네 방향** 픽셀 프로브도 **전부 Δ=0** 이다
+ * (아래/위/좌/우 각 8~14px, 393×852, dev 서버 · dSF 1):
+ *
+ *   below `0,0,0,0,0,0,0,0,0,0,0,0,0,0` · above `0×8` · left `0×8` · right `0×8`
+ *
+ * **추정하지 않았다** — 소스에서 "그림자가 없다" 를 읽은 뒤 브라우저에서 다시 쟀다.
+ *
+ * ── 실측 ② 그래도 **아래 자리(10)를 미리 만든다** ──
+ * `--shadow-bubble` 번짐 = 아래 **10** · 위 0 · 좌우 **4** (2라운드-2 재측정값, 1겹이라
+ * 빠뜨릴 겹이 없다). 그 값을 담은 기존 토큰(`--sheet-content-shadow-inset-block-end`)을
+ * `padding-block-end` 로 쓴다. 스크롤 박스의 padding 은 **스크롤 영역에 포함**되므로 음수
+ * margin 이 필요 없다 — 더하면 박스가 뒷면 밖으로 10px 삐져나와 `.haru-sheet__content`
+ * (또 다른 클리핑 박스)에 잘린다.
+ *
+ * ── 보정 전/후 (pill 에 `--shadow-bubble` 을 **주입**해 측정) ──
+ *
+ *   | | 마지막 pill 아래 −1…+12 |
+ *   |---|---|
+ *   | 보정 **있음** | `22 32 32 29 28 25 16 15 10 4 3 0 0 0` → **10px 복원** |
+ *   | 보정 **없음** | `22 0 0 0 0 0 0 0 0 0 0 0 0 0` → **완전 절단** |
+ *
+ *   (`−1` 은 상자 **안쪽** 마지막 픽셀이라 두 경우 모두 0 이 아니다.)
+ *   주입해서 재는 이유: 실제 자식이 그림자를 갖지 않으므로 **자리가 작동하는지**는 그렇게만
+ *   증명된다. 세 번째 테스트가 "자식에 drop shadow 가 없다" 를 고정하므로, 누군가 그림자를
+ *   더하면 그 테스트가 먼저 실패하고 **좌우 자리**(아래 참고)를 함께 설계하게 된다.
+ *
+ * ── 좌우는 여기서 해결할 수 없다 (기록) ──
+ * 주입 상태에서 우측 프로파일은 보정 유무와 **무관하게** `3,0,0,…` 이다. 목록 상자는 본문
+ * 폭을 꽉 채우므로 폭을 넓히면 `.haru-sheet__content` 가 자른다. 본문 폭을 꽉 채우는 그림자
+ * 상자가 실제로 생기면 `Sheet contentShadowInset`(= `.haru-sheet__content` 에 좌우 4 + 음수
+ * margin)을 함께 켜야 한다 — `LibraryShelfSheet` 와 같은 처리다.
+ */
+const NOTES_SHADOW_PROBE_PX = 4;
+
+/** 책 시트를 **앞면**으로 연다. */
+async function openBookSheetFront(page: Page): Promise<void> {
+  await page.goto('/auth/log-in', { waitUntil: 'domcontentloaded' });
+  await page.getByLabel('Email').fill('sam@example.com');
+  await page.getByRole('textbox', { name: 'Password', exact: true }).fill('sunny-evening-8');
+  await page.getByRole('button', { name: 'Log in', exact: true }).click();
+  await expect(page.locator('.haru-activity-track')).toBeVisible();
+
+  await page
+    .getByRole('navigation', { name: 'Main' })
+    .getByRole('link', { name: 'Library' })
+    .click();
+  await expect(page.locator('.haru-library-shelves')).toBeVisible();
+
+  await page.locator('.haru-shelf-item--pressable').first().click();
+  const sheet = page.locator('.haru-sheet--inset-card');
+  await expect(sheet).toBeVisible();
+  // Prompt 가 와야 뒷면이 존재한다 (노트가 있을 때만 뒤집을 수 있다).
+  await expect(sheet.locator('.haru-prompt-pill').first()).toBeVisible();
+  /*
+    ⚠️ 측정 함정 — 시트 면은 반투명이라 **뒤쪽 서재 그림**이 비친다. 표지 이미지가 아직
+    도착하는 중이면 두 번의 1×1 촬영 사이에 배경이 바뀌어 Δ 가 통째로 오염된다
+    (실측: 전 구간 Δ 30~60). `networkidle` 까지 기다린 뒤에 잰다.
+  */
+  await page.waitForLoadState('networkidle');
+  await settle(page);
+}
+
+/** 책 시트를 열고 **뒷면**으로 뒤집는다. */
+async function openBookSheetBack(page: Page): Promise<void> {
+  await openBookSheetFront(page);
+  await page.getByRole('button', { name: 'Show prompts and coaching notes' }).click();
+  await settle(page);
+}
+
+/**
+ * 뒷면 목록을 **끝까지** 내린다 — Shelf 시트와 같은 scroll anchoring 함정이 있다
+ * (보정을 지우면 내용 높이가 줄어 Chrome 이 `scrollTop` 을 되돌린다).
+ */
+async function scrollNotesToBottom(page: Page): Promise<number> {
+  const scrollable = await page.evaluate(async () => {
+    const notes = document.querySelector('.haru-book-sheet__notes');
+    if (notes === null) throw new Error('뒷면 목록을 찾지 못했다');
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      notes.scrollTop = notes.scrollHeight;
+      await new Promise((resolve) => {
+        requestAnimationFrame(resolve);
+      });
+    }
+    return {
+      max: notes.scrollHeight - notes.clientHeight,
+      top: Math.round(notes.scrollTop),
+    };
+  });
+
+  expect(scrollable.top, '뒷면 목록이 끝까지 내려가지 않았다 (scroll anchoring)').toBe(
+    scrollable.max,
+  );
+  await settle(page);
+  return scrollable.max;
+}
+
+/** 마지막 pill 에 `--shadow-bubble` 을 주입하고 상자 **아래** Δ 를 잰다. */
+async function measureInjectedNoteShadow(page: Page): Promise<number> {
+  await page.addStyleTag({
+    content: '.haru-book-sheet__note-item .haru-prompt-pill { box-shadow: var(--shadow-bubble); }',
+  });
+  const scrollable = await scrollNotesToBottom(page);
+  expect(
+    scrollable,
+    '뒷면 목록이 스크롤하지 않으면 이 테스트는 아무것도 보지 못한다',
+  ).toBeGreaterThan(0);
+
+  const box = await page
+    .locator('.haru-book-sheet__note-item .haru-prompt-pill')
+    .last()
+    .boundingBox();
+  expect(box).not.toBeNull();
+
+  const probe = {
+    x: Math.round((box?.x ?? 0) + (box?.width ?? 0) / 2),
+    y: Math.round((box?.y ?? 0) + (box?.height ?? 0)) - 1 + NOTES_SHADOW_PROBE_PX,
+  };
+
+  const withShadow = await pixelAt(page, probe.x, probe.y);
+  await page.addStyleTag({
+    content: '.haru-book-sheet__note-item .haru-prompt-pill { box-shadow: none !important; }',
+  });
+  await settle(page);
+  const withoutShadow = await pixelAt(page, probe.x, probe.y);
+
+  return distance(withShadow, withoutShadow);
+}
+
+test.describe('뒷면 목록 그림자 자리 — 보정 **있음** (R-SHADOW-1 · `L-R2B-02`)', () => {
+  for (const viewport of VIEWPORTS) {
+    test(`${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await hideDevPanel(page);
+
+      await openBookSheetBack(page);
+      const delta = await measureInjectedNoteShadow(page);
+
+      expect(
+        delta,
+        `마지막 항목 아래 +${NOTES_SHADOW_PROBE_PX}px 에서 그림자가 보이지 않는다 (delta ${delta})`,
+      ).toBeGreaterThanOrEqual(MIN_SHADOW_DELTA);
+    });
+  }
+});
+
+test.describe('뒷면 목록 그림자 자리 — 보정 **없음** 이면 전면 절단된다', () => {
+  for (const viewport of VIEWPORTS) {
+    test(`${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await hideDevPanel(page);
+
+      await openBookSheetBack(page);
+      /* 자리를 **런타임에 되돌린다** — 스크롤 박스의 클립 선이 곧 목록의 끝이 된다. */
+      await page.addStyleTag({
+        content: '.haru-book-sheet__notes { padding-block-end: 0 !important; }',
+      });
+      const delta = await measureInjectedNoteShadow(page);
+
+      expect(
+        delta,
+        `그림자가 **보였다** — 자리 없이도 통과하면 프로브가 무의미하다 (delta ${delta})`,
+      ).toBeLessThan(MIN_SHADOW_DELTA);
+    });
+  }
+});
+
+test('뒷면 목록 안에는 drop shadow 자식이 **없다** (좌우 자리는 이 상자에서 만들 수 없다)', async ({
+  page,
+}) => {
+  await hideDevPanel(page);
+  await openBookSheetBack(page);
+
+  const shadows = await page.evaluate(() => {
+    const back = document.querySelector('.haru-book-sheet__face--back');
+    if (back === null) throw new Error('뒷면을 찾지 못했다');
+
+    return [...back.querySelectorAll('*')]
+      .map((node) => ({
+        className: node.getAttribute('class') ?? '',
+        boxShadow: getComputedStyle(node).boxShadow,
+      }))
+      .filter((entry) => entry.boxShadow !== 'none' && !entry.boxShadow.includes('inset'));
+  });
+
+  /*
+    실패하면 이 상자에 **좌우 자리가 없다**는 사실이 함께 드러난다 — 폭을 넓히면
+    `.haru-sheet__content` 가 자르므로 `Sheet contentShadowInset` 을 함께 켜야 한다
+    (`LibraryShelfSheet` 와 같은 처리). 위 주석의 우측 프로파일(`3,0,0,…`)이 근거다.
+  */
+  expect(shadows, JSON.stringify(shadows)).toStrictEqual([]);
+});
+
+/*
+ * ───────────────────────────────────────────────────────────────────────────
+ * ⭐ `BookDetailSheet` **앞면 표지** 좌우 그림자 자리
+ *   (사용자 결정 2026-10-09 ③, `R-SHADOW-1` ② · ③ · ⑥)
+ *
+ * ── 고친 결함 ──
+ * 표지는 `--shadow-cover` 자리를 `padding/margin` 으로 만들어 두는데(`library.css`
+ * `.haru-book-sheet__cover`), 그 좌측 14px 가 **시트 본문 밖**이라 두 클리핑 박스
+ * (`.haru-sheet__content` 의 `overflow: auto`, `.haru-book-sheet__flip` 의 `overflow-x: clip`)
+ * 에 **전면 절단**되어 있었다. 2라운드-2 부터 있던 결함이다.
+ *   실측 (393×852 · dSF 1 · dev 서버 · 표지 좌측 1…20px):
+ *     보정 전 `0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0` → 번짐 **0** (완전 절단)
+ *     보정 후 `52 46 38 33 30 22 16 13 13 9 9 6 3 3 0 …` → 번짐 **14** (우측과 대칭)
+ *
+ * ── 번짐 **재측정** (추정하지 않았다 — `R-SHADOW-1` ③) ──
+ * `--shadow-cover` 는 drop **1겹**(`0 6px 14px ink28%`) + inset 1겹이라 빠뜨릴 겹이 없다.
+ * 같은 표지의 **우측**(= 잘리지 않는 쪽) 프로파일이 `52 46 41 34 30 25 19 16 13 9 9 6 3 3 0 …`
+ * 로 **14** 이고, offset-x 가 0 이라 좌우가 대칭이다. 그래서 자리 값도 **14** 다 —
+ * 1라운드가 등록한 좌우 4(`--shadow-bubble` 기준)로는 10px 이 모자란다.
+ *   아래 **20** · 위 **8** 도 같은 패스에서 쟀고(아래 `99 91 86 … 3 3 0`), 그 자리는
+ *   `.haru-book-sheet__cover` 가 이미 갖는다. ⚠️ **위 8 은 지금도 잘린다** — 자리를
+ *   만들려면 본문 **위쪽**에도 inset 이 필요하고 그건 이번 결정 범위(좌우) 밖이다.
+ *
+ * ── ⚠️ 전제: 지금 이 표지에는 drop shadow 가 **없다** ──
+ * `BookCover md` 는 그림자를 갖지 않고(`book.css`), Home 에서만 `activity-card.css` 가
+ * `--activity-card-cover-shadow` 를 덮는다. 시트 표지는 그 범위 밖이라 `box-shadow: none`
+ * 이다 (아래 마지막 테스트가 이 사실을 고정한다). 그래서 자리의 작동 여부는 **주입해서**
+ * 잰다 — 뒷면 목록과 같은 방식이다. 표지에 그림자가 생기는 날 자리는 이미 준비되어 있다.
+ */
+const COVER_PROBE_PX = 4;
+const COVER_SHADOW_ON =
+  '.haru-book-sheet__cover .haru-book-cover { box-shadow: var(--shadow-cover) !important; }';
+const COVER_SHADOW_OFF =
+  '.haru-book-sheet__cover .haru-book-cover { box-shadow: none !important; }';
+
+/** 표지 **좌측** 바깥에서 Δ 를 잰다 (그림자를 주입한 상태 ↔ 없는 상태). */
+async function measureCoverLeftShadow(page: Page): Promise<number> {
+  await page.addStyleTag({ content: COVER_SHADOW_ON });
+  await settle(page);
+
+  const box = await page.locator('.haru-book-sheet__cover .haru-book-cover').boundingBox();
+  expect(box).not.toBeNull();
+  const probe = {
+    x: Math.round(box?.x ?? 0) - 1 - COVER_PROBE_PX,
+    y: Math.round((box?.y ?? 0) + (box?.height ?? 0) / 2),
+  };
+
+  const withShadow = await pixelAt(page, probe.x, probe.y);
+  await page.addStyleTag({ content: COVER_SHADOW_OFF });
+  await settle(page);
+  const withoutShadow = await pixelAt(page, probe.x, probe.y);
+
+  return distance(withShadow, withoutShadow);
+}
+
+test.describe('표지 그림자 자리 — 보정 **있음** (`contentShadowInset="cover"` + flip 상자)', () => {
+  for (const viewport of VIEWPORTS) {
+    test(`${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await hideDevPanel(page);
+
+      await openBookSheetFront(page);
+      const delta = await measureCoverLeftShadow(page);
+
+      expect(
+        delta,
+        `표지 좌측 −${COVER_PROBE_PX}px 에서 그림자가 보이지 않는다 (delta ${delta})`,
+      ).toBeGreaterThanOrEqual(MIN_SHADOW_DELTA);
+    });
+  }
+});
+
+test.describe('표지 그림자 자리 — 보정 **없음** 이면 전면 절단된다 (2라운드-3 상태)', () => {
+  for (const viewport of VIEWPORTS) {
+    test(`${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await hideDevPanel(page);
+
+      await openBookSheetFront(page);
+      /* 두 박스의 자리를 **런타임에 되돌린다** (`R-BASELINE-1` ⑥ 토글). */
+      await page.addStyleTag({
+        content: `
+          .haru-sheet__content--shadow-inset-cover { padding-inline: 0 !important; margin-inline: 0 !important; }
+          .haru-book-sheet__flip { padding-inline: 0 !important; margin-inline: 0 !important; }
+        `,
+      });
+      const delta = await measureCoverLeftShadow(page);
+
+      expect(
+        delta,
+        `그림자가 **보였다** — 자리 없이도 통과하면 프로브가 무의미하다 (delta ${delta})`,
+      ).toBeLessThan(MIN_SHADOW_DELTA);
+    });
+  }
+});
+
+test('안쪽 clip 박스(`__flip`)만 되돌려도 다시 잘린다 — 두 박스가 **같은 선**이어야 한다', async ({
+  page,
+}) => {
+  await hideDevPanel(page);
+  await openBookSheetFront(page);
+  /*
+    `Sheet contentShadowInset="cover"` 는 **그대로 둔다**. 그래도 안쪽의 `overflow-x: clip`
+    상자가 먼저 자르므로 그림자가 사라진다 — 바깥만 켜는 수정은 무효라는 증거다.
+  */
+  await page.addStyleTag({
+    content:
+      '.haru-book-sheet__flip { padding-inline: 0 !important; margin-inline: 0 !important; }',
+  });
+  const delta = await measureCoverLeftShadow(page);
+
+  expect(delta, `바깥 박스만 켜고도 그림자가 보였다 (delta ${delta})`).toBeLessThan(
+    MIN_SHADOW_DELTA,
+  );
+});
+
+test('시트 표지에는 지금 drop shadow 가 **없다** (자리는 주입해서 잰다)', async ({ page }) => {
+  await hideDevPanel(page);
+  await openBookSheetFront(page);
+
+  const shadow = await page.evaluate(() => {
+    const cover = document.querySelector('.haru-book-sheet__cover .haru-book-cover');
+    if (cover === null) throw new Error('시트 표지를 찾지 못했다');
+    return getComputedStyle(cover).boxShadow;
+  });
+
+  /*
+    이 단언이 실패하면 **좋은 쪽의 변화**다 — 표지에 Figma `85:536` 의 `--shadow-cover` 가
+    생겼다는 뜻이고, 자리는 이미 준비되어 있으므로 위 두 테스트를 주입 없이 재도록 바꾸면 된다.
+    (Figma 에는 그림자가 있는데 구현에 없다는 사실 자체는 **승인 대기 보고 항목**이다.)
+  */
+  expect(shadow).toBe('none');
+});

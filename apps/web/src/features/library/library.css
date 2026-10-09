@@ -137,6 +137,19 @@
   margin-inline: calc(-1 * var(--space-3-5));
 }
 
+/*
+ * 책 블록의 텍스트 열 — `저자 · 역량` + **추천 이유**(`BookPromptsResponse.reason`).
+ * Home 카드 `.haru-activity-card__book-text` 와 같은 구성이며 같은 간격 토큰을 쓴다.
+ * 이유가 `null` 이면 자식이 하나뿐이라 2라운드-2 와 **같은 모양**이 된다.
+ */
+.haru-book-sheet__book-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  /* 긴 제목·이유가 표지를 밀어내지 않게 한다 (Home 과 같은 사유). */
+  min-inline-size: 0;
+}
+
 /* Prompt pill 목록 — Figma 카드 목록과 **같은 간격** 6 (`--prompt-pill-gap`). */
 .haru-book-sheet__prompts {
   display: flex;
@@ -149,6 +162,217 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  gap: var(--space-2);
+}
+
+/* ── 뒤집기 — 코칭 노트 뒷면 (사용자 결정 2026-10-09) ────────────────────
+ *
+ * Home 카드(`entities/activity-card`)와 **같은 방식**(`rotateY` + `backface-visibility`)이지만
+ * **CSS 를 재사용하지 않는다**: Home 의 `.haru-activity-card-flip` 은 트랙 높이에 맞춘
+ * **고정 높이 415/409 두 면 + 하단 정렬**이고, 시트 본문은 **높이가 내용에 따라 달라진다**.
+ *
+ * 그래서 여기서는 **앞면이 높이를 정하고 뒷면이 그 높이를 그대로 쓴다**
+ * (`position: absolute; inset: 0`). 뒤집어도 시트 높이가 변하지 않는다 — `inset-card` 시트는
+ * **아래가 고정**(`--sheet-inset-block-end`)이라 높이가 바뀌면 **윗변이 튄다**.
+ *
+ * `__flip-inner` 에 `position: relative` 가 필요하다: rest 상태에서는 `transform` 이 없어
+ * 포함 블록이 생기지 않으므로, 이것이 없으면 뒷면의 `inset: 0` 이 엉뚱한 조상에 걸린다.
+ */
+.haru-book-sheet__flip {
+  /*
+   * `overflow-x: clip` — **가로 pan 방지**. 이유는 3D 가 아니라 **거울상**이다 (실측):
+   * 앞면 표지는 `--shadow-cover` 자리를 만들려고 `padding-inline: 14` + `margin-inline: -14`
+   * 로 **좌측 14px 를 면 바깥**까지 쓴다. 뒤집으면(`rotateY(180deg)`) 그 14 가 **오른쪽**으로
+   * 가고, 오른쪽 overflow 는 `scrollWidth` 에 잡혀 시트 본문이 **가로로 14px 끌린다**
+   * (실측 `scrollWidth 343 / clientWidth 329`, `scrollLeft` 14 까지 이동).
+   *
+   * `R-SHADOW-1` — 새 클리핑 박스지만 **클립 선이 새로 생기지 않는다**: 이 상자의 좌우 경계는
+   * `.haru-sheet__content`(스크롤 박스)의 경계와 **같은 x** 다. 2라운드-3 에서는 둘 다 32/361
+   * 이었고, 2라운드-4 에서 둘 다 표지 그림자 자리만큼(14) 밖으로 나가 18/375 가 된다
+   * (아래 `padding-inline` 주석). 즉 **두 박스가 늘 같은 선**이라 한쪽만 자르는 일이 없다.
+   *
+   * `clip` 은 `scroll`/`hidden` 과 달리 **다른 축을 scroll container 로 만들지 않는다** —
+   * `overflow-y` 는 `visible` 로 남아 세로로는 아무것도 자르지 않는다.
+   */
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+  /*
+   * ★ `R-SHADOW-1` — 표지 그림자 자리를 **이 클립 박스 안에도** 만든다 (사용자 결정
+   * 2026-10-09 ③). `Sheet contentShadowInset="cover"` 만 켜면 `.haru-sheet__content` 의
+   * 클립 선은 14 밖으로 나가지만 **이 상자가 먼저 자른다** — 둘은 같은 x 에 있었다
+   * (실측: 둘 다 left 32 / right 361, 표지 그림자 자리는 18 까지 필요).
+   *
+   * padding 과 **짝이 되는 음수 margin** 이 레이아웃 점유를 되돌린다. `border-box` 가산
+   * 보정이 필요 없다 — 크기를 선언하지 않는 stretch flex item 이라 음수 margin 이 border
+   * box 를 그만큼 넓히고 content box 는 329 그대로다 (실측).
+   *
+   * 뒤집은 면에서도 안전하다: 앞면 좌측 overhang 의 **거울상**(우측 14)이 이 padding 안에
+   * 들어오고, `overflow-x: clip` 은 scrollable overflow 를 조상으로 넘기지 않는다 —
+   * e2e `library.spec.ts` 가 양면에서 `scrollLeft 0 / overflow 0` 을 고정한다.
+   */
+  padding-inline: var(--sheet-content-shadow-inset-inline-cover);
+  margin-inline: calc(-1 * var(--sheet-content-shadow-inset-inline-cover));
+  /* 아래 `:has()` 규칙이 이 상자를 **보이는 높이로** 줄인다 (주석은 그쪽에 있다). */
+  min-block-size: 0;
+  /* Home 뒷면과 같은 값 (`activity-card.css`) — 두 화면의 뒤집기가 같아 보여야 한다. */
+  perspective: 1200px;
+}
+
+/*
+ * ★ 뒷면이 시트 본문 **밖으로 밀려나지 않게** 한다 — 짧은 화면의 실측 결함 수정.
+ *
+ * 시트가 `max-block-size` 에 걸리면(320×852 는 안 걸리고 **320×568 은 걸린다**) 본문
+ * (`.haru-sheet__content`)이 스크롤하고 **앞면이 본문보다 길어진다**(실측 430 > 367).
+ * 뒷면은 `inset: 0` 으로 그 높이를 받으므로, 그대로 두면 뒷면 하단 63px 가 본문 밖으로 나가
+ * ActionBar 뒤에 숨는다 — 목록을 끝까지 내려도 **마지막 항목이 보이지 않는** 자리에 있다
+ * (실측: 마지막 pill 하단 534 > 본문 하단 481).
+ *
+ * `block-size: 100%` 로는 고칠 수 없다 — `.haru-sheet__content` 의 높이는 flex 결과라 퍼센트
+ * 해석의 기준이 되지 않는다(실측: `auto` 로 떨어져 430 그대로). 그래서 **본문을 세로 flex 로**
+ * 만들어 자식이 줄어들 수 있게 한다. `:has()` 로 **이 시트에만** 건다 — 다른 시트의 본문
+ * 레이아웃을 바꾸지 않는다 (Stage 2 시트 baseline 보호).
+ *
+ * 앞면은 그대로 자기 높이를 그린다. 상자보다 길면 넘치는 부분은 `overflow-y: visible` 이라
+ * **본문 스크롤로 그대로 읽힌다** — 앞면의 동작은 2라운드-2 와 같다.
+ */
+.haru-sheet__content:has(> .haru-book-sheet__flip) {
+  display: flex;
+  flex-direction: column;
+}
+
+.haru-book-sheet__flip-inner {
+  position: relative;
+  /*
+   * 상자와 **같은 방식으로** 줄어들어야 한다 — 뒷면의 `inset: 0` 은 (transform 때문에)
+   * 이 요소를 기준으로 풀리므로, 이것이 앞면 높이(430)를 그대로 갖고 있으면 상자를 줄인
+   * 의미가 없다. flex item 으로서 `min-block-size: 0` 이면 상자 높이(367)까지 줄어들고,
+   * 더 긴 앞면은 넘쳐서 본문 스크롤로 읽힌다.
+   */
+  min-block-size: 0;
+  transform-style: preserve-3d;
+  transition-property: transform;
+  transition-duration: var(--motion-duration-slow);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+.haru-book-sheet__flip[data-face='back'] .haru-book-sheet__flip-inner {
+  transform: rotateY(180deg);
+}
+
+.haru-book-sheet__face {
+  backface-visibility: hidden;
+}
+
+/*
+ * 앞면에는 `display` 를 선언하지 않는다 — 2라운드-2 의 블록 흐름을 **그대로** 둔다
+ * (블록 간 간격이 달라지면 앞면 baseline 이 추천 이유 외의 이유로 움직인다).
+ */
+.haru-book-sheet__face--back {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--activity-card-back-gap);
+  transform: rotateY(180deg);
+}
+
+/*
+ * `R-SHADOW-1` ② — 이 블록이 **새 `overflow` 박스**다 (목록이 앞면 높이를 넘으면 스크롤).
+ *
+ * 지금 이 안에 **drop shadow 를 가진 자식은 없다**: `PromptPill--tinted` 는 면(배경)뿐이고
+ * `CoachingNote` 는 `Surface material="none"`(= `box-shadow: none`) 이다. 네 방향 픽셀 프로브
+ * 실측도 **전부 Δ=0** 이다 (`e2e/shadow.spec.ts` 주석에 수치를 남긴다).
+ * 그래도 **아래 자리를 미리 만든다** — 스크롤 끝에서 클립 선과 마지막 항목 하단이 **정확히
+ * 겹치는** 구조라 그림자가 하나라도 생기면 즉시 전면 절단된다. 값은 `--shadow-bubble` 의
+ * 실측 번짐(아래 **10** · 위 0 · 좌우 4)을 담는 기존 토큰이다.
+ *
+ * 음수 margin 을 **쓰지 않는다**: 스크롤 박스의 `padding-block-end` 는 스크롤 영역에 포함되고
+ * 이 블록은 `flex: 1 1 auto` 로 남는 높이를 채우므로 바깥 크기가 변하지 않는다. 음수 margin 을
+ * 더하면 박스가 뒷면(= 앞면 높이) 아래로 10px 삐져나와 **시트 본문**(`.haru-sheet__content`,
+ * 또 다른 클리핑 박스)에 잘린다.
+ *
+ * 좌우는 **여기서 해결할 수 없다** — 폭을 늘리면 `.haru-sheet__content` 가 자른다. 본문 폭을
+ * 꽉 채우는 그림자 상자가 생기면 그때 `Sheet contentShadowInset` 을 함께 켜야 한다
+ * (`LibraryShelfSheet` 와 같은 처리). 현재 좌우 번짐은 0 이라 적용 대상이 없다.
+ */
+.haru-book-sheet__notes {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--activity-card-back-gap);
+  min-block-size: 0;
+  padding-block-end: var(--sheet-content-shadow-inset-block-end);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+.haru-book-sheet__note-item {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--activity-card-back-gap);
+}
+
+/* 노트 상자 padding 은 Figma `I86:482;86:246` 실측(13 / 12) — Home 뒷면과 **같은 토큰**이다. */
+.haru-book-sheet__note-item .haru-surface {
+  padding-block: var(--activity-card-note-pad-block);
+  padding-inline: var(--activity-card-note-pad-inline);
+}
+
+/* ── 뒷면에는 ActionBar 가 없다 (Figma `86:482`, 사용자 결정 2026-10-09 ②) ──────────
+ *
+ * ActionBar 는 `Sheet.footer` 라 **뒤집히지 않는다**. 그래서 뒤집힌 동안 레이아웃에서 뺀다.
+ *
+ * **왜 음수 margin 인가** — 세 가지를 다 만족하는 방법이 이것뿐이다.
+ *   ① `block-size: auto → 0` 은 **보간되지 않는다** (즉시 57px 가 사라져 윗변이 튄다).
+ *   ② `overflow: hidden` + `grid-template-rows: 1fr → 0fr` 로 접으면 **ActionBar 버튼의
+ *      drop shadow 3겹**(`0 28px 56px` 포함)이 잘린다 — 앞면에서 늘 잘리게 되므로
+ *      `R-SHADOW-1` 위반이고 앞면 baseline 도 바뀐다 (버튼 그림자 실측으로 확인).
+ *   ③ `margin-block-start` 는 **길이**라 보간된다 → 시트 높이가 400ms 에 걸쳐 줄어든다.
+ *
+ * 끌어올리는 양 = **ActionBar 높이(45) + 시트 flex gap(12) = 57**. 이 합이면 footer 는
+ * 끌려 올라간 만큼 아래로 밀려나므로 **제자리에 머문 채** 사라진다 (실측: 393×852 에서
+ * 전후 모두 y 777, 320×568 에서 전후 모두 y 493). 색이 튀지 않는 것과 같은 이유로
+ * opacity 도 같은 길이로 전환한다.
+ *
+ * ⚠️ `--space-3` 은 `packages/ui` `Sheet.css` 의 `gap` 값이다. 그쪽이 바뀌면 여기도 바꿔야
+ *    한다 — CSS 가드가 두 값이 같은지 확인한다.
+ * ⚠️ 저장 실패 `InlineAlert` 가 함께 떠 있으면 footer 가 45 보다 높아 그 차이만큼 빈 자리가
+ *    남는다 (내용 손실·겹침 없음). CSS 로는 footer 의 실제 높이를 알 수 없다.
+ *
+ * `inert` + `aria-hidden` 은 React 쪽(`BookDetailSheet`)이 같은 조건으로 건다 —
+ * 투명해진 ActionBar 가 포커스·스크린리더에 남지 않게 한다.
+ */
+.haru-sheet__footer:has(> .haru-book-sheet__action-bar) {
+  transition-property: margin-block-start, opacity;
+  transition-duration: var(--motion-duration-slow);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+.haru-sheet__footer:has(> .haru-book-sheet__action-bar[data-hidden='true']) {
+  margin-block-start: calc(-1 * (var(--activity-card-action-size) + var(--space-3)));
+  opacity: 0;
+  /* 투명해진 뒤에도 뒷면 목록 위에 겹쳐 있으므로 입력을 통과시킨다. */
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .haru-book-sheet__flip-inner,
+  .haru-sheet__footer:has(> .haru-book-sheet__action-bar) {
+    transition: none;
+  }
+}
+
+/*
+ * 헤더 trailing 2개 — `[flip][닫기]`. 닫기가 **바깥쪽(모서리)** 자리를 지킨다.
+ * gap 8 은 장식이 아니다: `IconButton` 은 시각 38 · 터치 44 라 `::before` 가 좌우로 3px 씩
+ * 넘친다. 8 이면 두 버튼의 **터치 타깃이 겹치지 않는다**(3 + 3 = 6 < 8).
+ */
+.haru-book-sheet__header-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
   gap: var(--space-2);
 }
 

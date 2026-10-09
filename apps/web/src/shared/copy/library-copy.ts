@@ -118,6 +118,19 @@ export const libraryCopy = {
     /** 외부 구매 링크 — `purchaseUrl` 이 있을 때만 보인다. */
     whereToBuy: 'Where to buy',
     whereToBuyHint: 'Opens in a new tab',
+
+    /* ── 뒤집기 (사용자 결정 2026-10-09) ──────────────────────────────────
+     * Home 활동 카드 뒷면과 **같은 문구**를 쓴다
+     * (`features/activity-card-deck/copy.ts` `card.showBack` · `showFront` · `backTitle`).
+     * 같은 동작에 다른 이름을 붙이면 두 화면이 다른 기능처럼 읽힌다. 모듈을 가로질러
+     * import 하지 않고 값을 명시한다 — copy 는 feature 단위로 모은다 (`rules/frontend.md` §8).
+     */
+    /** 앞면 → 뒷면 (헤더 flip `IconButton` 의 접근성 이름). */
+    showNotes: 'Show prompts and coaching notes',
+    /** 뒷면 → 앞면. 같은 자리의 같은 버튼이다. */
+    showBook: 'Show the book',
+    /** 뒷면 제목 — Figma `86:482` 문구 그대로 (**단수형**). */
+    notesTitle: 'Prompt of this book',
   },
 
   /* ===== 진입점 · 하위 화면 (§7.1 · §7.2 · §7.3) ========================== */

@@ -124,7 +124,7 @@ export { SpeechBubble } from './bubble/SpeechBubble';
 export type { SpeechBubbleAlign, SpeechBubbleProps, SpeechBubbleTail } from './bubble/SpeechBubble';
 
 export { Sheet } from './sheet/Sheet';
-export type { SheetProps, SheetVariant } from './sheet/Sheet';
+export type { SheetProps, SheetSurface, SheetVariant } from './sheet/Sheet';
 
 export { Scrim } from './sheet/Scrim';
 export type { ScrimLevel, ScrimProps } from './sheet/Scrim';

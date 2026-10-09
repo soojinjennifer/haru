@@ -15,6 +15,10 @@
  *   ⑨ 증정(FR-22) 분기 — `favorite_only` 신청 CTA · `gift_pending` 접수 안내 · 중복 안내
  *   ⑩ Shelf 시트의 Loading / Empty / Error(+Retry)
  *
+ * 2라운드-3 (사용자 결정 2026-10-09) 추가
+ *   ⑪ **추천 이유 줄** — 서버 문장(`BookPromptsResponse.reason`)을 그대로, `null` 이면 **없다**
+ *   ⑫ **뒤집기** — 헤더 `[flip][닫기]`, 뒷면이 `[pill, 코칭 노트]` 를 앞면과 1:1 로 그린다
+ *
  * 클릭은 `fireEvent` 다 — 이 저장소는 `@testing-library/user-event` 를 쓰지 않는다.
  */
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
@@ -24,6 +28,9 @@ import { AppRoutes } from '../src/app/router';
 import { LibraryShelfSheet } from '../src/features/library';
 import { MOCK_EPOCH_MS } from '../src/mocks';
 import { ROUTES } from '../src/shared/config/routes';
+import { createBookReasonFixture } from '../src/mocks/fixtures/books';
+import { MOCK_CARD_PROMPTS } from '../src/mocks/fixtures/prompt-sets';
+import { DECK_BOOKS } from '../src/mocks/fixtures/saved-books';
 import { libraryCopy } from '../src/shared/copy/library-copy';
 import { createHarness, type Harness } from '../src/test/harness';
 
@@ -280,6 +287,35 @@ describe('`BookDetailSheet` — 책별 Prompt 보기 (FR-20, §3.8)', () => {
     expect(operations(harness, '/prompts')).toStrictEqual([]);
   });
 
+  it('추천 이유 줄을 **서버 문장 그대로** 그린다 (`BookPromptsResponse.reason`)', async () => {
+    await renderLibrary();
+
+    fireEvent.click(document.querySelector('.haru-shelf-item--pressable') as HTMLElement);
+
+    /* 첫 캐러셀 항목 = `DECK_BOOKS[0]`. 이유는 그 `bookId` 로 결정된다. */
+    const reason = createBookReasonFixture(DECK_BOOKS[0]?.id ?? '');
+    await waitFor(() => {
+      expect(within(dialog()).getByText(reason)).toBeTruthy();
+    });
+    /* 책 블록 안이다 — Prompt 목록이 아니라 표지 옆 텍스트 열이다 (Figma `145:1085`). */
+    expect(dialog().querySelector('.haru-book-sheet__book-text')?.textContent).toContain(reason);
+  });
+
+  it('`reason` 이 없으면 **줄을 생략**한다 (대체 문구를 만들지 않는다)', async () => {
+    await renderLibrary(['books:no-reason']);
+
+    fireEvent.click(document.querySelector('.haru-shelf-item--pressable') as HTMLElement);
+
+    /* Prompt 는 그대로 도착한다 — 이유만 없다. */
+    await waitFor(() => {
+      expect(dialog().querySelectorAll('.haru-prompt-pill').length).toBeGreaterThan(0);
+    });
+    const reason = createBookReasonFixture(DECK_BOOKS[0]?.id ?? '');
+    expect(within(dialog()).queryByText(reason)).toBeNull();
+    /* 텍스트 열에는 `저자 · 역량` 한 줄만 남는다. */
+    expect(dialog().querySelector('.haru-book-sheet__book-text')?.childElementCount).toBe(1);
+  });
+
   it('`★ Save` 는 즉시 `Saved` 가 되고 저장 뒤 **overview 를 재조회**한다 (`P3-BIP-15`)', async () => {
     const harness = await renderLibrary();
 
@@ -304,6 +340,199 @@ describe('`BookDetailSheet` — 책별 Prompt 보기 (FR-20, §3.8)', () => {
     await waitFor(() => {
       expect(operations(harness, 'library/overview').length).toBeGreaterThan(before);
     });
+  });
+});
+
+/**
+ * 뒤집기 — 사용자 결정 2026-10-09 (`L-R2B-02`).
+ *
+ * 어포던스는 **헤더 trailing 의 두 번째 `IconButton`** 이다. 닫기는 바깥쪽 자리를 지킨다 —
+ * 시트를 닫을 방법이 사라지면 안 된다. 뒷면은 `inert` + `aria-hidden` 이라 두 면이 모두 DOM 에
+ * 있으므로, "보인다" 는 **숨김 속성**으로 단정한다 (Home 뒷면 테스트와 같은 방식).
+ */
+describe('`BookDetailSheet` 뒤집기 — 코칭 노트 (2라운드-3)', () => {
+  async function openFirstBook(): Promise<void> {
+    await renderLibrary();
+    fireEvent.click(document.querySelector('.haru-shelf-item--pressable') as HTMLElement);
+    await waitFor(() => {
+      expect(dialog().querySelectorAll('.haru-prompt-pill').length).toBeGreaterThan(0);
+    });
+  }
+
+  const faces = () => ({
+    flip: dialog().querySelector('.haru-book-sheet__flip') as HTMLElement,
+    front: dialog().querySelector('.haru-book-sheet__face--front') as HTMLElement,
+    back: dialog().querySelector('.haru-book-sheet__face--back'),
+  });
+
+  it('Prompt 가 오면 헤더에 flip 버튼이 생기고 **닫기는 그대로** 있다', async () => {
+    await openFirstBook();
+
+    const header = dialog().querySelector('.haru-book-sheet__header-actions') as HTMLElement;
+    const buttons = within(header).getAllByRole('button');
+
+    expect(buttons.map((button) => button.getAttribute('aria-label'))).toStrictEqual([
+      libraryCopy.bookSheet.showNotes,
+      libraryCopy.closeSheet,
+    ]);
+    /* 닫기가 **마지막(모서리)** 자리다. */
+    expect(buttons[1]?.getAttribute('aria-label')).toBe(libraryCopy.closeSheet);
+  });
+
+  it('누르면 뒤집히고 두 면의 숨김이 뒤바뀐다 (같은 자리의 같은 버튼으로 되돌아온다)', async () => {
+    await openFirstBook();
+
+    expect(faces().flip.getAttribute('data-face')).toBe('front');
+    expect(faces().back?.getAttribute('aria-hidden')).toBe('true');
+
+    fireEvent.click(screen.getByRole('button', { name: libraryCopy.bookSheet.showNotes }));
+
+    await waitFor(() => {
+      expect(faces().flip.getAttribute('data-face')).toBe('back');
+    });
+    expect(faces().front.getAttribute('aria-hidden')).toBe('true');
+    expect(faces().back?.getAttribute('aria-hidden')).toBe('false');
+
+    const backButton = screen.getByRole('button', { name: libraryCopy.bookSheet.showBook });
+    expect(backButton.getAttribute('aria-pressed')).toBe('true');
+
+    fireEvent.click(backButton);
+    await waitFor(() => {
+      expect(faces().flip.getAttribute('data-face')).toBe('front');
+    });
+  });
+
+  it('뒷면이 앞면 Prompt 와 **1:1 같은 개수**이고 질문마다 코칭 노트가 붙는다', async () => {
+    await openFirstBook();
+
+    const front = faces().front;
+    const back = faces().back as HTMLElement;
+    const frontPills = front.querySelectorAll('.haru-prompt-pill').length;
+
+    expect(back.querySelectorAll('.haru-prompt-pill')).toHaveLength(frontPills);
+    /*
+      `coachingNote` 는 `kind === 'question'` 에만 강제된다 — `follow_up` 은 **pill 만** 남는다
+      (Figma `86:482` 의 마지막 항목과 같은 모양). 목록을 거르지 않는다.
+    */
+    expect(back.querySelectorAll('.haru-coaching-note')).toHaveLength(MOCK_CARD_PROMPTS.length);
+    expect(frontPills).toBeGreaterThan(MOCK_CARD_PROMPTS.length);
+    expect(within(back).getByRole('heading', { level: 3, hidden: true }).textContent).toBe(
+      libraryCopy.bookSheet.notesTitle,
+    );
+    expect(libraryCopy.bookSheet.notesTitle).toBe('Prompt of this book');
+  });
+
+  /*
+    사용자 결정 2026-10-09 ② — Figma `86:482` **뒷면에는 ActionBar 가 없다**.
+    ActionBar 는 `Sheet.footer` 라 뒤집히지 않으므로, 뒤집힌 동안 `inert` + `aria-hidden`
+    으로 빼고(레이아웃 제거는 `library.css` 의 음수 margin 이 한다) 앞면에서 되돌린다.
+    닫기·flip 은 **헤더**라 그대로 살아 있다.
+  */
+  it('뒷면에서는 ActionBar 가 사라지고(`inert` + `aria-hidden`) 앞면에서 돌아온다', async () => {
+    await openFirstBook();
+    const bar = () => dialog().querySelector('.haru-book-sheet__action-bar') as HTMLElement;
+
+    expect(bar().getAttribute('data-hidden')).toBe('false');
+    expect(bar().hasAttribute('inert')).toBe(false);
+    expect(
+      screen
+        .getByRole('button', { name: libraryCopy.bookSheet.startSession.label })
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+
+    fireEvent.click(screen.getByRole('button', { name: libraryCopy.bookSheet.showNotes }));
+    await waitFor(() => {
+      expect(faces().flip.getAttribute('data-face')).toBe('back');
+    });
+
+    expect(bar().getAttribute('data-hidden')).toBe('true');
+    expect(bar().hasAttribute('inert')).toBe(true);
+    expect(bar().getAttribute('aria-hidden')).toBe('true');
+    /* 접근성 트리에서 빠진다 — 뒷면에서는 ActionBar 버튼을 찾을 수 없다. */
+    expect(
+      screen.queryByRole('button', { name: libraryCopy.bookSheet.startSession.label }),
+    ).toBeNull();
+    expect(screen.queryByRole('button', { name: libraryCopy.bookSheet.save })).toBeNull();
+
+    /* 앞면으로 돌아오면 그대로 돌아온다. */
+    fireEvent.click(screen.getByRole('button', { name: libraryCopy.bookSheet.showBook }));
+    await waitFor(() => {
+      expect(faces().flip.getAttribute('data-face')).toBe('front');
+    });
+    expect(bar().getAttribute('data-hidden')).toBe('false');
+    expect(
+      screen
+        .getByRole('button', { name: libraryCopy.bookSheet.startSession.label })
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+  });
+
+  it('뒷면에서도 닫기는 살아 있다 (헤더는 뒤집히지 않는다)', async () => {
+    await openFirstBook();
+    fireEvent.click(screen.getByRole('button', { name: libraryCopy.bookSheet.showNotes }));
+    await waitFor(() => {
+      expect(faces().flip.getAttribute('data-face')).toBe('back');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: libraryCopy.closeSheet }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+  });
+
+  /*
+    사용자 결정 2026-10-09 ① — Figma `86:482` 뒷면은 **면 전체**가 `color/spring green/86`
+    이다. 가운데(본문)만 칠하면 헤더·ActionBar 자리가 흰 채로 남으므로 `Sheet` 가 면 색을
+    받는다 (`surface="spring"`). **앞면에서는 지정하지 않는다** — 기존 면 색 그대로다.
+  */
+  it('뒷면에서만 시트 면이 `spring` 이 된다 (앞면은 클래스 자체가 없다)', async () => {
+    await openFirstBook();
+    const sheet = () => dialog();
+
+    expect(sheet().classList.contains('haru-sheet--surface-spring')).toBe(false);
+
+    fireEvent.click(screen.getByRole('button', { name: libraryCopy.bookSheet.showNotes }));
+    await waitFor(() => {
+      expect(faces().flip.getAttribute('data-face')).toBe('back');
+    });
+    expect(sheet().classList.contains('haru-sheet--surface-spring')).toBe(true);
+
+    fireEvent.click(screen.getByRole('button', { name: libraryCopy.bookSheet.showBook }));
+    await waitFor(() => {
+      expect(faces().flip.getAttribute('data-face')).toBe('front');
+    });
+    expect(sheet().classList.contains('haru-sheet--surface-spring')).toBe(false);
+  });
+
+  /*
+    `R-SHADOW-1` ③ (사용자 결정 2026-10-09 ③) — 표지 그림자 자리(좌우 14)는 **본문 밖**이라
+    시트가 만들어야 한다. `true`(= `--shadow-bubble` 기준 4)가 아니라 `'cover'` 다.
+  */
+  it('본문에 표지 전용 그림자 자리가 켜져 있다 (`contentShadowInset="cover"`)', async () => {
+    await openFirstBook();
+    const content = dialog().querySelector('.haru-sheet__content') as HTMLElement;
+
+    expect(content.classList.contains('haru-sheet__content--shadow-inset-cover')).toBe(true);
+    /* 버블용 자리(아래 10 · 좌우 4)는 켜지 않는다 — 번짐이 다르다. */
+    expect(content.classList.contains('haru-sheet__content--shadow-inset')).toBe(false);
+  });
+
+  it('카탈로그에 없는 책에는 flip 버튼도 뒷면도 없다 (노트가 존재할 수 없다)', async () => {
+    await renderLibrary(['library:user-entered-book']);
+
+    fireEvent.click(seeAll(libraryCopy.sectionTitles.finished));
+    await waitFor(() => {
+      expect(dialog().querySelectorAll('.haru-list-row button').length).toBeGreaterThan(4);
+    });
+    const rows = dialog().querySelectorAll('.haru-list-row button');
+    fireEvent.click(rows[rows.length - 1] as HTMLElement);
+
+    await waitFor(() => {
+      expect(screen.getByText(libraryCopy.bookSheet.promptsUnavailable)).toBeTruthy();
+    });
+    expect(screen.queryByRole('button', { name: libraryCopy.bookSheet.showNotes })).toBeNull();
+    /* 교체 전환 직후에는 닫히는 Shelf 시트가 남아 있어 `dialog()` 가 2개를 본다 — 문서 전체를 센다. */
+    expect(document.querySelectorAll('.haru-book-sheet__face--back')).toHaveLength(0);
   });
 });
 
