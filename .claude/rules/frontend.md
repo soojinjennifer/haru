@@ -96,6 +96,18 @@ Figma Variables / Styles → CSS Variables (packages/design-tokens) → Tailwind
 5. **포커스 링도 함께 옮긴다** — inset 을 주면 UA 포커스 링이 border box 에 그려져 헐거워진다
 6. 새 `overflow` 선언에는 **근거 주석**과 **세로·가로 양쪽 프로브 회귀 테스트**를 붙인다. `e2e/shadow.spec.ts` 가 **가로만** 보던 탓에 세 번째 결함을 못 잡았다
 
+## 6-2. `R-FIGMA-1` — Figma 값을 가져올 때 (사용자 검수 2026-10-10)
+
+칩 하나를 Figma 에 맞추는 데 **같은 유형의 오류가 네 번** 났다. 전부 *"렌더된 결과"를 "선언된 값"으로 읽은 것*이다.
+
+1. **색은 렌더 픽셀이 아니라 `fill` 을 조회한다.** 렌더 PNG 를 한 점 샘플링해 `#f3f7f6` 단색으로 단정했으나 실제 fill 은 **흰색 74% 반투명**이었고 그 값은 **배경에 따라 달라진다**. `get_variable_defs` · `get_design_context` 로 **선언을 직접** 보라
+   - 단서: **면이 균일하지 않으면 단색이 아니다** (위 `245,250,248` ↔ 중간 `243,247,246`)
+2. **Style 이름이 같아도 인스턴스가 그리는 것은 다를 수 있다.** `HARU/Shadow Rest` 정의는 **5겹**인데 칩 인스턴스는 **drop 1겹 + inset 2겹**만 렌더한다. 말풍선에서 같은 일을 겪고 `--shadow-bubble` 을 만든 선례(`V-10`)가 **이미 있었는데** 떠올리지 못했다
+   - 검산법: **렌더 바운드**로 겹 수를 역산한다. `153×44`(노드 `145×34`) = 좌우 ±4 · 아래 10 → **1겹**. 3겹이면 `257×124` 여야 한다
+3. **이름이 비슷한 토큰을 확인하라.** `--shadow-glass-rest` = `HARU/**Glass** Rest`, `--shadow-rest` = `HARU/**Shadow** Rest` 로 **저장소 주석이 이미 구분**해 두었는데 둘을 섞었다
+4. **`overflow` 를 CSS 파일 grep 으로만 찾지 마라.** `AppShell` 뷰포트는 **Tailwind 유틸리티**(`overflow-y-auto`)로 켜져 있다 — CSS 파일에는 없다. **computed 로 확인**하라 (이 세션 **3번째** 사례)
+5. **Agent 보고를 다음 지시에 옮겨 적기 전에 검증하라.** 위 네 건은 전부 Orchestrator 가 앞선 보고를 **그대로 전달**해 번졌다. 특히 **"실측했다"는 서술** 자체는 증거가 아니다 — **무엇을 어떻게 쟀는지**가 증거다
+
 ## 7. 상태 화면
 
 모든 데이터 화면은 Loading / Empty / Error 상태를 가진다. Recording·Upload·Analysis·Report 화면은 추가로 Offline, Permission Denied, Retry, Pending, Not Eligible 등 해당 상태를 가진다.
