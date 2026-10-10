@@ -99,26 +99,10 @@
 }
 
 /*
- * `V-6` Streak 칩 `26:40` — **145×34**, icon 13×13 @ x14, gap 6, text 16.
- * ⚠ **문구는 `2 this week` 를 유지**한다 (`A-23` 사용자 결정) — 기하만 Figma 를 따르므로
- * 폭은 hug 다. 공유 `Tag`(높이 26 · padding 12 · icon 16)를 전역으로 바꾸지 않는다.
+ * `V-6` Streak 칩 `26:40` — **규칙이 여기 없다.**
+ *
+ * 칩 외형은 `entities/home/home.css` 의 `.haru-week-summary-chip` 이 소유한다.
+ * 전에는 `.haru-home-top-bar .haru-tag` 로 여기 있었고, 그래서 같은 컴포넌트를 쓰는
+ * `/library` 헤더에서는 적용되지 않았다 (사용자 지시 2026-10-10). Home 헤더가 칩의
+ * 외형을 정하는 자리가 아니다 — 칩 자신이 정한다.
  */
-.haru-home-top-bar .haru-tag {
-  block-size: var(--home-chip-block-size);
-  padding-inline: var(--home-chip-pad-inline);
-}
-
-.haru-home-top-bar .haru-tag__icon,
-.haru-home-top-bar .haru-tag__icon .haru-icon {
-  inline-size: var(--home-chip-icon-size);
-  block-size: var(--home-chip-icon-size);
-}
-
-/*
- * `A-23`-icon (approvals §13.2) — 글리프는 Figma `50:161` 이고 **색도 Figma 를 따른다**
- * (`#d0cca1`). `Tag` 는 아이콘 색을 정하지 않고 `currentColor` 를 흘리므로 사용 지점이 준다.
- * 라벨 색(`--color-fg-primary`)은 그대로 둔다 — 칩에서 색이 다른 건 아이콘뿐이다.
- */
-.haru-home-top-bar .haru-tag__icon {
-  color: var(--home-chip-icon-color);
-}

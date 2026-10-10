@@ -49,6 +49,8 @@ const DECK_CSS = codeOf(
 const HOME_CSS = codeOf(
   read('apps', 'web', 'src', 'features', 'home-overview', 'home-overview.css'),
 );
+const CHIP_CSS = codeOf(read('apps', 'web', 'src', 'entities', 'home', 'home.css'));
+const TAG_CSS = codeOf(read('packages', 'ui', 'src', 'tag', 'Tag.css'));
 const COMPONENT_TOKENS = codeOf(read('packages', 'design-tokens', 'src', 'component', 'index.css'));
 
 describe('탭바 하단 여백 — D-1 (§2.1)', () => {
@@ -218,17 +220,49 @@ describe('Visual Gap 교정 (audit §20)', () => {
     expect(COMPONENT_TOKENS).toMatch(/--activity-card-book-author-line:\s*15\.6px/);
   });
 
-  it('`V-5`·`V-6` — 워드마크 offset 과 칩 기하가 **Home 에서만** 적용된다', () => {
+  it('`V-5` — 워드마크 offset 은 **Home 에서만** 적용된다', () => {
     expect(HOME_CSS).toMatch(
       /\.haru-home-top-bar \.haru-top-bar__leading\s*\{[^}]*align-self: stretch/,
     );
     expect(HOME_CSS).toMatch(/margin-block-start:\s*var\(--home-wordmark-offset-block\)/);
-    expect(HOME_CSS).toMatch(
-      /\.haru-home-top-bar \.haru-tag\s*\{[^}]*block-size:\s*var\(--home-chip-block-size\)/,
+  });
+
+  /*
+    `V-6` — 칩 기하는 **Home 전용이 아니다** (사용자 지시 2026-10-10).
+    전에는 `.haru-home-top-bar .haru-tag` 로 Home 헤더 CSS 가 갖고 있었고, 같은 컴포넌트를 쓰는
+    `/library` 헤더는 공유 `Tag` 기본값(26 · 12 · icon 16 · `currentColor`)으로 렌더됐다.
+    이제 칩이 자기 클래스로 소유한다. 깨져야 하는 변경: ① Home CSS 가 칩 규칙을 되찾는 것
+    ② 칩 CSS 가 사라지는 것 ③ 공유 `Tag` 전역 기본값을 바꾸는 것.
+  */
+  it('`V-6` — 칩 기하는 칩 자신이 소유한다 (Home 범위에 묶여 있지 않다)', () => {
+    expect(CHIP_CSS).toMatch(
+      /\.haru-week-summary-chip \.haru-tag\s*\{[^}]*block-size:\s*var\(--week-summary-chip-block-size\)/,
     );
-    expect(COMPONENT_TOKENS).toMatch(/--home-chip-block-size:\s*34px/);
-    // 공유 `Tag` 높이(26)는 그대로다.
+    expect(CHIP_CSS).toMatch(
+      /\.haru-week-summary-chip \.haru-tag\s*\{[^}]*padding-inline:\s*var\(--week-summary-chip-pad-inline\)/,
+    );
+    expect(CHIP_CSS).toMatch(
+      /\.haru-week-summary-chip \.haru-tag__icon\s*\{[^}]*color:\s*var\(--week-summary-chip-icon-color\)/,
+    );
+    expect(CHIP_CSS).toMatch(/inline-size:\s*var\(--week-summary-chip-icon-size\)/);
+
+    /*
+      칩 CSS 가 **어떤 화면 범위에도 묶이지 않는다**. 선택자 앞에 화면 클래스가 붙으면
+      e2e(`week-summary-chip.spec.ts`)가 잡지만, 소스에서 먼저 잡는 게 싸다.
+    */
+    expect(CHIP_CSS).not.toContain('.haru-home-top-bar');
+    expect(CHIP_CSS).not.toContain('.haru-library');
+
+    // Home 헤더 CSS 는 칩 외형을 다시 갖지 않는다 — 가지면 Library 가 또 갈라진다.
+    expect(HOME_CSS).not.toContain('.haru-home-top-bar .haru-tag');
+
+    expect(COMPONENT_TOKENS).toMatch(/--week-summary-chip-block-size:\s*34px/);
+    expect(COMPONENT_TOKENS).toMatch(/--week-summary-chip-icon-size:\s*13px/);
+    // 공유 `Tag` 전역 기본값(높이 26 · padding 12 · icon 16)은 그대로다.
     expect(COMPONENT_TOKENS).toMatch(/--tag-height-sm:\s*26px/);
+    expect(COMPONENT_TOKENS).toMatch(/--tag-padding-x:\s*var\(--space-3\)/);
+    expect(TAG_CSS).toMatch(/\.haru-tag\s*\{[^}]*block-size:\s*var\(--tag-height-sm\)/);
+    expect(TAG_CSS).toMatch(/\.haru-tag__icon\s*\{[^}]*inline-size:\s*var\(--size-icon-sm\)/);
   });
 });
 

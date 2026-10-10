@@ -139,6 +139,12 @@ export const galleryCopy = {
     rowUnratedTitle: 'Grumpy Monkey: Play All Day',
     rowMetaUnrated: '1 session · finished Mar 28',
     rowEntryTitle: 'Add a book you own',
+    weekChipLabel: '2 this week',
+    weekChipAccessibleLabel: '2 storytimes this week',
+    weekChipEmptyLabel: 'None yet this week',
+    weekChipEmptyAccessibleLabel: 'No storytimes yet this week',
+    weekChipNote:
+      'The same chip renders in the Home header and the Library header — it carries its own size, padding and icon.',
   },
 
   a11y: {

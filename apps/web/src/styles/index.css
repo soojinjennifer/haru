@@ -18,6 +18,7 @@
 @import '@haru/ui/styles.css';
 @import '../app/layouts/app-shell.css';
 @import '../entities/character/character.css';
+@import '../entities/home/home.css';
 @import '../entities/book/book.css';
 @import '../entities/book/book-shelf.css';
 @import '../entities/activity-card/activity-card.css';

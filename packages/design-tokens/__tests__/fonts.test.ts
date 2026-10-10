@@ -139,7 +139,7 @@ describe('빌드 산출물 — CSS Variable export (AC-1-11)', () => {
     // 카드 그림자 클리핑 수정(approvals §12.15 `D-REQ-4`)으로 2종 추가 → 130
     // (`--carousel-shadow-inset` · `--carousel-shadow-inset-block-end`).
     // Visual Gap 3차 결정(approvals §13)으로 2종 추가 → 132
-    // (`--home-chip-icon-color` `A-23`-icon · `--bubble-content-max-lines` `W-5`).
+    // (`--week-summary-chip-icon-color` `A-23`-icon · `--bubble-content-max-lines` `W-5`).
     // Library 1라운드에서 19종 추가 · 1종 제거 → 150 (Library Design Spec §5.2 `LT-3`~`LT-14`
     // + §8.1 inset 레시피 2종. 제거는 `--activity-card-cover-radius` — 간격 토큰 오용을
     // `--book-cover-radius-xl` 로 통합했고 **값 10 은 그대로**라 렌더 변화가 0 이다).

@@ -1,0 +1,43 @@
+/*
+ * `entities/home` — 주간 집계 칩 (`WeekSummaryChip`).
+ *
+ * **칩이 자기 외형을 소유한다.** 전에는 이 규칙들이 `home-overview.css` 안에서
+ * `.haru-home-top-bar` 로 범위가 묶여 있었고, 그래서 **Home 헤더에서만** 적용됐다.
+ * `/library` 헤더는 같은 컴포넌트를 쓰면서도 공유 `Tag` 기본값(높이 26 · padding 12 ·
+ * icon 16 · 아이콘색 `currentColor`)으로 렌더됐다 (사용자 지시 2026-10-10).
+ * 이제 선택자가 컴포넌트 자신의 클래스에 걸려 **어디에 놓아도 같게** 보인다 —
+ * Home 헤더 · Library 헤더 · dev gallery 가 전부 같은 기하다.
+ *
+ * ⚠ 공유 `Tag` 의 전역 기본값은 **그대로 둔다**. 다른 `Tag` 사용처(역량 tone 칩 등)는
+ * 영향을 받지 않아야 한다. 그래서 `.haru-tag` 를 직접 쓰지 않고 래퍼 자손으로만 좁힌다.
+ *
+ * 기하 근거 — Figma `26:40` 재실측 2026-10-10:
+ *   프레임 145×34 · icon `50:161` (x 14, y 10.5) 13×13 · text `26:43` x 33 (gap = 33 − 27 = 6)
+ *   높이 16 · icon fill `#d0cca1` (렌더 픽셀 샘플 `rgb(208 204 161)`).
+ * gap 6 은 공유 `Tag` 의 `--space-1-5` 와 이미 같으므로 덮지 않는다.
+ */
+
+.haru-week-summary-chip {
+  /* 래퍼는 칩 상자 크기를 바꾸지 않는다 — TopBar trailing 의 flex 배치가 그대로다. */
+  display: inline-flex;
+}
+
+.haru-week-summary-chip .haru-tag {
+  block-size: var(--week-summary-chip-block-size);
+  padding-inline: var(--week-summary-chip-pad-inline);
+}
+
+.haru-week-summary-chip .haru-tag__icon,
+.haru-week-summary-chip .haru-tag__icon .haru-icon {
+  inline-size: var(--week-summary-chip-icon-size);
+  block-size: var(--week-summary-chip-icon-size);
+}
+
+/*
+ * `A-23`-icon (approvals §13.2) — 글리프는 Figma `50:161` 이고 **색도 Figma 를 따른다**
+ * (`#d0cca1`). `Tag` 는 아이콘 색을 정하지 않고 `currentColor` 를 흘리므로 칩이 준다.
+ * 라벨 색(`--color-fg-primary`)은 그대로 둔다 — 칩에서 색이 다른 건 아이콘뿐이다.
+ */
+.haru-week-summary-chip .haru-tag__icon {
+  color: var(--week-summary-chip-icon-color);
+}

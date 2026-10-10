@@ -6,10 +6,16 @@
  *
  * ⚠ 서재 **화면**(섹션 조립 · 시트 · 진입점)은 여기에 없다 — 2라운드다.
  * 이 섹션은 Shared UI / `BookCover` 가 **실제로 어떻게 렌더되는지** 보기 위한 자리다.
+ *
+ * `32. WeekSummaryChip` 은 Library 전용이 아니다 — **Home 헤더와 Library 헤더가 함께 쓰는**
+ * 도메인 칩이고, 두 화면이 같게 보이는지 한 자리에서 확인하기 위해 여기 등록했다
+ * (사용자 지시 2026-10-10). gallery 에는 TopBar 조상이 없으므로, 여기서 Home 과 같은 기하로
+ * 보이면 **칩이 외형을 스스로 소유한다**는 증거가 된다.
  */
 import { Icon, ListGroup, ListRow, SectionHeader, Text } from '@haru/ui';
 
 import { BookCover } from '../../entities/book';
+import { WeekSummaryChip } from '../../entities/home';
 
 import { galleryCopy } from './gallery-copy';
 import { Row, Section, Stack, Stage, SubHead } from './primitives';
@@ -111,12 +117,45 @@ function BookListRowSection() {
   );
 }
 
+function WeekSummaryChipSection() {
+  return (
+    <Section
+      id="s3-week-summary-chip"
+      title="32. WeekSummaryChip (Home · Library 헤더 공용)"
+      note="145×34 hug · padding-inline 14 · icon 13×13 (--color-icon-session-history) · gap 6 · text 16 (Figma 26:40 · 글리프 50:161)"
+    >
+      <Stage>
+        <Stack>
+          <SubHead>세션 있음</SubHead>
+          <Row>
+            <WeekSummaryChip
+              label={copy.weekChipLabel}
+              accessibleLabel={copy.weekChipAccessibleLabel}
+            />
+          </Row>
+          <SubHead>이번 주 0건 — 라벨만 바뀌고 기하는 같다 (폭은 hug)</SubHead>
+          <Row>
+            <WeekSummaryChip
+              label={copy.weekChipEmptyLabel}
+              accessibleLabel={copy.weekChipEmptyAccessibleLabel}
+            />
+          </Row>
+          <Text variant="caption-1" tone="secondary">
+            {copy.weekChipNote}
+          </Text>
+        </Stack>
+      </Stage>
+    </Section>
+  );
+}
+
 export function Stage3LibrarySection() {
   return (
     <>
       <SectionHeaderSection />
       <BookCoverSection />
       <BookListRowSection />
+      <WeekSummaryChipSection />
     </>
   );
 }

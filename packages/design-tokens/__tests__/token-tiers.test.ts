@@ -196,7 +196,7 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
 
   /*
    * Visual Gap 3차 결정(2026-10-06, approvals §13)에서 **2종 추가** → 132.
-   *  - `--home-chip-icon-color`     (`A-23`-icon — Figma `50:161` 채움색)
+   *  - `--week-summary-chip-icon-color` (`A-23`-icon — Figma `50:161` 채움색)
    *  - `--bubble-content-max-lines` (`W-5` — 주 문구 4줄 상한)
    *
    * Library 1라운드(`LT-3`~`LT-14` + §8.1 inset 레시피)에서 **19종 추가 · 1종 제거** → 150.
@@ -315,10 +315,10 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
         '--home-wordmark-offset-block',
         '--home-wordmark-offset-inline',
         '--home-wordmark-line',
-        '--home-chip-block-size',
-        '--home-chip-pad-inline',
-        '--home-chip-icon-size',
-        '--home-chip-icon-color',
+        '--week-summary-chip-block-size',
+        '--week-summary-chip-pad-inline',
+        '--week-summary-chip-icon-size',
+        '--week-summary-chip-icon-color',
         '--home-character-top',
         '--home-character-overhang',
         '--home-character-aspect',

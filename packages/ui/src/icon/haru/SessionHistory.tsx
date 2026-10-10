@@ -10,7 +10,7 @@
  * Stage 0 #21("일반 아이콘 = Lucide, HARU 전용 = Figma SVG")과 충돌하지 않으며 HARU 전용이다.
  *
  * Figma 원본은 `fill="#D0CCA1"`(= palette yellow) 를 구워 두었으나 export 시 `currentColor`
- * 로 바꾸고 색은 사용 지점이 `--home-chip-icon-color` → `--color-icon-session-history` 로
+ * 로 바꾸고 색은 사용 지점이 `--week-summary-chip-icon-color` → `--color-icon-session-history` 로
  * 주입한다 (audit §16.8 export 규격).
  *
  * 교체 경위: 구현이 **Lucide `star`** 를 쓰고 있었는데 그 변경을 승인한 결정 문구가 0건이라

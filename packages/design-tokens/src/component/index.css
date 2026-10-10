@@ -175,11 +175,18 @@
   --home-wordmark-offset-block: 9px;
   --home-wordmark-offset-inline: 2px; /* gutter 24 + 2 = Figma x26 */
   --home-wordmark-line: 25px;
-  /* Streak 칩 `26:40` 145×34 — 라벨은 `2 this week` 유지, **기하만** Figma (`V-6`). */
-  --home-chip-block-size: 34px;
-  --home-chip-pad-inline: var(--space-3-5); /* Figma icon x=14 */
-  --home-chip-icon-size: 13px; /* Figma `50:161` 13×13 */
-  --home-chip-icon-color: var(--color-icon-session-history); /* Figma `50:161` fill #d0cca1 */
+  /*
+   * 주간 집계 칩 `26:40` 145×34 — 라벨은 `2 this week` 유지, **기하만** Figma (`V-6`).
+   * ⚠ **Home 전용이 아니다.** `WeekSummaryChip` 은 Home 헤더와 `/library` 헤더가 함께 쓴다
+   * (사용자 지시 2026-10-10). 그래서 이름이 `--home-chip-*` → `--week-summary-chip-*` 로
+   * 바뀌었다 — 소유자는 화면이 아니라 컴포넌트다 (`entities/home/home.css`).
+   * 값·렌더는 변하지 않았다. gap 6 은 공유 `Tag` 의 `--space-1-5` 라 토큰이 없다.
+   */
+  --week-summary-chip-block-size: 34px;
+  --week-summary-chip-pad-inline: var(--space-3-5); /* Figma icon x=14 */
+  --week-summary-chip-icon-size: 13px; /* Figma `50:161` 13×13 */
+  /* Figma `50:161` fill #d0cca1 (렌더 픽셀 샘플 rgb(208 204 161), 재실측 2026-10-10) */
+  --week-summary-chip-icon-color: var(--color-icon-session-history);
   --home-character-top: 29px; /* Figma `26:22` y85 − 상태바 56 */
   --home-character-overhang: var(--space-3); /* 컬럼 trailing edge 를 12 넘어간다 */
   --home-character-aspect: 357 / 442; /* Figma `26:22` */
