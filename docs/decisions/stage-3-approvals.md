@@ -1875,3 +1875,116 @@ Scope 위반 **0** · `z.object(` contracts 밖 **0건** · 신규 `any`/`@ts-ig
 3. **Stage 4 Plan 에 이월 3건을 In Scope 로 올린다** (`QA-3-001`·`002`·`003`) + 이미 이월된 `AC-3-22`~`26` 5건
 4. **Stage 8 게이트로 남는 것**: `QA-3-003`(에셋 파이프라인) + `P3-BIP-19`(상용 그림책 표지 교체 — **법무 확인 필요**)
 5. **Stage 4 는 사용자 지시가 있을 때 시작한다** (`rules/workflow.md` §4 — 한 Stage 승인은 다음 Stage 로 확장되지 않는다)
+
+## 29. 사용자 검수 수정 6건 (2026-10-10, user)
+
+Stage 3 가 `PASS` 로 닫힌 뒤(§28) 사용자가 화면을 검수하고 **6건**을 지시했다. 전부 반영했고 회귀 테스트 1건을 추가로 붙였다.
+
+| # | 지시 | 결과 |
+|---|---|---|
+| 1 | 프롬프트 텍스트를 박스 **세로 중앙**에 | 완료 — `.haru-prompt-pill { align-items: center }` |
+| 2 | 썸네일 ↔ 프롬프트 박스 간격을 **프롬프트 간 간격과 일관되게** | 완료 — `margin-block-end: var(--prompt-pill-gap)`(6) |
+| 3 | 저장 실패 에러를 **상단 토스트**로 | 완료 — 인라인 알림 제거, 토스트 뷰포트를 상단으로 |
+| 4 | 그 에러가 **모든 책 카드에 나오는** 문제 | 완료 — 상태를 없애 해결 |
+| 5 | TopBar 가 스크롤 시 **흰색으로 바뀌는 것** | 완료 — 앱 바탕과 **같은 gradient** |
+| 6 | `Request this book` 버튼·기능 **제거** | 완료 — **신청만**, 조회는 유지 |
+
+### 29.1 `#4` — 같은 파일에 올바른 패턴이 있었는데 한 곳만 빠졌다
+
+`BookDetailSheet` 는 **단일 인스턴스를 모든 책에 재사용**한다(`LibraryShelves.tsx:133` 이 `book` prop 만 갈아 끼운다). `pending`·`face` 는 **`{ bookId, … }` 로 키를 걸어** 다른 책이 들어오면 자동 폴백되는데 **`save.isError` 만 키가 없어** 한 번 실패하면 이후 모든 책에 남았다.
+
+**해결: 키를 하나 더 만들지 않고 토스트로 바꿔 상태 자체를 없앴다.** 인라인 알림은 **렌더 상태**를 읽지만 토스트는 `onError` 에서 **한 번 호출하는 사건**이라 새어 나갈 상태가 사라진다. 키잉을 추가하면 지워야 할 상태를 다시 만드는 것이고 Home `ActivityCardDeck` 과 패턴도 갈린다.
+
+재현 증거: 책 A 저장 실패 → 책 B 로 교체 후 **책 B 의 시트 DOM 안에 책 A 의 문구가 그대로** 남은 출력을 받았다.
+
+### 29.2 `#3` — 토스트 상단 이동이 같은 결함을 **반대 방향으로** 재현했다
+
+`QA-3-004`(하단 토스트가 탭바를 덮음)를 고친 직후였는데, 상단으로 옮기자 **TopBar 를 가렸다**(`inToast: true` / `inTopBar: false` — 설정 아이콘·뒤로 가기 자리의 hit-test 결과).
+
+⚠️ **"탭바 보정을 그냥 두는 것"이 안전하지 않았다.** 남아 있던 `--tabbar` 수식어가 `inset-block-end` 를 계속 걸어 `inset-block-start` 와 동시에 적용되자 **토스트 높이가 715px 로 늘어나** 탭바까지 덮었다. 그래서 삭제했다.
+
+**`useToastTabBarInset` → `useToastTopBarInset(ref)` 로 대체**했다:
+
+| | 이전 | 이후 |
+|---|---|---|
+| 페이로드 | 참조 **개수**(boolean 성) | 등록 요소 Set + **실측 최대 높이** |
+| 등록 지점 | `TabLayout`(탭 전용) | `AppShellTopBar`(Tab·Stack·Fullscreen **공용 1곳**) |
+
+근거: 탭바는 높이가 토큰 고정이라 boolean 이면 충분했지만 **TopBar 는 화면마다 다르다**(실측 **40 / 48** — Home 은 `--topbar-height` 40 + 상단 여백 10). **토큰 상수로는 8px 부족**하다. 또 TopBar 는 탭 전용이 아니어서(`/settings`·`/auth/*`·`/library/add`) 등록을 공용 래퍼로 올렸다. 겹치는 전환에서는 **큰 쪽**을 쓴다 — 과보정은 토스트가 조금 내려가는 것으로 끝나고 **과소보정은 즉시 클릭 불능**이다.
+
+→ **`AD-S3-14`**("Toast 하단 offset 에 탭바 높이 + 중앙 버튼 overhang 을 더한다")는 **폐기**한다. 상단 이동으로 성립하지 않는다.
+
+### 29.3 `#5` — 완전 투명은 **측정으로 기각**됐다
+
+사용자 지시는 *"바탕이 그대로 유지된 것처럼"* 이었고 1차 시도는 완전 투명이었다. 제목 글리프를 숨기고 **뒤 픽셀 3,298개를 각각** 재니:
+
+| | 투명안 | **채택안(gradient)** |
+|---|---|---|
+| 대비 최소 | **1.00** (글자가 사라지는 픽셀) | **5.55** |
+| 3:1 미만 비율 (scrollTop 260) | **82.3%** | **0%** |
+
+**같은 색 단색도 불가**하다 — 앱 바탕이 **gradient** 라 고정 단색은 어긋난다.
+→ **채택: `background-image: var(--gradient-app)` + `background-attachment: fixed`.** `AppBackground` 가 `position: fixed; inset: 0` 이라 gradient 박스가 뷰포트이고, `attachment: fixed` 가 배경 위치 영역을 뷰포트로 만들어 **띠의 DOM 위치와 무관하게 같은 램프**를 쓴다.
+- 경계 색차 **최대 1**(gradient 램프가 아니라 디더 — 가운데 행이 **0** 이라 `[1,0,1]`), y+2 에서 0
+- 콘텐츠 통과 픽셀 **0** — 띠 13,800px 중 순수 바탕과 다른 1,252px 의 **1,221px 이 제목 글리프 자신**
+- `box-shadow`(하단 경계선)·`backdrop-filter` 제거, `prefers-reduced-transparency` 는 `--color-bg-app-start` 단색
+- **인쇄 분기 신설** — `AppBackground` 가 인쇄에서 투명해지는데 불투명 띠를 두면 **흰 종이에 띠가 남는 회귀**가 생긴다
+
+→ **Design Spec §6.1 의 "스크롤 시 glass 배경" 서술은 수정 대상**이다 (design-agent 소관).
+
+### 29.4 `#6` — 증정 **신청만** 제거, 조회는 유지 (사용자 결정)
+
+제거: 버튼 UI · `useCreateGiftRequest` 사용 · `requestBook` 문구.
+유지: `/library/gift-requests` · `GiftRequestList` · `LibraryEntryActions` 진입점 · **contracts·Mock 전부**.
+
+⚠️ **`FR-22` 가 PRD P0 에 *"초기 20권 라이브러리·증정 신청·구매 링크"* 로 적혀 있다 → PRD 수정 대상**(`D-24` 절차). `LN-8` 로 등록한다.
+
+**사용처 0건이 된 것 8종** (지우지 않았다 — Backend 인터페이스라 **사용자 결정 필요**):
+`useCreateGiftRequest` hook · `CreateGiftRequestMutation` · `libraryApi.createGiftRequest` · `CreateGiftRequestRequestSchema` · **`GIFT_REQUEST_DUPLICATE`**(어떤 화면도 표시할 수 없다) · `ERROR_COPY.GIFT_REQUEST_DUPLICATE` · `library:gift-duplicate` Mock 시나리오 · `createGiftRequestFixture`
+
+테스트는 **삭제하지 않고 부재 단정으로 뒤집었다.** 이름에 copy 키 대신 **리터럴 `/request this book/i`** 를 써서 copy 키를 되살려도 저절로 통과하지 않게 했다.
+
+### 29.5 Figma 허용 차이 — 간격 **12 ↔ 6** (사용자 결정)
+
+| 지점 | Figma | 기존 구현 | 현재 |
+|---|---|---|---|
+| `BookDetailSheet` 책 블록 ↔ Prompt 목록 | `145:1085` **12** | **0** (이미 어긋나 있었다) | **6** (사용자 지시 — 프롬프트 간 간격과 일치) |
+
+→ **6 유지 + 허용 차이 등록** (ID 는 design-agent 가 `AD-L-*` 로 부여). Home 카드(`163:2649`)는 Figma 12 = 구현 12 **일치를 유지**했다.
+`#1`(1줄 pill 세로 중앙)은 **Figma 에 1줄 pill 예시가 없어** 충돌 없음 — 2줄은 Figma 실측 9/9 그대로다.
+
+**320px 잔여 차이 수용**: 책 제목이 길어 텍스트 열이 표지보다 2.58 아래까지 내려가므로 **표지 이미지 기준 간격이 8.58** 로 보인다. 393·1024 에서는 정확히 6. **그대로 둔다**(사용자 결정) — 맞추려면 행 정렬을 바꿔야 하고 그러면 텍스트가 표지와 어긋난다.
+
+### 29.6 회귀 감시 추가 — `e2e/top-bar-scrolled.spec.ts`
+
+**스크롤된 TopBar 를 찍거나 재는 e2e 가 하나도 없었다.** TopBar 배경은 이번이 **두 번째** 수정이라 감시 없이 두면 또 조용히 어긋난다.
+⚠️ 구현 agent 가 추가를 권고했으나 **내가 완료 조건에 테스트 수를 고정해 둬서 넣지 못했다** — 내 제약이 과했다. 해제하고 추가했다.
+
+**검출력을 5가지 되돌림으로 증명**했다:
+
+| 되돌림 | 결과 |
+|---|---|
+| 투명 | 테스트 2 FAIL — 대비 1.00 / 18.3% |
+| glass 면 | 테스트 1 FAIL — 단차 **27** |
+| 하단 경계선 부활 | 테스트 1 FAIL — 단차 **25** |
+| gradient 압축 | 테스트 1 FAIL — 단차 **36** |
+| `attachment: scroll` 만 | **둘 다 통과** — **검출 공백**(실기기 검증 대상) |
+
+**투명 되돌림에서 테스트 1 은 통과한다** — 투명하면 띠 픽셀이 곧 바탕이라 단차가 0 이다. 그래서 **두 단정이 둘 다 필요**하고 서로 다른 회귀를 문다.
+
+임계값: 대비 **3** 은 **이 머신 실측이 아니라 WCAG 값**(제목 28px heavy = large text) 이라 다른 러너에 그대로 옮겨진다. 단차 **4** 는 실측 바닥 **1** 의 4배이며, 그 1 이 램프가 아니라 **디더**라는 증거는 **가운데 행이 0**(`[1,0,1]`)이라는 것이다 — 램프라면 단조 증가해야 한다.
+
+### 29.7 보고만 하고 고치지 않은 것
+
+| 항목 | 내용 |
+|---|---|
+| 띠 옆 **gutter 24px 로 그림자가 비침** | `AppColumn` 이 TopBar 를 좌우 24 안쪽에 두어 그 영역엔 **CSS 로 무엇을 해도 띠 배경이 닿지 않는다**. glass 시절부터 같았고 **최대 채널차 5**(219→214) 라 거의 분간되지 않는다. 고치려면 기하 변경 필요 |
+| `transition-property` 가 **아무것도 전이시키지 않는다** | `.haru-top-bar` 가 `background-color, box-shadow` 를 전이 대상으로 두는데 `--scrolled` 는 **`background-image`** 를 바꾸고 `box-shadow` 를 주지 않는다. 기본 경로에서 gradient 가 **즉시 교체**된다. 의도한 페이드인지 명세 확인 필요 |
+| `/onboarding/:step` **토스트 보정 사각지대** | 위저드가 TopBar 를 `main` 안에서 렌더해 Layout 슬롯이 비어 있다. **현재 온보딩에 토스트를 띄우는 코드가 없어 실제 결함은 없다.** 생기면 위저드 헤더를 가린다 |
+| Home 헤더 대비 **미감시** | 스크롤된 띠의 대비를 잴 수 있는 화면이 `/library` 하나뿐이다 — Home 은 `h1` 없이 워드마크 `span` 이라 측정 대상이 없고, 그 위 주간 칩·설정 아이콘 대비는 이 테스트가 보지 않는다 |
+| `prefers-reduced-transparency` · `print` 분기 미검증 | Playwright 가 그 media feature 를 에뮬레이트하지 않는다 (CDP 설정 필요 — 프로젝트 설정 변경이라 범위 밖) |
+
+### 29.8 ⚠️ 검증되지 않은 것 — **토스트 진입 애니메이션**
+
+*"위에서 내려왔다가 사라지는"* 움직임은 **픽셀로 확인되지 않았다.** Playwright 가 항상 `reducedMotion: reduce` + `animations: disabled` 로 돌아 keyframe 이 종료 상태로 고정되기 때문이다. **CSS keyframe 소스 가드로만** 고정했다.
+→ **사용자 육안 검수 대상**이다.

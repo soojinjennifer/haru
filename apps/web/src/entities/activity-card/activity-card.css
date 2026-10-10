@@ -272,12 +272,18 @@
 /* ===== PromptPill (Figma `139:2439`) ====================================
  * 높이는 **최소값**이다 (고정 높이 금지). Figma 는 pill 42 = padding 9+9 + 본문 2줄×12 이고,
  * 1줄짜리 질문에서도 42 가 유지되도록 최소값을 쓴다.
+ *
+ * ★ 그래서 **본문을 세로 중앙에 둔다** (사용자 검수 2026-10-10 ①). 높이가 최소값이라
+ * 1줄 질문의 본문(12)은 content box(42 − 9 − 9 = 24)보다 작다 — `flex-start` 였을 때
+ * 실측 위 9 / 아래 21 로 글자가 위쪽에 붙어 보였다. `center` 면 위 15 / 아래 15 다.
+ * 2줄 이상에서는 본문이 content box 를 채우므로 값이 변하지 않는다 (9 / 9 그대로).
+ * **박스 크기는 바뀌지 않는다** — `min-block-size`·padding 을 건드리지 않았다.
  */
 
 .haru-prompt-pill {
   display: flex;
   flex: none;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--prompt-phase-tag-gap);
   box-sizing: border-box;
   min-block-size: var(--prompt-pill-height-min);
@@ -317,6 +323,9 @@
 /*
  * 단계·페이지 배지 (§5.4.1) — 배지는 **첫 줄에 세로 정렬**하고 줄어들지 않는다.
  * 질문이 2줄이 되어도 배지가 세로 중앙으로 내려가지 않는다.
+ *
+ * `align-self: flex-start` 는 위 `align-items: center`(2026-10-10 ①) 를 **의도적으로 덮는다** —
+ * 본문만 중앙으로 가고 배지는 첫 줄에 머문다 (실측: 1줄 pill 에서 배지 top 9 유지).
  */
 .haru-prompt-pill__badges {
   display: inline-flex;

@@ -113,8 +113,11 @@ export const libraryCopy = {
      * `reason` 이 비어 있는 이유는 Home 과 같다 — "곧 나옵니다" 류를 쓰지 않는다.
      */
     startSession: { label: 'Start Session', reason: null as string | null },
-    /** 증정 신청 CTA — `ownership === 'favorite_only'` 에만 보인다 (§2.9). */
-    requestBook: 'Request this book',
+    /*
+     * 증정 **신청** CTA 는 없다 (사용자 결정 2026-10-10: 신청 제거, 조회 유지).
+     * `requestBook` 문구를 되살리지 않는다 — 조회는 `giftRequestStatusCopy` 와
+     * `giftRequests.*` 가 담당한다.
+     */
     /** 외부 구매 링크 — `purchaseUrl` 이 있을 때만 보인다. */
     whereToBuy: 'Where to buy',
     whereToBuyHint: 'Opens in a new tab',

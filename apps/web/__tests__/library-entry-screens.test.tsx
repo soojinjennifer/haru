@@ -237,8 +237,11 @@ describe('`/library/gift-requests` — 상태 확인 전용 (FR-22, §7.3)', () 
     expect(screen.getByText(giftRequestStatusCopy.shipped)).toBeTruthy();
     expect(screen.getByText(giftRequestStatusCopy.requested)).toBeTruthy();
 
-    /* 신청은 `BookDetailSheet` 에서 한다 (§2.11 유지). */
-    expect(screen.queryByRole('button', { name: libraryCopy.bookSheet.requestBook })).toBeNull();
+    /*
+      신청 CTA 는 **어디에도 없다** (사용자 결정 2026-10-10: 신청 제거, 조회 유지).
+      문구 키가 사라졌으므로 리터럴로 단정한다.
+    */
+    expect(screen.queryByRole('button', { name: /request this book/i })).toBeNull();
   });
 
   it('`D-15` 접수 안내가 있다 (잠정 문구 — copy 모듈만 교체 가능)', async () => {

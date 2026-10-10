@@ -68,16 +68,14 @@ describe('탭바 하단 여백 — D-1 (§2.1)', () => {
   });
 
   /*
-    ⚠ 이 단정은 **선언이 존재한다** 만 증명한다. 그 클래스가 실제로 붙는지는 보지 않으므로,
-    이것만으로는 `QA-3-004`(아무도 수식어를 붙이지 않아 Toast 가 탭 3개를 덮었다)를 잡지 못한다
-    — approvals §26.3. **적용 여부**는 런타임에서 본다:
-      - `apps/web/src/app/layouts/__tests__/layouts.test.tsx` "Toast 탭바 보정 배선" (클래스 적용)
-      - `e2e/tabs.spec.ts` "Toast 가 떠 있어도 탭 3개가 가려지지 않는다" (393px 좌표 + hit-test)
+    `AD-S3-14`(Toast 하단 offset 에 탭바 높이 + overhang 을 더한다)는 **무효다** — Toast 가
+    2026-10-10 사용자 결정으로 화면 **상단**으로 옮겨져 탭바와 겹칠 수 없다. 하단 보정 규칙을
+    남겨 두면 아무도 켜지 않는 도달 불가 코드가 되므로(= `QA-3-004` 의 원인) 삭제를 고정한다.
+    상단 보정은 `Toast 상단 배치` describe 가 본다.
   */
-  it('Toast 하단 offset 에 overhang 이 더해져 있다 (AD-S3-14)', () => {
-    const viewport = /\.haru-toast-viewport--tabbar\s*\{([^}]*)\}/.exec(TOAST_CSS)?.[1] ?? '';
-    expect(viewport).toContain('--layout-tabbar-height');
-    expect(viewport).toContain('--layout-tabbar-center-overhang');
+  it('하단 탭바 보정 규칙이 남아 있지 않다 (AD-S3-14 폐기)', () => {
+    expect(TOAST_CSS).not.toContain('haru-toast-viewport--tabbar');
+    expect(TOAST_CSS).not.toContain('--layout-tabbar-height');
   });
 
   /* Home 재구현 — Figma `26:21` 852 − (766 + 70) = 16 (`A-6` ⓐ). */
@@ -86,6 +84,41 @@ describe('탭바 하단 여백 — D-1 (§2.1)', () => {
     expect(barBottom).toContain('padding-block-end: var(--layout-tabbar-bottom-gap)');
     // safe-area 와 이중 계상되지 않는다 — sticky offset 은 safe-area 만 본다.
     expect(barBottom).toContain('inset-block-end: var(--layout-safe-bottom)');
+  });
+});
+
+/**
+ * Toast 상단 배치 (사용자 결정 2026-10-10 — "화면 상단에서 하단으로 나왔다가 사라지도록").
+ *
+ * ⚠ 아래 단정들도 **선언이 존재한다** 만 증명한다. 그 클래스가 실제로 붙는지, 보정량이
+ * 0 이 아닌지는 런타임에서 본다 (approvals §26.3):
+ *   - `apps/web/src/app/layouts/__tests__/layouts.test.tsx` "Toast 상단 보정 배선"
+ *   - `e2e/toast.spec.ts` (393px 좌표 + `elementFromPoint` hit-test, 탭·스택 양쪽)
+ */
+describe('Toast 상단 배치 (2026-10-10)', () => {
+  it('기본 viewport 가 상단 기준이다 (하단 기준 선언이 없다)', () => {
+    const viewport = /\.haru-toast-viewport\s*\{([^}]*)\}/.exec(TOAST_CSS)?.[1] ?? '';
+    expect(viewport).toContain('inset-block-start: calc(var(--layout-safe-top) + var(--space-4))');
+    expect(viewport).not.toContain('inset-block-end');
+  });
+
+  it('TopBar 가 있는 화면은 **실측 높이**만큼 내려간다 (토큰 fallback 포함)', () => {
+    const viewport =
+      /\.haru-toast-viewport--below-top-bar\s*\{([^}]*)\}/.exec(TOAST_CSS)?.[1] ?? '';
+    expect(viewport).toContain('--layout-safe-top');
+    expect(viewport).toContain('var(--toast-top-bar-block-size, var(--topbar-height))');
+  });
+
+  it('진입 모션이 위에서 내려오는 방향이다', () => {
+    const keyframes = /@keyframes haru-toast-in\s*\{([\s\S]*?)\n\}/.exec(TOAST_CSS)?.[1] ?? '';
+    expect(keyframes).toContain('translateY(calc(-1 * var(--space-3)))');
+  });
+
+  /* `prefers-reduced-motion` 에서는 translate 를 쓰지 않는다 (§9.2) — 방향이 바뀌어도 유지된다. */
+  it('reduced motion 에서는 translate 가 없다', () => {
+    const reduced =
+      /@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*)$/.exec(TOAST_CSS)?.[1] ?? '';
+    expect(reduced).toContain('transform: none');
   });
 });
 

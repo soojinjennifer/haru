@@ -1,12 +1,15 @@
 /*
  * Toast — Design Spec §4.12 (Figma 없음 → 명세)
- * 앱 컬럼 폭 − 2×gutter, 하단 safe-area + 16 (탭바가 있으면 + 탭바 높이).
+ * 앱 컬럼 폭 − 2×gutter, **상단** safe-area + 16 (TopBar 가 있으면 + TopBar 실측 높이).
+ *
+ * 배치는 2026-10-10 사용자 결정으로 하단 → **상단** 이 되었다 ("화면 상단에서 하단으로
+ * 나왔다가 사라지도록"). 그에 따라 진입 모션도 위에서 내려오는 방향이다.
  */
 
 .haru-toast-viewport {
   position: fixed;
   inset-inline: 0;
-  inset-block-end: calc(var(--layout-safe-bottom) + var(--space-4));
+  inset-block-start: calc(var(--layout-safe-top) + var(--space-4));
   display: flex;
   justify-content: center;
   padding-inline: var(--layout-gutter);
@@ -14,15 +17,22 @@
   pointer-events: none;
 }
 
-.haru-toast-viewport--tabbar {
-  /*
-   * 중앙 버튼 overhang 을 더한다 (Stage 3 Design Spec §2.1 실측 — 기존 식이면 Toast 하단이
-   * `y=726`, 중앙 버튼 상단이 `y=707` 로 **19px 겹친다**. `--z-toast`(60) > `--z-tabbar`(20)
-   * 이라 Toast 가 홈 버튼을 덮는다). `AD-S3-14`.
-   */
-  inset-block-end: calc(
-    var(--layout-safe-bottom) + var(--space-4) + var(--layout-tabbar-height) +
-      var(--layout-tabbar-center-overhang)
+/*
+ * TopBar 가 있는 화면 — 그 **아래**에서 시작한다.
+ *
+ * `--z-toast`(60) > `--z-sticky`(10) 이므로 겹치면 Toast 가 TopBar 를 덮고, TopBar 의 설정
+ * 아이콘·뒤로 가기는 그 즉시 클릭 불능이 된다 (하단 시절의 `QA-3-004` 와 같은 결함의 반대
+ * 방향). 2026-10-10 실측: 보정 없이 두면 Toast 상단 16, Home TopBar 아래 끝 48 로
+ * **32px 겹치고** 설정 아이콘 중심의 `elementFromPoint` 가 Toast 를 돌려줬다.
+ *
+ * 높이는 `ToastProvider` 가 등록된 슬롯을 실측해 `--toast-top-bar-block-size` 로 넘긴다.
+ * 측정이 없는 환경(jsdom·ResizeObserver 없음)에서는 `--topbar-height`(40) 로 떨어진다 —
+ * Home(48)에는 8px 부족하지만, 레이아웃이 없는 환경이라 가림이 성립하지 않는다.
+ * 기준선은 `.haru-app-shell__bar-top` 의 sticky offset 과 같은 `--layout-safe-top` 이다.
+ */
+.haru-toast-viewport--below-top-bar {
+  inset-block-start: calc(
+    var(--layout-safe-top) + var(--toast-top-bar-block-size, var(--topbar-height)) + var(--space-4)
   );
 }
 
@@ -78,12 +88,13 @@
 }
 
 /* ===== 모션 (§9.1) =======================================================
- * enter: translateY(12) → 0 + fade (240ms) / exit: fade only (180ms).
+ * enter: translateY(-12) → 0 + fade (240ms) / exit: fade only (180ms).
+ * 상단 배치이므로 **위에서 내려온다** (2026-10-10). 퇴장은 fade 만이라 방향이 없다.
  */
 @keyframes haru-toast-in {
   from {
     opacity: 0;
-    transform: translateY(var(--space-3));
+    transform: translateY(calc(-1 * var(--space-3)));
   }
 
   to {

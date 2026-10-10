@@ -414,8 +414,8 @@ test.describe('`BookDetailSheet` 뒤집기 (코칭 노트 뒷면)', () => {
 
   /*
     높이 **상한에 걸린** 화면에서는 시트가 줄지 않는다 — 대신 본문이 57 늘어난다.
-    2라운드-3 에서 "뒷면 아래 63px 가 보이지 않는 자리에 있다" 던 결함이 여기서 6 으로 줄어든다
-    (앞면 430 − 본문 424). 실측값을 그대로 고정한다.
+    2라운드-3 에서 "뒷면 아래 63px 가 보이지 않는 자리에 있다" 던 결함이 여기서 12 로 줄어든다
+    (뒤집은 뒤 앞면이 본문보다 12 높다). 실측값을 그대로 고정한다.
   */
   test('320×568(상한) — 시트 높이는 그대로이고 **뒷면 목록이 57 늘어난다**', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 568 });
@@ -431,9 +431,14 @@ test.describe('`BookDetailSheet` 뒤집기 (코칭 노트 뒷면)', () => {
     expect(before.notesVisible).toBe(337);
     expect(after.notesVisible).toBe(394);
     expect(after.notesVisible as number).toBe((before.notesVisible as number) + 57);
-    /* 본문 밖으로 밀려난(= 보이지 않는) 높이: 63 → 6. */
-    expect(before.contentDeadScroll).toBe(63);
-    expect(after.contentDeadScroll).toBe(6);
+    /*
+      본문 밖으로 밀려난(= 보이지 않는) 높이: 69 → 12.
+      둘 다 2026-10-10 ② (책 블록 ↔ 첫 Prompt 간격 0 → `--prompt-pill-gap` 6) 로 **각각 6 씩
+      늘어난 값**이다 (63 → 69, 6 → 12). 이 화면은 시트 높이 상한에 걸려 있어 앞면이 커진
+      만큼 그대로 스크롤 영역으로 간다 — 시트·뒷면 수치(337 / 394 / 57)는 변하지 않는다.
+    */
+    expect(before.contentDeadScroll).toBe(69);
+    expect(after.contentDeadScroll).toBe(12);
 
     /* 마지막 항목이 **보이는 자리**에 있다 (2라운드-3 결함 B 의 회귀 가드). */
     const reachable = await page.evaluate(async () => {

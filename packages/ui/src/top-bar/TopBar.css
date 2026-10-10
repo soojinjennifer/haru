@@ -91,23 +91,51 @@
   }
 }
 
-/* ===== 스크롤 시 배경 (§6.1, Figma 없음 → 명세) ========================== */
+/* ===== 스크롤 시 배경 (§6.1, Figma 없음 → 명세, 사용자 결정 2026-10-10) ==========
+ * 요구: 스크롤해도 **바탕이 그대로 이어진 것처럼** 보이고, 콘텐츠만 띠 뒤로 가려진다.
+ * 그래서 띠에 `--color-surface-glass`(반투명 glass)나 고정 단색을 쓸 수 없다.
+ *  - 완전 투명/반투명 → 제목 `Library` 뒤로 콘텐츠가 지나가 대비가 1.00 까지 떨어졌다
+ *    (2026-10-10 실측: scrollTop 260 에서 제목 픽셀 82.3% 가 3:1 미만).
+ *  - 고정 단색 → 앱 바탕이 gradient(`--gradient-app`) 라 어느 높이에서도 어긋나 경계가 보인다.
+ * → **앱 바탕과 같은 gradient 를 같은 좌표계(뷰포트)로** 깐다. 색 단차가 0 이므로 경계선이
+ *   없고, 불투명하므로 뒤로 지나가는 콘텐츠가 가려져 제목이 계속 읽힌다.
+ *
+ * 좌표계 일치가 핵심이다. `AppBackground`(`packages/ui/src/surface/AppBackground.css`)는
+ * `position: fixed; inset: 0` 이라 gradient 박스가 **뷰포트**다. 띠도 같은 박스를 써야 한다:
+ *  - `background-attachment: fixed` → 배경 위치 영역이 뷰포트가 되어 자동으로 일치한다.
+ *    띠가 어느 화면에서 상단 여백(`.haru-home-top-bar` + 10)을 더해도 보정이 필요 없다.
+ *  - `background-size: 100% 100dvh` 는 **fallback 안전장치**다. `background-attachment: fixed`
+ *    를 `scroll` 로 떨어뜨리는 UA(iOS Safari 계열)에서 위치 영역이 띠의 padding box(≈48px)로
+ *    바뀌는데, 크기를 명시하지 않으면 gradient 전체가 48px 로 압축돼 아주 진한 띠가 된다.
+ *    명시해 두면 그 경우에도 띠 상단부터 뷰포트 높이만큼 펼쳐져 오차가 `safe-top`(+화면별
+ *    상단 여백)만큼으로 줄어든다 — 850px 램프에서 10~47px 어긋남 = 색 1 단위 미만이다.
+ *
+ * `box-shadow` 를 주지 않는다 — 하단 경계선이 곧 "경계가 보이면 안 된다" 위반이다.
+ * `backdrop-filter` 도 주지 않는다 — 불투명 배경 뒤의 블러는 보이지 않고 비용만 든다.
+ */
 .haru-top-bar--scrolled {
-  background-color: var(--color-surface-glass);
-  box-shadow: var(--shadow-rest);
-  backdrop-filter: blur(var(--material-blur-md));
+  background-image: var(--gradient-app);
+  background-attachment: fixed;
+  background-position: left top;
+  background-repeat: no-repeat;
+  background-size: 100% 100dvh;
 }
 
-@supports not (backdrop-filter: blur(1px)) {
+/*
+ * 투명도 축소 · 인쇄에서는 `AppBackground` 가 각각 단색 `--color-bg-app-start` · 투명으로
+ * 바뀐다 (§4.3). 띠도 **같은 값**을 따라가야 경계가 생기지 않는다.
+ */
+@media (prefers-reduced-transparency: reduce) {
   .haru-top-bar--scrolled {
-    background-color: var(--material-glass-fill-fallback);
+    background-image: none;
+    background-color: var(--color-bg-app-start);
   }
 }
 
-@media (prefers-reduced-transparency: reduce) {
+@media print {
   .haru-top-bar--scrolled {
-    background-color: var(--material-glass-fill-fallback);
-    backdrop-filter: none;
+    background-image: none;
+    background-color: transparent;
   }
 }
 

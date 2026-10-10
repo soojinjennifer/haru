@@ -5,6 +5,7 @@ import { appCopy } from '../../shared/copy/app-copy';
 import { RouteErrorBoundary } from '../error/RouteErrorBoundary';
 
 import { AppShell } from './AppShell';
+import { AppShellTopBar } from './AppShellTopBar';
 
 export interface StackLayoutProps {
   /** TopBar 슬롯 — `variant=inline | centered` 를 쓰는 화면에서 주입한다 (§2.3). */
@@ -31,9 +32,7 @@ export interface StackLayoutProps {
 export function StackLayout({ topBar, footer, children }: StackLayoutProps) {
   return (
     <AppShell bottomGap="cta">
-      {topBar === undefined ? null : (
-        <div className="haru-app-shell__bar-top shrink-0">{topBar}</div>
-      )}
+      {topBar === undefined ? null : <AppShellTopBar>{topBar}</AppShellTopBar>}
       <main className="flex flex-1 flex-col" aria-label={appCopy.landmarks.mainContent}>
         {/*
          * 세로 flex 컬럼이어야 한다. 화면 root 는 Design Spec 의 `(flex spacer)` 를

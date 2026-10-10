@@ -114,7 +114,7 @@ export type {
 export { Toast } from './feedback/Toast';
 export type { ToastAction, ToastProps, ToastState, ToastTone } from './feedback/Toast';
 
-export { ToastProvider, useToast, useToastTabBarInset } from './feedback/ToastProvider';
+export { ToastProvider, useToast, useToastTopBarInset } from './feedback/ToastProvider';
 export type { ToastController, ToastOptions, ToastProviderProps } from './feedback/ToastProvider';
 
 export { PageIndicator } from './progress/PageIndicator';

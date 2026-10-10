@@ -72,7 +72,6 @@
  * `e2e/shadow.spec.ts` 가 고정한다.
  */
 import {
-  Button,
   Icon,
   IconButton,
   InlineAlert,
@@ -81,14 +80,14 @@ import {
   Tag,
   Text,
   TextLink,
+  useToast,
 } from '@haru/ui';
 import { useState } from 'react';
 import type { LibraryBook, Prompt } from '@haru/contracts';
 
 import { BookCover, useBookPrompts } from '../../entities/book';
 import { CoachingNote, PromptPill, SaveButton } from '../../entities/activity-card';
-import { useCreateGiftRequest, useToggleLibrarySave } from '../../entities/library';
-import { ERROR_COPY, networkErrorCopy } from '../../shared/copy/error-copy';
+import { useToggleLibrarySave } from '../../entities/library';
 import { giftRequestStatusCopy, libraryCopy } from '../../shared/copy/library-copy';
 
 import { StartSessionAction } from './StartSessionAction';
@@ -127,8 +126,22 @@ export function BookDetailSheet({ open, book, onClose }: BookDetailSheetProps) {
     목록 재조회가 끝나면 서버 값이 다시 내려오고, 실패하면 낙관값을 버린다.
   */
   const [pending, setPending] = useState<{ bookId: string; saved: boolean } | null>(null);
+  /*
+    저장 실패는 **Toast** 로 알린다 (사용자 지적 2026-10-10). 인라인 알림은 두 가지를 동시에
+    틀렸다:
+      ① ActionBar 아래에 자리를 차지해 **다른 내용을 밀어낸다** — 사용자 요청은 "떴다가 사라져
+         다른 컨텐츠를 방해하지 않는" 형태였다.
+      ② `save.isError` 는 mutation 상태라 **책에 묶이지 않는다.** 이 시트는 `LibraryShelves` 가
+         단일 인스턴스로 들고 `book` prop 만 갈아 끼우므로(`:133` 교체 전환), 한 번 실패하면
+         **이후 어떤 책을 열어도** 알림이 남았다. `pending`·`face` 는 `bookId` 로 키를 걸어
+         자동 폴백되는데 `isError` 에는 그 장치가 없었다.
+    Toast 는 **그 시점의 사건**이라 렌더 상태가 아니다 — 교체 전환으로 새어 나갈 상태 자체가
+    없어지고, 호출 1회 = 알림 1회가 된다. Home `ActivityCardDeck` 과 **같은 방식**이다.
+  */
+  const toast = useToast();
   const save = useToggleLibrarySave(() => {
     setPending(null);
+    toast.show({ message: libraryCopy.bookSheet.saveFailed, tone: 'error' });
   });
   const saved =
     pending !== null && pending.bookId === bookId ? pending.saved : (book?.saved ?? false);
@@ -220,9 +233,6 @@ export function BookDetailSheet({ open, book, onClose }: BookDetailSheetProps) {
               />
               <StartSessionAction id="book-sheet" />
             </div>
-            {save.isError ? (
-              <InlineAlert tone="error" title={libraryCopy.bookSheet.saveFailed} />
-            ) : null}
           </div>
         )
       }
@@ -385,10 +395,15 @@ interface GiftBlockProps {
 /**
  * 증정(FR-22) 블록 — `stage-3-design-spec.md` §2.9 의 ownership 분기다.
  *
+ * ── 신청 제거 (사용자 결정 2026-10-10) ───────────────────────────────────
+ * 증정 **신청**은 프론트에서 하지 않는다. 남는 것은 **조회**(상태 표시)뿐이다.
+ * 따라서 `favorite_only` 의 신청 CTA 와 그 뮤테이션 사용(`useCreateGiftRequest`)을 지웠다.
+ * contract(`createGiftRequest`) · Mock · hook 파일은 **그대로 둔다** — Backend 인터페이스다.
+ *
  * | ownership | 표시 |
  * |---|---|
  * | `owned` · `gifted` | 없음 |
- * | `favorite_only` | 신청 `Button(glass)` + (`purchaseUrl` 있으면) `Where to buy` |
+ * | `favorite_only` | (`purchaseUrl` 있으면) `Where to buy` — 없으면 아무것도 없다 |
  * | `gift_pending` | 상태 `Tag` + `D-15` 접수 안내 (`InlineAlert tone=info`) |
  *
  * ⚠️ `L-OPEN-14`(보유·증정 **표식** 금지)와 충돌하지 않는다 — 금지된 것은 서재 **목록**의
@@ -398,10 +413,9 @@ interface GiftBlockProps {
  * 본문 마지막 블록으로 둔다 — §2.9 트리와 배치가 다르며 **보고 대상**이다.
  */
 function GiftBlock({ book }: GiftBlockProps) {
-  const gift = useCreateGiftRequest();
   const status = book.giftRequestStatus ?? null;
 
-  if (book.ownership === 'gift_pending' || gift.isSuccess) {
+  if (book.ownership === 'gift_pending') {
     return (
       <div className="haru-book-sheet__gift">
         {status === null ? null : <Tag label={giftRequestStatusCopy[status]} />}
@@ -416,37 +430,23 @@ function GiftBlock({ book }: GiftBlockProps) {
 
   if (book.ownership !== 'favorite_only') return null;
 
-  const bookId = book.book?.id;
+  /*
+    신청 CTA 가 사라졌으므로 이 분기에 남는 것은 외부 구매 링크 하나다. 링크가 없으면
+    빈 상자를 남기지 않는다 (`gap` 만 더해져 본문 간격이 벌어진다).
+  */
   const purchaseUrl = book.purchaseUrl ?? null;
-  const errorCopy = gift.errorCode === undefined ? networkErrorCopy : ERROR_COPY[gift.errorCode];
+  if (purchaseUrl === null) return null;
 
   return (
     <div className="haru-book-sheet__gift">
-      {gift.isError ? (
-        /* 중복 신청(`GIFT_REQUEST_DUPLICATE`)도 같은 자리에서 알린다 — 문구는 코드가 고른다. */
-        <InlineAlert tone="info" title={errorCopy.title} description={errorCopy.description} />
-      ) : null}
-      <Button
-        variant="glass"
-        fullWidth
-        loading={gift.isPending}
-        onPress={() => {
-          if (bookId === undefined) return;
-          gift.request(bookId);
-        }}
+      <TextLink
+        href={purchaseUrl}
+        tone="standalone"
+        external
+        externalHint={libraryCopy.bookSheet.whereToBuyHint}
       >
-        {libraryCopy.bookSheet.requestBook}
-      </Button>
-      {purchaseUrl === null ? null : (
-        <TextLink
-          href={purchaseUrl}
-          tone="standalone"
-          external
-          externalHint={libraryCopy.bookSheet.whereToBuyHint}
-        >
-          {libraryCopy.bookSheet.whereToBuy}
-        </TextLink>
-      )}
+        {libraryCopy.bookSheet.whereToBuy}
+      </TextLink>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-import { useToastTabBarInset } from '@haru/ui';
 import type { ReactNode } from 'react';
 import { Outlet } from 'react-router';
 
@@ -6,6 +5,7 @@ import { appCopy } from '../../shared/copy/app-copy';
 import { RouteErrorBoundary } from '../error/RouteErrorBoundary';
 
 import { AppShell } from './AppShell';
+import { AppShellTopBar } from './AppShellTopBar';
 
 export interface TabLayoutProps {
   /** TopBar 슬롯 — `variant=large` 또는 없음 (§2.3). */
@@ -30,22 +30,16 @@ export interface TabLayoutProps {
  * 중앙 버튼 overhang 여백은 `.haru-app-shell__bar-bottom` 의 `padding-block-start` 가 소유한다
  * (Stage 3 Design Spec §2.1 — `pt-3` 리터럴을 토큰 참조로 바꿨다, `AD-S3-13`).
  *
- * ── Toast 하단 보정의 **소유자가 여기다** (`QA-3-004`) ──
- * `ToastProvider` 는 router 바깥(앱 조립 지점)에 한 번 마운트되므로 현재 화면에 탭바가 있는지
- * 모른다. 그 결과 탭바 보정 CSS(`.haru-toast-viewport--tabbar`)가 아무도 켜 주지 않는
- * 도달 불가 코드였고, Toast 가 탭 3개를 50px 덮어 클릭을 전부 가로막았다.
- * 탭바를 실제로 렌더하는 지점이 여기뿐이므로 **`tabBar` 슬롯이 있을 때만** 보정을 요청한다 —
- * `tabBar` 가 없으면(Stage 1 `/`) 탭바도 없고 보정도 없다. 스택·풀스크린 Layout 은 등록하지
- * 않으므로 온보딩·설정 Toast 위치는 그대로다.
+ * ── Toast 보정은 더 이상 여기에 없다 (사용자 결정 2026-10-10) ──
+ * Toast 가 화면 **상단**으로 옮겨져 탭바와 겹칠 수 없으므로 하단 보정(`QA-3-004` 의
+ * `useToastTabBarInset`)을 **지웠다** — 남겨 두면 아무것도 켜지 않는 도달 불가 코드가 된다.
+ * 같은 메커니즘은 대상만 TopBar 로 바뀌어 `AppShellTopBar` 가 소유한다. Toast 가 탭바를
+ * 덮지 않는다는 단정은 `e2e/tabs.spec.ts` 가 계속 지킨다.
  */
 export function TabLayout({ topBar, tabBar, children }: TabLayoutProps) {
-  useToastTabBarInset(tabBar !== undefined);
-
   return (
     <AppShell>
-      {topBar === undefined ? null : (
-        <div className="haru-app-shell__bar-top shrink-0">{topBar}</div>
-      )}
+      {topBar === undefined ? null : <AppShellTopBar>{topBar}</AppShellTopBar>}
       <main className="flex flex-1 flex-col" aria-label={appCopy.landmarks.mainContent}>
         <RouteErrorBoundary>{children ?? <Outlet />}</RouteErrorBoundary>
       </main>

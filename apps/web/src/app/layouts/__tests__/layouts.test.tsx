@@ -86,16 +86,22 @@ describe('Layout 3종 (Design Spec §2.3)', () => {
 });
 
 /**
- * Toast 하단 보정이 **실제로 적용되는지** (`QA-3-004`).
+ * Toast **상단** 보정이 실제로 적용되는지 (사용자 결정 2026-10-10).
  *
- * 이 결함을 놓친 가드는 `stage3-css-guards.test.ts` 였다 — `.haru-toast-viewport--tabbar`
- * **규칙 안에 토큰이 있는지만** 보고, 그 클래스가 붙는지는 보지 않았다. CSS 문자열 검사는
- * "선언이 존재한다" 만 증명한다 (approvals §26.3). 그래서 여기서는 **렌더 결과의 클래스**를
- * 단정한다. 실제 좌표·hit-test 는 `e2e/tabs.spec.ts` 가 393px 에서 측정한다.
+ * Toast 는 하단 → 상단으로 옮겨졌다. 하단 시절의 결함(`QA-3-004` — 아무도 수식어를 붙이지
+ * 않아 Toast 가 탭 3개를 덮었다)이 **반대 방향으로** 재현되지 않게, 보정 등록 지점이 실제로
+ * 호출되는지를 여기에서 고정한다.
  *
- * jsdom 에는 레이아웃이 없으므로 **좌표가 아니라 적용 여부**가 여기서 셀 수 있는 신호다.
+ * 이 결함을 놓친 가드는 `stage3-css-guards.test.ts` 였다 — 규칙 **안에 토큰이 있는지만** 보고
+ * 그 클래스가 붙는지는 보지 않았다. CSS 문자열 검사는 "선언이 존재한다" 만 증명한다
+ * (approvals §26.3).
+ *
+ * jsdom 에는 레이아웃이 없으므로 **클래스 적용**과 (rect 를 고정했을 때의) **실측값 전달**이
+ * 여기에서 셀 수 있는 신호다. 실제 좌표·hit-test 는 `e2e/toast.spec.ts` 가 393px 에서 잰다.
  */
-describe('Toast 탭바 보정 배선 (`QA-3-004`)', () => {
+describe('Toast 상단 보정 배선 (2026-10-10)', () => {
+  const MODIFIER = 'haru-toast-viewport--below-top-bar';
+
   function Trigger() {
     const toast = useToast();
     useEffect(() => {
@@ -104,10 +110,10 @@ describe('Toast 탭바 보정 배선 (`QA-3-004`)', () => {
     return null;
   }
 
-  function viewportClass(): string {
-    const viewport = document.querySelector('.haru-toast-viewport');
-    if (viewport === null) throw new Error('Toast viewport 가 렌더되지 않았다');
-    return viewport.className;
+  function viewport(): HTMLElement {
+    const node = document.querySelector('.haru-toast-viewport');
+    if (node === null) throw new Error('Toast viewport 가 렌더되지 않았다');
+    return node as HTMLElement;
   }
 
   function renderWithToast(node: React.ReactNode) {
@@ -118,25 +124,48 @@ describe('Toast 탭바 보정 배선 (`QA-3-004`)', () => {
     );
   }
 
-  it('TabLayout + tabBar → 탭바 보정 수식어가 붙는다', () => {
+  it('TabLayout + topBar → 상단 보정 수식어가 붙는다', () => {
+    renderWithToast(
+      <TabLayout topBar={<p>top</p>} tabBar={<nav aria-label="tabs">tabs</nav>}>
+        <Trigger />
+      </TabLayout>,
+    );
+
+    expect(viewport().className).toContain(MODIFIER);
+  });
+
+  /* TopBar 가 없으면 보정도 없다 — 하드코딩 `true` 로 때우면 이 단정이 깨진다. */
+  it('TabLayout 이지만 topBar 가 없으면 보정하지 않는다', () => {
     renderWithToast(
       <TabLayout tabBar={<nav aria-label="tabs">tabs</nav>}>
         <Trigger />
       </TabLayout>,
     );
 
-    expect(viewportClass()).toContain('haru-toast-viewport--tabbar');
+    expect(viewport().className).not.toContain(MODIFIER);
   });
 
-  /* 탭바가 없으면 보정도 없다 — 하드코딩 `true` 로 때우면 이 단정이 깨진다. */
-  it('TabLayout 이지만 tabBar 가 없으면 보정하지 않는다 (Stage 1 `/`)', () => {
-    renderWithToast(
-      <TabLayout>
+  /*
+    **하단 시절과 달리 스택·풀스크린 화면도 보정 대상이다.** TopBar 는 탭 화면 전용이 아니다
+    (`/settings` · `/auth/*` · `/library/add` 모두 StackLayout + TopBar).
+  */
+  it.each([
+    [
+      'StackLayout',
+      <StackLayout key="stack" topBar={<p>top</p>}>
         <Trigger />
-      </TabLayout>,
-    );
+      </StackLayout>,
+    ],
+    [
+      'FullscreenLayout',
+      <FullscreenLayout key="full" topBar={<p>top</p>}>
+        <Trigger />
+      </FullscreenLayout>,
+    ],
+  ])('%s + topBar 도 보정한다', (_name, node) => {
+    renderWithToast(node);
 
-    expect(viewportClass()).not.toContain('haru-toast-viewport--tabbar');
+    expect(viewport().className).toContain(MODIFIER);
   });
 
   it.each([
@@ -152,25 +181,25 @@ describe('Toast 탭바 보정 배선 (`QA-3-004`)', () => {
         <Trigger />
       </FullscreenLayout>,
     ],
-  ])('%s 의 Toast 는 보정 없이 그대로다 (온보딩·설정 회귀 방지)', (_name, node) => {
+  ])('%s 에 topBar 가 없으면 보정하지 않는다 (온보딩 회귀 방지)', (_name, node) => {
     renderWithToast(node);
 
-    expect(viewportClass()).not.toContain('haru-toast-viewport--tabbar');
+    expect(viewport().className).not.toContain(MODIFIER);
   });
 
-  /* 탭 → 스택 이동에서 보정이 **풀린다**. 안 풀리면 설정 화면 Toast 가 떠 버린다. */
-  it('탭 화면에서 스택 화면으로 바뀌면 보정이 해제된다', () => {
+  /* TopBar 있는 화면 → 없는 화면 이동에서 보정이 **풀린다**. */
+  it('TopBar 없는 화면으로 바뀌면 보정이 해제된다', () => {
     const { rerender } = render(
       <MemoryRouter>
         <ToastProvider>
-          <TabLayout tabBar={<nav aria-label="tabs">tabs</nav>}>
+          <TabLayout topBar={<p>top</p>} tabBar={<nav aria-label="tabs">tabs</nav>}>
             <Trigger />
           </TabLayout>
         </ToastProvider>
       </MemoryRouter>,
     );
 
-    expect(viewportClass()).toContain('haru-toast-viewport--tabbar');
+    expect(viewport().className).toContain(MODIFIER);
 
     rerender(
       <MemoryRouter>
@@ -182,7 +211,43 @@ describe('Toast 탭바 보정 배선 (`QA-3-004`)', () => {
       </MemoryRouter>,
     );
 
-    expect(viewportClass()).not.toContain('haru-toast-viewport--tabbar');
+    expect(viewport().className).not.toContain(MODIFIER);
+  });
+
+  /*
+    **실측값이 실제로 넘어간다.** 수식어만 보면 "보정하기로 했다" 까지만 증명된다 — 보정량이
+    0 이면 TopBar 는 여전히 가려진다. jsdom 은 모든 rect 가 0 이므로 rect 를 고정해서
+    등록 → 측정 → CSS 변수 경로가 끊기지 않았는지 본다.
+  */
+  it('등록된 TopBar 슬롯 높이를 CSS 변수로 넘긴다', () => {
+    const original = HTMLDivElement.prototype.getBoundingClientRect;
+    HTMLDivElement.prototype.getBoundingClientRect = function rect(this: HTMLDivElement) {
+      const height = this.classList.contains('haru-app-shell__bar-top') ? 48 : 0;
+      return { x: 0, y: 0, top: 0, left: 0, right: 0, bottom: height, width: 0, height } as DOMRect;
+    };
+
+    try {
+      renderWithToast(
+        <TabLayout topBar={<p>top</p>} tabBar={<nav aria-label="tabs">tabs</nav>}>
+          <Trigger />
+        </TabLayout>,
+      );
+
+      expect(viewport().style.getPropertyValue('--toast-top-bar-block-size')).toBe('48px');
+    } finally {
+      HTMLDivElement.prototype.getBoundingClientRect = original;
+    }
+  });
+
+  /* 측정이 0 이면 변수를 넘기지 않는다 — CSS 의 `--topbar-height` fallback 이 살아야 한다. */
+  it('측정값이 0 이면 CSS 변수를 넘기지 않는다 (fallback 유지)', () => {
+    renderWithToast(
+      <TabLayout topBar={<p>top</p>}>
+        <Trigger />
+      </TabLayout>,
+    );
+
+    expect(viewport().style.getPropertyValue('--toast-top-bar-block-size')).toBe('');
   });
 });
 

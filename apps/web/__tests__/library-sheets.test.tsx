@@ -12,7 +12,7 @@
  *   ⑥ `★ Save` 는 즉시 `Saved` 가 되고 `PUT …/saved-books` 뒤 **overview 를 재조회**한다 (`P3-BIP-15`)
  *   ⑦ `Start Session` 은 두 시트에서 모두 `aria-disabled` 다 (`D-3`)
  *   ⑧ 카탈로그에 없는 책은 Prompt 를 **조회하지 않는다** (`bookId` 가 없다)
- *   ⑨ 증정(FR-22) 분기 — `favorite_only` 신청 CTA · `gift_pending` 접수 안내 · 중복 안내
+ *   ⑨ 증정(FR-22) — **신청 CTA 부재**(사용자 결정 2026-10-10) · `POST …/gift-requests` 미발생
  *   ⑩ Shelf 시트의 Loading / Empty / Error(+Retry)
  *
  * 2라운드-3 (사용자 결정 2026-10-09) 추가
@@ -24,14 +24,18 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { LibraryBook } from '@haru/contracts';
+
 import { AppRoutes } from '../src/app/router';
-import { LibraryShelfSheet } from '../src/features/library';
+import { BookDetailSheet, LibraryShelfSheet } from '../src/features/library';
 import { MOCK_EPOCH_MS } from '../src/mocks';
 import { ROUTES } from '../src/shared/config/routes';
 import { createBookReasonFixture } from '../src/mocks/fixtures/books';
+import { createLibraryOverviewFixture } from '../src/mocks/fixtures/library';
 import { MOCK_CARD_PROMPTS } from '../src/mocks/fixtures/prompt-sets';
 import { DECK_BOOKS } from '../src/mocks/fixtures/saved-books';
 import { libraryCopy } from '../src/shared/copy/library-copy';
+import { createFixedClock } from '../src/shared/lib/clock';
 import { createHarness, type Harness } from '../src/test/harness';
 
 const CREDENTIALS = { email: 'sam@example.com', password: 'sunny-evening-8' } as const;
@@ -344,6 +348,108 @@ describe('`BookDetailSheet` — 책별 Prompt 보기 (FR-20, §3.8)', () => {
 });
 
 /**
+ * 저장 실패 알림 — **토스트**이고 **그 책에만** 뜬다 (사용자 지적 2026-10-10).
+ *
+ * `BookDetailSheet` 는 `LibraryShelves` 가 **단일 인스턴스**로 들고 `book` prop 만 갈아 끼운다
+ * (`LibraryShelves.tsx` 교체 전환). 그래서 "책에 묶이지 않은 상태" 는 **다른 책으로 새어 나간다** —
+ * `pending`·`face` 는 `bookId` 로 키를 걸어 자동 폴백되지만 mutation 의 `isError` 는 그렇지 않았다.
+ * 여기서는 그 누수를 **prop 교체**로 재현한다 (실제 화면과 같은 조건: 같은 위치, 같은 타입).
+ *
+ * 토스트 단정에 `.click()` 을 쓰지 않는다 — 자동 해제라 타이밍에 기대는 단정은 흔들린다.
+ * **존재·부재와 메시지**로만 단정한다.
+ */
+describe('`BookDetailSheet` 저장 실패 알림 (사용자 지적 2026-10-10)', () => {
+  /** Favorites 섹션 항목 = `DECK_BOOKS` 기반이라 Mock `saveBook`/`unsaveBook` 의 대상이 실재한다. */
+  const FAVORITES: readonly LibraryBook[] =
+    createLibraryOverviewFixture(createFixedClock(MOCK_EPOCH_MS), 'full').sections.find(
+      (section) => section.key === 'favorites',
+    )?.items ?? [];
+
+  /**
+   * 시트만 직접 띄운다 — scenario key 는 **그룹 단위**라 `library:error` 를 주면 overview 도
+   * 함께 실패해 캐러셀 자체가 사라진다 (Shelf 상태 화면 테스트와 같은 이유).
+   */
+  async function renderDetail(book: LibraryBook): Promise<{
+    rerender: (next: LibraryBook) => void;
+  }> {
+    const harness = createHarness({
+      initialEntries: [ROUTES.library],
+      scenarios: ['library:error'],
+    });
+    await harness.bundle.authGateway.signInWithEmail({ ...CREDENTIALS });
+
+    const Wrapper = harness.wrapper;
+    const view = render(
+      <Wrapper>
+        <BookDetailSheet open book={book} onClose={() => undefined} />
+      </Wrapper>,
+    );
+
+    return {
+      rerender: (next) => {
+        view.rerender(
+          <Wrapper>
+            <BookDetailSheet open book={next} onClose={() => undefined} />
+          </Wrapper>,
+        );
+      },
+    };
+  }
+
+  function pressSave(): void {
+    const dialogNode = dialog();
+    const label = within(dialogNode).queryByRole('button', { name: libraryCopy.bookSheet.save });
+    fireEvent.click(
+      label ?? within(dialogNode).getByRole('button', { name: libraryCopy.bookSheet.saved }),
+    );
+  }
+
+  /*
+    `role="status"` 로 찾지 않는다 — Prompt 로딩 자리(`BookDetailSheet` PromptBlock)가 같은
+    role 을 쓰므로 빈 요소가 먼저 잡힌다. 토스트는 **클래스**로 집는다.
+  */
+  async function toastNode(): Promise<HTMLElement> {
+    return waitFor(() => {
+      const node = document.querySelector('.haru-toast');
+      expect(node).not.toBeNull();
+      return node as HTMLElement;
+    });
+  }
+
+  it('실패하면 **토스트**로 알린다 — 시트 본문에 인라인 알림을 남기지 않는다', async () => {
+    await renderDetail(FAVORITES[0] as LibraryBook);
+    pressSave();
+
+    const toast = await toastNode();
+    expect(toast.textContent).toContain(libraryCopy.bookSheet.saveFailed);
+    expect(toast.classList.contains('haru-toast--error')).toBe(true);
+    /* 시트 안(ActionBar 아래)에는 알림이 남지 않는다 — 다른 내용을 밀어내지 않는다. */
+    expect(within(dialog()).queryByText(libraryCopy.bookSheet.saveFailed)).toBeNull();
+  });
+
+  it('한 책의 실패가 **다음 책으로 새지 않는다** (교체 전환 뒤 시트에 알림이 없다)', async () => {
+    const view = await renderDetail(FAVORITES[0] as LibraryBook);
+    pressSave();
+    await toastNode();
+
+    /* 다른 책으로 교체 — 같은 인스턴스다. 이전 책의 실패는 여기 남을 이유가 없다. */
+    view.rerender(FAVORITES[1] as LibraryBook);
+
+    await waitFor(() => {
+      expect(dialog().textContent).toContain(DECK_BOOKS[1]?.title ?? '');
+    });
+    expect(within(dialog()).queryByText(libraryCopy.bookSheet.saveFailed)).toBeNull();
+    /*
+      화면에 그 문구가 남아 있다면 **토스트 레이어 하나뿐**이다 (자동 해제 대상). 시트가
+      렌더 상태로 들고 있지 않다는 사실을 겹쳐 단정한다 — `.click()` 없이 성립한다.
+    */
+    for (const node of screen.queryAllByText(libraryCopy.bookSheet.saveFailed)) {
+      expect(node.closest('.haru-toast')).not.toBeNull();
+    }
+  });
+});
+
+/**
  * 뒤집기 — 사용자 결정 2026-10-09 (`L-R2B-02`).
  *
  * 어포던스는 **헤더 trailing 의 두 번째 `IconButton`** 이다. 닫기는 바깥쪽 자리를 지킨다 —
@@ -572,61 +678,50 @@ describe('Shelf → BookDetail **교체 전환** (§2.9 — 들어온 경로 = �
   });
 });
 
-describe('증정 (FR-22) — `BookDetailSheet` 분기 (§2.9 · `L-OPEN-14` 경계)', () => {
-  it('`favorite_only` 책에는 신청 CTA 가 있다', async () => {
+/*
+ * 증정 **신청** 제거 (사용자 결정 2026-10-10) — 남는 것은 **조회**뿐이다.
+ * 세 테스트는 지우지 않고 **부재를 단정하도록** 뒤집었다. 문구 키(`bookSheet.requestBook`)도
+ * 함께 사라졌으므로 이름은 **리터럴**로 둔다 — 키를 되살려야만 통과하는 테스트로 만들지 않는다.
+ * 증정 **조회**(`/library/gift-requests`, `GiftRequestList`)는 그대로 통과해야 한다.
+ */
+describe('증정 (FR-22) — `BookDetailSheet` 에 신청 경로가 없다 (사용자 결정 2026-10-10)', () => {
+  const REQUEST_CTA = /request this book/i;
+  const GIFT_POST = 'POST /v1/children/:childId/gift-requests';
+
+  /** `Favorites` 캐러셀의 마지막 항목은 fixture 에서 `ownership: favorite_only` 다. */
+  async function openFavoriteBook(): Promise<void> {
+    const items = document.querySelectorAll('.haru-shelf-item--pressable');
+    fireEvent.click(items[items.length - 1] as HTMLElement);
+    await waitFor(() => {
+      expect(within(dialog()).getByRole('button', { name: libraryCopy.closeSheet })).toBeTruthy();
+    });
+  }
+
+  it('`favorite_only` 책에 신청 CTA 가 **없다**', async () => {
     await renderLibrary();
+    await openFavoriteBook();
 
-    /* `Favorites` 캐러셀 항목은 fixture 에서 `ownership: favorite_only` 다. */
-    const items = document.querySelectorAll('.haru-shelf-item--pressable');
-    fireEvent.click(items[items.length - 1] as HTMLElement);
-
-    await waitFor(() => {
-      expect(
-        within(dialog()).getByRole('button', { name: libraryCopy.bookSheet.requestBook }),
-      ).toBeTruthy();
-    });
+    expect(within(dialog()).queryByRole('button', { name: REQUEST_CTA })).toBeNull();
+    /* 링크·일반 텍스트로도 되살리지 않았다. */
+    expect(screen.queryByText(REQUEST_CTA)).toBeNull();
   });
 
-  it('신청하면 `POST …/gift-requests` 가 1회 나가고 접수 안내로 바뀐다', async () => {
+  it('시트를 열어도 `POST …/gift-requests` 가 나가지 않고 접수 안내도 뜨지 않는다', async () => {
     const harness = await renderLibrary();
+    await openFavoriteBook();
 
-    const items = document.querySelectorAll('.haru-shelf-item--pressable');
-    fireEvent.click(items[items.length - 1] as HTMLElement);
-    await waitFor(() => {
-      expect(
-        within(dialog()).getByRole('button', { name: libraryCopy.bookSheet.requestBook }),
-      ).toBeTruthy();
-    });
-
-    fireEvent.click(
-      within(dialog()).getByRole('button', { name: libraryCopy.bookSheet.requestBook }),
-    );
-
-    await waitFor(() => {
-      expect(operations(harness, 'POST /v1/children/:childId/gift-requests')).toHaveLength(1);
-    });
-    await waitFor(() => {
-      expect(screen.getByText(libraryCopy.giftRequests.noticeTitle)).toBeTruthy();
-    });
+    expect(operations(harness, GIFT_POST)).toHaveLength(0);
+    /* 신청한 적이 없으므로 `favorite_only` 에는 `D-15` 접수 안내가 없다. */
+    expect(screen.queryByText(libraryCopy.giftRequests.noticeTitle)).toBeNull();
   });
 
-  it('`gift-duplicate` 는 **안내**로 알린다 (오류 화면으로 막지 않는다)', async () => {
-    await renderLibrary(['library:gift-duplicate']);
+  it('`gift-duplicate` 시나리오에서도 신청 경로가 열리지 않는다', async () => {
+    const harness = await renderLibrary(['library:gift-duplicate']);
+    await openFavoriteBook();
 
-    const items = document.querySelectorAll('.haru-shelf-item--pressable');
-    fireEvent.click(items[items.length - 1] as HTMLElement);
-    await waitFor(() => {
-      expect(
-        within(dialog()).getByRole('button', { name: libraryCopy.bookSheet.requestBook }),
-      ).toBeTruthy();
-    });
-
-    fireEvent.click(
-      within(dialog()).getByRole('button', { name: libraryCopy.bookSheet.requestBook }),
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('Request already in progress')).toBeTruthy();
-    });
+    expect(within(dialog()).queryByRole('button', { name: REQUEST_CTA })).toBeNull();
+    expect(operations(harness, GIFT_POST)).toHaveLength(0);
+    /* 중복 안내가 저절로 뜨지도 않는다 — 호출 자체가 없다. */
+    expect(screen.queryByText('Request already in progress')).toBeNull();
   });
 });

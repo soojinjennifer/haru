@@ -141,12 +141,25 @@ describe('`giftRequestStatusCopy` — contract 6종 (FR-22, §7.3)', () => {
   });
 });
 
+describe('증정 **신청** 문구가 없다 (사용자 결정 2026-10-10)', () => {
+  it('`bookSheet` 에 `requestBook` 키가 없다 — 신청은 프론트에서 하지 않는다', () => {
+    expect(Object.keys(libraryCopy.bookSheet)).not.toContain('requestBook');
+    /* 조회 쪽 문구는 그대로 남는다. */
+    expect(Object.keys(giftRequestStatusCopy).length).toBeGreaterThan(0);
+    expect(libraryCopy.giftRequests.noticeTitle.length).toBeGreaterThan(0);
+  });
+
+  it('어떤 문구도 "Request this book" 을 되살리지 않는다', () => {
+    const flat = JSON.stringify([libraryCopy, giftRequestStatusCopy]);
+    expect(flat).not.toMatch(/request this book/i);
+  });
+});
+
 describe('2라운드-2 문구 — 진단·판정·비교 표현이 없다', () => {
   const sentences = [
     ...Object.values(libraryCopy.shelfSheet),
     ...Object.values(libraryCopy.entryActions),
     libraryCopy.bookSheet.promptsUnavailable,
-    libraryCopy.bookSheet.requestBook,
     libraryCopy.add.noResultsTitle,
     libraryCopy.add.noResultsDescription,
     libraryCopy.add.duplicateTitle,

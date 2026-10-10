@@ -164,7 +164,13 @@ test.describe('BottomTabBar 이동 (`X-1`)', () => {
 
     QA 측정: 탭 화면에서 Toast 가 `y 786–836`, 탭바가 `y 766–836` 으로 **50px 겹쳤고**
     `--z-toast`(60) > `--z-tabbar`(20) 이라 탭 3개 중심의 `elementFromPoint` 가 **전부 Toast**
-    를 돌려줬다. 원인은 `haru-toast-viewport--tabbar` 수식어를 **아무도 붙이지 않은 것**이다.
+    를 돌려줬다. 원인은 탭바 보정 수식어를 **아무도 붙이지 않은 것**이다.
+
+    2026-10-10 에 Toast 가 화면 **상단**으로 옮겨져 이 단정은 기하적으로 여유로워졌다. 그래도
+    **지우면 아무도 보지 않는 축이 생긴다** — Toast 가 다시 하단으로 가거나 세로로 늘어나는
+    변경은 이 단정으로만 잡힌다 (상단 이동 중간 상태에서 `inset-block-start` 와
+    `inset-block-end` 가 동시에 걸려 Toast 높이가 **715px** 로 늘어난 실제 사례가 있었다).
+    상단 쪽 대응 단정은 `e2e/toast.spec.ts` 가 가진다.
 
     왜 CSS 가드로는 안 되는가: `stage3-css-guards.test.ts` 는 그 클래스 **규칙 안에 토큰이
     있는지만** 봤다. 규칙이 존재한다는 사실은 적용된다는 뜻이 아니다 (approvals §26.3).
@@ -215,7 +221,7 @@ test.describe('BottomTabBar 이동 (`X-1`)', () => {
         toastPresent: true,
         barPresent: true,
         viewportClass: viewport.className,
-        insetBlockEnd: getComputedStyle(viewport).insetBlockEnd,
+        insetBlockStart: getComputedStyle(viewport).insetBlockStart,
         toast: { top: Math.round(toastRect.top), bottom: Math.round(toastRect.bottom) },
         bar: { top: Math.round(barRect.top), bottom: Math.round(barRect.bottom) },
         links,
@@ -242,41 +248,11 @@ test.describe('BottomTabBar 이동 (`X-1`)', () => {
   });
 
   /*
-    `QA-3-004` 의 반대 방향 — **탭바가 없는 스택 화면에서는 보정하지 않는다.** 보정을
-    하드코딩하면(`withTabBar` 를 항상 참) 온보딩·설정 Toast 가 탭바 높이만큼 떠 버린다.
+    `QA-3-004` 의 반대 방향 테스트(**탭바가 없는 스택 화면에서는 하단 보정을 하지 않는다**)는
+    2026-10-10 Toast 상단 이동으로 **대상이 바뀌어** `e2e/toast.spec.ts` 로 옮겼다. 하단 보정
+    자체가 사라졌으므로 여기에서 잴 것이 없다 — 같은 역할(= 보정을 하드코딩하면 TopBar 가
+    없는 화면 Toast 가 떠 버린다)은 `layouts.test.tsx` "Toast 상단 보정 배선" 이 맡는다.
   */
-  test('탭바가 없는 화면의 Toast 는 보정 없이 하단 16 에 머문다 (`QA-3-004` 역방향)', async ({
-    page,
-  }) => {
-    // 토큰이 없으면 만료 안내만 뜬다 (`auth.spec.ts` AC-2-09) — 폼을 보려면 토큰이 필요하다.
-    await gotoApp(page, '/auth/reset-password?token=mock-reset-token');
-
-    await page.getByLabel('New password', { exact: true }).fill('sunny-evening-8');
-    await page.getByLabel('Confirm password', { exact: true }).fill('sunny-evening-8');
-    await page.getByRole('button', { name: 'Save new password', exact: true }).click();
-
-    await expect(page.locator('.haru-toast')).toBeVisible();
-
-    const probe = await page.evaluate(() => {
-      const viewport = document.querySelector('.haru-toast-viewport');
-      if (viewport === null) return null;
-      const rect = viewport.getBoundingClientRect();
-      return {
-        hasTabBarModifier: viewport.classList.contains('haru-toast-viewport--tabbar'),
-        hasTabBar: document.querySelector('.haru-tab-bar') !== null,
-        insetBlockEnd: getComputedStyle(viewport).insetBlockEnd,
-        gapToBottom: Math.round(window.innerHeight - rect.bottom),
-      };
-    });
-
-    expect(probe).not.toBeNull();
-    expect(probe?.hasTabBar, '이 화면에는 탭바가 없어야 한다').toBe(false);
-    expect(
-      probe?.hasTabBarModifier,
-      `스택 화면에 탭바 보정이 붙었다 ${JSON.stringify(probe)}`,
-    ).toBe(false);
-    expect(probe?.gapToBottom, JSON.stringify(probe)).toBe(16);
-  });
 
   /*
     `href` 를 준 이유가 **링크 의미 유지**(새 탭 열기 등 — Design Spec §6.2)이므로 수정이 그

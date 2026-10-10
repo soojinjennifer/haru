@@ -111,11 +111,24 @@
 
 /* ── BookDetailSheet 본문 ──────────────────────────────────────────────── */
 
+/*
+ * ★ 책 블록 ↔ 그 아래 첫 Prompt 상자 간격 = **Prompt 상자끼리의 간격**
+ * (`--prompt-pill-gap` = 6, 사용자 검수 2026-10-10 ②).
+ *
+ * 앞면은 블록 흐름이고 자식에 margin 이 없어서 **실측 0** 이었다 — 표지 아래변(y 435)과 첫
+ * pill 윗변(y 435)이 붙어 있었고, pill 끼리는 6 이라 간격이 두 종류였다.
+ *
+ * margin 을 **책 블록 쪽에** 둔다 (`.haru-book-sheet__prompts` 가 아니다): Prompt 영역은
+ * 상태에 따라 목록·Skeleton·EmptyState·안내 문장으로 **다른 요소가 오므로**, 간격을 뒤쪽에
+ * 걸면 상태마다 빠진다. 인접 형제 margin 은 뒤 요소의 0 과 합쳐져 6 으로 유지된다.
+ * ⚠ 앞면의 `display` 를 선언하지 않는다 — flex gap 으로 바꾸면 증정 블록 간격까지 함께 바뀐다.
+ */
 .haru-book-sheet__book {
   display: flex;
   align-items: center;
   gap: var(--activity-card-row-gap);
   min-inline-size: 0;
+  margin-block-end: var(--prompt-pill-gap);
 }
 
 /*

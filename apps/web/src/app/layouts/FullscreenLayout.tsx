@@ -5,6 +5,7 @@ import { appCopy } from '../../shared/copy/app-copy';
 import { RouteErrorBoundary } from '../error/RouteErrorBoundary';
 
 import { AppShell } from './AppShell';
+import { AppShellTopBar } from './AppShellTopBar';
 
 export interface FullscreenLayoutProps {
   /** TopBar 슬롯 — 없거나 `variant=pill` (§2.3). */
@@ -26,9 +27,7 @@ export interface FullscreenLayoutProps {
 export function FullscreenLayout({ topBar, footer, children }: FullscreenLayoutProps) {
   return (
     <AppShell scroll="none">
-      {topBar === undefined ? null : (
-        <div className="haru-app-shell__bar-top shrink-0">{topBar}</div>
-      )}
+      {topBar === undefined ? null : <AppShellTopBar>{topBar}</AppShellTopBar>}
       <main className="flex min-h-0 flex-1 flex-col" aria-label={appCopy.landmarks.mainContent}>
         <RouteErrorBoundary>{children ?? <Outlet />}</RouteErrorBoundary>
       </main>
