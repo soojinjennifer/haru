@@ -811,6 +811,8 @@ Stage 2 가 추정으로 정한 기본값을 Figma 실측으로 **전역 교체*
 | 1 | 2026-10-09 | 커밋 `61fee89` | **`FAIL`** | 최초 Stage 3 QA. Finding 9건(High 1 · Medium 4 · Low 4) |
 | 2 | 2026-10-09 | 커밋 `80ee2be` | **`INCOMPLETE`** | 재검증 4건 **전부 PASS**(`QA-3-004`·`005`·`006`·`007`) · `QA-3-008` 해소(AC 문구 정정 확인) · `QA-3-009` 폐기 확인. `QA-3-001`·`002`·`003` 은 판정 `FAIL` 유지 + **사용자 수용**(Stage 4 이월)으로 Verdict 산정 제외. 남은 차단 요인은 **PARTIAL 2 (`AC-3-86`·`AC-3L-24`) + `NOT VERIFIED` 2 (`NV-1`·`NV-2`)** → §11 |
 | 3 | 2026-10-09 | 커밋 `80ee2be` (**코드 변경 0** — 문서 변경만) | **`PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`** | 사용자 결정(approvals §27)으로 차단 요인 4건 처리: `AC-3-86` **PARTIAL → PASS**(범위 축소 + QA 잔여 조건 재측정) · `AC-3L-24`·`NV-1`·`NV-2` **판정 유지 + 수용**. 8개 명령 전부 재실행 — 기준선 일치(`test` 1611/117 · `test:e2e` 273). baseline 전량 재생성 스테일 **0건**. **전수 재집계로 수용 미적용 잔여 0건 확인** → §12 |
+| 4 | 2026-10-10 | 커밋 `4f85b8e` (사용자 검수 수정 6건) | **`INCOMPLETE`** | 검수 수정 4건(`#1`~`#4`) **전부 PASS**(QA 자체 측정 — `#4` 는 수정 전/후 대조로 결함 직접 재현) · `#5`·`#6` 구현 PASS · §29.7·§29.8 이 "검증 불가" 로 남긴 2건을 **rAF 프레임 샘플링 · CDP 미디어 에뮬레이션**으로 측정해 `PASS` 로 올림. 차단 요인은 **`QA-3-010` 1건** — `#6`(증정 신청 제거)으로 `AC-3-33`·`AC-3-35`·`AC-3L-23` 의 주어가 사라졌는데 AC 수준 폐기 기록이 없어 **`PARTIAL` ×3**. 신규 Low 2건(`QA-3-011`·`QA-3-012`). 기준선 일치(`test` 1623/117 · `test:e2e` 278) → §13 |
+| 5 | 2026-10-10 | 커밋 `fe349cb` (CSS 2 + e2e 1 + 문서 4) | **`PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`** | 차단 요인 2건 해소 확인: **`QA-3-010`** — 사용자 결정(§30.1)으로 AC 3건 **폐기 표기** 완료(Plan `:583`·`:585`·Library `:414` 직독) → `PARTIAL` ×3 이 **판정 대상에서 물러남**. **`QA-3-012`** — 띠를 **컬럼 전 폭**으로 넓혀 해소, QA 독립 프로브로 **4 scrollTop 전부 채널차 0** · 되돌림 시 **231@x369** 재현 · 제목·아이콘 좌표 불변 · 컬럼 경계 이음선 0 · 가로 overflow 0. 수용 6건 근거 재확인(변동 없음). 기준선 일치(`test` 1623/117 · `test:e2e` **280**) · baseline 전량 재생성 스테일 **0건**. 남은 열린 항목은 **AC 없는 Low 2건**(`QA-3-011` 미해소 · **`QA-3-013` 신규** — 제거된 경로를 안내하는 Empty 문구) → §14 |
 
 ### 1회차가 남긴 다음 라운드 안내 (이력)
 
@@ -1592,3 +1594,285 @@ Stage 0 `#10-4` 항목별 재제시는 여전히 **Orchestrator 소관**이며 Q
 4. **design-agent**: 허용 차이 `AD-L-*` 부여(시트 간격 12↔6) · Design Spec §6.1 *"glass 배경"* 서술 수정 · `QA-3-012`(gutter) 판단.
 5. **development-agent**: `QA-3-011`(e2e 측정 시점·공집합 루프) · Stage 4 에서 Mock 시나리오 2건 보강(§13.12).
 6. **Stage 8 게이트**: §12.8 과 동일 + Handoff 에 *"증정 신청은 Frontend 에 없다"* 명시(§13.16).
+
+---
+
+## 14. 최종 판정 5회차 — 커밋 `fe349cb` (2026-10-10)
+
+> **대상 상태**: `git status --porcelain` **빈 출력**(작업 트리 깨끗), `HEAD` = `fe349cb` *fix(ui): let the scrolled top bar cover the column's full width*. 변경 파일 **7개** — Product Code **2개**(`packages/ui/src/layout/AppColumn.css` · `packages/ui/src/top-bar/TopBar.css`) · e2e 1개(`top-bar-scrolled.spec.ts` +188줄) · 문서 4개(approvals §30 · Plan 2종 · 이 리포트). `apps/web` **무변경**.
+> 5회차 과제는 **차단 요인 2건 해소 확인 + Verdict 산정**이다. 수용 6건·폐기 5건의 재구현·재측정은 하지 않았고, 새 Finding 발굴 목적의 전면 재감사도 하지 않았다. 4회차에 PASS 로 확정된 AC 는 이 커밋의 영향 범위(스크롤된 TopBar 기하)에 닿는 것만 다시 측정했다.
+
+### 14.1 Stage Verdict (5회차) — **`PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`**
+
+> **수용 문자열 전체**: `PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`
+> 괄호 안 **6건**이 사용자가 항목별로 명시 수용한 전부다 (approvals §26.1 3건 + §27.3 3건). 3회차와 **동일하다** — 4·5회차가 수용을 추가하지 않았다.
+> 괄호에 **넣지 않은** 것은 **폐기 5건**이다 (수용이 아니라 요구사항이 판정 대상에서 물러난 것): `AC-3-34` 전부 폐기(§26.5) · `AC-3-86` 보호자 직접 입력 **분기만** 폐기(§27.2, 잔여 범위 `PASS`) · **`AC-3-33` · `AC-3-35` · `AC-3L-23` 전부 폐기(§30.1 — 5회차 신규)**.
+
+`1회차 FAIL → 2회차 INCOMPLETE → 3회차 PASS(accepted) → 4회차 INCOMPLETE → **5회차 PASS(accepted)**`
+
+| 판정 | 3회차 | 4회차 | **5회차** | 변화 |
+|---|---|---|---|---|
+| `PASS` | 109 (Plan 71 + Library 38) | 106 | **106** (Plan 69 + Library 37) | 4회차에서 내린 3건이 **폐기로 판정 대상에서 물러났다** — PASS 로 되돌리지 않았다 |
+| `FAIL` | 3 Finding / 6 AC (전부 수용) | 동일 | **3 Finding / 6 AC — 전부 수용** | 변동 없음 |
+| `PARTIAL` | 1 (`AC-3L-24`, 수용) | 4 (`AC-3L-24` + 신규 3) | **1** (`AC-3L-24` — 수용) | 신규 3건 → **폐기** (§30.1) |
+| `NOT VERIFIED` | 2 (수용) | 2 (수용) | **2 — 전부 수용** (`NV-1`·`NV-2`) | 변동 없음 |
+| `BACKEND_INTEGRATION_PENDING` | 12 | 12 | **12** (신규 11 + 갱신 1) | 변동 없음 |
+| 판정 대상 아님 (ID 단위) | 11 | 11 | **14** | 폐기 1 → **4** (`AC-3-34`·`33`·`35` + Library `AC-3L-23`) |
+
+**4회차의 차단 요인은 `QA-3-010` 1건이었고, 사용자 결정(§30.1)과 Plan 반영으로 해소됐다.** `QA-3-012` 는 코드 수정(§30.3)으로 해소됐다. 둘 다 **QA 가 직접 확인했다** (§14.3).
+
+### 14.2 전수 집계 — ID 목록 (5회차)
+
+**Stage 3 Plan — 88 ID**
+
+| 구분 | 건수 | ID |
+|---|---|---|
+| `PASS` | **69** | `AC-3-01`~`10` · `12`~`16` · `18`~`21` · `27`~`32` · `36`~`38` · `45` · `47`~`48` · `50` · `52`~`88` |
+| `FAIL` (전부 수용) | **6** | `AC-3-42` · `43` · `44` (→`QA-3-001`) · `AC-3-46` · `49` (→`QA-3-002`) · `AC-3-51` (→`QA-3-003`) |
+| `PARTIAL` | **0** | — |
+| `NOT VERIFIED` | **0** (AC 단위) | — (`NV-1`·`NV-2` 는 AC 가 아니라 별도 항목 — §7) |
+| **폐기** | **3** | `AC-3-34` (§26.5) · **`AC-3-33`** · **`AC-3-35`** (§30.1 — 신규) |
+| 무효 | **2** | `AC-3-11` · `AC-3-17` |
+| Out of Scope | **3** | `AC-3-39` · `40` · `41` (`D-18`) |
+| Stage 4 이월 | **5** | `AC-3-22` ~ `AC-3-26` |
+| 합 | **88** | 69 + 6 + 0 + 0 + 3 + 2 + 3 + 5 = **88** ✅ |
+
+**Library Plan — 39 ID**
+
+| 구분 | 건수 | ID |
+|---|---|---|
+| `PASS` | **37** | `AC-3L-01`~`22` · `25`~`39` |
+| `PARTIAL` (수용) | **1** | `AC-3L-24` |
+| **폐기** | **1** | **`AC-3L-23`** (§30.1 — 신규) |
+| 합 | **39** | 37 + 1 + 1 = **39** ✅ |
+
+**AC 밖 항목**
+
+| 구분 | 건수 | ID |
+|---|---|---|
+| `NOT VERIFIED` (수용) | **2** | `NV-1` (Safari / iOS 실기기) · `NV-2` (뒤집기 중간 프레임 · 저장 실패 동시 잔여 빈 자리) |
+| `BACKEND_INTEGRATION_PENDING` | **12** | 신규 11 = `P3-BIP-16`~`P3-BIP-26` / 갱신 1 = `P3-BIP-15` (§8) |
+| Finding | **13** | `QA-3-001`~`003` **FAIL(수용)** · `QA-3-004`~`007` **PASS** · `QA-3-008` 해소 · `QA-3-009` 폐기 · **`QA-3-010` 해소(5회차)** · `QA-3-011` **미해소(Low)** · **`QA-3-012` 해소(5회차)** · **`QA-3-013` 신규(Low)** |
+| 가값(`P-xx`) | **6** | `P-01` · `P-02` · `P-04` · `P-16` · `P-23` · `P-24` — FAIL 사유 아님 (`rules/qa.md` §2) |
+
+**폐기 항목은 판정 대상에서 물러났고, PASS 로 올리지도 않았다.** 4회차가 `PARTIAL` 로 둔 3건은 **§30.1 결정 이후에도 QA 가 PASS 로 바꾸지 않는다** — 요구사항 자체가 없어진 것이라 충족·미충족을 말할 대상이 없다.
+⚠️ **`AC-3L-23` 의 라벨 문제는 폐기로 소멸했다.** 4회차가 *"엄격히 읽으면 `FAIL`"* 이라고 밝힌 라벨 선택(§13.13)은 사용자가 폐기를 택해 **판정이 불필요해졌다.**
+⚠️ **중복 판정·멱등 처리는 contracts·Mock 에 그대로 남는다** (`[QA 실행]` grep — `packages/contracts/src/library/gift-request.ts` · `error-codes.ts`(`GIFT_REQUEST_DUPLICATE`) · `mocks/library/MockLibraryApi.ts` · `fixtures/library.ts` · `entities/library/useCreateGiftRequest.ts` · `shared/api/library-api.ts` · `http/HttpLibraryApi.ts` 전부 존재). **화면에서 도달할 수 없을 뿐이다.** 그래서 `AC-3-36`(IK replay · `IDEMPOTENCY_KEY_REUSED`)은 **`PASS` 유지**이고 `P3-BIP-05`·`P3-BIP-24` 는 **PENDING 유지**다.
+
+### 14.3 차단 요인 2건 해소 확인 — **QA 직접 측정**  `[QA 실행]`
+
+#### ① `QA-3-010` → **해소** (AC 3건 폐기 표기 확인)
+
+`[QA 실행]` 현재 문서 문자열 직독 (`sed -n` 으로 해당 줄만):
+
+| 대상 | 줄 | 확인 결과 |
+|---|---|---|
+| `AC-3-33` | `docs/plans/stage-3-plan.md:583` | ✅ ID·요구사항·검증 방법 **전부 취소선** + *"**폐기** (사용자 결정 2026-10-10, `approvals §30.1`)"* + 사유(*"증정 **신청** 기능이 제거되어 이 AC 의 주어가 사라졌다 (§29.4)"*) + *"중복 판정·멱등 처리는 contracts·Mock 에 남아 있으나 **화면에서 도달할 수 없다**"* + *"판정 대상에서 물러난다"* |
+| `AC-3-35` | `docs/plans/stage-3-plan.md:585` | ✅ 동일 형식 (§26.5 `AC-3-34` 과 같은 표기 체계) |
+| `AC-3L-23` | `docs/plans/stage-3-library-plan.md:414` | ✅ 동일 형식 |
+
+세 줄 모두 **§26.5 가 `AC-3-34` 에 쓴 형식과 일치**한다 — 4회차가 요구한 *"`AC-3-34` 가 받은 것과 같은 종류의 결정 한 줄"* 이 그대로 들어갔다. `git show --stat fe349cb` 로 Plan 변경이 **`:583`·`:585` 2줄 + Library `:414` 1줄**뿐임도 확인했다 (Plan 4줄 · Library Plan 2줄 변경 = 취소선 줄 교체).
+
+#### ② `QA-3-012` → **해소** (QA 자작 픽셀 프로브 — 프로젝트 helper·e2e 를 쓰지 않은 독립 측정)
+
+**측정 방법**: 저장소 밖 scratchpad 의 QA 자작 스크립트(raw `chromium.launch()` + **자작 PNG 디코더**, `node:zlib` 만 사용). dev 서버 `5173` 기동 → 로그인 → 탭 `Library` → `[data-app-shell-viewport].scrollTop` 을 네 지점으로 → 띠 행 전체를 **콘텐츠 보임 ↔ `main` 숨김** 두 컷으로 찍어 x 별 최대 채널차. **clip 은 띠 rect 가 아니라 컬럼 rect** 다. 사용 후 스크립트 제거·dev 서버 종료(`lsof` 확인).
+
+**393×852 `/library`** — 4 scrollTop 전부:
+
+| scrollTop | 띠 rect | 컬럼 rect | 좌 gutter | 안쪽 | 우 gutter | 최대 | 가로 overflow |
+|---|---|---|---|---|---|---|---|
+| 60 | **0.0…393.0** | 0.0…393.0 | **0** | **0** | **0** | **0** | 0 |
+| 160 | **0.0…393.0** | 0.0…393.0 | **0** | **0** | **0** | **0** | 0 |
+| 260 | **0.0…393.0** | 0.0…393.0 | **0** | **0** | **0** | **0** | 0 |
+| 420 | **0.0…393.0** | 0.0…393.0 | **0** | **0** | **0** | **0** | 0 |
+
+**§30.3 의 "네 scrollTop 전부 0" 이 내 독립 측정으로 성립한다.** 4회차에 내가 실측한 **좌 gutter 16 · `x369` 채널차 230** 은 **사라졌다.**
+
+**되돌림 재현** — §30.4 의 주장을 내가 직접 재현했다. 제품 코드를 고치지 않고 `addStyleTag` 로 4줄을 무력화(`margin-inline-*`·`padding-inline-*` → 0)하고 **같은 프로브**를 돌렸다:
+
+| 상태 | 띠 rect | 좌 gutter | 안쪽 | 우 gutter | 최대 |
+|---|---|---|---|---|---|
+| 현재 구현 | 0.0…393.0 | 0 | 0 | 0 | **0** |
+| **되돌림** | **24.0…369.0** | **17** | 0 | **231** | **231 @x369** |
+
+되돌림의 좌 gutter x 별 프로파일: `x0…9`=0, `x10…23` = **1,1,2,3,3,4,5,6,7,9,11,13,15,17** — 4회차 실측(1→16)과 같은 모양이다. 즉 **③·③-b 가 보는 축이 실제로 무는 축**이고, 임계값 `OCCLUSION_MAX_CHANNEL_DELTA = 1` 은 바닥 0 과 검출 대상 17~231 사이에 놓여 있다. 같은 되돌림에서 **①(경계 단차)·②(제목 대비)는 통과**한다 — 둘의 clip 이 띠 rect 자신이라 좁아진 띠와 함께 좁아진다(§30.4 의 설명이 내 측정과 일치).
+
+**제목·아이콘이 움직이지 않았다** (가장 중요한 부작용 축):
+
+| 화면 / 폭 | 비스크롤 | 스크롤 | 판정 |
+|---|---|---|---|
+| `/library` 393 | `h1` 좌변 **24.0** | `h1` 좌변 **24.0** | ✅ 불변 |
+| `/library` 768 | `h1` 좌변 **168.0** | `h1` 좌변 **168.0** | ✅ 불변 |
+| Home 320 (Home 은 320 에서만 스크롤됨) | 워드마크 `26.0` · `Settings` 버튼 **258.0…296.0** | 워드마크 `26.0` · `Settings` **258.0…296.0** | ✅ **대화형 요소까지 불변** |
+| 되돌림 상태 393 | — | `h1` 좌변 24.0 | ✅ 되돌려도 제목 위치는 같다 = **배경만 넓혔다**는 주장과 일치 |
+
+띠의 `box-sizing: border-box` · `block-size` **38px** 가 스크롤 전후 동일하다 — `padding-inline` 추가가 **높이·내용 폭을 줄이지 않았다** (`R-SHADOW-1` 2항의 "크기에 inset 을 가산" 함정이 여기서는 `width: auto` stretch 박스라 발생하지 않는다).
+
+**≥600px 은 컬럼 border box 까지만 덮는다 — 근거를 내가 재측정했다**:
+
+| 폭 | 컬럼 rect | 띠 rect | 컬럼 **밖** 60px 통과 채널차 |
+|---|---|---|---|
+| 768 | 144.0…624.0 | **144.0…624.0** (일치) | **0** |
+| 1024 | 272.0…752.0 | **272.0…752.0** (일치) | — |
+
+**컬럼 밖으로 콘텐츠가 통과하지 않는다**(채널차 0)는 §30.3 의 근거가 내 측정으로 성립한다. 같은 프로브가 컬럼 **안쪽**에서는 되돌림 시 231 을 읽었으므로 민감도 부족이 아니다.
+
+**신규 부작용 점검 — 컬럼 경계에 수직 이음선이 생기지 않았다** (내가 추가로 본 축, §30 에 없다). 768·1024 에서 띠 행을 **뷰포트 전 폭**으로 찍어 비스크롤 ↔ 스크롤을 x 별로 비교했다:
+
+| 폭 | x = 컬럼경계−2 | 컬럼경계+2 | 컬럼경계+12 | 컬럼 밖 10·100 | 컬럼 우경계+2 |
+|---|---|---|---|---|---|
+| 768 | `[218,237,230]` ↔ 동일 (**차 0**) | 동일 (0) | 동일 (0) | 동일 (0) | 동일 (0) |
+| 1024 | 동일 (0) | 동일 (0) | 동일 (0) | 동일 (0) | 동일 (0) |
+
+넓어진 띠가 그리는 색이 **그 자리의 페이지 바탕과 바이트 단위로 같다** (`background-attachment: fixed` + `AppBackground` 와 같은 `--gradient-app`). 띠 행에서 발견된 유일한 좌우 단차 144 는 **제목 글리프**(`[111,132,127]`)이고 비스크롤 상태에서도 같은 x 에 같은 값으로 있다. → **"전 폭 배너처럼 보이는" 회귀 0건.**
+
+**e2e 러너의 실측값도 내 숫자와 일치한다** (내 단독 실행 로그에서 그대로 옮긴다):
+
+```
+[topbar-occlusion] scrollTop=60/160/260/420  col=0.0–393.0 band=0.0–393.0 inset=24|24 clip=393×40
+                   delta: 좌gutter=0 안쪽=0 우gutter=0 (최대 0 @x-1)
+[topbar-occlusion-wide] viewport=768 scrollTop=260  col=144.0–624.0 band=144.0–624.0 clip=480×40
+                   delta: 좌gutter=0 안쪽=0 우gutter=0 (최대 0 @x-1)
+[topbar-seam]  scrollTop=60/160/260/420  band=0.0–40.0  delta=[1, 0, 1]  attachment=fixed shadow=none
+[topbar-title] scrollTop=60/160/260/420  contrast=5.55…5.64  below3:1=0px (0.0%)
+```
+
+①②(경계 단차 · 제목 대비)는 **띠가 전 폭이 된 뒤에도 4회차와 같은 값**이다 — 폭 확장이 색·대비를 건드리지 않았다.
+
+### 14.4 수용 6건 — **그대로 유효**  `[QA 실행]`
+
+이 커밋은 `packages/ui` CSS 2개와 e2e 1개만 건드렸고 `apps/web` 는 무변경이다. 수용 근거가 변했는지 4회차와 **같은 검사**로 확인했다:
+
+| 수용 항목 | 검사 | 결과 |
+|---|---|---|
+| `QA-3-001` (push 권한 기능군) | `grep -rn "PushPlatform\|PushPermissionPort\|push-permission-denied" apps/web/src packages/contracts/src` | **1건 — 전부 테스트 주석** (`dev/__tests__/scenario-selection.test.ts:197` *"해당 화면이 들어오는 단계에서 등록한다"*). 구현 **0건** → 수용 유효 |
+| `QA-3-002` (오프라인 캐시) | `offline-cached-card` grep · `localStorage` 사용처 | 시나리오 **0건**(같은 주석 1건뿐) · 캐시 저장소 0건 → 수용 유효 |
+| `QA-3-003` (에셋 파이프라인) | `assets:optimize` script · 래스터 에셋 확장자 | script **0건** · `shared/assets` = **PNG 7개뿐**(avif·webp 0) → 수용 유효 |
+| `AC-3L-24` (증정 상태 6종) | `fixtures/library.ts` 의 `status:` 전수 | **`requested` 2 · `shipped` 1 — 2종뿐**. `approved`·`delivered`·`cancelled`·`rejected` **4종은 여전히 화면 확인 없이 남는다** → 수용 유효 |
+| `NV-1` (Safari / iOS 실기기) | 환경 | 변동 없음 → 수용 유효. 수동 절차 §7 |
+| `NV-2` (60fps 녹화) | 환경 | 변동 없음 → 수용 유효. 수동 절차 §7 |
+
+### 14.5 8개 명령 — 기준선 대조  `[QA 실행]`
+
+| # | 명령 | 결과 | 소요 | 숫자 | 제시 기준선 대비 |
+|---|---|---|---|---|---|
+| 1 | `pnpm typecheck` | ✅ exit 0 | 8.4s | `tsc --noEmit` × 5 패키지 전부 Done | 일치 |
+| 2 | `pnpm lint` | ✅ exit 0 | 6.9s | 0 problems | 일치 |
+| 3 | `pnpm lint:boundaries` | ✅ exit 0 | 1.0s | **no dependency violations** (588 modules · 2078 dependencies) | **4회차와 동일** (CSS 변경이라 모듈 수 불변) |
+| 4 | `pnpm test` | ✅ exit 0 | 28.0s | **1623 passed / 1623 · 117 files** | **제시 기준선 1623 / 117 정확 일치** |
+| 5 | `pnpm build` | ✅ exit 0 | 1.2s | `built in 560ms` · CSS **123.09 kB** · JS 577.49 kB | JS 동일, **CSS +0.57 kB**(122.52 → 123.09) = 신규 CSS 선언·주석분. chunk >500kB 경고는 기존 |
+| 6 | `pnpm format:check` | ✅ exit 0 | 3.8s | All matched files use Prettier code style | 일치 |
+| 7 | `pnpm assert:no-mocks` | ✅ exit 0 | 0.1s | `__HARU_MOCK_SENTINEL__` 0 · `__HARU_DEV_SENTINEL__` 0 · `haru-dev-` 0 | 일치 |
+| 8 | `pnpm test:e2e` | ✅ exit 0 | **6.1m (366.6s)** | **280 passed / 280 · 0 failed** | **제시 기준선 280 정확 일치** (4회차 278 → **+2**) |
+
+- **`test:e2e` 는 단독 실행했다.** 1~7 을 전부 끝낸 뒤 시작했고, **측정용 dev 서버를 먼저 종료**해 `lsof -nP -iTCP:5173` 이 빈 출력임을 확인한 뒤 돌렸다(남아 있던 두 프로세스는 다른 프로젝트의 idle vitest). 소요 **6.1분**은 정상 대역이며 20분대 지연·허위 실패는 재현되지 않았다. 브라우저 실측은 e2e 가 전부 끝난 뒤에 다시 dev 서버를 띄워 했고, 측정 후 종료를 `lsof` 로 확인했다.
+- e2e 280 의 내역(`[QA 실행]` 로그 집계): `visual` 72 · `shadow` 52 · `onboarding` 40 · `library` 26 · `home` 22 · `consent` 15 · `auth` 13 · `scenarios` 11 · `responsive` 8 · `tabs` 6 · `a11y` 5 · `toast` 4 · **`top-bar-scrolled` 4(+2)** · `book-cover` 2 = **280**. 278 → 280 의 산식은 **③ + ③-b 2건 추가**로 정확히 맞는다.
+- **기준선과 다른 결과는 1건이다** — `build` 의 **CSS 123.09 kB**(4회차 122.52 kB). 원인은 이 커밋의 CSS 선언 4줄 + 주석이며 **숫자가 커져야 맞는 변경**이다. 그 밖의 7개 명령은 숫자까지 일치한다.
+
+#### 시각 baseline 스테일 검사 — 전량 재생성  `[QA 실행]`
+
+```
+pnpm test:e2e --update-snapshots=all        → 280 passed (6.6m / 396.9s, exit 0)   ← 단독 실행
+git status --porcelain e2e/__screenshots__  → (빈 출력)
+git diff --stat e2e/__screenshots__         → (빈 출력)
+find e2e/__screenshots__ -name '*.png' | wc -l → 74
+git status --porcelain                      → (빈 출력)
+```
+
+**baseline 74종 전량 재생성 후 변경 0바이트 — 스테일 0건.** 기본 `changed` 모드로는 드러나지 않는 오염을 `--update-snapshots=all` 로 확인했다. 파일 수 74 도 3·4회차와 동일(신규 e2e 2건은 **픽셀 프로브**라 스냅샷을 쓰지 않는다). ⚠️ **띠가 전 폭으로 넓어졌는데도 baseline 이 바뀌지 않은 이유**를 확인했다 — 넓어진 자리에 그려지는 색이 원래 그 자리 색과 **같기 때문**이다 (§14.3 의 수직 이음선 측정: 컬럼 경계 전후 채널차 0). 즉 baseline 무변경은 누락이 아니라 **일치의 증거**다.
+
+### 14.6 수용·폐기로 덮이지 않은 항목
+
+**요구사항(AC) 단위: 0건.** §14.2 전수 집계에서 `PASS`(106) · `BACKEND_INTEGRATION_PENDING`(12) · 수용 6건 · 판정 대상 아님 14건 밖에 남는 AC 가 **0** 임을 확인했다. 합 검산: Plan **88** = 69 + 6 + 3 + 2 + 3 + 5, Library **39** = 37 + 1 + 1.
+
+**단, AC 를 갖지 않은 열린 항목이 2건 남는다. 둘 다 Verdict 산정에 들어가지 않으며, 그 이유를 밝힌다.**
+
+| 항목 | 상태 | 왜 Verdict 에 들어가지 않는가 | 소관 |
+|---|---|---|---|
+| **`QA-3-011`** (Low) | **미해소** — `e2e/toast.spec.ts:177` 의 측정 시점 문제 + 대화형 요소 공집합 루프 | **테스트 정밀도** 문제이고 **제품 동작은 QA 가 다섯 화면에서 `elementFromPoint` hit-test 로 직접 확인해 PASS**(§13.3 ③)다. 어떤 AC 도 미충족이 아니다 (4회차와 같은 처리 — 그때도 AC 판정을 내리지 않았다) | **development-agent** |
+| **`QA-3-013`** (Low, **5회차 신규**) | **미해소** — `/library/gift-requests` **Empty 상태 문구가 제거된 경로를 안내**한다 | In Scope AC 중 이 문구를 주어로 삼는 것이 **없다**(`AC-3L-24` 는 *"상태 6종 표시 + 배송지 입력 필드 0개"*, `AC-3-37` 은 **서재** Empty). 요구사항 미충족으로 묶을 대상이 없어 **AC 판정을 내리지 않는다** — ⚠️ **사용자가 이것을 요구사항 결함으로 보기로 하면 Verdict 는 `FAIL` 로 바뀐다. 그 판단은 QA 가 대신하지 않는다.** | **development-agent** (문구 1줄) |
+
+`QA-3-012` 는 **해소**(§14.3 ②), `QA-3-010` 은 **해소**(§14.3 ①)다.
+
+### 14.7 Findings (5회차)
+
+#### `QA-3-010` → **해소** (판정 변화: `PARTIAL` ×3 → **폐기**)
+
+사용자 결정 §30.1 + Plan 3줄 반영으로 요구사항이 판정 대상에서 물러났다. QA 가 요구한 *"`AC-3-34` 가 받은 것과 같은 결정 한 줄"* 이 그대로 들어간 것을 문서 직독으로 확인했다 (§14.3 ①). **제품 코드 수정 0건으로 해소된 것이 맞다** — 4회차가 *"코드 수정이 필요하지 않다"* 고 적은 진단이 성립했다.
+
+#### `QA-3-012` → **해소** (Low, 수치 정정 + 기하 수정)
+
+§30.2 가 4회차 실측(16 · 230)을 approvals 에 반영하고 §30.3 결정으로 기하를 고쳤다. **내 독립 프로브로 네 scrollTop 전부 채널차 0** 을 확인했고, **되돌림 시 231 로 되돌아오는 것**과 **제목·아이콘 불변**, **컬럼 경계 수직 이음선 0**, **가로 overflow 0** 까지 측정했다 (§14.3 ②).
+
+#### `QA-3-011` | Severity: **Low** — **미해소 (차단 아님)**
+
+4회차 §13.13 의 기술 내용 그대로 유지한다. 이 커밋은 `e2e/toast.spec.ts` 를 건드리지 않았다 (`git show --stat fe349cb` 확인 — 변경 e2e 는 `top-bar-scrolled.spec.ts` 1개). **판정 변화 없음.**
+
+#### `QA-3-013` | Severity: **Low** — **신규 (차단 아님, AC 판정 없음)**
+
+**Requirement**: 해당 AC 없음 — 사용자 결정 **approvals §29.4 `#6`**(증정 **신청** 제거)와 **§30.1**(AC 3건 폐기)의 귀결
+
+**Steps to reproduce** (Mock 시나리오 포함):
+1. `/auth/log-in?scenario=library:empty` 로 로그인 → 탭 `Library`
+2. 진입점 2행 중 **`Gift requests`** 클릭 → `/library/gift-requests`
+3. 화면 전체 텍스트를 읽는다
+
+**Expected**: 신청 경로가 제거됐으므로 Empty 상태가 **도달 가능한 다음 행동**만 안내해야 한다 (또는 안내를 두지 않는다).
+**Actual**: `[QA 실행]` 실브라우저 실측 — 화면 텍스트가 **`No gift requests yet | You can request a book from its detail sheet.`** 다. 그런데 **`BookDetailSheet` 의 신청 CTA 는 `#6` 으로 제거**됐다(4회차 §13.11: 캐러셀 12개 전수 `/request this book/i` **0건**). 즉 **없어진 경로를 하라고 안내한다.** 화면의 대화형 요소는 **0개**라 사용자가 거기서 할 수 있는 것도 없다.
+**Evidence**: `[QA 실행]` dev 서버 실측(393×852, `library:empty`) — `main.innerText` = 위 문장, `main button, main a` = `[]`, console error 0건 / 정적 경로: `apps/web/src/shared/copy/library-copy.ts:184`(문구) → `apps/web/src/features/library/GiftRequestList.tsx:85-86`(렌더) ← `apps/web/src/mocks/library/MockLibraryApi.ts:405` `createGiftRequestListFixture(clock, scenario === 'empty')` → `fixtures/library.ts:328` `if (empty) return []`
+**왜 4회차가 못 잡았는가**: 4회차는 `/request this book/i` 로 전수 grep 했고 이 문구는 **`request a book`**(소문자 관사) 이라 패턴에 걸리지 않았다. `library-copy.test.ts:169-170` 은 이 두 문구의 **존재를 단정**하므로 테스트도 통과한다.
+**판정 처리**: In Scope AC 중 이 문구를 주어로 삼는 것이 없어 **AC 판정을 내리지 않는다**(`QA-3-011` 과 같은 처리). ⚠️ 사용자가 요구사항 결함으로 보기로 하면 Verdict 는 `FAIL` 이 된다 — **라벨은 사용자 결정 사항이고 QA 가 대신 정하지 않는다.**
+**Suspected area** (수정 지시 아님): `shared/copy/library-copy.ts` 의 `giftRequests.emptyDescription` 1줄. Stage 8 Handoff 의 *"증정 신청은 Frontend 에 없다"* 기재와 함께 보는 것이 자연스럽다.
+
+### 14.8 Scope · Privacy · Type Safety · 가값 재확인  `[QA 실행]`
+
+```
+git ls-files | grep -cE '^(apps/api|supabase)/'   → 0
+ls apps                                           → web            (apps/mobile 없음 — Stage 4)
+ls packages                                        → config contracts design-tokens ui
+git status --porcelain                             → (빈 출력)
+```
+
+| 항목 | 결과 |
+|---|---|
+| Backend 런타임 코드 | **0건** — Scope 위반 없음 |
+| 신규 `any` / `@ts-ignore` / `@ts-expect-error` | **0건** (커밋 diff 의 `+` 줄 전수) |
+| 임의 HEX / `rgb()` / arbitrary value | **0건**. CSS 선언에 들어간 수치는 **`0px` 뿐**(변수 초기값·`--edge-to-edge` 리셋·`var()` fallback) — 나머지 `24px`·`393px`·`768px` 등은 **전부 주석의 실측 기록**이다 (`[QA 실행]` diff 의 `+` 줄 전수) |
+| 신규 토큰 | **0건** — `--layout-column-inset-*` 는 design token 이 아니라 **되돌려야 하는 인셋을 자손에게 내려보내는 레이아웃 변수**이고 값은 기존 `--layout-safe-*`·`--layout-gutter` 에서 파생된다. `packages/design-tokens` 빌드 출력 `provisional 41 개 토큰 / 6 항목 · accepted deviation 3` — 3·4회차와 동일 |
+| 레이어 역방향 import | `lint:boundaries` **0 violations** (588 modules). 변경 2파일은 둘 다 `packages/ui` 내부 CSS — `AppColumn` 이 변수를 **선언**하고 `TopBar` 가 **소비**한다(같은 패키지, 방향 문제 없음) |
+| Page 책임 | 변경 파일에 Page 없음 (CSS 2개 + e2e 1개) |
+| Secret · PII 로그 | 변경 파일에 해당 선언 0건. 브라우저 실측 중 수집한 `console` error·`pageerror` **0건** |
+| 가값(`P-xx`) | 활성 **6건** 변화 없음 (`P-01`·`P-02`·`P-04`·`P-16`·`P-23`·`P-24`). `rules/qa.md` §2 에 따라 **FAIL 사유 아님**. Stage 0 `#10-4` 항목별 재제시는 **Orchestrator 소관** |
+
+### 14.9 남은 소관별 할 일 (§30.8 갱신)
+
+| 소관 | 할 일 | 상태 |
+|---|---|---|
+| **plan-agent** | (없음) — §30.1 결정의 Plan 3줄 반영 **완료 확인**(§14.3 ①) | ✅ 완료 |
+| **design-agent** | ① 허용 차이 **`AD-L-*` ID 부여** — 시트 책 블록 ↔ Prompt 간격 **Figma 12 ↔ 구현 6**(§29.5 사용자 결정, 번호 미부여) ② **Design Spec §6.1 서술 수정** — *"스크롤 시 glass 배경"* 이 현재 구현(앱 바탕 gradient **+ 컬럼 전 폭**)과 다르다 (§29.3 지목 + §30.3 으로 기하까지 바뀌었다 → **서술에 "컬럼 전 폭" 을 포함**해야 한다) | ⬜ 미착수 |
+| **development-agent** | ① `QA-3-011` — `e2e/toast.spec.ts` 착지 화면 고유 요소 대기 후 측정 + 대화형 요소 공집합 명시 ② **`QA-3-013` — `giftRequests.emptyDescription` 1줄**(제거된 경로 안내) ③ Stage 4 Mock 2건(§30.7): **`library:save-error` 류**(목록 성공 + 저장만 실패) · **`purchaseUrl` fixture**(`favorite_only` 의 `Where to buy` 가 어떤 시나리오에서도 렌더되지 않는다) ④ `/onboarding/:step` 토스트 보정(토스트 도입 시) | ⬜ 미착수 |
+| **plan-agent (Stage 4)** | §12.6 이월 3건(`QA-3-001`·`002`·`003`)을 Stage 4 Plan **In Scope** 로 등재 + `AC-3-22`~`26` | ⬜ Stage 4 |
+| **Stage 8** | Handoff 에 **"증정 신청은 Frontend 에 없다 — Backend/운영 경로로만 생성된다"** 명시(§13.16) + `QA-3-003`(에셋 파이프라인) · `P3-BIP-19`(표지 에셋 교체) 게이트 | ⬜ Stage 8 |
+| **사용자** | ① PRD **`FR-22` 수정**(*"증정 신청"* 이 P0 목록에 남아 있다 — `LN-8`, `D-24` 절차) ② `QA-3-013` 을 요구사항 결함으로 볼지 판단 ③ 가값 6건 항목별 재제시 수락(Orchestrator 가 제시) | ⬜ |
+| **실기기 확보 시** | `NV-1`(Safari / iOS · `background-attachment: scroll` 검출 공백 포함) · `NV-2`(60fps 녹화) — 수동 절차 §7 | ⬜ 수용 |
+
+### 14.10 5회차에서 QA 가 **직접 실행·측정한 것** vs **문서를 인용한 것**
+
+| 구분 | 내용 |
+|---|---|
+| **`[QA 실행]` — 명령** | 8개 검증 명령 **전부**(§14.5, `test:e2e` 단독 6.1분) + `test:e2e --update-snapshots=all` **전량 재생성**(단독 6.6분) + `git status`/`git show --stat`/`git ls-files`/`git log` |
+| **`[QA 실행]` — 브라우저 픽셀 실측 (독립)** | 저장소 밖 scratchpad 의 **QA 자작 스크립트 4종**(raw `chromium.launch()` + **자작 PNG 디코더**, 프로젝트 `e2e/support/pixels.ts` 미사용): ① `/library` 393·768 **띠 occlusion 4 scrollTop** (clip = 컬럼 rect) ② **되돌림 재현**(`addStyleTag` 로 margin/padding 무력화 → 좌 17 · 우 **231@x369**) ③ Home·Settings 393·768·320 **기하·대화형 요소 좌표 전후 비교** + `box-sizing`·`block-size`·가로 overflow ④ 768·1024 **컬럼 경계 수직 이음선** + 컬럼 밖 60px 통과 채널차 + `library:empty` → `/library/gift-requests` **화면 텍스트·대화형 요소 실측**. dev 서버는 측정 후 종료하고 `lsof` 로 확인, 스크립트는 사용 후 제거 |
+| **`[QA 실행]` — 정적 확인** | Plan `:583`·`:585` · Library Plan `:414` **현재 문자열 직독** · 커밋 diff `+` 줄 전수(`any`·HEX·수치) · 수용 6건 근거 grep 4종 · 폐기 3건의 contracts·Mock 잔존 파일 목록 · `createGiftRequestListFixture`→`GiftRequestList` 렌더 경로 · e2e 280 의 파일별 내역 집계 · baseline 74종 개수 |
+| **`[문서 인용]`** | **approvals §30**(§30.1 AC 3건 폐기 결정 · §30.2 수치 정정 · §30.3 기하 결정 · §30.4 되돌림 기록 · §30.7 Stage 4 Mock · §30.8 소관) · §29 · §28 · §27 · §26.5 · `rules/qa.md` §1~§3 · `rules/workflow.md` §4 |
+| **증거로 쓰지 않은 것** | 커밋 메시지의 *"실측했다"* 서술 · Orchestrator 가 제시한 *"채널차 전부 0"* 보고 — **같은 축을 내 프로브로 다시 재서** 썼다. §30.4 의 되돌림 결과도 **내가 재현한 것만** 증거로 썼다 |
+| **하지 않은 것** | 수용 6건(`QA-3-001`·`002`·`003`·`AC-3L-24`·`NV-1`·`NV-2`)과 폐기 5건(`AC-3-33`·`35`·`3L-23`·`AC-3-34`·`AC-3-86` 분기)의 **재구현·재측정** · 새 Finding 발굴 목적의 전면 재감사(`QA-3-013` 은 폐기 3건의 근거를 확인하다 **우연히** 걸린 것이다) · 3·4회차에 확정된 AC 의 전수 재측정 · Product Code 수정 · `docs/decisions/**`·`docs/plans/**`·`docs/design/**`·`.claude/rules/**` 수정 |
+
+### 14.11 다음 단계
+
+1. **Stage Verdict: `PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`** — `rules/workflow.md` §4 에 따라 **다음 Stage 진입이 가능**하다. 단 **사용자 지시가 있을 때** 시작한다. QA 는 Verdict 보고 후 멈춘다.
+2. **사용자 판단이 필요한 1건**: `QA-3-013`(제거된 경로를 안내하는 Empty 문구)을 **요구사항 결함으로 볼지**. 결함으로 보면 Verdict 는 `FAIL` 이 되고 development-agent 가 문구 1줄을 고친 뒤 재검증한다. QA 는 AC 가 없어 판정을 내리지 않았다.
+3. **Orchestrator**: `PLANNING.md` 진행 상태 갱신 · 가값 6건 **항목별 재제시**(Stage 0 `#10-4`) · Stage 4 착수 지시 대기.
+4. **design-agent**: §14.9 의 2건(허용 차이 `AD-L-*` 부여 · Design Spec §6.1 서술 — **"컬럼 전 폭" 포함**).
+5. **development-agent**: `QA-3-011` · `QA-3-013` · Stage 4 Mock 2건 · 온보딩 토스트 보정.
+6. **Stage 8 게이트로 남는 것**: `QA-3-003`(에셋 파이프라인) · `P3-BIP-19`(표지 에셋 교체) · Handoff 의 *"증정 신청은 Frontend 에 없다"* 기재.
+7. 재검증이 다시 필요해지면 **항목 번호를 유지**하고 판정 변화를 §10 에 기록한다.

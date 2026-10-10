@@ -149,9 +149,27 @@ describe('증정 **신청** 문구가 없다 (사용자 결정 2026-10-10)', () 
     expect(libraryCopy.giftRequests.noticeTitle.length).toBeGreaterThan(0);
   });
 
-  it('어떤 문구도 "Request this book" 을 되살리지 않는다', () => {
+  /**
+   * `QA-3-013` — 이 단정이 `request this book` **한 문구만** 보던 탓에, 빈 상태의
+   * `You can request a book from its detail sheet.` 가 4회차 QA 를 통과했다. 그래서 신청을
+   * 권하는 **표현 묶음**을 문구 전체(JSON)에서 막는다. 리터럴 패턴이므로 copy 키를 되살려도
+   * 저절로 통과하지 않는다.
+   */
+  it('어떤 문구도 신청 CTA·신청 경로를 되살리지 않는다', () => {
     const flat = JSON.stringify([libraryCopy, giftRequestStatusCopy]);
-    expect(flat).not.toMatch(/request this book/i);
+    expect(flat).not.toMatch(/request (?:this|a|the|your own) book/i);
+    expect(flat).not.toMatch(/you can request/i);
+    /* 신청 화면이 없으므로 "상세 시트로 가라" 는 안내도 성립하지 않는다. */
+    expect(flat).not.toMatch(/detail sheet/i);
+  });
+
+  it('증정 Empty 안내가 없는 동작을 권하지 않는다 (`QA-3-013`)', () => {
+    const { emptyDescription } = libraryCopy.giftRequests;
+    /* 신청을 권하는 어떤 형태도 쓰지 않는다 — 조회 성격만 말한다. */
+    expect(emptyDescription).not.toMatch(/\brequest(?:s|ed|ing)?\b/i);
+    expect(emptyDescription).not.toMatch(/\bsheet\b|\btap\b|\bask for\b/i);
+    /* 목록을 채우는 주체는 운영 쪽 증정이다. */
+    expect(emptyDescription).toMatch(/gifted/i);
   });
 });
 

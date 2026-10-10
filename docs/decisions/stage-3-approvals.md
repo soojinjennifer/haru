@@ -2066,3 +2066,67 @@ QA 재검증(커밋 `4f85b8e`) **Verdict `INCOMPLETE`** — `FAIL` 0 이고 **�
 | **development-agent** | `QA-3-011` 테스트 정밀도 · Stage 4 Mock 2건(§30.7) · `/onboarding/:step` 토스트 보정(토스트 도입 시) |
 | **Stage 8** | Handoff 에 **"증정 신청은 Frontend 에 없다"** 명시 |
 | **사용자** | PRD `FR-22` 수정 (`LN-8`, `D-24` 절차) |
+
+## 31. Stage 3 최종 Verdict — 검수 반영 후 (2026-10-10, stage-qa-agent 5회차)
+
+리포트: `docs/qa/stage-3-qa-report.md` §14. 대상 커밋 `fe349cb`.
+
+### 31.1 Verdict
+
+> **`PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`**
+
+**수용 문자열은 3회차(§28)와 동일하다** — 4·5회차가 수용을 추가하지 않았다.
+경과: `1회차 FAIL → 2 INCOMPLETE → 3 PASS(accepted) → 4 INCOMPLETE → 5 PASS(accepted)`
+
+⚠️ **두 번의 `INCOMPLETE` 는 모두 코드가 아니라 Orchestrator 의 기록 누락이 원인이었다** (§27.1 집계 전제, §30.1 AC 폐기 표기 누락).
+
+### 31.2 전수 집계
+
+| 대상 | `PASS` | `FAIL`(수용) | `PARTIAL` | `NOT VERIFIED` | 폐기 | 그 밖 | 합 |
+|---|---|---|---|---|---|---|---|
+| Stage 3 Plan | **69** | 6 | 0 | 0 | **3** | 무효 2 · OoS 3 · 이월 5 | **88** ✅ |
+| Library Plan | **37** | 0 | **1**(수용) | 0 | **1** | — | **39** ✅ |
+
+`BACKEND_INTEGRATION_PENDING` **12**(변동 0) · 가값 **6**(변동 0) · **수용·폐기로 덮이지 않은 AC 0건**
+
+**폐기 5건은 `PASS` 로 올리지 않았다** — 요구사항이 없어진 것이라 충족·미충족을 말할 대상이 없다. QA 가 `AC-3L-23` 의 라벨 문제를 *"폐기로 소멸했다"* 로 정리했다.
+**중복 판정·멱등 처리는 contracts·Mock 에 그대로 남는다** (QA 가 7개 파일 grep 으로 확인) — `AC-3-36` PASS 유지, `P3-BIP-05`·`24` PENDING 유지.
+
+### 31.3 QA 가 자기 프로브로 다시 잰 것
+
+QA 는 **Orchestrator 가 제시한 "채널차 전부 0" 을 증거로 쓰지 않고** 저장소 밖 자작 프로브(raw chromium + 자작 PNG 디코더)로 **같은 축을 다시 쟀다**:
+- 393×852 네 scrollTop 전부 띠 rect **0.0…393.0 = 컬럼 rect**, gutter 통과 채널차 **0**, 가로 overflow 0
+- 되돌림 재현 시 좌 **17** · 우 **231**, 좌 프로파일 `1,1,2,3,3,4,5,6,7,9,11,13,15,17`
+- 제목·아이콘 불변 (Home 320 의 **`Settings` 아이콘 258.0…296.0 까지** 전후 동일)
+- 768 `144.0…624.0` · 1024 `272.0…752.0` = 컬럼 border box
+- **컬럼 경계 수직 이음선 0** (QA 가 추가로 본 축) — "전 폭 배너" 회귀 0건이며 **baseline 이 안 바뀐 것이 누락이 아니라 일치의 증거**임을 보였다
+
+### 31.4 `QA-3-013` — 제거된 경로를 안내하던 문구 (수정 완료)
+
+`/library/gift-requests` 빈 상태가 *"You can request a book from its detail sheet."* 로 **방금 제거한 신청 CTA 를 안내**했다. **사용자에게 없는 기능을 쓰라고 말하는 문구**라 묻지 않고 고쳤다.
+
+> **`When a book is gifted to you, its delivery status shows up here.`**
+
+- 사용자가 할 수 없는 동작을 안내하지 않는다 (`request`·`tap`·`sheet` 없음)
+- **수동태**로 운영 쪽에서 채워지는 성격을 드러낸다
+- 수량·부재 표현 없이 "이 자리를 채우는 것"만 말한다 — `librarySectionEmpty` 의 기존 어법(`show up here`)과 일치
+- `emptyTitle`(`No gift requests yet`)은 **유지** — 수치가 없고 화면 이름과 일치하며 `yet` 이 "앞으로 채워질 자리"를 표시한다
+
+**`GiftRequestList.tsx` 헤더 주석도 고쳤다** — *"Empty 안내도 어디서 신청하는지를 알린다"* 로 **이번 결함을 만든 설명이 코드에 남아 있었다.** 남겨두면 되살아난다.
+
+**QA 가 4회차에 못 잡은 이유 (기록)**: grep 패턴이 `/request this book/i` 였는데 이 문구는 `request a book` 이고, 테스트가 그 문구의 **존재를 단정**하고 있어 통과했다. 새 단정은 **3개 리터럴 패턴**(`request (this|a|the|your own) book` · `you can request` · `detail sheet`)을 문구 전체 JSON 에 건다. 옛 문구로 되돌리면 **2 failed** 로 실제로 문다(실측).
+
+### 31.5 남은 소관
+
+| 소관 | 할 일 |
+|---|---|
+| **design-agent** | 허용 차이 **`AD-L-*` ID 부여**(시트 간격 12↔6, §29.5) · **Design Spec §6.1 수정** — *"스크롤 시 glass 배경"* 뿐 아니라 **"컬럼 전 폭"** 까지 반영 |
+| **development-agent** | `QA-3-011`(e2e 정밀도 — 전환 중 측정·공집합 루프) · Stage 4 Mock 2건(`library:save-error` 류 · `purchaseUrl` fixture) · `/onboarding/:step` 토스트 보정 |
+| **plan-agent (Stage 4)** | 이월 3건(`QA-3-001`·`002`·`003`) + `AC-3-22`~`26` In Scope 등재 |
+| **Stage 8** | Handoff 에 **"증정 신청은 Frontend 에 없다"** · `QA-3-003` · `P3-BIP-19`(표지 교체, 법무) |
+| **사용자** | PRD `FR-22` 수정(`LN-8`, `D-24` 절차) · **가값 6건 재제시** 수락 |
+| **실기기 확보 시** | `NV-1`(`background-attachment: scroll` 검출 공백 포함) · `NV-2` |
+
+### 31.6 Stage 4 는 사용자 지시가 있을 때 시작한다
+
+`rules/workflow.md` §4 — 한 Stage 승인은 다음 Stage 로 확장되지 않는다.

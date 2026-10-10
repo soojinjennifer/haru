@@ -181,7 +181,14 @@ export const libraryCopy = {
     noticeDescription: "We'll reach out with delivery details.",
     listLabel: 'Gift requests',
     emptyTitle: 'No gift requests yet',
-    emptyDescription: 'You can request a book from its detail sheet.',
+    /**
+     * `QA-3-013` — **신청 경로를 안내하지 않는다.** 증정 **신청**은 Frontend 에 없고(사용자
+     * 결정 2026-10-10, §29.4 — 상세 시트의 `Request this book` 제거) 이 화면은 증정받은 책의
+     * **배송 상태를 보는 곳**이다. 목록은 운영 쪽에서 증정이 생길 때 채워지므로, 빈 상태는
+     * **무엇이 이 자리를 채우는지**만 말한다. 없는 동작을 권하지 않고, 결핍처럼 읽히지 않게
+     * 쓴다 (`rules/frontend.md` §8).
+     */
+    emptyDescription: 'When a book is gifted to you, its delivery status shows up here.',
     errorTitle: 'We could not load your gift requests',
     loading: 'Loading your gift requests',
   },
