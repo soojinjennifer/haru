@@ -52,6 +52,8 @@ const HOME_CSS = codeOf(
 const CHIP_CSS = codeOf(read('apps', 'web', 'src', 'entities', 'home', 'home.css'));
 const TAG_CSS = codeOf(read('packages', 'ui', 'src', 'tag', 'Tag.css'));
 const COMPONENT_TOKENS = codeOf(read('packages', 'design-tokens', 'src', 'component', 'index.css'));
+const SEMANTIC_COLOR = codeOf(read('packages', 'design-tokens', 'src', 'semantic', 'color.css'));
+const PRIMITIVE_COLOR = codeOf(read('packages', 'design-tokens', 'src', 'primitive', 'color.css'));
 
 describe('탭바 하단 여백 — D-1 (§2.1)', () => {
   it('overhang 을 `.haru-app-shell__bar-bottom` 한 곳에서만 확보한다', () => {
@@ -263,6 +265,51 @@ describe('Visual Gap 교정 (audit §20)', () => {
     expect(COMPONENT_TOKENS).toMatch(/--tag-padding-x:\s*var\(--space-3\)/);
     expect(TAG_CSS).toMatch(/\.haru-tag\s*\{[^}]*block-size:\s*var\(--tag-height-sm\)/);
     expect(TAG_CSS).toMatch(/\.haru-tag__icon\s*\{[^}]*inline-size:\s*var\(--size-icon-sm\)/);
+  });
+
+  /*
+    재질 (사용자 결정 2026-10-10 ①) — Figma `26:40` 은 `glass-fill` `#ffffffbd`(= white 74%)
+    + Effect Style `HARU/Shadow Rest` 다. 공유 `Tag` 의 neutral 면(불투명 dusk)이 아니다.
+    깨져야 하는 변경: ① 칩이 다시 불투명 면이 되는 것 ② 그림자가 사라지거나 3겹
+    (`--shadow-glass-rest`)이 되는 것 ③ 공유 `Tag` 의 neutral 면을 바꿔 다른 사용처까지
+    유리로 만드는 것 ④ `backdrop-filter` 를 더하는 것(`26:40` 에 BACKGROUND_BLUR 가 없다).
+  */
+  it('칩 면은 유리(74%)이고 그림자는 `--shadow-bubble`(1겹) 이다', () => {
+    const chipTag = /\.haru-week-summary-chip \.haru-tag\s*\{([^}]*)\}/.exec(CHIP_CSS)?.[1] ?? '';
+    expect(chipTag).toMatch(/background-color:\s*var\(--color-surface-glass\)/);
+    expect(chipTag).toMatch(/box-shadow:\s*var\(--shadow-bubble\)/);
+    // 3겹 그림자로 돌아가면 번짐이 10 → 77 이 되어 `R-SHADOW-1` 재검토가 필요하다.
+    expect(CHIP_CSS).not.toContain('--shadow-glass-rest');
+    expect(CHIP_CSS).not.toContain('--shadow-rest');
+    // `26:40` 에 BACKGROUND_BLUR 가 없다 — 유리 면이지만 blur 는 주지 않는다.
+    expect(CHIP_CSS).not.toContain('backdrop-filter');
+    // 임의 값 금지 — 면·그림자 모두 토큰으로만 온다.
+    expect(chipTag).not.toMatch(/#[0-9a-f]{3,8}|rgba?\(/i);
+
+    // 공유 `Tag` 의 neutral 면은 **그대로**다 (역량 tone 칩 등 다른 사용처 무변경).
+    expect(TAG_CSS).toMatch(
+      /\.haru-tag--neutral\s*\{[^}]*background-color:\s*var\(--color-tag-neutral-bg\)/,
+    );
+    expect(TAG_CSS).not.toContain('--color-surface-glass');
+    expect(TAG_CSS).not.toContain('box-shadow');
+  });
+
+  /*
+    아이콘 색 (사용자 결정 2026-10-10 ②) — 유리 면 위에서 Figma fill `#d0cca1` 이 1.56:1 이라
+    보이지 않으므로 hue·채도를 유지한 어두운 단계로 바꾼다. **Tier 3 토큰은 무변경**이고
+    semantic 의 참조만 바뀐다 — Tier 3 → Primitive 직접 참조는 build-tokens 3-4 위반이다.
+    ⚠ `★ Save`(`--color-icon-save-star`)는 Figma 값 유지 — 함께 끌려가면 깨진다.
+  */
+  it('칩 아이콘 색만 어두운 금색으로 바뀌고 `★ Save` 는 Figma 값을 유지한다', () => {
+    expect(COMPONENT_TOKENS).toMatch(
+      /--week-summary-chip-icon-color:\s*var\(--color-icon-session-history\)/,
+    );
+    expect(SEMANTIC_COLOR).toMatch(
+      /--color-icon-session-history:\s*var\(--haru-palette-yellow-700\)/,
+    );
+    expect(SEMANTIC_COLOR).toMatch(/--color-icon-save-star:\s*var\(--haru-palette-yellow\)/);
+    expect(PRIMITIVE_COLOR).toMatch(/--haru-palette-yellow-700:\s*#78733c/);
+    expect(PRIMITIVE_COLOR).toMatch(/--haru-palette-yellow:\s*#d0cca1/);
   });
 });
 

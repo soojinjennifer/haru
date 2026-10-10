@@ -143,6 +143,26 @@ const HIDE_CONTENT_CSS = `
   .haru-app-shell__bar-bottom { visibility: hidden !important; }
 `;
 
+/**
+ * ① 전용 — **띠 안에 있는 칩의 drop shadow** 를 끈다.
+ *
+ * 왜 필요한가 (전부 `[실측]` 2026-10-10, 칩 유리 재질 적용 후):
+ *   스크롤된 띠는 0–40 이고, 그 안의 주간 집계 칩은 **y 3–37**(`x 238–349`)이다. 칩이
+ *   `--shadow-bubble` 을 얻으면서 그림자가 상자 아래로 **10px** 번지므로 **행 40–47** 이
+ *   칩의 x 구간에서 살짝 어두워진다. 이 테스트의 ①이 읽은 최대 채널차가 바탕 3행에서
+ *   `[3, 4, 5]` 로 올라갔고 **최악 x 는 245–247 — 칩 상자 안쪽**이었다.
+ *
+ * 이 테스트가 재는 것은 **띠와 바탕의 접합**이다. 칩 그림자는 그 접합선 위에 **전경으로**
+ * 얹힌 별개 요소의 페인트이므로, 켜 둔 채로 재면 측정 대상이 아닌 것을 섞어 읽는다.
+ * 그래서 임계값(`SEAM_MAX_CHANNEL_DELTA`)을 올리지 않고 **전경 하나를 끈다** — 이 파일의
+ * 주석이 "임계값만 올리면 검출력이 조용히 사라진다" 고 경고한 그 경로를 피한다.
+ * 칩 그림자 자체(존재·번짐 10/0/3·클리핑 없음)는 `e2e/week-summary-chip.spec.ts` 가 잰다.
+ *
+ * ⚠️ 폭 전체를 그대로 본다 — 칩 x 구간을 **제외하지 않는다**. 제외하면 칩 뒤의 접합선을
+ * 영구히 못 보게 된다.
+ */
+const HIDE_CHIP_SHADOW_CSS = '.haru-week-summary-chip .haru-tag { box-shadow: none !important; }';
+
 /** 제목 글리프만 숨긴다 — **뒤에 무엇이 있는지** 재기 위해서다. 콘텐츠는 그대로 둔다. */
 const HIDE_TITLE_CSS = '.haru-top-bar h1 { visibility: hidden !important; }';
 
@@ -303,6 +323,9 @@ test.describe('스크롤된 TopBar 배경 (2026-10-10)', () => {
     띠는 `position: sticky` 로 뷰포트 상단에 붙어 있고, 그 바로 아래는 `main` 을 가린
     상태에서 **AppBackground gradient** 뿐이다. 두 영역이 같은 좌표계의 같은 gradient 를
     쓰면 접합선의 채널 색차가 디더 수준에 머문다.
+
+    띠 **안에 있는** 주간 집계 칩의 drop shadow 도 함께 끈다 — 그림자가 띠 아래로 10px
+    번져 접합 측정에 섞이기 때문이다 (`HIDE_CHIP_SHADOW_CSS` 주석에 실측 경위가 있다).
   */
   test('띠 마지막 행과 바로 아래 바탕의 색차가 디더 수준이다', async ({ page }) => {
     expect(page.viewportSize()).toEqual({ width: 393, height: 852 });
@@ -323,7 +346,7 @@ test.describe('스크롤된 TopBar 배경 (2026-10-10)', () => {
       const clipWidth = Math.floor(band.right) - 1 - clipLeft;
       expect(clipWidth, `띠 폭을 재지 못했다 ${JSON.stringify(band)}`).toBeGreaterThan(100);
 
-      const strip = await withInjectedCss(page, HIDE_CONTENT_CSS, async () =>
+      const strip = await withInjectedCss(page, HIDE_CONTENT_CSS + HIDE_CHIP_SHADOW_CSS, async () =>
         decodePng(
           await page.screenshot({
             clip: {

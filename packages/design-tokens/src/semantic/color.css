@@ -207,13 +207,18 @@
   --color-icon-flip: var(--haru-palette-mint);
   --color-icon-save-star: var(--haru-palette-yellow);
   /*
-   * Home 헤더 칩의 `history` 글리프 (`50:161`, approvals §13.2 `A-23`-icon). Figma 원본도
-   * `#d0cca1` 라 **값은 `--color-icon-save-star` 와 같지만 의미가 다르다** — 저쪽은 `★ Save`
-   * 전용이다. 의미가 다른 토큰을 재사용하면 한쪽 색이 바뀔 때 다른 쪽이 끌려간다.
-   * Tier 3 가 Primitive 를 직접 참조할 수 없으므로(build-tokens 3-4) semantic 신설이
+   * 주간 집계 칩의 `history` 글리프 (`50:161`, approvals §13.2 `A-23`-icon).
+   * Tier 3 가 Primitive 를 직접 참조할 수 없으므로(build-tokens 3-4) semantic 경유가
    * 규칙을 지키는 유일한 경로다.
+   *
+   * 한때 `--color-icon-save-star` 와 **같은 값**(`--haru-palette-yellow` `#d0cca1`)이었고,
+   * 그래도 토큰을 나눠 둔 이유가 지금 드러났다 — **이 쪽만** 값이 바뀐다.
+   * 칩이 유리 면(white 74%)으로 바뀌면서 `#d0cca1` 의 대비가 **1.56:1** 이 되어 글리프가
+   * 사라졌다. 사용자 결정 2026-10-10 ② 로 **같은 hue·채도의 어두운 단계**로 교체한다
+   * (`--haru-palette-yellow-700` = `#78733c`, glass 위 4.52~4.62:1 `[계산]`).
+   * `★ Save` 별은 Figma 값 유지다 — 위 `--color-icon-save-star` 를 건드리지 않는다.
    */
-  --color-icon-session-history: var(--haru-palette-yellow);
+  --color-icon-session-history: var(--haru-palette-yellow-700);
 }
 
 :root {

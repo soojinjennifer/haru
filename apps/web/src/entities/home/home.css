@@ -25,6 +25,34 @@
 .haru-week-summary-chip .haru-tag {
   block-size: var(--week-summary-chip-block-size);
   padding-inline: var(--week-summary-chip-pad-inline);
+  /*
+   * 재질 — Figma `26:40` 실측 (사용자 결정 2026-10-10 ①).
+   *   면    `glass-fill` `#ffffffbd` = white **74%** = `--color-surface-glass` 와 **완전 일치**
+   *         → 신규 토큰 불필요. 공유 `Tag` 의 neutral 면(`--color-tag-neutral-bg`, 불투명
+   *         dusk `#c7c9d7`)을 **칩에서만** 덮는다. `tone="neutral"` 선택자는 `.haru-tag--neutral`
+   *         (0-1-0) 이고 이쪽은 0-2-0 이라 특이도로 이긴다 — 전역 기본값은 그대로다.
+   *   그림자 Effect Style 이름은 `HARU/Shadow Rest`(5겹 정의)지만 **인스턴스는 drop 1겹 +
+   *         inset 2겹만 렌더**한다. 렌더 바운드 `153×44`(노드 `145×34`) = 사각 바운드 기준
+   *         좌우 ±4 · 아래 10 · 위 0 이고, 3겹이면 `257×124` 여야 한다.
+   *         (브라우저에서 실측한 pill 측면 번짐은 **3** 이다 — 아래 `R-SHADOW-1` 단락.) `V-10` 말풍선과 같은 상황이라 그 때 만든
+   *         **`--shadow-bubble`**(= 같은 Effect Style 의 인스턴스 렌더값)이 정확히 일치한다.
+   *         `ListGroup`(`List.css`) · `ReadingNowCard`(`entities/library/library.css`) 가 이미
+   *         같은 토큰을 같은 사유로 쓴다 — 말풍선 전용 토큰이 아니다.
+   *   ⚠ `26:40` 에 BACKGROUND_BLUR 가 **없다** → `backdrop-filter` 를 주지 않는다.
+   *
+   * `R-SHADOW-1` — 자리 보정은 **필요하지 않다**. 근거는 "클리핑 박스가 없다" 가 아니라
+   * **"클립 선이 화면 밖이다"**(규칙 ④) 다. CSS 파일만 보면 칩 경로에 `overflow` 선언이
+   * 0건이지만, `AppShell` 의 스크롤 뷰포트가 Tailwind 유틸리티(`overflow-y-auto`)로 켜져 있고
+   * `overflow-y` 가 `visible` 이 아니면 `overflow-x` 도 `visible` 로 남지 못해 computed 가
+   * `auto/auto` 다. 그 상자는 뷰포트 전체를 덮으므로 클립 선이 화면 가장자리와 겹친다.
+   *
+   * 번짐을 **네 방향 픽셀 프로브로 실측**했다 (2026-10-10, 393×852 · dSF 1):
+   *   Home 아래 **10** · 위 **0** · 좌우 **3** / dev gallery 동일 (클리핑 조상 0건).
+   * 칩 우변은 gutter 24 만큼 안쪽이라 좌우 3 이 화면 안에서 온전히 그려진다.
+   * 회귀 테스트는 `e2e/week-summary-chip.spec.ts` 가 두 화면에서 네 방향을 다시 잰다.
+   */
+  background-color: var(--color-surface-glass);
+  box-shadow: var(--shadow-bubble);
 }
 
 .haru-week-summary-chip .haru-tag__icon,
@@ -34,8 +62,13 @@
 }
 
 /*
- * `A-23`-icon (approvals §13.2) — 글리프는 Figma `50:161` 이고 **색도 Figma 를 따른다**
- * (`#d0cca1`). `Tag` 는 아이콘 색을 정하지 않고 `currentColor` 를 흘리므로 칩이 준다.
+ * `A-23`-icon (approvals §13.2) — 글리프는 Figma `50:161` 이지만 **색은 Figma 와 다르다**
+ * (사용자 결정 2026-10-10 ②, 허용 차이 등록 대상). Figma fill `#d0cca1` 은 위에서 깐 유리 면
+ * 위에서 **1.56:1** 이라 글리프가 보이지 않는다. 같은 금색으로 읽히도록 hue·채도를 유지하고
+ * 명도만 내린 `--haru-palette-yellow-700`(`#78733c`, 4.52~4.62:1)을 쓴다.
+ * 값은 Tier 3 `--week-summary-chip-icon-color` → `--color-icon-session-history` 경로로 오고,
+ * 여기서는 **참조만** 한다 (Tier 3 → Primitive 직접 참조 금지 — build-tokens 3-4).
+ * `Tag` 는 아이콘 색을 정하지 않고 `currentColor` 를 흘리므로 칩이 준다.
  * 라벨 색(`--color-fg-primary`)은 그대로 둔다 — 칩에서 색이 다른 건 아이콘뿐이다.
  */
 .haru-week-summary-chip .haru-tag__icon {

@@ -18,9 +18,14 @@ const semantics = tokens.filter((d) => d.tier === 'semantic');
 const components = tokens.filter((d) => d.tier === 'component');
 
 describe('Tier 1 — Primitive (Design Spec §3.1)', () => {
-  it('palette 색 32개 + status 8개 — 30 + `--haru-white-a82` + `--haru-white-a85`', () => {
+  /*
+   * 33 = 30 + `--haru-white-a82` + `--haru-white-a85` + **`--haru-palette-yellow-700`**.
+   * 마지막 1종은 칩 아이콘 대비 교정(사용자 결정 2026-10-10 ②)에서 추가됐다 — Figma palette
+   * 밖의 값이므로 허용 차이 등록 대상이고, 그래서 **개수가 늘면 눈에 걸리도록** 여기서 센다.
+   */
+  it('palette 색 33개 + status 8개 — 30 + white a82 · a85 + yellow-700', () => {
     const colors = primitives.filter((d) => d.file === 'src/primitive/color.css');
-    expect(colors.filter((d) => !d.name.startsWith('--haru-status-'))).toHaveLength(32);
+    expect(colors.filter((d) => !d.name.startsWith('--haru-status-'))).toHaveLength(33);
     expect(colors.filter((d) => d.name.startsWith('--haru-status-'))).toHaveLength(8);
   });
 
@@ -65,6 +70,7 @@ describe('Tier 2 — Semantic (Design Spec §3.2)', () => {
     expect(byName.get('--color-surface-spring')?.value).toBe('var(--haru-mist-200)');
     expect(byName.get('--color-icon-flip')?.value).toBe('var(--haru-palette-mint)');
     expect(byName.get('--color-icon-save-star')?.value).toBe('var(--haru-palette-yellow)');
+    expect(byName.get('--haru-palette-yellow')?.value).toBe('#d0cca1');
     // Visual Gap `V-11` — `Button/White` 는 0.85 다. `--color-surface-strong`(0.90)과 다르다.
     expect(byName.get('--color-action-white-bg')?.value).toBe('var(--haru-white-a85)');
     expect(byName.get('--haru-white-a85')?.value).toBe('rgb(255 255 255 / 0.85)');

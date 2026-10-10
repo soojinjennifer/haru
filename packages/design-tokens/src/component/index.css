@@ -185,7 +185,12 @@
   --week-summary-chip-block-size: 34px;
   --week-summary-chip-pad-inline: var(--space-3-5); /* Figma icon x=14 */
   --week-summary-chip-icon-size: 13px; /* Figma `50:161` 13×13 */
-  /* Figma `50:161` fill #d0cca1 (렌더 픽셀 샘플 rgb(208 204 161), 재실측 2026-10-10) */
+  /*
+   * 칩 아이콘 색. **Figma 와 다르다** — `50:161` fill 은 `#d0cca1` 지만 칩 면이 유리(white 74%)
+   * 라 그 색은 1.56:1 로 보이지 않는다. hue·채도를 유지한 어두운 단계로 교체했다
+   * (사용자 결정 2026-10-10 ②, 허용 차이 등록 대상). 이 Tier 3 토큰의 **참조는 그대로**이고
+   * 값은 semantic 쪽에서 바뀌었다 (`--color-icon-session-history` → `--haru-palette-yellow-700`).
+   */
   --week-summary-chip-icon-color: var(--color-icon-session-history);
   --home-character-top: 29px; /* Figma `26:22` y85 − 상태바 56 */
   --home-character-overhang: var(--space-3); /* 컬럼 trailing edge 를 12 넘어간다 */
