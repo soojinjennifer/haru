@@ -13,6 +13,22 @@
   padding-block-end: var(--layout-safe-bottom);
   padding-inline-start: var(--layout-safe-left);
   padding-inline-end: var(--layout-safe-right);
+
+  /*
+   * 좌우 인셋을 **자손이 읽을 수 있게** 내려보낸다 (사용자 결정 2026-10-10).
+   *
+   * 이 컬럼 안의 요소는 컬럼 **content box**(= gutter 안쪽) 폭이라, 배경이 컬럼 **전 폭**을
+   * 덮어야 하는 요소(스크롤된 `TopBar` 띠)가 스스로는 gutter 에 닿을 수 없다. CSS 로 무엇을
+   * 해도 그 24px 에는 배경이 그려지지 않고 스크롤되는 콘텐츠가 비쳤다 (2026-10-10 실측:
+   * 393px `/library` scrollTop 260 에서 `x369` 가 콘텐츠 원색 `[253,207,0]`, 채널차 231).
+   *
+   * 값이 아니라 **되돌려야 하는 인셋**이라서 design token 이 아니라 여기서 선언한다 —
+   * 쓰는 쪽은 `margin-inline: calc(-1 * var(--layout-column-inset-*))` + 같은 크기의
+   * `padding-inline` 으로 **배경만** 넓히고 콘텐츠 위치는 그대로 둔다.
+   * 변형(`--padded` · `--edge-to-edge`)마다 실제 padding 과 **같은 식**을 유지해야 한다.
+   */
+  --layout-column-inset-start: var(--layout-safe-left);
+  --layout-column-inset-end: var(--layout-safe-right);
 }
 
 /*
@@ -27,10 +43,14 @@
 .haru-app-column--padded {
   padding-inline-start: calc(var(--layout-safe-left) + var(--layout-gutter));
   padding-inline-end: calc(var(--layout-safe-right) + var(--layout-gutter));
+  --layout-column-inset-start: calc(var(--layout-safe-left) + var(--layout-gutter));
+  --layout-column-inset-end: calc(var(--layout-safe-right) + var(--layout-gutter));
 }
 
 /* 가로 캐러셀이 화면 끝까지 닿아야 하는 경우에만 쓴다 (§2.4). */
 .haru-app-column--edge-to-edge {
   padding-inline-start: 0;
   padding-inline-end: 0;
+  --layout-column-inset-start: 0px;
+  --layout-column-inset-end: 0px;
 }

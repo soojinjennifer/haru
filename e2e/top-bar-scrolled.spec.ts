@@ -13,10 +13,20 @@
  * ① **경계가 없다** — 띠의 마지막 행과 바로 아래 바탕의 채널 색차가 작아야 한다.
  * ② **제목이 읽힌다** — 제목 글리프를 숨긴 컷에서 뒤 픽셀 **각각**과의 대비가 3:1 이상이어야
  *    한다. 평균이 아니라 최솟값을 본다 — 콘텐츠가 띠 뒤로 지나가면 일부 픽셀만 무너진다.
+ * ③ **띠가 앱 컬럼 전 폭을 덮는다** — 띠 행 전체에서 콘텐츠를 숨겼을 때와 보일 때의 픽셀이
+ *    같아야 한다. 좌우 gutter 24px 를 **포함**해서 본다 (2026-10-10 추가).
  *
- * 두 단정의 역할이 다르다. ①은 **띠를 잘못된 색으로 칠하는 회귀**(고정 단색 · glass fill ·
+ * 세 단정의 역할이 다르다. ①은 **띠를 잘못된 색으로 칠하는 회귀**(고정 단색 · glass fill ·
  * 하단 box-shadow 부활)를 잡고, ②는 **띠를 투명하게 되돌리는 회귀**를 잡는다. ①만으로는
  * 투명을 못 잡는다(투명하면 띠 픽셀 = 바탕 픽셀이라 단차가 0 이다) — 그래서 둘 다 필수다.
+ *
+ * ③이 따로 필요한 이유는 ①·②가 **둘 다 띠 안쪽만 봤기** 때문이다. ①은 clip 을 띠 rect 로
+ * 잡고 ②는 제목 rect 로 잡는데, 당시 띠 rect 는 `AppColumn` content box(= gutter 안쪽)였다.
+ * 그래서 **gutter 24px 로 콘텐츠가 그대로 비치는 결함을 둘 다 통과시켰다** (2026-10-10 QA
+ * 실측: 393px `/library` scrollTop 260 에서 `x369` 가 콘텐츠 원색 `[253,207,0]` = 채널차 231,
+ * 좌 gutter 최대 17 — 그런데 ①·② 모두 통과). 수정 후에는 띠 rect = 컬럼 rect 라 ① 의 clip
+ * 도 gutter 를 포함하지만, 그건 띠 폭이 넓어진 **결과**일 뿐이라 폭이 좁아지는 회귀를 막지
+ * 못한다 — clip 이 함께 좁아지기 때문이다. ③은 clip 을 **컬럼 rect** 로 잡아 그 되돌림을 본다.
  *
  * 대상 화면은 `/library` 다. 스크롤되는 탭 화면이면서 TopBar 에 **`h1` 제목**이 있는 유일한
  * 화면이다 (`LibraryTopBar` = `variant="large" title="Library"`). Home 헤더는 제목 없이
@@ -94,6 +104,34 @@ const SEAM_BACKGROUND_ROWS = 3;
 const MIN_TITLE_CONTRAST = 3;
 
 /**
+ * ③ 띠 행에서 **콘텐츠 통과**로 볼 채널 색차의 상한.
+ *
+ * ①의 `SEAM_MAX_CHANNEL_DELTA`(4)와 달리 이 바닥은 **디더가 아니라 0 이어야 한다**. 비교하는
+ * 두 컷은 *같은 좌표의 같은 띠*이고 **콘텐츠 가시성만** 다르다 — 띠가 그 자리를 불투명하게
+ * 덮고 있으면 gradient 램프도 안티에일리어싱도 개입할 여지가 없어 픽셀이 바이트 단위로 같다.
+ *
+ * 실측 (2026-10-10, 이 머신 · 393×852 · `/library` · 컬럼 전 폭 0…393 · 띠 행 0…40):
+ *   - 수정 후 — 네 scrollTop 전부 **0** (좌 gutter · 안쪽 · 우 gutter 모두)
+ *   - 수정 전 — 안쪽 0 인데 gutter 가 새고 있었다: scrollTop 60 `2` · 160 `5` · 260 **231**
+ *     (`x369` = 콘텐츠 원색 `[253,207,0]`) · 420 `9`
+ *
+ * **1** 은 바닥 0 에 반올림 한 단위만 허용한다. 2 로 올리면 위 실측의 scrollTop 60 (`2`) 이
+ * 통과해 "띠가 조금만 좁아진" 회귀를 놓친다 — 값을 올리기 전에 바닥을 먼저 실측한다.
+ */
+const OCCLUSION_MAX_CHANNEL_DELTA = 1;
+
+/**
+ * ③ 를 ≥600px 에서도 보는 폭 (Stage 0 #12 — 600 이상은 최대 480 앱 컬럼 가운데 정렬).
+ *
+ * 컬럼 **밖**은 페이지 배경이고 띠가 거기까지 갈 필요가 없다 (사용자 결정 2026-10-10). 실제로
+ * 컬럼 밖으로는 콘텐츠가 통과하지 않는다 — 2026-10-10 실측(768px, `/library` scrollTop 260 ·
+ * Home scrollTop 120): 컬럼 밖 60px 의 채널차가 띠 행뿐 아니라 **y 0…500 전 구간에서 0** 이고,
+ * 같은 프로브가 컬럼 안쪽에서는 231 을 읽었다(= 민감도 있음). 그래서 단정 범위도 **컬럼
+ * rect 까지**다.
+ */
+const WIDE_VIEWPORT = { width: 768, height: 852 } as const;
+
+/**
  * 경계를 재려면 띠 아래가 **순수 바탕**이어야 한다.
  *
  * `display: none` 이 아니라 `visibility: hidden` 인 이유는 `support/gallery.ts`
@@ -160,14 +198,17 @@ async function withInjectedCss<T>(page: Page, css: string, body: () => Promise<T
   }
 }
 
-/** 띠(`.haru-top-bar`)의 기하와 실제 적용된 배경. */
+/** 띠(`.haru-top-bar`)의 기하와 실제 적용된 배경 + 앱 컬럼 rect (③ 의 기준). */
 async function measureBand(page: Page) {
   return page.evaluate(() => {
     const bar = document.querySelector('.haru-top-bar');
     if (bar === null) throw new Error('`.haru-top-bar` 를 찾지 못했다');
+    const column = bar.closest('.haru-app-column');
+    if (column === null) throw new Error('TopBar 를 감싼 `.haru-app-column` 을 찾지 못했다');
 
     const style = getComputedStyle(bar);
     const rect = bar.getBoundingClientRect();
+    const columnRect = column.getBoundingClientRect();
 
     return {
       classes: bar.className,
@@ -180,8 +221,57 @@ async function measureBand(page: Page) {
       right: rect.right,
       top: rect.top,
       bottom: rect.bottom,
+      columnLeft: columnRect.left,
+      columnRight: columnRect.right,
+      /* 컬럼 좌우 인셋 = gutter + safe-area. ③ 의 영역 구분(gutter ↔ 안쪽) 기준이다. */
+      columnInsetStart: Number.parseFloat(getComputedStyle(column).paddingLeft),
+      columnInsetEnd: Number.parseFloat(getComputedStyle(column).paddingRight),
     };
   });
+}
+
+/**
+ * 띠 행에서 **콘텐츠가 비치는 정도**를 앱 컬럼 **전 폭**으로 잰다 (③).
+ *
+ * 같은 clip 을 두 번 찍어 x 별 최대 채널차를 돌려준다 — 한 번은 콘텐츠가 보이는 상태,
+ * 한 번은 `HIDE_CONTENT_CSS` 로 가린 상태다. 띠가 불투명하게 그 자리를 덮고 있으면 두 컷이
+ * **완전히 같다**(채널차 0). 어디든 0 이 아니면 그 x 로 콘텐츠가 통과한 것이다.
+ */
+async function measureOcclusion(page: Page, band: Awaited<ReturnType<typeof measureBand>>) {
+  const clip = {
+    x: Math.ceil(band.columnLeft),
+    y: Math.ceil(band.top),
+    width: Math.floor(band.columnRight) - Math.ceil(band.columnLeft),
+    height: Math.floor(band.bottom) - Math.ceil(band.top),
+  };
+  expect(clip.width, `앱 컬럼 폭을 재지 못했다 ${JSON.stringify(band)}`).toBeGreaterThan(100);
+  expect(clip.height, `띠 높이를 재지 못했다 ${JSON.stringify(band)}`).toBeGreaterThan(10);
+
+  const visible = decodePng(await page.screenshot({ clip }));
+  const hidden = await withInjectedCss(page, HIDE_CONTENT_CSS, async () =>
+    decodePng(await page.screenshot({ clip })),
+  );
+
+  let worst = 0;
+  let worstX = -1;
+  const perRegion = { leftGutter: 0, inside: 0, rightGutter: 0 };
+  const insideFrom = Math.round(band.columnLeft + band.columnInsetStart - clip.x);
+  const insideTo = Math.round(band.columnRight - band.columnInsetEnd - clip.x);
+
+  for (let x = 0; x < visible.width; x += 1) {
+    let column = 0;
+    for (let y = 0; y < visible.height; y += 1) {
+      column = Math.max(column, maxChannelDelta(pixelAt(visible, x, y), pixelAt(hidden, x, y)));
+    }
+    if (column > worst) {
+      worst = column;
+      worstX = x + clip.x;
+    }
+    const region = x < insideFrom ? 'leftGutter' : x < insideTo ? 'inside' : 'rightGutter';
+    perRegion[region] = Math.max(perRegion[region], column);
+  }
+
+  return { clip, worst, worstX, perRegion };
 }
 
 /** 제목 `h1` 의 기하와 글자색. */
@@ -331,5 +421,99 @@ test.describe('스크롤된 TopBar 배경 (2026-10-10)', () => {
         `scrollTop ${target}: 제목 뒤 ${below}/${total} 픽셀이 3:1 미만 (최소 ${min.toFixed(2)})`,
       ).toBe(0);
     }
+  });
+
+  /*
+    ③ 띠가 앱 컬럼 **전 폭**을 덮는다 (사용자 결정 2026-10-10).
+
+    clip 을 띠 rect 가 아니라 **컬럼 rect** 로 잡는다. 띠가 좁아지면 clip 이 함께 좁아지는
+    ①의 약점을 피하기 위해서다. 좌우 gutter 는 "띠가 닿지 않는 곳" 이었고, 거기로 콘텐츠가
+    원색 그대로 지나갔다.
+
+    기하 단정과 픽셀 단정을 둘 다 둔다. 기하(띠 rect == 컬럼 rect)는 **왜** 실패했는지
+    바로 알려주고, 픽셀(콘텐츠 통과 채널차)은 기하가 맞는데도 배경이 비는 경우를 잡는다.
+  */
+  test('띠가 앱 컬럼 전 폭을 덮어 gutter 로 콘텐츠가 비치지 않는다', async ({ page }) => {
+    expect(page.viewportSize()).toEqual({ width: 393, height: 852 });
+
+    for (const target of SCROLL_TOPS) {
+      const reached = await scrollToTop(page, target);
+      expect(reached, `scrollTop ${target} 에 도달하지 못했다 (실제 ${reached})`).toBe(target);
+
+      const band = await measureBand(page);
+      expect(
+        band.classes,
+        `scrollTop ${target}: 띠가 스크롤 상태가 아니다 — "${band.classes}"`,
+      ).toContain('haru-top-bar--scrolled');
+      expect(
+        band.columnInsetStart,
+        `gutter 가 0 이면 ③ 이 아무것도 재지 않는다 ${JSON.stringify(band)}`,
+      ).toBeGreaterThan(0);
+
+      const { clip, worst, worstX, perRegion } = await measureOcclusion(page, band);
+
+      // eslint-disable-next-line no-console -- 실측값을 보고에 그대로 옮긴다 (추정 금지)
+      console.log(
+        `[topbar-occlusion] scrollTop=${target} col=${band.columnLeft.toFixed(1)}–${band.columnRight.toFixed(1)} ` +
+          `band=${band.left.toFixed(1)}–${band.right.toFixed(1)} inset=${band.columnInsetStart}|${band.columnInsetEnd} ` +
+          `clip=${clip.width}×${clip.height}@${clip.x},${clip.y} ` +
+          `delta: 좌gutter=${perRegion.leftGutter} 안쪽=${perRegion.inside} 우gutter=${perRegion.rightGutter} ` +
+          `(최대 ${worst} @x${worstX})`,
+      );
+
+      expect(
+        band.left,
+        `scrollTop ${target}: 띠 좌변이 컬럼 좌변과 다르다 ${JSON.stringify(band)}`,
+      ).toBeCloseTo(band.columnLeft, 1);
+      expect(
+        band.right,
+        `scrollTop ${target}: 띠 우변이 컬럼 우변과 다르다 ${JSON.stringify(band)}`,
+      ).toBeCloseTo(band.columnRight, 1);
+      expect(
+        worst,
+        `scrollTop ${target}: x${worstX} 로 콘텐츠가 비친다 — 좌gutter ${perRegion.leftGutter} · 안쪽 ${perRegion.inside} · 우gutter ${perRegion.rightGutter}`,
+      ).toBeLessThanOrEqual(OCCLUSION_MAX_CHANNEL_DELTA);
+    }
+  });
+
+  /*
+    ③-b ≥600px 에서도 같다 — 띠는 **앱 컬럼**(480) 전 폭이며 그 밖까지 가지 않는다.
+
+    컬럼 밖은 페이지 배경이고 콘텐츠가 통과하지 않는다 (`WIDE_VIEWPORT` 주석의 실측).
+  */
+  test('600px 이상에서도 띠가 앱 컬럼 전 폭을 덮는다', async ({ page }) => {
+    await page.setViewportSize({ ...WIDE_VIEWPORT });
+    await settle(page);
+
+    const target = 260;
+    const reached = await scrollToTop(page, target);
+    expect(reached, `scrollTop ${target} 에 도달하지 못했다 (실제 ${reached})`).toBe(target);
+
+    const band = await measureBand(page);
+    expect(band.classes).toContain('haru-top-bar--scrolled');
+    /* 컬럼이 실제로 가운데 정렬된 480 인지 — 아니면 이 테스트가 393 과 같은 것을 재게 된다. */
+    expect(
+      band.columnLeft,
+      `컬럼이 가운데 정렬되지 않았다 ${JSON.stringify(band)}`,
+    ).toBeGreaterThan(0);
+    expect(band.columnRight - band.columnLeft).toBeLessThan(WIDE_VIEWPORT.width);
+
+    const { clip, worst, worstX, perRegion } = await measureOcclusion(page, band);
+
+    // eslint-disable-next-line no-console -- 실측값을 보고에 그대로 옮긴다 (추정 금지)
+    console.log(
+      `[topbar-occlusion-wide] viewport=${WIDE_VIEWPORT.width} scrollTop=${target} ` +
+        `col=${band.columnLeft.toFixed(1)}–${band.columnRight.toFixed(1)} ` +
+        `band=${band.left.toFixed(1)}–${band.right.toFixed(1)} clip=${clip.width}×${clip.height} ` +
+        `delta: 좌gutter=${perRegion.leftGutter} 안쪽=${perRegion.inside} 우gutter=${perRegion.rightGutter} ` +
+        `(최대 ${worst} @x${worstX})`,
+    );
+
+    expect(band.left).toBeCloseTo(band.columnLeft, 1);
+    expect(band.right).toBeCloseTo(band.columnRight, 1);
+    expect(
+      worst,
+      `${WIDE_VIEWPORT.width}px: x${worstX} 로 콘텐츠가 비친다 — 좌gutter ${perRegion.leftGutter} · 안쪽 ${perRegion.inside} · 우gutter ${perRegion.rightGutter}`,
+    ).toBeLessThanOrEqual(OCCLUSION_MAX_CHANNEL_DELTA);
   });
 });

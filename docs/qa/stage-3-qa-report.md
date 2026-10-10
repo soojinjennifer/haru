@@ -1,7 +1,9 @@
 # Stage 3 QA Report — Home · Activity Card · Library · Book Selection · Recommendation (Frontend)
 
-Status: 작성 2026-10-09 · 재검증 2회차 2026-10-09 · **최종 판정 3회차 2026-10-09 (stage-qa-agent)**
-대상 커밋: 1회차 `61fee89` — *feat(library): give the sheet cover its shadow and open a QA entry point* / 2회차·**3회차 `80ee2be` — *fix: keep the toast off the tab bar and honour idempotency keys in the mock*** (3회차는 **코드 변경 0** — 문서 변경만)
+Status: 작성 2026-10-09 · 재검증 2회차 2026-10-09 · 판정 3회차 2026-10-09 · **재검증 4회차 2026-10-10 (stage-qa-agent)**
+대상 커밋: 1회차 `61fee89` — *feat(library): give the sheet cover its shadow and open a QA entry point* / 2회차·3회차 `80ee2be` — *fix: keep the toast off the tab bar and honour idempotency keys in the mock* (3회차는 **코드 변경 0**) / **4회차 `4f85b8e` — *fix: apply the six review findings from the Stage 3 walkthrough*** (사용자 검수 수정 6건 + 회귀 테스트 1건)
+
+> ⚠️ **현재 유효한 Stage Verdict 는 §13 (4회차) 이다.** §1 의 `PASS (accepted: …)` 는 **3회차 시점(`80ee2be`)의 판정**이며 이력으로 보존한다. 4회차는 커밋 `4f85b8e` 를 대상으로 하며 Verdict 가 바뀌었다.
 
 > **2회차 결과는 §11 에 있다.** §1 Summary · §4 Requirement Matrix · §6 · §8 · §10 은 2회차 결과로 **갱신**했고, §5 Findings 와 §2·§3·§9 의 1회차 측정 기록은 **이력으로 보존**한다 (판정 변화는 각 Finding 머리에 표시).
 판정 기준: `.claude/rules/qa.md` · `docs/plans/stage-3-plan.md` (APPROVED 2026-10-05) · `docs/plans/stage-3-library-plan.md` (APPROVED 2026-10-06) · `docs/design/stage-3-design-spec.md` · `docs/design/stage-3-library-design-spec.md` · **`docs/decisions/stage-3-approvals.md` §12~§25 (단일 기준)**
@@ -1193,3 +1195,400 @@ approvals §27.7 — **Stage 0 `#10-4` 항목별 재제시가 6건 전부에 성
 3. **Stage 4 Plan(plan-agent) 할 일**: §12.6 의 이월 3건을 **In Scope 로 등재**. `AC-3-22`~`26` 도 함께 다룬다.
 4. **Stage 8 게이트로 남는 것**: `QA-3-003`(에셋 파이프라인) + `P3-BIP-19`(표지 에셋 교체 — 상용 그림책 표지 Mock 전용, 법무 확인).
 5. 재검증이 다시 필요해지면 **항목 번호를 유지**하고 판정 변화를 §10 에 기록한다.
+
+---
+
+## 13. 재검증 4회차 — 커밋 `4f85b8e` · 사용자 검수 수정 6건 (2026-10-10)
+
+> **대상 상태**: `git status --porcelain` **빈 출력**(작업 트리 깨끗), `HEAD` = `4f85b8e` *fix: apply the six review findings from the Stage 3 walkthrough*. 변경 파일 **29개** (`apps/web` 13 · `packages/ui` 4 · `e2e` 5 · 시각 baseline 6 · approvals 1). 신규 파일 4개: `apps/web/src/app/layouts/AppShellTopBar.tsx` · `e2e/support/pixels.ts` · `e2e/toast.spec.ts` · `e2e/top-bar-scrolled.spec.ts`.
+> 4회차 과제는 **회귀 확인 + 결함 수정 4건 재측정 + 신규 테스트 검출력 확인**이다. 전 Stage 전수 재감사는 하지 않았고, 3회차에 PASS 로 확정된 AC 는 변경 영향 범위에 닿는 것만 다시 봤다.
+
+### 13.1 Stage Verdict (4회차) — **`INCOMPLETE`**
+
+> **`INCOMPLETE`** — `FAIL` 0 · **`PARTIAL` 3 (신규, 전부 동일 원인)** · `PARTIAL` 1 (수용 `AC-3L-24`) · `NOT VERIFIED` 2 (수용 `NV-1`·`NV-2`)
+
+**3회차 `PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)` → 4회차 `INCOMPLETE`.**
+
+| 구분 | 3회차 | 4회차 | 변화 |
+|---|---|---|---|
+| §28 수용 6건 (`QA-3-001`·`002`·`003`·`AC-3L-24`·`NV-1`·`NV-2`) | 수용 | **그대로 유지** | 변동 없음 — 이 커밋은 이 6건에 손대지 않았다 (`[QA 실행]` 확인: `PushPlatform` 0건 · Activity Card 캐시 0건 · `assets:optimize` 0건 · `GiftRequestStatus` fixture 2종 유지) |
+| 검수 수정 4건 (`#1`·`#2`·`#3`·`#4`) | — | **전부 `PASS`** (§13.4~13.7, QA 자체 측정) | 신규 |
+| `#5` TopBar gradient · `#6` 증정 신청 제거 | — | 구현은 `PASS` | 신규 |
+| **`AC-3-33` · `AC-3-35` · `AC-3L-23`** | `PASS` ×3 | **`PARTIAL` ×3** | ⚠️ **`#6`(증정 신청 제거)으로 요구사항의 주어가 사라졌는데 AC 수준의 폐기·축소 기록이 없다** → `QA-3-010` |
+
+**차단 요인은 1건이고 코드 수정이 필요하지 않다.** `AC-3-34` 가 §26.5 에서 받은 것과 **같은 종류의 결정 한 줄**(폐기 또는 범위 축소) + plan-agent 의 Plan 반영이면 `PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)` 로 돌아간다. QA 는 `rules/qa.md` §2 *"스스로 사용자 수용을 가정하지 않는다"* 에 따라 그 결정을 대신하지 않는다.
+
+**4회차에 `NOT VERIFIED` → `PASS` 로 올린 것 2건** (§29.7·§29.8 이 "검증 불가"로 적은 항목을 QA 가 측정했다): 토스트 진입·퇴장 모션(§13.9) · `prefers-reduced-transparency`·`print` 분기(§13.10).
+
+### 13.2 8개 명령  `[QA 실행]`
+
+| # | 명령 | 결과 | 소요 | 숫자 | 기준선(제시값) 대비 |
+|---|---|---|---|---|---|
+| 1 | `pnpm typecheck` | ✅ exit 0 | 8.3s | `tsc --noEmit` × 5 패키지 전부 Done | 일치 |
+| 2 | `pnpm lint` | ✅ exit 0 | 6.9s | 0 problems | 일치 |
+| 3 | `pnpm lint:boundaries` | ✅ exit 0 | 1.0s | **no dependency violations** (588 modules · 2078 dependencies) | 3회차 587 / 2072 → **+1 모듈 · +6 의존** = 신규 `AppShellTopBar.tsx` 와 그 import. **위반 0건 유지** |
+| 4 | `pnpm test` | ✅ exit 0 | 25.7s | **1623 passed / 1623 · 117 files** | **제시 기준선 1623 / 117 정확 일치** (3회차 1611 → +12) |
+| 5 | `pnpm build` | ✅ exit 0 | 1.2s | `built in 547ms` · CSS 122.52 kB · JS 577.49 kB | 일치 (chunk >500kB 경고는 기존) |
+| 6 | `pnpm format:check` | ✅ exit 0 | 3.5s | All matched files use Prettier code style | 일치 |
+| 7 | `pnpm assert:no-mocks` | ✅ exit 0 | 0.1s | `__HARU_MOCK_SENTINEL__` 0 · `__HARU_DEV_SENTINEL__` 0 · `haru-dev-` 0 | 일치 |
+| 8 | `pnpm test:e2e` | ✅ exit 0 | **6.0m (360.8s)** | **278 passed / 278 · 0 failed** | **제시 기준선 278 정확 일치** (3회차 273 → **−1 +6**) |
+
+- **`test:e2e` 는 단독 실행했다.** 1~7 을 전부 끝낸 뒤 시작했고, 실행 전 `ps`·`lsof` 로 **HARU dev 서버·Playwright 프로세스 0건**을 확인했다(남아 있던 두 프로세스는 다른 프로젝트의 idle vitest 였다). 소요 **6.0분**은 정상 대역이며 20분대 지연·허위 실패는 재현되지 않았다. 브라우저 실측용 dev 서버는 **e2e 가 전부 끝난 뒤에** 띄웠고, 측정 후 `kill` + `lsof` 로 종료를 확인했다.
+- e2e 278 의 내역(`[QA 실행]` 로그 집계): `visual` 72 · `shadow` 52 · `onboarding` 40 · `library` 26 · `home` 22 · `consent` 15 · `auth` 13 · `scenarios` 11 · `responsive` 8 · `tabs` 6 · `a11y` 5 · **`toast` 4(신규)** · **`top-bar-scrolled` 2(신규)** · `book-cover` 2. 273 → 278 의 산식은 **`tabs` −1**(하단 보정 역방향 테스트 제거) **+ `toast` 4 + `top-bar-scrolled` 2** 로 정확히 맞는다.
+
+#### 시각 baseline 스테일 검사 — 전량 재생성  `[QA 실행]`
+
+```
+pnpm test:e2e --update-snapshots=all        → 278 passed (6.1m / 368.7s, exit 0)   ← 단독 실행
+git status --porcelain e2e/__screenshots__  → (빈 출력)
+git diff --stat e2e/__screenshots__         → (빈 출력)
+find e2e/__screenshots__ -name '*.png' | wc -l → 74
+```
+
+**baseline 74종 전량 재생성 후 변경 0바이트 — 스테일 0건.** 이 커밋이 6장을 재생성했는데(`s3-home*` 4 · `s3-library-book-sheet*` 2), **재생성분이 현재 코드와 일치**함을 기본 `changed` 모드가 아니라 `--update-snapshots=all` 로 확인했다. 파일 수 74 도 3회차와 동일(신규 baseline 0건 — 신규 e2e 2종은 **픽셀 프로브**라 스냅샷을 쓰지 않는다).
+
+### 13.3 ⚠ 회귀 — `packages/ui` 공개 API 변경과 전 화면 공용 레이어
+
+이번 변경의 위험은 **`Toast` 와 `TopBar` 가 전 화면 공용**이라는 데 있다. `useToastTabBarInset` 제거 → `useToastTopBarInset` 신설, 등록 지점이 `TabLayout`(탭 전용) → **`AppShellTopBar`(Tab·Stack·Fullscreen 공용 1곳)** 로 올라갔다. 그래서 Stage 1·2 경로를 다시 걸었다.
+
+#### ① 구 API 잔류 0건  `[QA 실행]`
+
+```
+grep -rn "useToastTabBarInset" apps/web/src packages/*/src e2e
+  → apps/web/src/app/layouts/TabLayout.tsx:35  (주석 1건 — 제거 사유 기록)
+grep -n "tabbar|--layout-tabbar-height" packages/ui/src/feedback/Toast.css  → 0건
+```
+
+`.haru-toast-viewport--tabbar` 규칙과 `--layout-tabbar-height` 참조가 **CSS 에서 완전히 사라졌다**. `stage3-css-guards.test.ts` 가 그 **부재를 단정**으로 바꿔 고정한다(`AD-S3-14` 폐기). 즉 §29.2 가 보고한 "하단 규칙과 상단 규칙 동시 적용 → 토스트 높이 715px" 결함 경로는 **구조적으로 재현 불가**다 — QA 가 런타임에서 선언을 확인했다: `.haru-toast-viewport` 와 `--below-top-bar` 두 규칙 모두 `inset-block-start` **만** 선언하고 `inset-block-end`·`bottom` 선언이 **없다**(브라우저 CSSOM 직독, `rule.style.getPropertyValue`). 실측 viewport 높이는 **50px**(= 토스트 자신의 높이).
+
+#### ② `QA-3-004` 재발 여부 — **재발하지 않았다**  `[QA 실행 · elementFromPoint hit-test]`
+
+> `.click()` 을 주 단정으로 쓰지 않았다 — 토스트는 4s 자동 해제라 가려져 있어도 대기 중 사라져 클릭이 늦게 성공한다(결함 통과 경로). 측정은 **같은 `evaluate` 안에서** "토스트가 떠 있다" 확인과 `elementFromPoint` 를 함께 했다.
+
+| 뷰포트 | Toast | 탭바 | Toast 아래끝 − 탭바 위끝 | 탭 3개 hit-test |
+|---|---|---|---|---|
+| **393×852** | top 52 / bottom 102 | top 766 | **−664** (겹침 없음) | `Library`·`Home`·`Progress` **전부 `inTabBar: true` · `inToast: false`** |
+| **320×568** | top 52 / bottom 102 | top 482 | **−380** | 동일 — 3개 전부 탭바 |
+
+#### ③ `#3` 의 반대 방향 — 상단 Toast 가 TopBar 를 가리지 않는다  `[QA 실행 · hit-test]`
+
+| 화면 | Layout | TopBar 슬롯 높이 | Toast top | TopBar bottom − Toast top | TopBar 대화형 요소 hit-test | 띠 중앙 hit-test |
+|---|---|---|---|---|---|---|
+| `/` (Home) | Tab | **48** | 64 | **−16** | `Settings` IconButton → `inTopBar: true` · `inToast: false` | `inToast: false` |
+| `/` 320px | Tab | 48 | 64 | −16 | 동일 | `inToast: false` |
+| `/auth/log-in` (reset-password 제출 후) | Stack | **40** | 56 | **−16** | 대화형 요소 **0개** (제목만) | `inToast: false` |
+| `/library/add` → `/library` (착지 직후) | Stack | 40 | 44 | −4 | `Go back` → `inTopBar: true` | `inToast: false` |
+| `/library` (렌더 완료 후) | Tab | 40 | 56 | **−16** | 대화형 요소 0개 | `inToast: false` |
+
+실측 TopBar 슬롯 높이가 **40 과 48 로 갈린다**(Home 은 `.haru-home-top-bar` 가 상단 여백 10 을 더한다) — §29.2 의 실측과 일치한다. 보정값은 런타임 측정으로 전달된다: Home `inset-block-start: 64px` = safe-top 0 + **48** + 16, Stack `56px` = 0 + **40** + 16.
+⚠ **정정 1건**: §29.2 는 *"토큰 상수로는 8px 부족하다"* 고 적었는데, **가림(클릭 불능)에는 8px 가 부족하지 않다** — 토큰 fallback 40 을 쓰면 Home Toast top 이 56 이고 TopBar 아래끝은 48 이라 **여전히 겹치지 않는다**. 실측이 주는 것은 *의도한 16px 간격의 일관성*이고, 가림을 막는 것은 `+ var(--space-4)` 16 이다. **결함이 아니라 근거 서술의 과장**이다 (판정에 영향 없음 — 실측 방식이 더 안전한 쪽인 것은 맞다).
+
+#### ④ Stage 1·2 경로 재실행 — **PASS**  `[QA 실행 · 브라우저 워크스루]`
+
+QA 자작 Playwright 스크립트(저장소 밖, 사용 후 제거)로 **두 경로**를 직접 걸었다. `console` error·`pageerror` 를 수집했다.
+
+| 경로 | 결과 |
+|---|---|
+| `/auth/sign-up?scenario=me:consent-missing` → (이름·이메일·비밀번호) → **`/auth/consent`** → 필수 동의 3종 체크 → `Continue` → **`/onboarding/start`** → **`/onboarding/child-info`** | ✅ 전 단계 정상. 각 화면의 TopBar 슬롯 유무가 Layout 설계와 일치(sign-up 슬롯 없음 · consent 슬롯 40 · onboarding 슬롯 없음) |
+| `/auth/log-in` → `/` → 탭 `Library` → `Progress` → `Home` → `Settings`(Stack) → 로그아웃 확인 → **`/auth/welcome`** | ✅ 전 단계 정상. `Home` 슬롯 48 · `Library`/`Progress`/`Settings` 슬롯 40 · 탭바는 탭 화면에만 |
+| 수집된 `console` error / `pageerror` | **0건** |
+| 떠 있지 않아야 할 Toast | 전 단계 **0건** (의도한 지점에서만 뜬다) |
+| 로그아웃 후 `localStorage` / `sessionStorage` | **`[]` / `[]`** (잔여 0건 — Privacy 체크리스트 "로그아웃 시 로컬 정리") |
+
+e2e 쪽 Stage 1·2 커버리지도 전부 통과했다: `auth` 13 · `consent` 15 · `onboarding` 40 · `a11y` 5 · `responsive` 8 · `tabs` 6 = **87 passed**.
+
+⚠ **`/onboarding/:step` 토스트 보정 사각지대 — 실측으로 확인**(§29.7 보고 항목). `/onboarding/child-info` 에서 `.haru-app-shell__bar-top` **부재** + `main .haru-top-bar` **존재**를 측정했다. 즉 그 화면에 토스트를 띄우면 보정이 걸리지 않는다. **현재 온보딩에 토스트 호출이 없다**(`useToast()` 사용처 전수: `AddOwnBookForm` · `BookDetailSheet` · `ActivityCardDeck` · `ResetPasswordPage` + dev gallery 2 — 온보딩 0건)이므로 **실제 결함은 없다.** Stage 4 이후 온보딩에 토스트가 생기면 되살아난다 → §13.12 에 이월.
+
+### 13.4 `#1` 프롬프트 pill 텍스트 세로 중앙 — **PASS**  `[QA 실행 · 393/320/1024 실측]`
+
+`align-items: flex-start` → `center`. **박스 크기는 바뀌지 않았다**(pill 42 유지).
+
+| 화면 | pill | 줄 수 | 본문 위 | 본문 아래 | 배지 위 | `align-items` |
+|---|---|---|---|---|---|---|
+| 시트 393 | 42 | **1줄** | **15** | **15** | 9 | `center` |
+| 시트 393 | 42 | 2줄 | 9 | 9 | 9 | `center` |
+| 시트 1024 | 42 | 1줄 | 15 | 15 | 9 | `center` |
+| 시트 320 | 54 | 3줄 | 9 | 9 | 9 | `center` |
+| Home 카드 393 | 42 | 1줄 | **15** | **15** | 9 | `center` |
+| Home 카드 393 | 42 | 2줄 | 9 | 9 | 9 | `center` |
+
+- 1줄 질문: 위 **9 / 아래 21** 이던 비대칭이 **15 / 15** 로 균등해졌다 (§29.1 서술과 일치).
+- 2줄 이상: **9 / 9 그대로** — Figma 실측값이 보존된다.
+- 배지는 `align-self: flex-start` 로 **첫 줄에 머문다**(위 9) — 1줄·2줄·3줄 전부에서 9 로 고정. 본문만 중앙으로 간다.
+- Figma 충돌 없음: `145:1085` 에 **1줄 pill 예시가 없다**(`[QA 실행]` Figma `get_metadata` — Prompt Card 4개 전부 42 고정, 본문은 2줄).
+
+### 13.5 `#2` 책 블록 ↔ 첫 프롬프트 간격 6 — **PASS**  `[QA 실행 · 실측 + Figma 대조]`
+
+| 지점 | 393 | 320 | 1024 |
+|---|---|---|---|
+| `.haru-book-sheet__book` `margin-block-end` | **6px** | 6px | 6px |
+| 책 블록 박스 아래변 → 첫 pill 윗변 | **6** | **6** | **6** |
+| 표지 이미지 아래변 → 첫 pill 윗변 | 6 | **8.58** | 6 |
+| pill ↔ pill | 6 | 6 | 6 |
+
+- **간격이 한 종류(6)로 통일**됐다 — 수정 전 실측 0(§29.5 "이미 어긋나 있었다")에서 바뀐 것을 확인했다.
+- 320 의 **8.58** 은 §29.5 가 수용한 잔여 차이와 **같은 값**이다 (긴 제목으로 텍스트 열이 표지보다 2.58 아래까지 내려간다). 박스 기준으로는 정확히 6.
+- **Figma 대조** `[QA 실행]` — `145:1085` 실측: 책 Container `y=56 h=82` → 아래변 **138**, Prompt Container `y=150` → **간격 12**. Prompt Card 들은 `y 0 / 48 / 96 / 144` + `h 42` → **pill 간격 6**.
+  - 시트: Figma **12** ↔ 구현 **6** = **§29.5 사용자 결정 허용 차이**. `FAIL` 로 올리지 않는다. ⚠ **허용 차이 ID 가 아직 부여되지 않았다**(§29.5 가 `AD-L-*` 를 design-agent 소관으로 남겼다) → §13.12 이월.
+  - **Home 카드: Figma 12 ↔ 구현 12 — 일치 유지** (`[QA 실행]` 실측 `gapBookToList: 12`). 이번 변경이 Home 을 건드리지 않았음을 수치로 확인했다.
+
+### 13.6 `#3` 저장 실패 알림 → 상단 토스트 — **PASS**  `[QA 실행]`
+
+- 시트 본문(ActionBar 아래)에 **인라인 알림 0건** — `[role="dialog"] .haru-inline-alert` **count 0**, 시트 텍스트에 실패 문구 **없음**.
+- 실패는 `.haru-toast--error` 로 뜬다. 문구 실측: **"We couldn't save that book. Try again."**
+- 토스트는 `document.body` 로 **portal** 된다 — 실측 부모 체인 `haru-toast` → `haru-toast-viewport` → **`BODY`** → `HTML`. 시트 DOM 밖이다.
+- 자동 해제 후: **토스트 0개 · 화면 어디에도 실패 문구 없음 · 인라인 알림 0건**.
+- TopBar 가림 없음은 §13.3 ③ 의 hit-test 표가 다섯 화면에서 고정한다.
+
+### 13.7 `#4` 에러가 모든 책에 남던 결함 — **PASS**  `[QA 실행 · 수정 전/후 대조 측정]`
+
+**결함을 내가 직접 재현했고, 수정본에서 사라지는 것을 같은 프로브로 확인했다.** 제품 코드를 수정하지 않기 위해, `git archive` 로 **저장소 밖에** 두 벌(`017cf59` 수정 전 / `4f85b8e` 수정 후)을 풀고 **동일한 QA 자작 프로브**를 양쪽에 돌렸다 (사용 후 삭제). 프로브는 실화면과 같은 조건 — `library:error` 시나리오 · 실제 `BookDetailSheet` · `LibraryShelves` 가 하는 **`book` prop 교체**.
+
+| 단계 | 수정 전 `017cf59` | 수정 후 `4f85b8e` |
+|---|---|---|
+| 책 A 저장 실패 직후 문구 위치 | **`inDialog: true` · `inToast: false`** | `inDialog: false` · **`inToast: true`** |
+| 책 B 로 교체한 뒤 **시트 안** 문구 수 | **`1`** ← **결함 재현** | **`0`** ← **해소** |
+| 교체 뒤 화면 전체 문구 수 | 1 | 1 (= 토스트 레이어 1개, 자동 해제 대상) |
+
+신규 회귀 테스트 2종도 **수정 전 코드에서 실패한다**(= 실제로 문다) `[QA 실행]`:
+
+```
+(수정 전 017cf59 사본) vitest library-sheets.test.tsx -t "저장 실패 알림"
+  × 실패하면 **토스트**로 알린다 — 시트 본문에 인라인 알림을 남기지 않는다   AssertionError: expected null not to be null
+  × 한 책의 실패가 **다음 책으로 새지 않는다** (교체 전환 뒤 시트에 알림이 없다)  AssertionError: expected null not to be null
+  → Tests 2 failed
+
+(현재 HEAD) 같은 명령 → ✓ ✓  Tests 2 passed
+```
+
+⚠ **런타임(실브라우저) 재현 경로의 한계 — 기록해 둔다.** 과제가 제시한 경로(`/auth/log-in?scenario=library:error` → `/library` → `Finished together` 행 → 시트 → `★ Save`)는 **현재 Mock 으로는 끝까지 걸을 수 없다.** scenario key 가 **그룹 단위**라 `library:error` 가 `getOverview` 까지 실패시켜 `/library` 가 *"We could not load your library"* 로 떨어지고 **열 책 행이 0개**가 된다 (`[QA 실행]` 실측: `library:error` 에서 `.haru-list-row` 2개는 진입점 2행, `.haru-shelf-item--pressable` **0개**). `deliver()` 가 `loading`·`error`·`retry`·`offline` 을 **그룹 전체**에 적용하므로 "목록은 성공 + 저장만 실패" 를 만들 수 있는 key 가 없다. 그래서 위 대조는 **컴포넌트 레벨 런타임**(jsdom · 실제 컴포넌트 · 실제 Mock · 실제 prop 교체)으로 했고, **실브라우저에서는 Home 경로**(`ActivityCardDeck` — 같은 `useToggleLibrarySave` + 같은 토스트 패턴)로 토스트 동작·portal·자동 해제를 확인했다. → 시나리오 보강 제안을 §13.12 에 남긴다 (`library:save-error` 류).
+
+### 13.8 `#5` TopBar 스크롤 배경 gradient — **PASS** · 신규 테스트 **실제로 문다**  `[QA 실행 · 픽셀 프로브]`
+
+#### ① e2e 가 내 러너에서 내놓은 실측값 (내 단독 실행 로그에서 그대로 옮긴다)
+
+```
+[topbar-seam]  scrollTop=60/160/260/420  band=0.0–40.0  delta=[1, 0, 1]
+               bg="linear-gradient(rgb(219, 238, 231) 0%, r…"  attachment=fixed  shadow=none
+[topbar-title] scrollTop=60/160/260/420  "Library"  ink=rgb(74, 95, 92)  box=97×34(3298px)
+               contrast=5.55…5.64  below3:1=0px (0.0%)
+```
+
+네 scrollTop 전부 경계 단차 **[1, 0, 1]**(가운데 행 0 = 램프가 아니라 디더라는 §29.6 의 근거를 내 러너에서도 재현), 제목 대비 **5.55…5.64**, 3:1 미만 **0%**. §29.6 이 적은 수치와 **일치**한다.
+
+#### ② 되돌림 재현 — §29.6 표 5종 중 **3종을 내가 직접 재현**  `[QA 실행]`
+
+제품 코드를 건드리지 않고 `page.addStyleTag` 로 런타임 되돌림을 넣고, 띠 아래 3행과 제목 뒤 3,298 픽셀을 **내 디코더로** 직접 쟀다 (scrollTop 260).
+
+| 되돌림 | 띠 배경 (실측) | ① 경계 단차 | ② 제목 대비 | §29.6 기재값 | 내 실측 |
+|---|---|---|---|---|---|
+| **현재 구현** | `linear-gradient(rgb(219,238,231)…)` · shadow none | **[1, 0, 1]** ✅ | min **5.55** / max 5.64 / 3:1 미만 **0%** ✅ | — | — |
+| `background-image: none; background-color: transparent` | `none` · transparent | [1, 0, 1] (①은 **통과**) | min **1.00** / 3:1 미만 **82.3%** → ② **FAIL** | 1.00 · 82.3% | **동일** |
+| `background-color: var(--color-surface-glass)` | `rgba(255,255,255,0.74)` | **[27, 27, 27]** → ① **FAIL** | 4.04…6.69 / 0% (②는 통과) | 단차 **27** | **동일** |
+| `box-shadow: var(--shadow-rest)` 부활 | gradient 유지 + shadow 있음 | **[25, 25, 24]** → ① **FAIL** | 5.55…5.64 / 0% | 단차 **25** | **동일(25)** |
+
+**두 단정이 서로 다른 회귀를 문다는 §29.6 의 주장은 내 측정으로 성립한다.** 투명 되돌림은 ①을 통과하고 ②만 잡고, glass·그림자 되돌림은 ②를 통과하고 ①만 잡는다. 임계값 `SEAM_MAX_CHANNEL_DELTA = 4` 는 실측 바닥 1 과 검출 대상 25~27 사이에 **여유 있게** 놓여 있다. 대비 임계 `3` 은 WCAG large-text AA 값이라 러너 이식성이 있다.
+⚠ §29.6 이 스스로 적은 **검출 공백**(`background-attachment: scroll` 만 떨어뜨리면 둘 다 통과)은 그대로 남는다 — iOS Safari 계열 UA fallback 방어용이며 **실기기 검증 대상**(`NV-1` 범위).
+
+#### ③ 띠 옆 gutter 비침 — §29.7 의 **수치가 과소 기재**됐다  `[QA 실행]`
+
+§29.7 은 *"최대 채널차 5(219→214) 라 거의 분간되지 않는다"* 고 적었다. 띠 마지막 행(y 39) 393px 전 폭을, **콘텐츠 있음 ↔ `main` 숨김(순수 바탕)** 두 컷으로 픽셀마다 비교해 보니 다르다.
+
+| 구간 | 실측 |
+|---|---|
+| 띠 안쪽 `x 24…368` | 채널차 **0** — 콘텐츠가 완전히 가려진다 ✅ |
+| 좌측 gutter `x 10…23` | 1 → **16** 으로 띠 쪽으로 가며 증가 |
+| 우측 gutter `x 370…392` | **16** → 3 → **16** (양끝에서 큼) |
+| 띠 바로 밖 `x 369` | `[252, 206, 0]` ← **콘텐츠 원색**(순수 바탕 `[218,237,230]`), 차 **230** |
+
+즉 **콘텐츠가 띠 옆 24px gutter 를 그대로 지나간다.** 기재된 5 가 아니라 **16**(gutter 내부) 이고, 띠 경계 바로 밖에서는 콘텐츠 원색이 보인다. **이번 커밋이 만든 결함은 아니다**(§29.7 대로 glass 시절부터 같은 기하) — 다만 띠가 **불투명**해지면서 "띠 아래는 가려지고 띠 옆은 안 가려지는" 단차가 더 또렷해진다. 고치려면 `AppColumn` 기하 변경이 필요하다 → `QA-3-012` (Low, 사용자 결정 필요).
+
+#### ④ `transition-property` 가 아무것도 전이시키지 않는다 (§29.7 확인)
+
+`.haru-top-bar` 는 `transition-property: background-color, box-shadow` 를 두는데, `--scrolled` 는 **`background-image`** 를 바꾸고 `box-shadow` 를 주지 않는다 → 기본 경로에서 gradient 가 **즉시 교체**된다. §29.7 의 보고가 정확하다. **명세 확인 필요 항목**이며 결함으로 판정하지 않는다(Design Spec §6.1 이 페이드를 요구하는지 미확정, 그 문구 자체가 §29.3 으로 수정 대상이다).
+
+### 13.9 토스트 진입·퇴장 모션 — §29.8 의 `NOT VERIFIED` → **PASS**  `[QA 실행 · rAF 프레임 샘플링]`
+
+§29.8 은 *"Playwright 가 `animations: disabled` 로 돌아 픽셀 검증이 안 된다"* 고 적었다. 맞다 — **프로젝트 e2e 설정에서는** 안 된다. QA 는 **설정을 거치지 않는 자작 브라우저 세션**(raw `chromium.launch()`, 애니메이션 비활성 없음)에서 `requestAnimationFrame` 으로 26 프레임을 샘플링했다.
+
+| 측정 | 값 |
+|---|---|
+| `animation-name` / `animation-duration` | **`haru-toast-in` / 0.24s** |
+| `transform` 궤적 | `matrix(1,0,0,1,0,**-12**)` → −10.06 → −7.99 → −5.95 → −4.16 → −2.80 → −1.87 → −1.23 → −0.80 → −0.50 → … → **0** |
+| `opacity` 궤적 | **0** → 0.161 → 0.334 → 0.504 → 0.654 → 0.767 → 0.844 → 0.897 → 0.933 → 0.958 → … → **1** |
+| 화면상 `top` | **52 → 64** (12px **내려온다**) |
+| 퇴장 | `animation-name` **`haru-toast-out`** · `transform` 전 프레임 **`none`**(방향 없음) · `opacity` 0.552 → **0** |
+
+**"위에서 내려왔다가 사라진다"가 픽셀 이전 단계(레이아웃·합성 입력값)에서 프레임 단위로 확인됐다.** Design Spec §9.1(enter translateY(−12)→0 + fade 240ms / exit fade only 180ms)과 일치한다. `prefers-reduced-motion` 경로는 CSS 가드(`stage3-css-guards.test.ts`)가 `transform: none` 을 고정한다.
+⚠ 남는 것: **실기기에서 사람 눈으로 보는 부드러움**(프레임 드롭·jank)은 이 측정의 대상이 아니다 → `NV-1` 범위. 수동 절차는 §13.11.
+
+### 13.10 `prefers-reduced-transparency` · `print` 분기 — §29.7 의 미검증 → **PASS**  `[QA 실행 · CDP 미디어 에뮬레이션]`
+
+§29.7 은 *"Playwright 가 그 media feature 를 에뮬레이트하지 않는다(CDP 설정 필요 — 범위 밖)"* 고 적었다. QA 세션에서는 범위 밖이 아니다 — `context.newCDPSession` → `Emulation.setEmulatedMedia` 로 직접 걸었다. `/library` scrollTop 260 에서 띠와 `AppBackground` 를 **같이** 읽었다.
+
+| 모드 | 띠 `background-image` | 띠 `background-color` | `AppBackground` | 판정 |
+|---|---|---|---|---|
+| 기본 | `linear-gradient(rgb(219,238,231)…)` | transparent | `linear-gradient(rgb(219,238,231)…)` | ✅ **같은 램프** |
+| `prefers-reduced-transparency: reduce` | `none` | **`rgb(219, 238, 231)`** | **`rgb(219, 238, 231)`** | ✅ **같은 단색** = `--color-bg-app-start`. 경계 없음 |
+| `print` | `none` | **transparent** | **transparent** | ✅ **흰 종이에 띠가 남지 않는다** — 신규 인쇄 분기가 의도대로 동작 |
+
+`matchMedia` 로 에뮬레이션이 실제로 걸린 것도 함께 확인했다(`matchReducedTransparency: true` / `matchPrint: true`). **§29.3 이 "인쇄 분기를 신설한 이유"로 든 회귀(불투명 띠가 흰 종이에 남는다)가 실제로 막혀 있다.**
+
+### 13.11 `#6` `Request this book` 제거 — 구현 **PASS** / AC 기록 **PARTIAL**  `[QA 실행]`
+
+#### 구현 — 제거·유지가 결정대로다
+
+| 항목 | 실측 |
+|---|---|
+| `favorite_only` 책 시트의 신청 CTA | `library:gift-pending` 시나리오에서 **캐러셀 12개 전부** 열어 확인 → `/request this book/i` **0건** |
+| 문구 키 | `libraryCopy.bookSheet.requestBook` **부재**, 전 copy 직렬화에 `/request this book/i` **0건** (`library-copy.test.ts` 2종이 고정) |
+| 테스트 | 삭제하지 않고 **부재 단정으로 뒤집혔고**, 이름에 copy 키가 아니라 **리터럴**을 써서 키를 되살려도 저절로 통과하지 않는다 (`[QA 실행]` 소스 확인) |
+| **유지** `/library/gift-requests` | ✅ 진입점 1건(`Gift requests` ListRow — 링크가 아니라 **버튼**) → 이동 성공. 화면 실측: *"Your request is in \| We'll reach out with delivery details. \| GH \| Guess How Much I Love You \| Requested Dec 29 \| **Shipped** \| LL \| Llama Llama Red Pajama \| Requested Dec 31 \| **Requested**"* |
+| 조회 화면의 배송지 입력 필드 | **0개** (`D-15` 유지) |
+| 조회 화면의 신청 CTA | **0개** |
+| contracts · Mock · hook | **전부 유지** (`createGiftRequest` · `CreateGiftRequestRequestSchema` · `GIFT_REQUEST_DUPLICATE` · `library:gift-duplicate` 시나리오 · `createGiftRequestFixture` · `useCreateGiftRequest.ts` 파일 — `[QA 실행]` grep) |
+
+#### ⚠ `favorite_only` 분기가 **어떤 Mock 시나리오에서도 아무것도 렌더하지 않는다**  `[QA 실행]`
+
+`#6` 이후 그 분기에 남은 UI 는 `purchaseUrl` 이 있을 때의 `Where to buy` 링크 **하나**다. 그런데 **`purchaseUrl` 을 채우는 fixture 가 0건**이다:
+
+```
+grep -rn "purchaseUrl" apps/web/src packages/contracts/src e2e
+  → BookDetailSheet.tsx (3) · library-copy.ts (주석) · contracts/library-book.ts (스키마)  — fixture 0건
+grep -c "purchaseUrl" apps/web/src/mocks/fixtures/library.ts  → 0
+```
+
+따라서 `GiftBlock` 이 `favorite_only` 에서 **항상 `null` 을 반환**한다. §29.4·과제 §C 가 승인한 *"구매 링크 없을 때 빈 상자 미렌더"* 는 의도대로 동작하지만, **그 결과 `FR-22` 의 "구매 링크" 표시 경로를 실행으로 확인할 수단이 없어졌다**(수정 전에는 적어도 신청 CTA 가 그 자리에 있었다). `AC-3-32` 의 구매 링크 절은 3회차에도 `TextLink.tsx:91` 의 `rel="noopener noreferrer"` 단위 증거로 PASS 였으므로 **판정은 PASS 유지**하되, 이것은 **승인된 범위 초과의 부작용**이라 과제 지시대로 Finding 으로 올리지 않고 여기에 기록한다. 시나리오 보강 제안 → §13.12.
+
+#### ⚠ AC 3건이 주어를 잃었다 → `QA-3-010` (§13.13)
+
+`AC-3-33` · `AC-3-35` · `AC-3L-23` 은 **"증정 신청 CTA"** 를 주어로 쓴다. `#6` 으로 그 주어가 사라졌는데 **AC 수준의 폐기·축소 기록이 없다.** `AC-3-34`(§26.5) · `AC-3-86`(§27.2) 는 사용자 결정이 *"이 AC 를 폐기한다" / "이 분기만 폐기하고 나머지는 판정 유지한다"* 를 명시해 QA 가 그에 맞춰 판정했는데, §29.4 에는 그 문장이 없다 (PRD `FR-22` 를 수정 대상 `LN-8` 로 올린 것까지다). QA 는 요구사항을 스스로 폐기하지 않으므로 **세 건을 `PARTIAL`** 로 기록한다.
+
+### 13.12 Stage 4 / 후속으로 넘기는 것 (4회차 추가분)
+
+§12.6 의 이월 3건(`QA-3-001`·`002`·`003`)과 `AC-3-22`~`26` 은 **변동 없다.** 4회차가 더하는 것:
+
+| 항목 | 내용 | 소관 |
+|---|---|---|
+| **허용 차이 ID 미부여** | 시트 책 블록 ↔ Prompt 간격 Figma 12 ↔ 구현 6 (§29.5 사용자 결정)에 `AD-L-*` 번호가 없다 | **design-agent** |
+| **Design Spec §6.1 수정** | *"스크롤 시 glass 배경"* 서술이 현재 구현(앱 바탕 gradient)과 다르다 (§29.3 이 수정 대상으로 지목) | **design-agent** |
+| **PRD `FR-22` 수정** | *"증정 신청"* 이 P0 목록에 남아 있다 (`LN-8`, `D-24` 절차) | 사용자 + 문서 |
+| **Mock 시나리오 보강 2건** | ① **목록 성공 + 저장만 실패**(`library:save-error` 류) — 현재 `library:error` 가 그룹 전체를 실패시켜 `#4` 재현 경로를 실브라우저에서 걸을 수 없다 ② **`purchaseUrl` fixture** — `favorite_only` 의 `Where to buy` 가 어떤 시나리오에서도 렌더되지 않는다 | **development-agent** (Stage 4) |
+| **`/onboarding/:step` 토스트 보정** | 위저드가 TopBar 를 `main` 안에서 렌더해 슬롯이 비어 있다(실측 확인). 현재 토스트 호출 0건이라 무해하지만 생기면 위저드 헤더를 가린다 | **development-agent** (토스트 도입 시) |
+| **`background-attachment: scroll` 검출 공백** | §29.6 이 스스로 적은 공백. iOS Safari 계열 실기기 확인 대상 (`NV-1` 범위) | 실기기 확보 시 |
+
+### 13.13 Findings (4회차 신규)
+
+#### `QA-3-010` | Severity: **Low** — ⚠ **차단 요인**
+
+**Requirement**: `AC-3-33` · `AC-3-35` (Stage 3 Plan `:583`·`:585`) · `AC-3L-23` (Library Plan `:414`)
+
+**Steps to reproduce** (Mock 시나리오 포함):
+1. `/auth/log-in?scenario=library:gift-pending` 로 로그인 → `/library`
+2. `Favorites` 캐러셀의 모든 항목(12개)을 열어 본다 → `Request this book` **0건**
+3. `?scenario=library:gift-duplicate` 로 같은 경로 → 신청을 **시작할 수단이 없어** `GIFT_REQUEST_DUPLICATE` 안내가 뜰 수 없다
+4. `grep -rn "GIFT_REQUEST_DUPLICATE" apps/web/src` → 표시 경로 **0건** (§29.4 가 *"어떤 화면도 표시할 수 없다"* 로 명시)
+
+**Expected**: 요구사항이 사라졌다면 **AC 수준의 폐기·축소 기록**이 있어야 한다 (`AC-3-34` 의 §26.5, `AC-3-86` 의 §27.2 와 같은 형식: *"이 AC 를 폐기한다"* 또는 *"이 절만 폐기하고 잔여 범위는 판정 유지"*).
+**Actual**: §29.4 는 **기능 제거**와 **PRD 수정 대상 등록(`LN-8`)** 까지만 적었고 AC 3건을 어떻게 판정할지 정하지 않았다. Plan 세 줄은 그대로 *"증정 신청 CTA → `POST …/gift-requests`(IK) → 접수 안내"* 를 요구한다.
+
+**판정 처리** — QA 는 요구사항을 스스로 폐기하지 않는다 (`rules/qa.md` §2, CLAUDE.md *"Agent 가 스스로 허용 차이로 처리하지 않는다"*):
+
+| AC | 요구사항 | 충족된 절 | 미충족 절 | 판정 |
+|---|---|---|---|---|
+| `AC-3-33` | 신청 CTA → POST(IK) → 접수 안내 **+ 배송지 입력 필드 부재** | **배송지 입력 필드 0개** (`[QA 실행]` `/library/gift-requests`·시트 전수) + 신청 경로 자체가 없다 | CTA → POST → 접수 안내 | **`PARTIAL`** |
+| `AC-3-35` | `GIFT_REQUEST_DUPLICATE` 가 **중복 안내로 표현**되고 **오류 화면으로 빠지지 않는다** | 오류 화면으로 빠지지 않는다 (`library:gift-duplicate` 에서 화면 정상) | 중복 안내 표현 | **`PARTIAL`** |
+| `AC-3L-23` | 시트의 신청 CTA → `POST …/gift-requests`(IK) **발생** + `gift-duplicate` 안내 | **contracts·Mock 양쪽 모두 살아 있고 실행으로 검증된다** — `AC-3-36` 7항목 replay(`IDEMPOTENCY_KEY_REUSED`·보관함 분리 포함) · `MockLibraryApi.test.ts:300` 중복 코드. 사용자가 §29.4 "유지" 목록에 넣은 Backend 인터페이스다 | **UI 트리거 전부** | **`PARTIAL`** ⚠ |
+
+⚠ **`AC-3L-23` 을 엄격히 읽으면 `FAIL` 이다** — 주어가 *"`BookDetailSheet` 의 증정 신청 CTA"* 이고 그 UI 는 전부 사라졌다. `PARTIAL` 로 둔 근거는 AC 가 이름한 두 메커니즘(IK 를 쓰는 `POST`, `GIFT_REQUEST_DUPLICATE`)이 **사용자 결정으로 보존되어 실행 증거까지 있다**는 것뿐이다. **이 라벨은 사용자 결정으로 바뀔 수 있고, QA 가 대신 정하지 않는다.**
+
+**Evidence**: `[QA 실행]` 브라우저 전수(캐러셀 12개) · copy 직렬화 grep · `GIFT_REQUEST_DUPLICATE` 사용처 grep · `/library/gift-requests` 실화면 / `[문서 인용]` approvals §29.4 · §26.5 · §27.2 · Plan `:583`·`:585`·Library Plan `:414`
+**Suspected area** (수정 지시 아님): **결정 문서** — `AC-3-33`·`AC-3-35`·`AC-3L-23` 재정의. 그 다음 `docs/plans/stage-3-plan.md`·`stage-3-library-plan.md` 반영(plan-agent). **제품 코드 수정 대상이 아니다.**
+
+**해소 조건**: 사용자가 세 AC 를 §26.5 형식으로 폐기 또는 범위 축소 → QA 가 잔여 범위를 재측정(§13.11 의 "충족된 절" 은 이미 측정 완료) → Verdict `PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`.
+
+---
+
+#### `QA-3-011` | Severity: **Low**
+
+**Requirement**: `AC-3-77`(회귀) 보조 — 신규 `e2e/toast.spec.ts` 의 **검출력**
+
+**Steps to reproduce**:
+1. `e2e/toast.spec.ts:177` *"스택 → 탭 이동 `/library` — 서재 헤더가 Toast 에 가려지지 않는다"* 는 `expect(page).toHaveURL(/\/library$/)` 직후 측정한다
+2. 같은 시점에 QA 가 DOM 을 찍어 보면 **아직 `/library/add` 의 TopBar 다** — `[QA 실행]` 실측: `barHeading: "Add a book"` · `topBarControls: ["Go back"]` · `tabBar: null` · Toast top **44**
+3. `.haru-library-shelves` 가 그려진 뒤 다시 찍으면 **그때 서재 헤더다** — `barHeading: "Library"` · `tabBar: {top: 766}` · Toast top **56** · 겹침 **−16**
+
+**Expected**: 이름대로 **`/library` 의 헤더**를 재야 한다.
+**Actual**: URL 전환과 DOM 커밋 사이에서 측정해 **`/library/add` 의 헤더**를 잴 수 있다. 두 화면 모두 통과하므로 테스트는 **녹색이지만 의도한 축을 재지 못한다**.
+**추가 관찰**: `expectTopBarNotCovered` 의 `controls` 루프는 **대화형 요소가 없는 화면에서 공집합**이다 — `[QA 실행]` 실측으로 `/auth/log-in` 과 `/library` 의 TopBar 는 **대화형 요소 0개**(제목만)다. 따라서 *"뒤로 가기가 Toast 에 가려지지 않는다"*(`:159`) · *"서재 헤더가…"*(`:177`) 두 테스트에서 **실제로 무는 단정은 기하(`toast.top ≥ bar.bottom`)와 띠 중앙 hit-test 둘뿐**이다. 대화형 요소까지 무는 것은 Home(`:143`, `Settings` IconButton)뿐이다.
+
+**판정 처리**: 제품 동작은 **QA 가 다섯 화면에서 직접 hit-test 로 확인해 `PASS`**(§13.3 ③) 이므로 AC 판정을 내리지 않는다. **테스트 정밀도 문제**로만 기록한다.
+**Evidence**: `[QA 실행]` 동일 흐름 2회 측정(토스트 가시 직후 / `.haru-library-shelves` 렌더 후) 비교
+**Suspected area** (수정 지시 아님): `e2e/toast.spec.ts` — 착지 화면의 고유 요소를 기다린 뒤 측정, 그리고 `controls.length` 를 단정하거나 "대화형 요소 없음" 을 명시
+
+---
+
+#### `QA-3-012` | Severity: **Low**
+
+**Requirement**: Figma 일치 (TopBar 스크롤 배경, Design Spec §6.1) — §29.7 보고 항목의 **수치 정정**
+
+**Steps to reproduce**: `/library` → `scrollTop = 260` → 띠 마지막 행(y 39)을 393px 전 폭에서 **콘텐츠 있음 ↔ `main` 숨김** 두 컷으로 픽셀 비교
+
+**Expected**: §29.7 기재 — *"최대 채널차 5(219→214) 라 거의 분간되지 않는다"*
+**Actual**: `[QA 실행]` 실측 — 띠 안쪽 `x 24…368` 은 채널차 **0**(완전 차폐)인데, 좌우 24px gutter 는 **최대 16**(`x 23`·`x 391`·`x 392`)이고 띠 경계 바로 밖 `x 369` 는 콘텐츠 원색 `[252, 206, 0]` 이 그대로 보인다(순수 바탕 `[218,237,230]` 대비 **230**). 기재값 5 는 **과소**다.
+**Evidence**: `[QA 실행]` 픽셀 프로파일 — 좌 gutter `x10…23` = 1,1,2,3,3,4,5,5,7,9,11,12,15,16 / 우 gutter `x370…392` = 16,15,12,11,9,7,5,5,4,4,4,4,3,3,4,5,5,7,9,11,12,15,16
+**판정 처리**: **이번 커밋이 만든 결함이 아니다**(§29.7 대로 glass 시절부터 같은 기하 — `AppColumn` 이 TopBar 를 좌우 24 안쪽에 둔다). 다만 띠가 불투명해져 "띠 아래는 가려지고 띠 옆은 안 가려지는" 단차가 더 또렷해졌고, **기재된 수치로는 판단을 내릴 수 없다**. Figma 최우선 규칙상 허용 차이 등록은 **사용자 승인 이후**이므로 AC 를 `FAIL` 로 내리지 않고 **결정 대기 항목**으로 올린다.
+**Suspected area** (수정 지시 아님): `AppColumn` ↔ `.haru-app-shell__bar-top` 의 좌우 gutter 기하 (고치려면 기하 변경 필요 — §29.7 의 판단과 같다)
+
+### 13.14 Scope · Privacy · Type Safety 재확인  `[QA 실행]`
+
+```
+git ls-files | grep -cE '^(apps/api|supabase)/'   → 0
+ls apps                                           → web            (apps/mobile 없음 — Stage 4)
+ls packages                                        → config contracts design-tokens ui
+git status --porcelain                             → (빈 출력)
+```
+
+| 항목 | 결과 |
+|---|---|
+| Backend 런타임 코드 | **0건** — Scope 위반 없음 |
+| 신규 `any` / `@ts-ignore` / `@ts-expect-error` | **0건** (커밋 diff 의 `+` 줄 전수 — 걸린 4건은 전부 `eslint-disable-next-line no-console`, 신규 e2e 의 실측값 출력용) |
+| `z.object(` 가 `packages/contracts` 밖 | **1건** — `apps/web/src/shared/api/__tests__/helpers.test.ts:51` (테스트. 3회차와 동일) |
+| fixture 를 UI 가 import | **1건** — `features/onboarding-survey/model/__tests__/defaultInstrument.test.ts` (테스트. 3회차와 동일) |
+| 임의 HEX / arbitrary value — 변경 파일 7종 | **0건** (`library.css:423` 의 `#9AABAA` 는 토큰 매핑을 적은 **주석**) |
+| Secret (`SERVICE_ROLE` · `sk-…` · AI/STT 키) | **0건** · `VITE_*` 는 `API_MODE`·`API_BASE_URL`·`MOCK_SCENARIO` 3종뿐 |
+| PII 로그 | 신규 `console.log` 2종은 **픽셀 수치와 scrollTop** 만 출력 (아이 이름·transcript·오디오 경로 없음). 브라우저 워크스루에서 수집한 `console` error·`pageerror` **0건** |
+| 로그아웃 후 로컬 정리 | `localStorage` **`[]`** · `sessionStorage` **`[]`** (`[QA 실행]` 실측) |
+| 레이어 역방향 import | `lint:boundaries` **0 violations** (588 modules). `AppShellTopBar` 는 `app/layouts` 에 있고 `@haru/ui` 만 import — 방향 정상 |
+| Page 책임 | 변경 파일에 Page 없음 (`AppShellTopBar` 는 Layout) |
+
+### 13.15 남은 가값(provisional) — 4회차
+
+활성 **6건**: `P-01` · `P-02` · `P-04` · `P-16` · `P-23` · `P-24` — **변화 없음**. `packages/design-tokens` 빌드 출력이 `provisional 41 개 토큰 / 6 항목 · accepted deviation 3` 으로 3회차와 동일하다 (`[QA 실행]` build 로그). 신규 토큰 0건 — 이번 변경은 기존 토큰(`--prompt-pill-gap` · `--gradient-app` · `--topbar-height` · `--space-4`)만 썼다. 가값은 `rules/qa.md` §2 에 따라 **FAIL 사유가 아니다.**
+Stage 0 `#10-4` 항목별 재제시는 여전히 **Orchestrator 소관**이며 QA 가 수행하지 않았다.
+
+### 13.16 `BACKEND_INTEGRATION_PENDING` — 4회차
+
+**신규 0건 · 삭제 0건 · 목록 12건 유지** (§11.8 과 동일). `#6` 으로 `POST …/gift-requests` 의 **Frontend 호출 지점**이 사라졌지만 **contract·Mock·hook 은 사용자 결정으로 유지**되므로 `P3-BIP-05`(증정 프로그램 운영) · `P3-BIP-24`(증정 상태 전이)는 **PENDING 유지**다. 다만 `rules/qa.md` §1 조건 ①(*"Frontend 부분이 별도 항목으로 PASS/FAIL 판정되어 있어야 한다"*)의 근거가 **`AC-3-33`·`AC-3L-23` 의 `PARTIAL`** 로 바뀌었으므로, `QA-3-010` 해소 시 Handoff 문서에 **"신청은 Frontend 에 없다 — Backend/운영 경로로만 생성된다"** 를 명시해야 한다 → Stage 8 반영 항목.
+
+### 13.17 4회차에서 QA 가 **직접 실행·측정한 것** vs **문서를 인용한 것**
+
+| 구분 | 내용 |
+|---|---|
+| **`[QA 실행]` — 명령** | 8개 검증 명령 **전부**(§13.2, `test:e2e` 단독 6.0분) + `test:e2e --update-snapshots=all` **전량 재생성**(단독 6.1분) + `git status`/`git diff`/`git ls-files`/`git show --stat` + `pnpm vitest run library-sheets.test.tsx -t "저장 실패 알림" --reporter=verbose` (2 passed) |
+| **`[QA 실행]` — 수정 전/후 대조** | `git archive` 로 **저장소 밖**에 `017cf59`(수정 전)·`4f85b8e`(수정 후) 두 벌을 풀고 **동일 프로브**를 양쪽에 실행 → `#4` 결함을 **직접 재현**(책 B 시트 안 문구 1건)하고 수정본에서 **0건**임을 확인. 신규 회귀 테스트 2종이 **수정 전 코드에서 실패**하는 것도 같은 방식으로 확인 (사용 후 사본 삭제) |
+| **`[QA 실행]` — 브라우저 실측** | 자작 Playwright 스크립트 5종(저장소 밖, 사용 후 제거, dev 서버 `4411` 기동·종료 확인): ① Toast ↔ TopBar·탭바 **`elementFromPoint` hit-test** 5화면 × (393·320) ② pill 세로 중앙·간격 실측 (시트 393/320/1024 + Home 카드) ③ `#5` **되돌림 3종 재현** + 경계·대비 픽셀 측정(자작 PNG 디코더) ④ **rAF 26프레임** 토스트 진입·퇴장 모션 ⑤ **CDP `Emulation.setEmulatedMedia`** 로 `prefers-reduced-transparency`·`print` 분기 + gutter 393px 픽셀 프로파일 + Stage 1·2 경로 워크스루 2종 |
+| **`[QA 실행]` — Figma 실측** | `get_metadata` `145:1085` — 책 Container 아래변 138 ↔ Prompt Container y 150 = **간격 12**, Prompt Card `y 0/48/96/144` `h 42` = **pill 간격 6** |
+| **`[QA 실행]` — 정적 확인** | 구 API 잔류 grep · `Toast.css`/`TopBar.css`/`ToastProvider.tsx`/`AppShellTopBar.tsx`/`BookDetailSheet.tsx` 변경부 직독 · `useToast()` 사용처 전수 · `purchaseUrl` 사용처 전수 · `GIFT_REQUEST_DUPLICATE` 표시 경로 0건 · Scope·Secret·`any`·토큰 grep · e2e 278 의 파일별 내역 집계 |
+| **`[문서 인용]`** | **approvals §29**(사용자 결정 6건 + §29.5 허용 차이 + §29.6 되돌림 표 + §29.7 보고 항목 + §29.8 미검증) · §28(3회차 Verdict·수용 6건) · §26.5 · §27.2 · Plan `:583`·`:585`·Library Plan `:414` · `rules/qa.md` §1~§3 · `rules/workflow.md` §4 |
+| **증거로 쓰지 않은 것** | 커밋 메시지의 *"실측했다"* 서술 · 구현자 handoff 메모 · approvals 가 적은 수치(§29.6 의 4종은 **내가 재현한 3종만** 증거로 썼고, §29.7 의 "채널차 5" 는 **내 실측 16 으로 정정**했다) |
+| **하지 않은 것** | 수용 6건(`QA-3-001`·`002`·`003`·`AC-3L-24`·`NV-1`·`NV-2`)의 재구현·재측정 · 전 Stage 전수 재감사 · 3회차 전수 집계(88/39) 재수행 — 변경 영향 범위 밖의 AC 판정은 **3회차 결과를 유지**한다 · Product Code 수정 · `docs/decisions/**`·`docs/plans/**`·`docs/design/**`·`.claude/rules/**` 수정 |
+
+### 13.18 다음 단계
+
+1. **Stage Verdict: `INCOMPLETE`** — `rules/workflow.md` §4 에 따라 **다음 Stage 진입 불가**. 차단 요인은 **`QA-3-010` 1건**이고 **코드 수정이 필요하지 않다.**
+2. **필요한 조치(사용자)**: `AC-3-33` · `AC-3-35` · `AC-3L-23` 을 §26.5 형식으로 **폐기 또는 범위 축소**. 결정되면 QA 가 잔여 범위를 재측정해 `PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)` 로 복귀한다 (§13.11 의 "충족된 절" 은 이미 측정 완료).
+3. **plan-agent**: 위 결정을 `stage-3-plan.md:583`·`:585` · `stage-3-library-plan.md:414` 에 반영.
+4. **design-agent**: 허용 차이 `AD-L-*` 부여(시트 간격 12↔6) · Design Spec §6.1 *"glass 배경"* 서술 수정 · `QA-3-012`(gutter) 판단.
+5. **development-agent**: `QA-3-011`(e2e 측정 시점·공집합 루프) · Stage 4 에서 Mock 시나리오 2건 보강(§13.12).
+6. **Stage 8 게이트**: §12.8 과 동일 + Handoff 에 *"증정 신청은 Frontend 에 없다"* 명시(§13.16).

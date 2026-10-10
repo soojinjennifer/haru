@@ -1,6 +1,7 @@
 /*
  * TopBar — Design Spec §6.1 (Figma `139:2734` 외 화면 헤더 4종)
  * 좌우 gutter 와 safe-area 는 AppColumn 이 담당하고, 여기서는 높이·정렬·배경만 다룬다.
+ * 예외는 스크롤된 띠 하나다 — 배경이 컬럼 전 폭을 덮어야 해서 gutter 를 되돌린다 (아래 §scrolled).
  */
 
 .haru-top-bar {
@@ -113,7 +114,37 @@
  * `box-shadow` 를 주지 않는다 — 하단 경계선이 곧 "경계가 보이면 안 된다" 위반이다.
  * `backdrop-filter` 도 주지 않는다 — 불투명 배경 뒤의 블러는 보이지 않고 비용만 든다.
  */
+/*
+ * 띠는 앱 컬럼 **전 폭**을 덮는다 (사용자 결정 2026-10-10).
+ *
+ * TopBar 는 `AppColumn` 안에 있어 기본 폭이 컬럼 **content box**(= 좌우 gutter 24 안쪽)다.
+ * 그래서 띠 배경이 gutter 에 닿지 않고 그 24px 로 스크롤되는 콘텐츠가 그대로 비쳤다
+ * (2026-10-10 실측 · 393px `/library`: 띠 안쪽 채널차 0 인데 `x369` 는 콘텐츠 원색
+ * `[253,207,0]` = 채널차 231, 좌 gutter 최대 17).
+ *
+ * **배경만 넓히고 콘텐츠는 그 자리에 둔다.** 음수 margin 으로 컬럼 padding 을 되돌리고
+ * 같은 크기의 padding 을 다시 넣으면 content box 폭이 그대로이므로 제목·아이콘 위치가
+ * 변하지 않는다 (실측: `h1` x24 · trailing right 349 — 전후 동일).
+ * 인셋 값은 `AppColumn` 이 내려보내는 `--layout-column-inset-*` 를 쓴다 — 컬럼 변형
+ * (`--padded` · `--edge-to-edge`)과 safe-area 를 여기서 다시 계산하지 않기 위한 것이고,
+ * 컬럼 밖에서 렌더되는 TopBar(dev gallery)에서는 fallback `0px` 로 아무 일도 하지 않는다.
+ *
+ * 컬럼 **border box** 까지만 넓힌다. 더 넓힐 이유가 없고 부작용이 있다.
+ *  ① 393px 에서는 컬럼 폭 = 뷰포트 폭이라, 더 넓히면 스크롤 컨테이너에 **가로 overflow** 가
+ *     생긴다 (스크롤/클리핑 박스가 앱 컬럼 **바깥**에 있다 — `AppShell` 주석).
+ *  ② 600px 이상에서 컬럼 밖은 페이지 배경이고 **콘텐츠가 거기로 지나가지 않는다**
+ *     (2026-10-10 실측 · 768px: 컬럼 밖 60px 의 콘텐츠 통과 채널차가 띠 행뿐 아니라
+ *     y 0…500 전 구간에서 0 — 같은 프로브가 컬럼 안쪽에서는 231 을 읽었다).
+ * 회귀 감시는 `e2e/top-bar-scrolled.spec.ts` ③ · ③-b 다 (띠 rect == 컬럼 rect 단정).
+ *
+ * 폭을 바꾸는 선언은 `transition-property` 에 없으므로 즉시 적용된다 — 전환 중 띠가
+ * 좌우로 늘어나는 애니메이션은 생기지 않는다.
+ */
 .haru-top-bar--scrolled {
+  margin-inline-start: calc(-1 * var(--layout-column-inset-start, 0px));
+  margin-inline-end: calc(-1 * var(--layout-column-inset-end, 0px));
+  padding-inline-start: var(--layout-column-inset-start, 0px);
+  padding-inline-end: var(--layout-column-inset-end, 0px);
   background-image: var(--gradient-app);
   background-attachment: fixed;
   background-position: left top;

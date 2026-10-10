@@ -411,7 +411,7 @@ ID 체계 `AC-3L-##` (Stage 3 Library 라운드). Home 라운드의 `AC-3-##` �
 |---|---|---|---|---|
 | **AC-3L-21** | `/library/add` 에서 카탈로그 검색(재사용 `GET /v1/books/search`) → 선택 등록, **결과 없음 → 제목·저자 직접 입력** 경로가 모두 동작하고 `Idempotency-Key` 가 전송된다 | e2e + 요청 로그 | **FR-23** · §7.2 | IK 보관 **P3-BIP-12** |
 | **AC-3L-22** | 등록된 직접 입력 책이 서재에 표지 **placeholder** 로 나타난다 | e2e (`user-entered-book`) | FR-23 | — |
-| **AC-3L-23** | `BookDetailSheet` 의 증정 신청 CTA → `POST …/gift-requests`(IK) 가 발생하고 `gift-duplicate` 시나리오에서 `GIFT_REQUEST_DUPLICATE` 안내가 뜬다 | e2e + 요청 로그 | **FR-22** | 운영 **P3-BIP-05** |
+| ~~**AC-3L-23**~~ | ~~`BookDetailSheet` 의 증정 신청 CTA → `POST …/gift-requests`(IK) 가 발생하고 `gift-duplicate` 시나리오에서 `GIFT_REQUEST_DUPLICATE` 안내가 뜬다~~ → **폐기** (사용자 결정 2026-10-10, `approvals §30.1`) — 증정 **신청** 기능이 제거되어 이 AC 의 주어가 사라졌다 (§29.4). 중복 판정·멱등 처리는 contracts·Mock 에 남아 있으나 **화면에서 도달할 수 없다**. 판정 대상에서 물러난다 | ~~e2e + 요청 로그~~ | **FR-22** | 운영 **P3-BIP-05** |
 | **AC-3L-24** | `/library/gift-requests` 가 상태 6종을 표시하고 **배송지 입력 필드가 0개**다 | e2e + DOM | FR-22 · `D-15` | 배송 **P3-BIP-05·06** |
 | **AC-3L-25** | 구매 링크가 `purchaseUrl` 를 그대로 외부 열기하며 `rel="noreferrer"` 다 | e2e | FR-22 · §8.1 | 링크 데이터 **P3-BIP-04** |
 

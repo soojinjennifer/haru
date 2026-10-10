@@ -1988,3 +1988,81 @@ Stage 3 가 `PASS` 로 닫힌 뒤(§28) 사용자가 화면을 검수하고 **6�
 
 *"위에서 내려왔다가 사라지는"* 움직임은 **픽셀로 확인되지 않았다.** Playwright 가 항상 `reducedMotion: reduce` + `animations: disabled` 로 돌아 keyframe 이 종료 상태로 고정되기 때문이다. **CSS keyframe 소스 가드로만** 고정했다.
 → **사용자 육안 검수 대상**이다.
+
+## 30. 검수 수정 후 QA 4회차와 마무리 결정 (2026-10-10, user)
+
+QA 재검증(커밋 `4f85b8e`) **Verdict `INCOMPLETE`** — `FAIL` 0 이고 **차단 요인은 `QA-3-010` 1건, 코드 문제가 아니었다.**
+
+### 30.1 ⚠️ §29.4 에서 **내가 AC 수준 처리를 빠뜨렸다**
+
+증정 **신청** 제거(`#6`)로 아래 3개 AC 의 **주어가 사라졌는데** 폐기 기록이 없었다 (Orchestrator 가 approvals 전수 grep 으로 **0건** 확인):
+
+| AC | 원문 요지 |
+|---|---|
+| `AC-3-33` | 증정 신청 CTA → `POST …/gift-requests`(IK) → 접수 안내 |
+| `AC-3-35` | `gift-duplicate` 에서 `GIFT_REQUEST_DUPLICATE` 가 중복 안내로 표현된다 |
+| `AC-3L-23` | `BookDetailSheet` 의 증정 신청 CTA → IK `POST` + 중복 안내 |
+
+§26.5(`AC-3-34`)·§27.2(`AC-3-86`) 때는 *"이 AC 를 폐기한다"* 를 명시했는데 §29.4 는 **기능 제거와 PRD 수정 대상(`LN-8`)까지만** 적었다. QA 는 요구사항을 스스로 폐기하지 않으므로(`rules/qa.md` §2) 세 건을 `PARTIAL` 로 두었다 — **올바른 처리다.**
+
+**결정 (user): 세 건 모두 폐기 표기.** Plan `:583`·`:585`, Library Plan `:414` 에 반영 완료.
+⚠️ **중복 판정·멱등 처리 자체는 contracts·Mock 에 남는다** — 화면에서 도달할 수 없을 뿐이다.
+
+> QA 가 **`AC-3L-23` 의 라벨 선택을 솔직히 밝혔다**: 엄격히 읽으면 UI 트리거가 전부 사라져 `FAIL` 인데, AC 가 이름한 두 메커니즘이 사용자 결정으로 보존되어 실행 증거까지 있다는 이유로 `PARTIAL` 에 뒀고 라벨은 사용자 결정 사항이라고 적었다.
+
+### 30.2 ⚠️ §29.7 수치 정정 — gutter 는 5 가 아니라 **16**
+
+내가 "최대 채널차 5" 로 적은 것은 **과소 기재**였다. QA 실측:
+
+| 위치 | 수정 전 |
+|---|---|
+| 띠 **안쪽** | **0** (완전 차폐) |
+| 좌우 gutter 24px | 최대 **16** |
+| 띠 경계 바로 밖 `x369` | **콘텐츠 원색** `[252,206,0]` — 차 **230** |
+
+### 30.3 결정 — **띠를 앱 컬럼 전 폭으로 넓힌다** (user)
+
+구현: `AppColumn` 이 자기 좌우 인셋을 CSS 변수로 내려보내고, `--scrolled` 가 그것을 **음수 margin 으로 되돌린 뒤 같은 크기 padding 을 다시 넣는다.**
+→ `width: auto` stretch 박스라 **content box 폭이 345 로 불변** = **제목·아이콘이 1px 도 움직이지 않는다**(`h1 x24` · `trailing right 349` 전후 동일).
+
+**결과 (실측, 393×852)**: gutter 통과 채널차가 네 scrollTop 전부 **0**. 띠 rect `24…369` → **`0…393`** = 컬럼 rect 와 일치.
+
+**≥600px 은 컬럼 border box(480)까지만** 덮는다. 근거: 컬럼 **밖** 60px 의 콘텐츠 통과 채널차가 **y 0…500 전 구간 0**(`/library`·Home 양쪽)이라 **거기로는 콘텐츠가 지나가지 않는다** — 같은 프로브가 컬럼 안쪽에서는 231 을 읽었으므로 민감도 부족이 아니다. 컬럼 밖까지 늘리면 Figma 에 없는 "전 폭 페이지 배너" 가 된다.
+
+신규 토큰 0건 · 임의 HEX·수치 0건.
+
+### 30.4 회귀 테스트가 왜 이걸 못 잡았는지 (기록)
+
+기존 테스트 ①의 **clip 이 띠 rect 자신**이라 **띠가 좁아지면 clip 도 같이 좁아져** gutter 를 볼 수 없었다. 신규 ③·③-b 는 clip 을 **컬럼 rect** 로 잡는다.
+되돌림 실험이 그것을 증명한다 — margin/padding 4줄을 빼면 **①② 는 통과하고 ③③-b 만 FAIL**(`Expected: 0 / Received: 24`, 768px 에서 `Expected: 144 / Received: 168`). 기하 단정을 빼고 픽셀 단정만 남겨도 FAIL 한다.
+
+임계값 `OCCLUSION_MAX_CHANNEL_DELTA = 1` — 같은 띠에서 **콘텐츠 가시성만 다른** 측정이라 바닥이 디더가 아니라 **정확히 0** 이어야 한다. 2 로 올리면 scrollTop 60 의 `2` 를 놓친다.
+
+### 30.5 QA 가 "검증 불가" 2건을 **PASS 로 올렸다**
+
+앞선 agent 들이 *"Playwright 가 `animations: disabled` 로 돌아 못 본다"* 로 남긴 것을 **우회**했다:
+
+- **토스트 진입·퇴장 모션** (§29.8) — 애니메이션을 끄지 않은 자작 세션에서 **rAF 26프레임**: `translateY` **−12 → 0**, `opacity` **0 → 1**, 화면 top **52 → 64**. 퇴장은 `transform: none` 의 fade only. Design Spec §9.1 과 일치
+- **`prefers-reduced-transparency` · `print`** (§29.7) — **CDP `Emulation.setEmulatedMedia`** 로 직접 에뮬레이트. reduce → 띠·`AppBackground` 둘 다 `rgb(219,238,231)` 단색(경계 없음), print → 둘 다 transparent(흰 종이에 띠 안 남음)
+
+### 30.6 QA 신규 Finding — Low 2건 (차단 아님)
+
+| ID | 내용 |
+|---|---|
+| **`QA-3-011`** | `e2e/toast.spec.ts:177` 이 **전환 중 `/library/add` 의 TopBar 를 잴 수 있다**(URL 전환과 DOM 커밋 사이). 또 `/auth/log-in`·`/library` TopBar 는 **대화형 요소가 0개**라 `controls` 루프가 **공집합** — 대화형 요소 가림을 실제로 무는 것은 **Home 뿐**이다. 제품 동작은 QA hit-test 로 PASS 확인됐으므로 **테스트 정밀도** 문제다 |
+| **`QA-3-012`** | §29.7 gutter 수치 과소 기재 → **§30.2 로 정정**, **§30.3 으로 해소** |
+
+### 30.7 Stage 4 로 이월되는 Mock 보강 2건 (QA 발견)
+
+- **`#4` 를 실브라우저로 재현할 수 없다** — scenario key 가 **그룹 단위**라 `library:error` 가 `getOverview` 까지 실패시켜 `/library` 에 **열 책 행이 0개**가 된다. "목록 성공 + 저장만 실패" key 가 없다 → **`library:save-error` 류 추가 필요**
+- **`favorite_only` 가 모든 Mock 시나리오에서 아무것도 렌더하지 않는다** — `purchaseUrl` fixture **0건**이라 `GiftBlock` 이 항상 `null`. `AC-3-32` 는 `TextLink` 단위 증거로 PASS 유지
+
+### 30.8 남은 소관
+
+| 소관 | 할 일 |
+|---|---|
+| **plan-agent** | (완료 — Orchestrator 가 Plan 3줄 반영) |
+| **design-agent** | 허용 차이 `AD-L-*` 부여(시트 간격 12↔6, §29.5) · Design Spec §6.1 *"스크롤 시 glass 배경"* 서술 수정(§29.3) |
+| **development-agent** | `QA-3-011` 테스트 정밀도 · Stage 4 Mock 2건(§30.7) · `/onboarding/:step` 토스트 보정(토스트 도입 시) |
+| **Stage 8** | Handoff 에 **"증정 신청은 Frontend 에 없다"** 명시 |
+| **사용자** | PRD `FR-22` 수정 (`LN-8`, `D-24` 절차) |

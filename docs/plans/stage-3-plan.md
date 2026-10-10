@@ -580,9 +580,9 @@ Stage 2는 `BACKEND_INTEGRATION_PENDING` 이 11건이었다. ~~Stage 3는 **14�
 | **AC-3-30** | `/library/add` 에서 카탈로그 검색(재사용 `GET /v1/books/search`) → 선택 등록, **검색 결과 없음 → 제목·저자 직접 입력** 경로가 모두 동작하고 `Idempotency-Key` 가 전송된다 | e2e + 요청 로그 | **FR-23**, §7.2 규칙 |
 | **AC-3-31** | 직접 등록 책(`user-entered-book`)이 서재·덱·상세에서 **표지 placeholder + 제목**으로 정상 표시된다 | 시나리오 테스트 | `user-entered-book` |
 | **AC-3-32** | `BookDetailSheet` 가 `GET /v1/books/:bookId/prompts` 로 **책별 Prompt**를 표시하고 구매 링크를 외부 링크(`rel="noopener noreferrer"`)로 연다 | e2e + DOM | FR-20, §8.1 |
-| **AC-3-33** | 증정 신청 CTA → `POST …/gift-requests`(IK) → 접수 안내가 동작하고, **배송지 입력 필드가 존재하지 않는다** | e2e + grep | FR-22, §16 D-15 |
+| ~~**AC-3-33**~~ | ~~증정 신청 CTA → `POST …/gift-requests`(IK) → 접수 안내가 동작하고, **배송지 입력 필드가 존재하지 않는다**~~ → **폐기** (사용자 결정 2026-10-10, `approvals §30.1`) — 증정 **신청** 기능이 제거되어 이 AC 의 주어가 사라졌다 (§29.4). 중복 판정·멱등 처리는 contracts·Mock 에 남아 있으나 **화면에서 도달할 수 없다**. 판정 대상에서 물러난다 | ~~e2e + grep~~ | FR-22, §16 D-15 |
 | ~~**AC-3-34**~~ | ~~`gift-pending` 에서 서재에 **배송 상태**가 표시되고, "보유 책 직접 입력 또는 대화 전용 세션" 안내가 함께 제공된다~~ → **폐기** (사용자 결정 2026-10-09, `approvals §26.5` `QA-3-009`). 근거: **대화 전용 세션 자체가 `approvals §12.12` 로 폐기**됐다(*"책 없이 대화만 하는 카드가 있을 수 없음"*). **판정 대상에서 물러난다.** 배송 상태 표시는 `AC-3-33`·`AC-3-35` 가 덮는다 | ~~시나리오 테스트~~ | **§13** |
-| **AC-3-35** | `gift-duplicate` 에서 `GIFT_REQUEST_DUPLICATE` 가 중복 안내로 표현되고 오류 화면으로 빠지지 않는다 | 시나리오 테스트 | §5.4 |
+| ~~**AC-3-35**~~ | ~~`gift-duplicate` 에서 `GIFT_REQUEST_DUPLICATE` 가 중복 안내로 표현되고 오류 화면으로 빠지지 않는다~~ → **폐기** (사용자 결정 2026-10-10, `approvals §30.1`) — 증정 **신청** 기능이 제거되어 이 AC 의 주어가 사라졌다 (§29.4). 중복 판정·멱등 처리는 contracts·Mock 에 남아 있으나 **화면에서 도달할 수 없다**. 판정 대상에서 물러난다 | ~~시나리오 테스트~~ | §5.4 |
 | **AC-3-36** | 같은 Idempotency-Key + 같은 body replay가 **동일 응답**을 돌려주고, 다른 body는 `IDEMPOTENCY_KEY_REUSED` 다 | Mock replay 테스트 | P3-BIP-12 |
 | **AC-3-37** | 서재 `empty`(보유 0권 · 히스토리 0건)에서 EmptyState가 표시되고 **다음 행동**(직접 등록 / 증정 신청)으로 연결된다 | 시나리오 테스트 | C13-20 |
 | **AC-3-38** | 서재 목록이 cursor 페이지네이션으로 추가 로드되며 중복·유실이 없다 | 시나리오 테스트 | `Paginated<LibraryBook>` |
