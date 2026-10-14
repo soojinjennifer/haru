@@ -664,3 +664,21 @@
   color: var(--color-selected-fg);
   font-weight: var(--font-weight-semibold);
 }
+
+/* ===== S4-A 녹음 spike (dev 전용 측정판) ================================== */
+
+.haru-dev-spike-readout {
+  margin: 0;
+  max-inline-size: 100%;
+  max-block-size: calc(var(--space-8) * 12);
+  overflow: auto;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+  background-color: var(--color-surface-subtle);
+  color: var(--color-fg-primary);
+  font-size: var(--text-caption-2);
+  line-height: var(--text-caption-2--line-height);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
