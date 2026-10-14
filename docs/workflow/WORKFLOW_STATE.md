@@ -8,12 +8,12 @@
 
 | 항목 | 값 |
 |---|---|
-| Major Stage | **Stage 3** — Home · Activity Card · Library · Book Selection · Recommendation |
-| Stage Status | `IN_PROGRESS` — 사용자 승인으로 착수 (2026-09-28) |
-| Next Step | **승인 체크포인트 — STOP.** Plan·Design Spec 이 아직 `DRAFT` 다. 결정 D-1~D-23 은 전건 승인됐으나 **두 문서에 대한 승인 발화가 없다** (`rules/workflow.md` §3 · Stage 0 #24 — "Stage 수행 요청은 승인이 아니다") |
-| Queue 파일 | `docs/workflow/stage-3/QUEUE.md` (plan·design 승인 후 생성) |
+| Major Stage | **Stage 4a** — Recording Core (Stage 4 는 `D4-9` 로 **4a Recording Core / 4b Session Screens** 로 분할) |
+| Stage Status | `IN_PROGRESS` — **Plan·Design Spec 승인 (2026-10-13, user: "승인 — 4a 구현 착수")** 후 착수 |
+| Next Step | **`S4-A` 녹음 spike 진행 중** (development-agent) — Web MediaRecorder timeslice 청크 · OPFS 영속 · 크래시 복구 · 브라우저별 실제 mimeType · Web 인터럽션 3종 · 탭 비활성 중 청크 수신 · OPFS 할당량. **결과가 `C4-OPEN-1`(`partNo` 상한)·`C4-OPEN-2`(mimeType 집합)와 part 기반 업로드 설계를 좌우한다** |
+| Queue 파일 | 미생성 — Stage 4 는 Orchestrator 가 작업 단위(`S4-A`~`S4-K`)별로 직접 배분한다 |
 | QA Fix Loop 횟수 | 0 / 3 |
-| 마지막 갱신 | **2026-10-05** — Stage 2 재구성(설문 4단계·16카드 · 카드 좌우 버튼) 완료·QA PASS·푸시. Stage 3 문서 정합 확인(삭제 contracts·옛 step 이름 참조 0건, PRD v1.5, `SwipeDeck` 변경 무영향) |
+| 마지막 갱신 | **2026-10-14** — Stage 3 `PASS` 종결(5회차 `fe349cb`) 후 칩 통일 3커밋. Stage 4 Plan·Design Spec·Figma 감사·디자이너 요청서·approvals 작성, **결정 `D4-1`~`D4-22`**, PRD 개정 2(`D-24` 절차), `PLANNING.md` 34지점·`API_CONTRACTS.md` Rev 8 갱신. **Stage 4a 착수** |
 
 ### 끼어든 작업 — Stage 2 재구성 (2026-10-03 ~ 10-05, 완료)
 
@@ -152,6 +152,18 @@ Stage 3 착수 전에 사용자 지시로 **Stage 2 온보딩 설문을 재구�
 | `S3-PROV-2` | **dev gallery 가값 목록에 `P-18`~`P-23` 이 등재되지 않았다** (`provisionalItems.ts`). Stage 3 Home 라운드에서 생긴 **기존 공백**이며 Library 범위 밖이라 1라운드가 고치지 않았다 | **가값 재제시 전** | **미처리** — 목록이 불완전하면 `#10-4` 항목별 재제시가 성립하지 않는다. `P-24` 는 등재됨 |
 | `S8-DEPLOY-1` | **Render 정적 프리뷰 배포 (C-18)** — 사용자 요청으로 방식을 확인했고 **Stage 8 까지 보류**로 결정 (2026-10-03). Mock 빌드는 실측 검증 완료(`VITE_API_MODE=mock pnpm build` exit 0, `apps/web/dist`) | **Stage 8** | **보류.** 확정된 설정: Render **Static Site**(Web Service 아님) · Root Directory 비움 · Build `corepack enable && pnpm install --frozen-lockfile && VITE_API_MODE=mock pnpm build` · Publish `apps/web/dist` · **Rewrite `/*` → `/index.html`**(없으면 새로고침 404) · Node 는 `.nvmrc` 24.21.0, 안 먹으면 `NODE_VERSION` 환경변수. 도메인 불필요(`*.onrender.com` 자동). `assert:no-mocks` 는 이 빌드에 **적용하지 않는다**(mock 이 의도적으로 포함된다) |
 | `S8-DEPLOY-2` | Render Static Site 에 **비밀번호 보호 기능이 없다** — URL 을 아는 사람은 누구나 본다 | **Stage 8 전** | **사용자 판단 필요.** 비공개 제품 디자인이 공개된다. Mock 데이터에 실제 아동 정보 없음·`VITE_*` Secret 없음은 확인됨 |
+| `S4-FIGMA-1` | **디자이너 Figma 대기 2건 — Stage 4b 의 유일한 구현 차단**: `C13-1` 잔여(`recording`·`paused` 각 화면 **배치** — 버블 자리·경과 시간 위치·TopBar 유무) · `C13-14`(Record Control `paused`·`disabled`·`permission-denied` **시각**). 요청서 = `docs/design/stage-4-designer-request.md`(요구 18건·질문 16개) | **Stage 4b 전** | **미발송** — 사용자 지시 대기 |
+| `S4-PROV-1` | **가값 재제시 7건** (Stage 0 `#10-4`): `P-01`·`P-02`·`P-04`·`P-16`·`P-23`·`P-24` + **`P-25`**(신규 — `Discard` 면 `#aeaeb2` + 흰 라벨 **2.211:1**, 토큰 `--haru-gray-2`/`--color-action-neutral-bg`/`-fg`). Stage 3 분 6건이 아직 미처리다. 선행 조건: `S3-PROV-2`(dev gallery 에 `P-18`~`P-23` 미등재) | **사용자 재제시** | **미처리** |
+| `S4-AD-1` | **허용 차이 `AD-S4-7`~`AD-S4-10` 승인 대기 4건**: Drawer 폭 353→컬럼 100% · 메달리온 링 150↔152 · ready 버블 x +2 · 320px 버튼 폭 135→131.5. **`AD-S4-9`(버블 x)는 `S4-F` ready 화면 구현 직전에 필요하다.** 등록 완료분은 `AD-S4-1`·`4`·`5`·`6`(승인 2026-10-13), 무효는 `AD-S4-2`·`3` | **구현이 해당 지점에 닿기 전** | **결정 필요** |
+| `S4-DEC-1` | **`N4-10`** — 대화 전용 세션 **흐름** 최소안 (Stage 4b `S4-H2` 전, ⛔ 4b 유일 차단). PRD §13 P0("마이크 권한 거부 → 대화만 하기")가 여기 걸린다. 권장 최소안은 `stage-4-approvals.md` §2.2 | **Stage 4b** | **결정 필요** |
+| `S4-DEC-2` | `S4-F` 전 결정 4건: **`N4-27`**(paused 재개 경로 — `Resume` 버튼이 Figma 에서 제거돼 근거 소멸) · **`N4-31`**(바 규격 `135×45 ×2` ↔ 기존 주 CTA `56·컬럼 100%` `P-15`) · `N4-15`(`78:353` TopBar 배치 의도) · `N4-28`(Drawer 진입점 — `S4-G` 전) | **작업 단위 전** | **결정 필요** |
+| `S4-DEC-3` | 4a 작업 단위 전 3건: `N4-04`(Reading Context 확인) · **`N4-09`**(로컬 미업로드 보관 상한 — Web 전용이라 OPFS 이고 브라우저가 임의로 비울 수 있어 중요해졌다) · `N4-20`(`sharp` 도입 승인) | **4a 작업 단위 전** | **결정 필요** |
+| `S4-DEC-4` | **`N4-30`** 이연 — `D4-13`(전이 2행만 추가, `AbandonedReason` enum 미생성)의 귀결로 **방치(10분)와 사용자 폐기를 구분할 수 없다**. Audit·지표가 필요해지면 사유 값 추가가 별도 결정 | **이연** | **정보** |
+| `S4-PRD-1` | **PRD 수정 대상 8건**(`stage-4-approvals.md` §6.2, 번호 8~15) — 8·9·11·12·13 = ready 에서 Prompt 자동 표시(`D4-14`) · 10·14 = "인사 + Prompt 가 한 버블"(`D4-20`) · **15 = §7.5 `:410` 예시 인사 `Ready for today's story with Emma?` 가 1줄(≤240px)에 들어가지 않는다**(`D4-21`). ⚠️ `:86`·`:161`·`:163` 은 `D4-15` 로 **수정 안 함** | **사용자 지시 시 `D-24` 절차** | **미적용** |
+| `S4-FIX-1` | `docs/qa/stage-3-qa-report.md:6` 의 경고문이 **스테일** — *"현재 유효한 Verdict 는 §13(4회차)"* 로 적혀 있으나 §14(5회차, `fe349cb`)가 `PASS` 로 바꿨다 | **stage-qa-agent** | **미처리** |
+| `S4-FIX-2` | `.claude/rules/architecture.md` §7 Recording 구성요소 목록에 **`SessionOutbox` 가 없다** — `docs/ARCHITECTURE.md`(4건)·`PLANNING.md`(2건)에는 있다. `:19`(`apps/mobile` 도입 시점 — `D4-1` 로 후속 단계로 분리됨)도 갱신 대상 | **사용자** (`.claude/rules/**` 는 Agent 쓰기 경로 아님) | **미처리** |
+| `S4-NAT-1` | **`D4-1`** — Capacitor 셸·네이티브 녹음·네이티브 Auth/Push Adapter·portrait lock 이 Stage 4 에서 **분리**됐다 (Stage 0 #7 변경). 사유: 후보 플러그인 둘 다 청크 녹음 미문서화 + 자체 플러그인(Kotlin FGS·Swift)은 Frontend 범위 밖. AC 9건이 `S4N-A`~`S4N-D` 로 **이동**(폐기 아님) | **후속 단계** | **보류** |
+| `S4-DEV-1` | **Android 모바일 Web 실기기 부재**(`N4-21`) — iOS 실기기는 있다. Stage 4 가 Web 이므로 Android Chrome 모바일 Web 검증이 불가해 `NOT VERIFIED` 1건 예상. 에뮬레이터·BrowserStack 대체 금지(측정 환경이 증거다) | **Stage 4 QA** | **항목별 수용 필요** |
 
 **`NEEDS_DECISION` 항목이 다음 Step의 필수 입력이면 Runner는 실행하지 않고 STOP 한다.**
 현재 `NEEDS_DECISION` 2건(`S1-D2-5` · `S1-D2-6`)은 **1-G 가 판단 근거(시각 비교 결과·실제 diff 수치)를 생성해야 결정할 수 있는 항목**이다. 근거 없이 지금 결정할 수 없으므로 1-G 는 제안값을 잠정 적용해 실행하고, **1-G 종료 시 실제 수치와 함께 사용자에게 제시**한다.
@@ -163,11 +175,13 @@ Stage 3 착수 전에 사용자 지시로 **Stage 2 온보딩 설문을 재구�
 | 0 | Architecture · Figma Mapping · Design System · API Contract Planning | `COMPLETE` (승인 2026-09-14) |
 | 1 | Frontend Foundation | **`COMPLETE`** (Verdict PASS, 2026-09-21). 이후 P-10 확정 + 그림자 클리핑 결함 수정 (2026-09-23, 미커밋) |
 | 2 | Auth · Consent · Onboarding · Child Profile · Home 골격 | **`COMPLETE`** (Verdict PASS 2026-09-27 · 커밋 `0825112` 까지). **Stage 2-B**(`C13-09`·`C13-10`)는 디자이너 Figma 대기 |
-| 3 | Home · Activity Card · Library · Recommendation | **`IN_PROGRESS`** (착수 2026-09-28) |
-| 4 | Storytime Session · Recording Client · Upload UX | `NOT_STARTED` |
-| 5 | Reflection · Async Analysis · Short Feedback | `NOT_STARTED` |
+| 3 | Home · Activity Card · Library · Recommendation | **`COMPLETE`** (Verdict **`PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`** — 5회차 2026-10-10, 커밋 `fe349cb`). 이후 칩 통일 3커밋(`e640f52`·`7628e6b`·`2c638b3`)은 **QA 6회차를 돌지 않았다** |
+| 4a | Storytime Session · **Recording Core** (contracts · Mock · RecordingController · LocalRecordingStore · UploadQueue · ready 화면 · Upload UX) | **`IN_PROGRESS`** — Plan·Spec 승인 2026-10-13. AC ≈ 73. **⛔ 차단 0건** |
+| 4b | **Session Screens** (`recording`·`paused` 배치 · 완료 화면 · 예외 안내 UI · Prompt Drawer) | `BLOCKED` — 디자이너 Figma 2건(`C13-1` 잔여·`C13-14`) + ⛔ `N4-10`. AC ≈ 38 |
+| 5 | Reflection · Async Analysis · Short Feedback | `NOT_STARTED` — ⛔ **4a `PASS` 로 시작하지 않는다**(`D4-9`): Stage 5 회고 카드 `91:691` 이 완료 화면과 **같은 프레임 `29:62`** 라서 4b 를 건너뛰면 빈 상단 위에 카드를 얹게 된다 |
 | 6 | Personalization · Profile Update · Recommendation Loop | `NOT_STARTED` |
 | 7 | 4-Week Report · History · Highlight Audio · PDF UX | `NOT_STARTED` |
 | 8 | Final QA · 이월 기능 · Mock 프리뷰 배포 · Backend Handoff → **STOP** | `NOT_STARTED` |
+| (후속) | **Native 셸** — `apps/mobile` Capacitor · 네이티브 녹음 플러그인 · 네이티브 Auth/Push Adapter · portrait lock | `DEFERRED` (`D4-1`, 2026-10-13 — Stage 0 #7 변경). 이동된 AC: `S4N-A`~`S4N-D` |
 
 **Major Stage가 PASS해도 다음 Stage로 자동 진입하지 않는다. 반드시 사용자 승인을 기다린다.**

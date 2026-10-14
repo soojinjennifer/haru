@@ -1,6 +1,10 @@
 # HARU API Contracts
 
-Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (Rev 7: Stage 3 승인 결정 D-4 · D-5 · D-8 · D-15 · N-2 · §8.5 반영, 2026-10-02 plan-agent)
+Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (**Rev 8: Stage 4 승인 결정 `D4-1`~`D4-22` 반영, 2026-10-13 plan-agent**)
+
+> **Rev 8 (2026-10-13, plan-agent — Stage 4 Plan 승인 후 적용)** — `docs/plans/stage-4-plan.md` §7.5 의 **18 지점**을 반영했다 (목록 20건 중 무효 2건 제외).
+> 적용 지점: §2.2(enum 수 정정 `P4-FIX-3` + Stage 4 신규 2종) · **§3.1 전이표 2행 추가(12 → 14 — `D4-13`)** · §3.2(`SessionSummary.bubble` 렌더 지점·null 거동·길이 요구 — `D4-20`·`D4-21`·`D4-22` / `SessionTransitionRequest.to='abandoned'` 세 경로 주석 / `StickerAward` / `readingContext`) · §3.3(`partNo`·`mimeType` = `S4-A` spike 확정 대기) · **§3.9 `RecordingStatus` 신설** · §4 Stage 3·4 표(이월 표기 · 네이티브 후속 단계 주석) · §5.1.1(`RecorderAdapter`·`recordingApi`·`UploadTransport`) · **§5.4 신규 scenario key 2건** · **§6 `G-08`·`G-09` Resolved**.
+> ⛔ **구현으로 확정되는 내용(실제 `packages/contracts` 파일·Mock 위치)의 반영은 development-agent 소관**이다 (`rules/workflow.md` §5). Rev 8 은 **설계·계획 변경**만 담는다.
 Reflects: `docs/decisions/stage-0-approvals.md` #7 · #8 · #13 · #14 · #15 · #16 · #17 · #19 · #27 · C-1~C-10 · C-12 · C-13 · C-15 · C-16 · C-18 (Rev 5) · #33 · C-19 (Rev 6)
 Decision log: `docs/decisions/stage-0-approvals.md` + **`docs/decisions/stage-3-approvals.md` (Stage 3 — §3 · §6 · §6.1 · §7 · §7.1 · §8 · §8.1~§8.6)** — 이 문서와 다르면 결정 기록이 우선한다. 라벨: `CONFIRMED (사용자 결정 YYYY-MM-DD, #id)` · `RECOMMENDED` · `NEEDS DECISION (법무, L-xx)`.
 Based on: PRD v1.4, `docs/ARCHITECTURE.md` (DRAFT 2026-09-14), `docs/DATA_MODEL.md` (DRAFT 2026-09-14), design-agent `docs/FIGMA_SCREEN_MAP.md` · `docs/COMPONENT_MAP.md` (DRAFT 2026-09-14) — Rev 2: Figma 대비 gap §6 추가
@@ -108,6 +112,20 @@ Author: plan-agent (2026-09-14)
 > 기존 23 종의 이름·값·순서는 바뀌지 않았다.
 > `SurveyAnswerValue` 는 enum 이 아니라 `z.union([z.literal(1..5), z.literal('not_observed')])` 로 인코딩했다 (§2.2 "인코딩 RECOMMENDED").
 > `Gender` 는 `GenderSchema`(3 값) + `GenderFieldSchema = GenderSchema.nullable()`(미응답 `null`) 로 나누어 구현했다 (C-7).
+>
+> ⭐ **정정 (Rev 8, 2026-10-13 — `P4-FIX-3`)**: 위 "**enum 26 종**" 표기는 **Stage 2 시점의 수**이고 **현재와 다르다**.
+> **[직독]** `packages/contracts/src/enums/*.ts` 의 `z.enum` 선언을 전수 집계한 결과 = **31 종**이다 (`survey.ts` 의 `SurveyAnswerValue` 는 `z.union` 이라 세지 않는다).
+> 차이 **3 종은 Stage 3 에서 추가됐고 아래 표에 행이 없다** — 함께 등재한다:
+>
+> | Enum | 값 | 근거 |
+> |---|---|---|
+> | `AgeBand` (Stage 3) | `3_4, 5_6, 7_9` | PRD §8.2 연령대 — `packages/contracts/src/enums/age-band.ts` **[직독]** |
+> | `PromptKind` (Stage 3) | `question, follow_up` | §3.6 Prompt 표시 필드 — `enums/prompt-kind.ts` **[직독]** |
+> | `PromptPhase` (Stage 3) | `pre, post` | §6 `G-03` 채택(`D-8`) — `'during'` **미채택**. `enums/prompt-phase.ts` **[직독]** |
+>
+> **Stage 4 에서 추가 예정 2 종** (Plan §7.2 — 구현은 development-agent): `PushPlatform` = `ios, android, web` (이월 `QA-3-001`. ⭐ **3값 유지** — Contract 는 Backend 요구사항이므로 네이티브 분리(`D4-1`)와 무관) · `StickerType` = `attendance` (`C4-OPEN-5` **만든다** — `DATA_MODEL §8 sticker_awards.sticker_type`). → 설계 목표 **33 종**.
+> ⭐ **`D4-13` 확인**: 녹음 폐기 채택으로 **enum 신규는 0 건**이다 — `SessionStatus` **8값 유지**, `CompletedReason` **3값 유지**, `AbandonedReason` **만들지 않는다**, `UploadStatus` 신규 0, error code 신규 **0**. 전이표만 2행 늘어난다 (§3.1).
+> ⭐ **error code 수는 정확하다** — **[직독]** `common/error-codes.ts` 의 `ERROR_CODES` 배열 = **29 종**이고 파일 주석의 "총 29 종" 과 일치한다. Stage 3 보고가 예고한 "31 → 32종" 은 **반영되지 않았고 반영할 필요도 없다**(실측 29).
 
 | Enum | 값 | 근거 |
 |---|---|---|
@@ -172,6 +190,11 @@ export const SESSION_TRANSITIONS: ReadonlyArray<{
   { from: 'analyzing', to: 'analyzed',  actor: 'worker',    modes: ['recorded'] },
   { from: 'analyzing', to: 'failed',    actor: 'worker',    modes: ['recorded'] },
   { from: 'failed',    to: 'analyzing', actor: 'worker',    modes: ['recorded'] },  // 재시도 = 행위, 상태 아님
+
+  // ⭐ Rev 8 (2026-10-13, D4-13 — 사용자 결정, Stage 0 #16 변경): 사용자 주도 녹음 폐기 `Discard` (D4-12)
+  // 안 A 확정 — 전이 2행만 추가한다. `AbandonedReason` enum 과 `abandonedReason?` 필드는 만들지 않는다.
+  { from: 'recording', to: 'abandoned', actor: 'caregiver', modes: ['recorded'] },  // Discard (녹음 중)
+  { from: 'paused',    to: 'abandoned', actor: 'caregiver', modes: ['recorded'] },  // Discard (일시정지 중)
 ];
 
 export const canTransition = (from: SessionStatus, to: SessionStatus, actor: Actor, mode: z.infer<typeof SessionModeSchema>) =>
@@ -191,8 +214,47 @@ export const READY_ABANDON_SECONDS = 10 * 60;  // §13
 >   전이 표의 행 타입은 `SessionTransition` 인터페이스다.
 > - `SESSION_TRANSITIONS` **12 행**(modes 전개 시 14 조합)과 `canTransition` 은 스케치와 동일하며,
 >   `src/__tests__/session-transitions.test.ts` 가 8×8×3×2 = 384 조합 전수 검사로 "표에 없는 전이는 전부 false" 를 보증한다.
+>
+> ⭐ **Rev 8 설계 변경 (2026-10-13, `D4-13` — 사용자 결정, `Stage 0 #16` 변경)**
+>
+> | 항목 | 변경 |
+> |---|---|
+> | 전이표 **행 수** | **12 → 14** (`recording → abandoned` · `paused → abandoned`, actor `caregiver`, modes `['recorded']`) |
+> | `SessionStatus` | **8값 유지** — `discarded` 신규 값 **없음**(안 B 미채택) |
+> | `AbandonedReason` enum / `abandonedReason?` 필드 | ⛔ **만들지 않는다** (안 A′ 미채택 — plan-agent 는 A′ 를 권고했고 사용자가 **A** 를 택했다) |
+> | `CompletedReason` · `UploadStatus` · error code | 신규 **0건**. 허용되지 않은 전이는 기존 `SESSION_INVALID_TRANSITION` 이 처리한다. 폐기 녹음의 upload 는 기존 `deleted` 로 표현된다 |
+> | `recordingApi.abort()` | ⛔ **추가하지 않는다** — 서버가 `abandoned` 전이를 받아 part 를 스스로 정리하는 것을 **Handoff 요구사항**으로 둔다 (§5.1.1, `P4-BIP-21`) |
+>
+> ⚠️ **명시된 귀결** — **방치(ready 10분)와 사용자 폐기(`Discard`)를 구분할 수 없다.** 둘 다 `→ abandoned`·actor `caregiver` 이므로 전이표·`session_events` 만으로는 구별되지 않는다. 따라서 ① **세션 완료율 지표(PRD §2)에서 둘을 분리 집계할 수 없고** ② *"아동 음성 데이터를 사용자가 직접 지운 사건"* 의 Audit 근거가 전이 기록만으로는 남지 않는다. **사유 값 추가는 그 시점의 별도 사용자 결정**이며 Stage 4 에서 선행 구현하지 않는다 (`N4-30`, 이연).
+> ⚠️ **Frontend 는 폐기 사유를 보내지 않는다** — 서버가 사유를 남기려면 Frontend 가 보내지 않는 정보(요청 출처·타이머 여부)를 추론해야 한다. 이 사실을 Handoff 에 명시한다.
+> **삭제 순서 (불변)**: **서버 전이 확정 응답을 받은 뒤** 로컬을 지운다. 전이 실패 시 로컬 청크를 **보존**하고, 오프라인이면 `SessionOutbox` 에 폐기 전이를 적재한 뒤 전송 확정 전까지 보존한다. `rules/architecture.md` §7 의 *"업로드 확정 전 삭제 금지"* 는 **유실 방지** 규칙이므로 사용자 주도 폐기는 그 규칙이 막으려는 사건이 아니다 — **예외가 아니라 다른 사건**이다.
+> ⛔ **구현(이 2행을 `packages/contracts` 에 넣는 것)은 development-agent 가 `S4-B` 에서 한다.** 이 문서는 설계 확정만 기록한다.
 
 ### 3.2 CreateSessionRequest / Transition
+
+> ⭐ **Rev 8 (2026-10-13) — 아래 스케치는 Stage 4 에서 세 파일로 나뉜다** (승인된 `stage-4-plan.md` §7.2. 현재 `packages/contracts/src/sessions/` 디렉토리는 **아직 없다** — **[직독]**)
+>
+> | 파일 | 담는 것 |
+> |---|---|
+> | `sessions/create-session.ts` | `CreateSessionRequestSchema` (+ `customTime?`) · `CreateSessionResponseSchema` |
+> | `sessions/session.ts` | `SessionSummarySchema` · ⭐ **`SessionBubbleCopySchema`**(아래) · `SessionDetailSchema`(summary + **`RecordingStatus`**(§3.9) + `sticker?`; `reflection?` 는 **Stage 5** — `C4-OPEN-6`) |
+> | `sessions/transition.ts` | `SessionTransitionRequestSchema` · `SessionTransitionResultSchema`(`session`·`completionBubble?`·`stickerAward?`) · **`StickerAwardSchema`** (§3.2.1) |
+> | `sessions/list.ts` | `ListSessionsRequestSchema`(cursor + `status?`) · `paginated(SessionSummarySchema)` — `C4-OPEN-4` **만든다**(RECOMMENDED) |
+>
+> ⭐ **`SessionBubbleCopySchema` — 지금 어디에도 정의가 없다** (**[직독]** `grep -rn 'bubble' packages/contracts/src/` → **0건**). Stage 4 에서 **정의로 승격**한다. 설계 스케치:
+>
+> ```ts
+> // packages/contracts/src/sessions/session.ts  (설계 — 구현 확정은 development-agent)
+> export const SessionBubbleCopySchema = z.object({
+>   // ready 화면 버블(139:2803)의 "제목 줄" 에 그대로 표시된다 (D4-20).
+>   // null | '' 이면 제목 줄을 렌더하지 않는다 (D4-22) — Frontend 는 fallback 을 만들지 않는다.
+>   // 길이 상한(≤240px @ SF Pro Semibold 16, ≈28자)은 생성 측 요구이며 schema 제약이 아니다 (D4-21).
+>   text: z.string().nullable(),
+>   templateId: z.string().optional(),   // 검수 템플릿 추적 (FR-10 · P4-BIP-11) — 화면 미표시
+> }).nullable();
+> ```
+>
+> **왜 길이를 schema 제약으로 넣지 않는가**: 상한은 **픽셀 폭**(240px @ 특정 폰트)이고 글자 수(≈28)는 **환산 가이드**다. `.max(28)` 을 넣으면 ① 폰트·문자 구성에 따라 **참이 아닌 제약**이 되고 ② 넘치는 응답을 **parse 단계에서 거부해 화면이 비어 버린다**. 대신 **Frontend 는 1줄 clamp 로 잘라 표시**하고(AC-4-120 ⑤), **상한은 Backend 요구사항**(`P4-BIP-11`)으로 넘긴다. `HomeSummary.characterLine` 의 **약 120자** 처리(§3.8 `W-5`, `P3-BIP-16`)와 **같은 선례**다.
 
 ```ts
 // packages/contracts/src/sessions/create-session.ts
@@ -221,18 +283,45 @@ export const SessionSummarySchema = z.object({
   completedReason: CompletedReasonSchema.nullable(),
   recordedSeconds: z.number().int().min(0).max(MAX_RECORDED_SECONDS),
   analysisOutcome: AnalysisOutcomeSchema.nullable(),
-  prompts: z.array(PromptSchema),                    // Prompt 모아보기 (FR-11)
-  bubble: SessionBubbleCopySchema,                   // 검수 템플릿 결과 (FR-10)
+  prompts: z.array(PromptSchema),                    // Prompt 모아보기 (FR-11) + ready 버블 pill (D4-14/D4-20)
+  bubble: SessionBubbleCopySchema,                   // 검수 템플릿 결과 (FR-10) — 렌더 지점·null 거동은 아래 표
 });
 export const CreateSessionResponseSchema = z.object({ session: SessionSummarySchema });
 
 export const SessionTransitionRequestSchema = z.object({
+  // ⭐ Rev 8 (D4-13): `abandoned` 는 세 경로에서 온다 —
+  //   ① ready 10분 클라이언트 타이머  ② 서버 sweeper  ③ 사용자 `Discard` (D4-12)
+  //   ⛔ 사유를 구분하는 필드는 없다. 필드 변경 0 — `to` 가 이미 'abandoned' 를 포함한다.
   to: z.enum(['recording', 'paused', 'completed', 'abandoned']),  // client가 요청 가능한 목표 상태만
   occurredAt: z.string().datetime(),
   recordedSeconds: z.number().int().min(0).max(MAX_RECORDED_SECONDS).optional(),
   completedReason: CompletedReasonSchema.optional(),
 }).refine(v => v.to !== 'completed' || v.completedReason !== undefined, { path: ['completedReason'] });
 ```
+
+#### 3.2.1 ⭐ `SessionSummary.bubble` — 렌더 지점과 부재 시 거동 (Rev 8: `D4-20`·`D4-21`·`D4-22`)
+
+> **판정: 신규 contract 항목이 아니다.** `SessionSummary.bubble` · `SessionBubbleCopySchema` 는 **이미 Stage 4 신규 항목**이다 (`stage-4-plan.md` §7.2 — **[직독]** `grep -rn 'bubble' packages/contracts/src/` → **0건**, `sessions/` 디렉토리 자체가 아직 없다). 아래는 그 필드의 **노출 지점과 nullable 거동을 확정**하는 것이다.
+
+| 항목 | 확정 내용 | 근거 |
+|---|---|---|
+| **렌더 지점** | `bubble` 은 **ready 화면 버블(Figma `139:2803`)의 제목 줄**에 표시된다. 그 아래 **pill 은 `prompts`** 다 — **두 값은 출처가 다르고 섞이지 않는다** | **`D4-20`** |
+| Frontend 책임 | ⛔ **문구를 생성·가공·보간하지 않는다** (`rules/architecture.md` §8 · `rules/frontend.md` §8). 템플릿 결합·아이 이름 삽입 **0건**. ⛔ Figma 기본값 **`Try this prompt !` 리터럴을 제품 코드에 넣지 않는다** — **Figma placeholder** 다 | `D4-20`·**`D4-22`** |
+| **null / 빈 문자열** | **제목 줄을 렌더하지 않는다.** placeholder·빈 줄·대체 문구 **0건**. 버블 자체는 **렌더되고** 기하는 유지되며 **높이만 28px 짧아진다** (제목 22 + 그 뒤 flex gap 6 이 함께 사라진다 → **`h = 21 + 6n + Σpill`**) | **`D4-22`** |
+| ⛔ **Frontend fallback** | **만들지 않는다** — **인사 fallback 은 Backend 책임** (`rules/backend.md` §4) | **`D4-22`** |
+| **길이 요구 (Backend)** | 인사 문구는 **≤ 240px @ SF Pro Semibold 16 (≈ 28자)** 여야 한다. Frontend 는 **1줄 clamp(말줄임)** 로 표시하므로 **상한을 넘기면 잘린다**. 2줄이 되면 버블 269 → **291** 로 Record Control 을 **7.6px 침범**한다 | **`D4-21`** |
+| **아이 이름 위치 (Backend)** | ⭐ **아이 이름을 문장 끝에 두지 않는다** — clamp 로 잘릴 때 **이름이 먼저 사라진다**. `Sebastian?` **299.50px** · `Alexandria?` **304.58px** > 제목 노드 폭 **297** | **`D4-21`** |
+| Handoff | 위 두 줄은 **`P4-BIP-11`**(검수 템플릿 버블 생성 + 안전 슬롯 + 금지어 검증 + fallback) 에 묶여 `ANALYSIS_PIPELINE_REQUIREMENTS` 로 간다 | Plan §10 |
+
+**`StickerAward` (Rev 8: `D4-2`·`D4-10`)** — `POST /v1/sessions/:sessionId/transitions` 응답의 `stickerAward?` (§4 Stage 4).
+
+| 항목 | 확정 내용 |
+|---|---|
+| 표시 문구 | **응답 값으로 받는다** — Frontend 가 만들지 않는다. 확정 부제 = **`You read together today`** (`D4-10`) |
+| ⛔ 비포함 필드 | **`dayCount` · `streakDays` 를 넣지 않는다** — Figma `29:85` 의 `Day 12 · keep the streak going` 은 **미채택**(`D4-2`, PRD §7.4 "streak 표시하지 않는다" · `D-6` 유지). 허용 차이 **`AD-S4-1`**(`APPROVED 2026-10-13, user`) |
+| 멱등성 | 재진입 시 중복 표시 없음 (FR-19) — 같은 요청 replay 가 **같은 응답**을 준다 |
+
+**`readingContext` nullable 범위 (`D-9` / `N4-04`)** — `CreateSessionRequest.readingContext` 는 **이미 `.nullable()`** 이므로 *"Reading Context 없이 세션 시작"* 을 **계약이 이미 허용**한다. `N4-04` 는 **그 사실의 확인만** 남은 항목이며(`RECOMMENDED`) **schema 변경은 없다**. 확인되면 이 줄을 `CONFIRMED` 로 바꾼다.
 
 ### 3.3 RecordingUploadInit / Complete
 
@@ -277,6 +366,15 @@ export const RecordingUploadCompleteResponseSchema = z.object({
 });
 // Errors: CONSENT_REQUIRED, RECORDING_NOT_ALLOWED_FOR_MODE, UPLOAD_TOKEN_EXPIRED, RECORDING_INCOMPLETE, SESSION_INVALID_TRANSITION
 ```
+
+> ⭐ **Rev 8 (2026-10-13) — 위 두 값은 `S4-A` Web 녹음 spike 결과로 확정한다** (`stage-4-plan.md` §7.4 · §16.1 `S4-A`). **현재 값은 잠정이며 이 문서가 확정하지 않는다.**
+>
+> | 미결 | 무엇이 걸려 있는가 | 확정 방법 |
+> |---|---|---|
+> | **`partNo` 상한 `.max(20)`** (`C4-OPEN-1`) | 30분 세션에서 인터럽션·크래시 재시작이 반복되면 part 가 20을 넘을 수 있다. 넘으면 **업로드 자체가 schema parse 로 막힌다** | `S4-A` ④ — 30분 세션의 실제 part 수 측정. 넘칠 가능성이 있으면 **상한을 올리거나 part 병합 규칙**을 둔다 |
+> | **`mimeType` 집합** `audio/webm`·`audio/mp4`·`audio/aac`·`audio/m4a` (`C4-OPEN-2`) | 플랫폼 실제 출력과 다르면 parse 실패 | `S4-A` ③ — 데스크톱 Chrome/Safari/Firefox + **iOS Safari** 의 `MediaRecorder.isTypeSupported` 실측. ⭐ **`D4-1` 로 Stage 4 측정 대상은 Web 뿐**이다. ⛔ **enum 을 Web 값으로 닫지 않는다** — 후속 단계의 네이티브 포맷(Capawesome = AAC, Cap-go = 미명시)이 추가될 수 있다. 권장 = **열거형 + 확장 주석**, 또는 Web 값만 넣고 후속 단계 추가를 Handoff 에 명시 |
+>
+> `S4-A` 산출물에는 **측정 환경(브라우저·버전·OS·기기)과 측정 방법**이 적혀 있어야 한다 — *"보장 불가"* 같은 **문서 인용이 아니라 실측 로그**여야 한다 (`rules/frontend.md` §6-2 ⑤).
 
 ### 3.4 Consent · Child Info · Onboarding (C-1 · C-5 · C-6 · C-7 · C-8 · C-9)
 
@@ -612,6 +710,30 @@ Backend 가 121자를 보내는 순간 `HomeSummarySchema.parse` 가 던지고 *
 Stage 8 Handoff 대상: `BACKEND_HANDOFF.md` (`GET /v1/children/:childId/home` 응답 제약) ·
 `ANALYSIS_PIPELINE_REQUIREMENTS.md` (생성 문구 길이 가이드). 추적 ID **`P3-BIP-16`**.
 
+### 3.9 ⭐ `RecordingStatus` — `recordingApi.status` 응답 (Rev 8 신설, 2026-10-13)
+
+> **왜 신설하는가**: §5.1.1 이 `recordingApi` 의 메서드로 **`status`** 를 선언하고 §4 Stage 4 표가 `SessionDetail` 에 *"recording upload status"* 를 요구하는데, **§3 에 그 응답 스케치가 없었다** (`stage-4-plan.md` §7.5-4). Mock·Http Adapter·`UploadQueue` 가 같은 모양을 봐야 한다.
+> **설계 스케치다.** 필드 이름·optional 범위의 **확정은 development-agent** (`S4-C`/`S4-E`).
+
+```ts
+// packages/contracts/src/recordings/status.ts  (설계 — 구현 확정은 development-agent)
+// 필드 목록은 승인된 stage-4-plan.md §7.2 의 `recordings/status.ts` 행과 같다.
+export const RecordingStatusSchema = z.object({
+  recordingId: z.string().uuid(),
+  uploadStatus: UploadStatusSchema,                  // pending | uploaded | failed | deleted | expired (§2.2, #16)
+  partCount: z.number().int().min(0),
+  expiresAt: z.string().datetime().nullable(),       // 원본 90일 만료 안내 (§7.8 보관 정책) — deleted/expired 면 null
+  deletedAt: z.string().datetime().nullable().optional(),
+});
+// Errors: RESOURCE_NOT_FOUND, RECORDING_DELETED, FORBIDDEN
+```
+
+| 설계 판단 | 내용 |
+|---|---|
+| **클라이언트 큐 상태를 넣지 않는다** | `UploadQueue` 의 `local_only…stalled_48h` 는 **contracts 가 아니라 `features/recording` 내부**다 (§2.2 `UploadStatus` 행과 동일 원칙). `RecordingStatus` 는 **서버가 본 사실**만 담는다 |
+| **폐기된 녹음** | `Discard`(`D4-13`) 후 조회하면 `uploadStatus = 'deleted'` — **신규 값 0건**이다. ⛔ **사유는 담기지 않는다** (`N4-30` 이연) |
+| ⏳ **검토 후보 2건 (이 문서가 확정하지 않는다)** | ① **`sessionStatus`** — `invalid-transition` 시 클라이언트가 **서버 상태로 되돌아올 기준**이 필요한데, 현재는 `GET /v1/sessions/:sessionId` 를 따로 불러야 한다. ② **업로드 진행률**(`uploadedParts` 등) — `partCount` 만으로는 *"몇 개가 올라갔는지"* 를 서버 기준으로 알 수 없다. **둘 다 development-agent 가 `S4-C`/`S4-E` 에서 실제 필요 여부를 판정**하고, 넣기로 하면 **이 절과 Plan §7.2 를 함께 갱신**한다 |
+
 ---
 
 ## 4. Endpoint Groups by Stage
@@ -718,10 +840,10 @@ Home 상단 설정 아이콘(`26:44`) → 설정 목록. Stage 2는 `/` Home ske
 | GET | `/v1/books/:bookId/prompts?childId=` | — | `BookPromptsResponse` = `{ bookId, promptSet, reason? }` — **`PromptSet` 재사용**(중복 선언 금지). 세트 단위 `coachingLine` 은 §12.14 로 삭제되었고 코칭 노트는 **`Prompt.coachingNote`**(질문 1개당 1개)다. 각 `Prompt` 는 `phase`·`pageRef`(optional)를 포함할 수 있다 (§3.6, D-8). **`reason`(추천 이유 1~2문장, nullable)은 서버가 만든 문장이며 `BookDetailSheet` 가 Figma `145:1085` 의 책 블록 3번째 줄로 그린다 (사용자 결정 2026-10-09 `L-R2B-01`). 길이 제약 없음 — 요구는 `P3-BIP-26`** | RESOURCE_NOT_FOUND | FR-20 "책별 Prompt 보기" |
 | POST | `/v1/children/:childId/gift-requests` (IK) | `CreateGiftRequest` = **`{ bookId }` 만 — 배송지 필드 없음 (CONFIRMED 2026-10-02, §8 D-15)** | `GiftRequest` | GIFT_REQUEST_DUPLICATE | FR-22, §13. 배송지 수집·저장은 운영·법무 결정 후 별도 Stage (`P3-BIP-06`) |
 | GET | `/v1/children/:childId/gift-requests` | — | `Paginated<GiftRequest>` | CHILD_NOT_FOUND | §13 배송 상태 서재 확인 |
-| GET | `/v1/notification-preferences` | — | `NotificationPreferences` | — | FR-08, §7.8. **Contract 정의 유지** — D-18(2026-10-02, §8.4)은 **알림 설정 화면만** Stage 3 제외이며 contract 는 삭제하지 않는다 |
-| PUT | `/v1/notification-preferences` | `UpdateNotificationPreferences` | `NotificationPreferences` | — | FR-08, §7.8 |
-| POST | `/v1/push-devices` | `RegisterPushDevice` (platform, token) | `PushDevice` | — | FR-08 |
-| DELETE | `/v1/push-devices/:id` | — | 204 | — | FR-08 |
+| GET | `/v1/notification-preferences` | — | `NotificationPreferences` | — | FR-08, §7.8. **Contract 정의 유지** — D-18(2026-10-02, §8.4)은 **알림 설정 화면만** Stage 3 제외이며 contract 는 삭제하지 않는다. ⭐ **구현 Stage = 4** (이월 `QA-3-001` — Stage 3 에서 0건이었다) |
+| PUT | `/v1/notification-preferences` | `UpdateNotificationPreferences` | `NotificationPreferences` | — | FR-08, §7.8. ⭐ **구현 Stage = 4** (이월 `QA-3-001`) |
+| POST | `/v1/push-devices` | `RegisterPushDevice` (platform, token) | `PushDevice` | — | FR-08. ⭐ **구현 Stage = 4** (이월 `QA-3-001`). `platform` = `PushPlatform` **3값 유지**(`ios`·`android`·`web`) — ⛔ **네이티브 분리(`D4-1`)로 값을 줄이지 않는다**: Contract 는 Backend 요구사항이고 **후속 단계에서 ios/android 가 실제로 등록된다** |
+| DELETE | `/v1/push-devices/:id` | — | 204 | — | FR-08. ⭐ **구현 Stage = 4** (이월 `QA-3-001`) |
 
 ### Stage 4 — Storytime Session · Recording · Storage
 
@@ -736,6 +858,18 @@ Home 상단 설정 아이콘(`26:44`) → 설정 목록. Stage 2는 `/` Home ske
 | GET | `/v1/children/:childId/sessions` | cursor, `?status=` | `Paginated<SessionSummary>` | — | FR-20 히스토리, §7.8 세션별 삭제 목록 |
 
 클라이언트 전용(계약 아님): RecordingController 상태, 로컬 UploadQueue 상태, 마이크 권한 상태.
+
+> ⭐ **Rev 8 (2026-10-13) — Stage 4 범위 주석** (`D4-1`·`D4-12`·`D4-13`)
+>
+> | 항목 | 내용 |
+> |---|---|
+> | **endpoint 자체는 하나도 제거하지 않는다** | Contract 는 **Backend 요구사항**이다. `D4-1`(네이티브 → 후속 단계)은 **Frontend 구현 범위**를 줄인 것이고 Backend 가 구현해야 하는 표면은 그대로다 |
+> | 네이티브 전용 요구 | **기기 토큰 등록의 `ios`/`android` 분기**(`POST /v1/push-devices`) 등은 **후속 단계**에 Frontend 쪽 호출자가 생긴다. Stage 4 는 **`web` 경로만** 호출한다 (`D-16`: Web 은 `Notification.permission` 까지만, provider SDK 금지) |
+> | ⭐ `POST /v1/sessions/:sessionId/transitions` **`to='abandoned'`** | 사용자 `Discard` 가 **이 endpoint 를 그대로 쓴다** (`D4-12`·`D4-13`). **신규 endpoint 0건** · 신규 error code 0건. ⛔ **폐기 사유를 보내지 않는다** |
+> | ⛔ **`recordingApi.abort()` 를 추가하지 않는다** | 업로드 중 폐기 시 서버가 **`abandoned` 전이를 받아 part 를 스스로 정리**한다 — **Handoff 요구사항** `P4-BIP-21` (§5.1.1) |
+> | `GET /v1/children/:childId/sessions` | Stage 4 에서 **Contract 를 만든다** (`C4-OPEN-4`, RECOMMENDED) — 이것 없이는 **FR-21 세션별 녹음 삭제 대상 목록**(Stage 8)과 크래시 복구 시 "진행 중 세션 찾기" 를 표현할 수 없다. **Mock fixture 는 최소**로 |
+> | `SessionDetail` | ⭐ **`sticker?` 는 Stage 4 에 넣고 `reflection?` 은 Stage 5 로** (`C4-OPEN-6`, RECOMMENDED) — 재진입 시 스티커 중복 표시 방지(FR-19)가 Stage 4 AC 라서 `sticker` 가 필요하다. `recording upload status` 는 **§3.9 `RecordingStatus`** 를 쓴다 |
+> | ⛔ Prompt Drawer 노출 기록 | **endpoint 를 추가하지 않는다** (`C4-OPEN-3`, RECOMMENDED) — 서버가 `prompts` 를 내려준 시점으로 충분하고 추가 왕복은 "무음·무진동" 원칙과 맞지 않는다. Handoff 에 *"Drawer 노출 시각은 Frontend 가 보고하지 않는다"* 로 명시 |
 
 ### Stage 5 — Reflection · Async Analysis · Short Feedback
 
@@ -811,6 +945,30 @@ apps/web/src/
 
 - 위 이름 외의 변형(`RecordingUploadApi`, `MockRecordingUploadTransport`, `MockRecordingUploadApi` 등)은 사용하지 않는다.
 - `UploadQueue`(features/recording)는 `recordingApi` 와 `UploadTransport` 를 조합한다. 실제 전송·서버 확정 검증은 `BACKEND_INTEGRATION_PENDING` (`RECORDING_UPLOAD_SPEC.md`).
+
+> ⭐ **Rev 8 (2026-10-13) — Platform Port 의 Stage 범위** (`D4-1`, **Stage 0 #7 변경**)
+>
+> | Port / Adapter | Stage 4 | 후속 단계 |
+> |---|---|---|
+> | **`RecorderAdapter`** | **interface + Web 구현** (`MediaRecorder` 기반). ⭐ **interface 에 DOM 타입을 노출하지 않는다** — `S4-D` 완료 판정 항목이다(`R-02` 완화책) | `NativeRecorderAdapter` (Capacitor 플러그인) |
+> | **`PushPermissionPort`** | **interface + Web 구현** (`Notification.permission` / `requestPermission()` **까지만** — `D-16`). ⛔ provider SDK·VAPID·`PushManager` **0건** | 네이티브 Push Adapter (`S4N-D`) |
+> | **`AuthGateway`** | **`MockAuthGateway`**(Web) 유지 — Stage 2 구현 그대로 | 네이티브 Apple/Google Adapter (`S4N-B`) |
+> | `UploadTransport` | `MockUploadTransport` + `TusUploadTransport` **골격** | 실제 TUS 연동 (`BACKEND_INTEGRATION_PENDING`) |
+>
+> ⛔ **`apps/mobile` 을 Stage 4 에서 만들지 않는다.** 네이티브는 **분리된 후속 단계**다 (`D4-1`, 2026-10-12 로 Stage 0 #7 변경). Contract·Port interface 는 그 확장점으로 **Stage 4 에서 확정**된다.
+
+> ⭐ **Rev 8 (2026-10-13) — 녹음 폐기 시 업로드 중단 처리** (`D4-13` 귀결)
+>
+> | 항목 | 확정 |
+> |---|---|
+> | ⛔ **`recordingApi.abort()` 를 추가하지 않는다** | `recordingApi` 는 **`init`·`refreshTokens`·`complete`·`status` 4개 그대로**다 |
+> | 중단 경로 | 클라이언트는 **`POST /v1/sessions/:sessionId/transitions` `to='abandoned'`** 하나만 보낸다. 그 다음 **로컬 큐를 취소하고 청크를 삭제**한다 |
+> | 서버 책임 (**Handoff `P4-BIP-21`**) | **`abandoned` 전이를 받으면 이미 올라온 part 와 발급한 upload token 을 서버가 스스로 정리**한다. Frontend 는 part 단위 취소를 호출하지 않는다 |
+> | 왜 메서드를 늘리지 않는가 | ① 폐기는 **세션 수준 사건**이고 전이가 이미 그것을 표현한다 ② 메서드를 늘리면 **오프라인 폐기** 때 두 요청의 순서·멱등을 Frontend 가 관리해야 한다 ③ `rules/architecture.md` §1 — 추상화는 **교체가 예정된 경계**에만 둔다 |
+> | 삭제 순서 (불변) | **서버 전이 확정 응답을 받은 뒤** 로컬을 지운다. 실패·오프라인이면 **로컬 보존** + `SessionOutbox` 적재 (§3.1 주석) |
+
+> ⭐ **Rev 8 (2026-10-13) — `UploadTransport` 시그니처는 `S4-A` spike 결과로 구체화한다**
+> `uploadPart` / `resume` / `abort` 의 인자·반환은 **Web `MediaRecorder` 청크 모델과 TUS offset 재개 방식의 실측**에 달려 있다 (`S4-A` ①②④). **이 문서는 메서드 이름만 확정**하고 시그니처는 열어 둔다 — 구현 확정은 development-agent(`S4-E`). ⚠️ `abort` 는 **transport 계층의 바이트 전송 취소**이고, 위의 *"`recordingApi.abort()` 를 추가하지 않는다"* 와 **다른 층의 다른 것**이다.
 
 ### 5.2 Adapter 규칙
 
@@ -911,6 +1069,8 @@ apps/web/src/
 | `recording-incomplete` | — | complete 시 `RECORDING_INCOMPLETE` | recordings | 4 | — |
 | `offline-queued` | — | 오프라인 녹음 완료 → 큐 대기 → 복구 후 업로드 | recordings | 4 | — |
 | `upload-stalled-48h` | — | 업로드 실패 48h 경과 (clock 주입) → 안내 | recordings | 4 | `stalled-48h` |
+| **`recording-discarded`** ⭐ Rev 8 | — | **사용자 `Discard`** — `POST /v1/sessions/:id/transitions` `to=`**`abandoned`** 확정 응답 → 클라이언트가 **업로드 큐를 취소하고 로컬 청크를 삭제**한다. 서버 업로드 없음. 재조회 시 `uploadStatus=`**`deleted`** (§3.9). ⛔ **폐기 사유 필드 없음** · 신규 error code 0 · 신규 enum 값 0 (`D4-13`). **선행 조건이 `D4-13` 으로 풀렸다** — Mock 이 보낼 `to` 값이 **`abandoned`** 로 확정됐다 | sessions, recordings | 4 | — |
+| **`web-background-warning`** ⭐ Rev 8 | — | **Web 백그라운드·탭 비활성 녹음 한계 안내** — `visibilitychange` 로 탭이 비활성되거나 화면이 잠겼을 때 **청크 수신이 중단될 수 있음**을 사용자에게 알린다. ⭐ **`D4-4` 로 필수가 됐다**(네이티브가 Stage 4 에서 빠진 대가로 **Web 한계를 측정·기록·안내**하는 것이 요구사항이 되었다 — Plan AC-4-70 · AC-4-108). 실제 중단 여부·조건은 `S4-A` ⑥ 실측으로 채운다 | sessions (RecorderAdapter mock) | 4 | — |
 | `reflection-already-submitted` | — | `REFLECTION_ALREADY_SUBMITTED` / 멱등 재제출 동일 응답 | reflections | 5 | `already-submitted` |
 | `analysis-low-quality` | — | `analyzed` + `outcome=excluded_low_quality` | analysis | 5 | — |
 | `analysis-not-available` | — | `ANALYSIS_NOT_AVAILABLE` (conversation_only 등) | analysis | 5 | — |
@@ -927,6 +1087,17 @@ apps/web/src/
 | `recording-deleted` | — | `RECORDING_DELETED` / 분석 종결 표현 (`skipped_audio_deleted` 후보 — OAQ-17 결정 전 enum 제외) | recordings (upload-tokens), analysis, highlight clips, data management | 4 | — |
 | ~~`consent-revoked`~~ | — | **제거 — CONFIRMED (사용자 결정 2026-09-14, C-4, 동의 철회 MVP 제외)**. Mock·테스트·문서에 사용 금지 | — | — | — |
 
+> ⭐ **Rev 8 (2026-10-13) — 등재 판단 기록**
+>
+> | 후보 | 판단 |
+> |---|---|
+> | **`recording-discarded`** | ✅ **등재** — `D4-12`(Discard 채택)·`D4-13`(전이 안 A)로 Mock 동작이 결정적으로 정의된다 |
+> | **`web-background-warning`** | ✅ **등재** — `D4-4` 로 **필수** |
+> | **폐기 전이 실패 분기** (로컬 보존 검증) | ⏳ **별도 key 로 두지 않는다 (잠정)** — 공통 **`error`**/**`retry`** + `offline` 으로 덮을 수 있는지가 **development-agent 판단**이다(`S4-B`/`S4-E`). 덮을 수 없으면 그때 등재한다. ⚠️ 어느 쪽이든 **"전이 실패 시 로컬 청크를 보존한다"** 는 **AC 로 검증**된다 |
+> | `library:save-error` 류 **메서드 단위 override** | ⏳ **key 가 아니라 조합 표기 문제**다 — "조합 표기 방식은 Stage 1 Plan 에서 확정" 이 미완인 채 남아 있다. Stage 4 에서 새 key 를 만들지 않는다 |
+> | **`local-retention-exceeded`** (기기 로컬 미업로드 녹음 보관 상한 초과) | ⛔ **등재하지 않는다** — `N4-09`(보관 기간, `OAQ-11`)가 **미결**이다. 결정 전에는 **삭제하지 않는 쪽**을 유지하므로 재현할 동작이 없다 |
+> | **인터럽션 3종 구분** (`visibilitychange` · `devicechange` · `MediaStreamTrack.onended`) | ⛔ **기존 `recording-interrupted` 를 쪼개지 않는다** — 셋의 **사용자 대면 동작이 같다**(일시정지·재개 안내 + 로컬 청크 보존). 구분은 **`S4-A` spike 산출물과 테스트 이름**에서 하고 scenario key 를 늘리지 않는다 |
+
 - Mock 응답도 contracts schema로 parse (fixture drift 방지).
 - Fixture 아동 데이터는 가상 이름만 사용 (실제 아동 데이터 금지 — rules/frontend.md §5 fixtures 규칙).
 - Figma placeholder 값(표지·제목·리포트 수치)을 fixture로 복사하지 않는다 (M-36).
@@ -937,6 +1108,8 @@ apps/web/src/
 
 아래 항목은 작성 시점(2026-09-14) 기준으로 **계약에 추가하지 않은 것**이다. PRD 근거가 없거나 PRD와 충돌하는 Figma 요소이므로, 해당 불일치(M-xx)가 결정된 뒤에만 contracts·Mock에 반영한다.
 
+> ⭐ **갱신 2026-10-13 (plan-agent, Rev 8)** — Stage 4 승인으로 **`G-08` · `G-09` 2건이 해소**되었다 (`D4-12`·`D4-13`·`D4-14`·`D4-20`·`D4-21`·`D4-22`). 둘 다 **Figma 채택**이며 `G-08` 은 종전 *"현 계약 유지"* 를 **뒤집은 것**이다. 남은 `NEEDS DECISION` = **G-01 · G-06 · G-11 · G-12 · G-13 · G-14 (6건)**.
+>
 > **갱신 2026-10-02 (plan-agent)** — Stage 3 승인으로 **G-02 · G-03 · G-05 · G-07 4건이 해소**되었다 (`docs/decisions/stage-3-approvals.md` §3 · §8 · §8.5). `라벨` 열을 참조하고, 해소 항목은 **§3.6 · §4 Stage 3 표가 정본**이다. 나머지 항목은 여전히 `NEEDS DECISION` 이다.
 
 | # | Gap | Figma 근거 | 현재 계약 | 채택 시 후보 변경 | 라벨 |
@@ -948,8 +1121,8 @@ apps/web/src/
 | G-05 | **덱 카드별 역량** | `163:2648` — 3장이 각각 Self-Direction / Emotion / Intrinsic Motivation | **(b) 채택** — `ActivityCard.options[].capability` **추가**, 카드 단위 `targetCapability` 는 **삭제**(D-22, 2026-10-03 §9) (§3.6) | 반영 완료. §8.3 순환 스케줄 규칙 변경은 **추천 엔진 Backend 요구**(`P3-BIP-02`) | **CONFIRMED (2026-09-29, §3 D-5; M-31 해소)** — Figma 우선 적용, PRD §7.4·§8.3 은 **PRD 수정 대상 §5-2**. `" Day"` suffix 폐기(N-3), "Emotion Day Day"(M-13) 오타 미복제 |
 | G-06 | **회고 칩 정의** | `91:710–714` Engaged / Big feelings / Ask Questions / Stay Focus / Tricky today (on/off) + 별점 `91:693` + 한 줄 입력 `91:716` | `ReflectionFormDefinition` 은 이름만 정의, `SubmitReflection.checks` 값 형태·선택지 미정 | PRD 체크 5종 ↔ 칩 1:1 매핑 후보 (아이 반응↔Engaged, 감정 표현↔Big feelings, 질문 여부↔Ask Questions, 집중 시간↔Stay Focus, 어려웠던 점↔Tricky today). 칩 = boolean인지 항목별 선택지인지, 문구, 자유 후기 별도 카드 여부 결정 후 `ReflectionCheckKey` enum + `checks: Record<ReflectionCheckKey, boolean>` 확정 | NEEDS DECISION (M-15) |
 | G-07 | **Prompt 노출 시점** | 모든 카드 변형이 책 선택 전 Prompt 노출 (`163:2648`, `86:438`, `86:512/545`) | **`options[].promptPreview: Prompt[]` 추가** (선택 전 노출). `SelectActivityOption` 응답의 `promptSet` 은 그대로 유지 — §3.6 | 반영 완료. **길이 상한 없음**(N-2 + **D-21**: `.min(1)` 만, `.max(3)` 없음, Frontend 가 `slice` 하지 않는다 — 표시 개수 3은 cutoff) | **CONFIRMED (2026-09-29 §3 D-4 + 2026-10-01 §6.1 N-2; M-09 해소)** — Figma 우선 적용, PRD FR-07·§7.4·§8.2 는 **PRD 수정 대상 §5-1 · §6.2-4** |
-| G-08 | **세션 준비 버블에 Prompt 목록** ("Try this prompt !") | `139:2803` | `SessionSummary.bubble` = 검수 템플릿 인사, `prompts` 는 Prompt 모아보기용 | PRD §7.5(자동 제시 금지) 기준 현 계약 유지 | NEEDS DECISION (M-25) |
-| G-09 | **녹음 Discard / Submit** | `163:1618`, `163:1620` (용도 불명) | 녹음 폐기 전이 없음 | 채택 시 FR-21 삭제 흐름·동의 정책과 함께 정의 (예: 완료 전 폐기 = `abandoned` + 로컬 삭제, 서버 업로드 없음) | NEEDS DECISION (M-26) |
+| G-08 | **세션 준비 버블에 Prompt 목록** ("Try this prompt !") | `139:2803` (선언 **329×269** @ (34,336) · pill 간격 **6** · 세로 padding 위 **14** / 아래 **13**) | ⭐ **버블 하나가 둘 다 담는다** — **제목 줄 = `SessionSummary.bubble`**(검수 템플릿 인사) · **pill = `prompts`**. 두 값은 **출처가 다르고 섞이지 않는다**. 상세 = **§3.2.1** | ⛔ **종전 "PRD §7.5(자동 제시 금지) 기준 현 계약 유지" 를 뒤집는다.** Figma 기하를 그대로 구현한다(329 폭 · pill 5개 · 간격 6). 인사 없으면 **제목 줄 미렌더**(`D4-22`, 높이 28px 단축) · 인사는 **1줄 clamp** 상한 **≤240px**(`D4-21`) · ⛔ `Try this prompt !` 는 **Figma placeholder** 이며 제품 코드에 넣지 않는다 | ⭐ **Resolved — Figma 채택 (사용자 결정 2026-10-13, `D4-14` + `D4-20`·`D4-21`·`D4-22`; M-25 해소)** — `CLAUDE.md` Source of Truth(PRD ↔ Figma 충돌 시 **Figma 우선, 지점별 사용자 승인**)대로 처리했다. ⚠️ **PRD 수정 대상 8건** = `stage-4-approvals.md` **§6.2 (8~15)**. ⚠️ 되살아난 미결 2건: **`S4F-01`**(Prompt 개수 n 가변 시 높이 정책 — `D-21` 상한 없음) · **`S4F-02`**(pill 본문이 Figma 자체에서 38px 를 2줄로 넘친다) |
+| G-09 | **녹음 Discard / Submit** | `163:1618`(`Discard`, 면 `--grays/gray-2` **`#aeaeb2`**) · `163:1620`(`Submit`) — ⭐ 2026-10-13 Figma 갱신으로 **둘 다 `285:1445` "After_record" 의 자식**이 되어 **용도가 확정**됐다 | ⭐ **둘 다 채택.** `Submit` → Toast(`Recording submitted`) → **`1c Complete & Feedback`** · `Discard` → **확인 다이얼로그**(`D4-17`) → **홈 복귀**. 전이표에 **`recording → abandoned` · `paused → abandoned` 2행 추가**(행 수 **12 → 14**) — §3.1 | ⭐ **이 절이 적어 둔 후보 "완료 전 폐기 = `abandoned` + 로컬 삭제, 서버 업로드 없음" 이 바로 채택된 안(안 A)이다** — 후보 표기를 **확정 서술로 바꾼다**. ⛔ `SessionStatus` 신규 값 **없음**(`discarded` 미채택) · **`AbandonedReason` 만들지 않는다** · `CompletedReason`·error code 신규 **0**. ⛔ **`recordingApi.abort()` 없음** — 서버가 part 를 스스로 정리(`P4-BIP-21`, §5.1.1) | ⭐ **Resolved — 안 A (사용자 결정 2026-10-13, `D4-12` + `D4-13`; M-26 부분 해소)**. ⚠️ **방치와 사용자 폐기를 구분할 수 없다** — 사유 값 추가는 별도 결정(`N4-30`, 이연). M-26 잔여 = `C13-1`·`C13-14` 디자이너 Figma 대기 + `N4-27`(paused 재개 경로) |
 | G-10 | **가입 화면 아이 정보** | `179:1740` | 가입 입력에 아이 필드 없음 (`SignUpWithEmailInput`), 아이 정보는 동의 후 온보딩 Step 1 `child_info` (성·이름 두 칸, 성별 선택) — §3.4 | 반영 완료. Figma 가입 화면 수정은 디자이너 요청 | CONFIRMED (사용자 결정 2026-09-14, C-5 · C-6 · C-7; M-28 해소) |
 | G-11 | **리포트 이메일 발송** | `110:861` | 없음 | `NotificationPreferences.reportEmailEnabled`, `NotificationKind.report_email` | NEEDS DECISION (M-11) |
 | G-12 | **`conversation_only` 카드의 `★ Save` 대상** | `86:438` ActionBar (대화 전용 변형 **없음**) | `ActivityCardOption.book` · `userEnteredBook` 둘 다 없는 경우 저장 대상이 없다 (§3.7.2) | 버튼 비활성(`aria-disabled`) / 미렌더 / 대화 활동 자체를 저장 — 셋 다 Figma 근거 없음 | **NEEDS DECISION (2026-10-05, `A-9` 후속)** |
