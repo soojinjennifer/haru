@@ -27,12 +27,15 @@ import {
   PlanSchema,
   PromptKindSchema,
   PromptPhaseSchema,
+  PushPlatformSchema,
   ReadingContextSchema,
+  RecordingContainerSchema,
   ReportEligibilitySchema,
   ReportStatusSchema,
   SURVEY_ANSWER_VALUES,
   SessionModeSchema,
   SessionStatusSchema,
+  StickerTypeSchema,
   SurveyAnswerValueSchema,
   UploadStatusSchema,
 } from '../enums/index.js';
@@ -44,7 +47,9 @@ import {
  * `PromptPhase` 는 **D-8** 승인으로 신설되었다
  * → Library 1라운드 Plan §7.3 으로 **32종**: `LibrarySectionKey`(표시 축) ·
  * `LibraryFilter`(쿼리 축) · `BookSource` 신설. `GiftRequestStatus` 는 **이미 존재**해 신규가
- * 아니다 — 전수 대조가 "enum 신규" 로 잘못 적은 것을 `L-OPEN` 정정에서 바로잡았다).
+ * 아니다 — 전수 대조가 "enum 신규" 로 잘못 적은 것을 `L-OPEN` 정정에서 바로잡았다)
+ * → Stage 4 `S4-B` 로 **35종**: `PushPlatform`(이월 `QA-3-001`) · `StickerType`(`C4-OPEN-5`) ·
+ * `RecordingContainer`(`D4-23`) 신설. **기존 32종의 값은 하나도 늘지 않았다** (AC-4-06 · `R4-16`).
  * 값·순서를 바꾸려면 문서를 함께 갱신한다.
  */
 interface EnumSnapshot {
@@ -246,11 +251,27 @@ const ENUM_SNAPSHOTS: readonly EnumSnapshot[] = [
     options: BookSourceSchema.options,
     expected: ['onboarding_favorite', 'library_add', 'gift_program', 'card_save'],
   },
+  // Stage 4 `S4-B` 추가 — 3 종 (기존 enum 값 추가 0)
+  {
+    name: 'PushPlatform',
+    options: PushPlatformSchema.options,
+    expected: ['ios', 'android', 'web'],
+  },
+  {
+    name: 'StickerType',
+    options: StickerTypeSchema.options,
+    expected: ['attendance'],
+  },
+  {
+    name: 'RecordingContainer',
+    options: RecordingContainerSchema.options,
+    expected: ['webm', 'mp4'],
+  },
 ];
 
 describe('enums — API_CONTRACTS §2 값 스냅샷', () => {
-  it('Library 1라운드까지 확정된 enum 은 32 종이다', () => {
-    expect(ENUM_SNAPSHOTS).toHaveLength(32);
+  it('Stage 4 S4-B 까지 확정된 enum 은 35 종이다 (Library 1라운드 32 + Stage 4 신규 3)', () => {
+    expect(ENUM_SNAPSHOTS).toHaveLength(35);
   });
 
   /*
@@ -286,6 +307,17 @@ describe('enums — 결정으로 제외된 값이 존재하지 않는다', () =>
 
   it('SessionStatus 에 retry 가 없다 (retry 는 상태가 아니라 행위)', () => {
     expect(SessionStatusSchema.safeParse('retry').success).toBe(false);
+  });
+
+  it('SessionStatus 에 discarded 가 없다 (D4-13 — 안 B 미채택, 8값 유지)', () => {
+    expect(SessionStatusSchema.safeParse('discarded').success).toBe(false);
+    expect(SessionStatusSchema.options).toHaveLength(8);
+  });
+
+  it('CompletedReason 에 폐기 사유 값이 없다 (D4-13 — 3값 유지)', () => {
+    expect(CompletedReasonSchema.safeParse('discarded').success).toBe(false);
+    expect(CompletedReasonSchema.safeParse('user_discarded').success).toBe(false);
+    expect(CompletedReasonSchema.options).toHaveLength(3);
   });
 });
 

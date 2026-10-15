@@ -21,11 +21,15 @@ import { ActivityCardOptionSchema } from './option.js';
  * 규칙을 schema 안에 `.superRefine` 리터럴로 묻지 않고 **팩토리로 분리**한다 — 같은 규칙을
  * 쓰는 경로(서재 경로의 세션 생성 등)가 나중에 생겨도 조건문이 복제되지 않는다
  * (Stage 2 `D-10` 의 "규칙은 팩토리" 원칙).
+ *
+ * `readingContext` 가 `null` 인 입력도 받는다 — Stage 4 서재 경로의 `CreateSessionRequest` 는
+ * Reading Context 없이 시작할 수 있다 (`D4-25`). `null` 은 `custom_time` 이 아니므로 규칙은 통과한다.
+ * 판정 로직은 바뀌지 않았다 (입력 타입만 넓혔다).
  */
 export function createCustomTimeRefine() {
   return (
     value: {
-      readingContext: z.infer<typeof ReadingContextSchema>;
+      readingContext: z.infer<typeof ReadingContextSchema> | null;
       customTime?: string | undefined;
     },
     ctx: z.RefinementCtx,

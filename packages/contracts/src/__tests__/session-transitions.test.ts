@@ -7,7 +7,7 @@ import {
   canTransition,
 } from '../rules/session-transitions.js';
 
-/** 허용 전이 12행 (API_CONTRACTS §3.1 — CONFIRMED #16). */
+/** 허용 전이 14행 (API_CONTRACTS §3.1 — CONFIRMED #16, Stage 4 `D4-13` 으로 +2행) — modes 전개 16 조합. */
 const ALLOWED: ReadonlyArray<[SessionStatus, SessionStatus, SessionTransitionActor, SessionMode]> =
   [
     ['ready', 'recording', 'caregiver', 'recorded'],
@@ -24,6 +24,9 @@ const ALLOWED: ReadonlyArray<[SessionStatus, SessionStatus, SessionTransitionAct
     ['analyzing', 'analyzed', 'worker', 'recorded'],
     ['analyzing', 'failed', 'worker', 'recorded'],
     ['failed', 'analyzing', 'worker', 'recorded'],
+    // Stage 4 `D4-13` 안 A — 사용자 `Discard`
+    ['recording', 'abandoned', 'caregiver', 'recorded'],
+    ['paused', 'abandoned', 'caregiver', 'recorded'],
   ];
 
 /** 대표 비허용 전이 (AC-1-32). */
@@ -72,9 +75,58 @@ const DENIED: ReadonlyArray<
   ['같은 상태로의 자기 전이는 허용되지 않는다', 'recording', 'recording', 'caregiver', 'recorded'],
 ];
 
-describe('SESSION_TRANSITIONS (CONFIRMED #16)', () => {
-  it('전이 표는 12 행이다', () => {
-    expect(SESSION_TRANSITIONS).toHaveLength(12);
+/**
+ * 전이 표 **14 행 전수 스냅샷** (AC-4-07 · `R4-16`).
+ *
+ * 앞 12 행은 Stage 1 (#16) 원본이며 **문자 단위로 불변**이어야 한다. 마지막 2 행이 `D4-13` 이
+ * 승인한 추가분의 전부다 — `abandonedReason` 같은 필드나 `discarded` 상태는 없다.
+ */
+const SNAPSHOT_STAGE1_ROWS = [
+  { from: 'ready', to: 'recording', actor: 'caregiver', modes: ['recorded'] },
+  { from: 'ready', to: 'completed', actor: 'caregiver', modes: ['conversation_only'] },
+  { from: 'ready', to: 'abandoned', actor: 'caregiver', modes: ['recorded', 'conversation_only'] },
+  { from: 'ready', to: 'abandoned', actor: 'server', modes: ['recorded', 'conversation_only'] },
+  { from: 'recording', to: 'paused', actor: 'caregiver', modes: ['recorded'] },
+  { from: 'paused', to: 'recording', actor: 'caregiver', modes: ['recorded'] },
+  { from: 'recording', to: 'completed', actor: 'caregiver', modes: ['recorded'] },
+  { from: 'paused', to: 'completed', actor: 'caregiver', modes: ['recorded'] },
+  { from: 'completed', to: 'analyzing', actor: 'server', modes: ['recorded'] },
+  { from: 'analyzing', to: 'analyzed', actor: 'worker', modes: ['recorded'] },
+  { from: 'analyzing', to: 'failed', actor: 'worker', modes: ['recorded'] },
+  { from: 'failed', to: 'analyzing', actor: 'worker', modes: ['recorded'] },
+] as const;
+
+const SNAPSHOT_D4_13_ROWS = [
+  { from: 'recording', to: 'abandoned', actor: 'caregiver', modes: ['recorded'] },
+  { from: 'paused', to: 'abandoned', actor: 'caregiver', modes: ['recorded'] },
+] as const;
+
+describe('SESSION_TRANSITIONS (CONFIRMED #16 + D4-13)', () => {
+  it('전이 표는 14 행이다 (12 → 14, D4-13)', () => {
+    expect(SESSION_TRANSITIONS).toHaveLength(14);
+  });
+
+  it('14 행 전수가 스냅샷과 정확히 같다 — 앞 12 행 불변 + D4-13 2 행 (AC-4-07)', () => {
+    expect(SESSION_TRANSITIONS).toEqual([...SNAPSHOT_STAGE1_ROWS, ...SNAPSHOT_D4_13_ROWS]);
+    expect(SESSION_TRANSITIONS.slice(0, 12)).toEqual(SNAPSHOT_STAGE1_ROWS);
+  });
+
+  it('행에는 from · to · actor · modes 외 필드가 없다 (사유 필드 미도입 — R4-16)', () => {
+    for (const transition of SESSION_TRANSITIONS) {
+      expect(Object.keys(transition).sort()).toEqual(['actor', 'from', 'modes', 'to']);
+    }
+  });
+
+  it('D4-13 귀결: 방치와 폐기는 같은 전이(→ abandoned, caregiver)라 표만으로 구분되지 않는다', () => {
+    expect(canTransition('ready', 'abandoned', 'caregiver', 'recorded')).toBe(true);
+    expect(canTransition('recording', 'abandoned', 'caregiver', 'recorded')).toBe(true);
+    expect(canTransition('paused', 'abandoned', 'caregiver', 'recorded')).toBe(true);
+    // 폐기는 녹음 세션에서만, 사용자만 한다
+    expect(canTransition('recording', 'abandoned', 'caregiver', 'conversation_only')).toBe(false);
+    expect(canTransition('recording', 'abandoned', 'server', 'recorded')).toBe(false);
+    expect(canTransition('paused', 'abandoned', 'worker', 'recorded')).toBe(false);
+    // 완료 이후에는 폐기할 수 없다
+    expect(canTransition('completed', 'abandoned', 'caregiver', 'recorded')).toBe(false);
   });
 
   it('모든 행의 from/to 가 SessionStatus enum 값이다', () => {
@@ -98,9 +150,10 @@ describe('canTransition — 허용 전이', () => {
     expect(canTransition(from, to, actor, mode)).toBe(true);
   });
 
-  it('표의 12 행이 modes 전개 기준 14 조합을 허용한다', () => {
+  it('표의 14 행이 modes 전개 기준 16 조합을 허용한다', () => {
     const combinations = SESSION_TRANSITIONS.reduce((sum, t) => sum + t.modes.length, 0);
     expect(combinations).toBe(ALLOWED.length);
+    expect(combinations).toBe(16);
   });
 });
 

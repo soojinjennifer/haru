@@ -16,6 +16,43 @@ describe('Error Code Catalogue (API_CONTRACTS §1.2)', () => {
     expect(new Set(ERROR_CODES).size).toBe(29);
   });
 
+  /*
+   * 29 종 전수 스냅샷 (Stage 4 AC-4-08 — 신규 Error Code 0건). 값·순서가 바뀌면 문서 §1.2 와 함께 고친다.
+   */
+  it('코드 29 종의 값과 순서가 Stage 4 S4-B 이전과 같다 (AC-4-08)', () => {
+    expect(ERROR_CODES).toEqual([
+      'VALIDATION_FAILED',
+      'AUTH_REQUIRED',
+      'AUTH_TOKEN_EXPIRED',
+      'FORBIDDEN',
+      'CONSENT_REQUIRED',
+      'CONSENT_VERSION_OUTDATED',
+      'ONBOARDING_INCOMPLETE',
+      'CHILD_NOT_FOUND',
+      'CHILD_LIMIT_REACHED',
+      'RESOURCE_NOT_FOUND',
+      'SESSION_INVALID_TRANSITION',
+      'SESSION_ALREADY_ACTIVE',
+      'SESSION_MAX_DURATION_EXCEEDED',
+      'RECORDING_NOT_ALLOWED_FOR_MODE',
+      'UPLOAD_TOKEN_EXPIRED',
+      'RECORDING_INCOMPLETE',
+      'RECORDING_DELETED',
+      'ANALYSIS_NOT_AVAILABLE',
+      'REFLECTION_ALREADY_SUBMITTED',
+      'REPORT_NOT_ELIGIBLE',
+      'REPORT_NOT_READY',
+      'PDF_NOT_READY',
+      'GIFT_REQUEST_DUPLICATE',
+      'BOOK_ALREADY_OWNED',
+      'DELETION_ALREADY_REQUESTED',
+      'IDEMPOTENCY_KEY_REUSED',
+      'RATE_LIMITED',
+      'PROVIDER_UNAVAILABLE',
+      'INTERNAL_ERROR',
+    ]);
+  });
+
   it('TRIAL_ACCOUNT_RESTRICTED 가 없다 (C-12 — 익명 Trial 계정 미채택)', () => {
     expect(ERROR_CODES).not.toContain('TRIAL_ACCOUNT_RESTRICTED');
     expect(ErrorCodeSchema.safeParse('TRIAL_ACCOUNT_RESTRICTED').success).toBe(false);

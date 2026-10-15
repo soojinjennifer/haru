@@ -22,7 +22,8 @@ export interface SessionTransition {
 }
 
 /**
- * 허용된 세션 상태 전이 표 — **CONFIRMED (사용자 결정 2026-09-14, #16)**.
+ * 허용된 세션 상태 전이 표 — **CONFIRMED (사용자 결정 2026-09-14, #16)**,
+ * Stage 4 에서 **12 → 14 행** (`D4-13`, 2026-10-13 — 아래 마지막 2행).
  * 근거: `docs/API_CONTRACTS.md` §3.1, PRD §12.2, `docs/ARCHITECTURE.md` §10.2.
  *
  * **이 표에 없는 전이는 전부 금지**이며, 서버(및 Mock Adapter)는
@@ -48,6 +49,11 @@ export const SESSION_TRANSITIONS: readonly SessionTransition[] = [
   { from: 'analyzing', to: 'failed', actor: 'worker', modes: ['recorded'] },
   // 재시도 = 행위, 상태 아님
   { from: 'failed', to: 'analyzing', actor: 'worker', modes: ['recorded'] },
+  // ⭐ Stage 4 (D4-13 안 A, 2026-10-13 — Stage 0 #16 변경): 사용자 주도 녹음 폐기 `Discard` (D4-12).
+  // 2행만 추가한다. `AbandonedReason` enum · `abandonedReason` 필드는 만들지 않는다 —
+  // 그래서 ready 10분 방치와 사용자 폐기는 이 표만으로 구분되지 않는다 (명시된 귀결, N4-30 이연).
+  { from: 'recording', to: 'abandoned', actor: 'caregiver', modes: ['recorded'] },
+  { from: 'paused', to: 'abandoned', actor: 'caregiver', modes: ['recorded'] },
 ];
 
 /**
