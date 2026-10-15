@@ -41,7 +41,8 @@ import { ActivityCardTrack } from './ActivityCardTrack';
 
 export function ActivityCardDeck() {
   const copy = activityDeckCopy;
-  const { card, isPending, isEmpty, isError, isOffline, refetch } = useTodayActivityCard();
+  const { card, isPending, isEmpty, isError, isOffline, isCached, refetch } =
+    useTodayActivityCard();
   const [index, setIndex] = useState(0);
   const toast = useToast();
 
@@ -49,7 +50,11 @@ export function ActivityCardDeck() {
     toast.show({ message: copy.card.saveFailed, tone: 'error' });
   });
 
-  if (isOffline) {
+  /*
+    오프라인이어도 **최근 카드가 있으면 카드를 그대로 보여 준다** (`D-11`, AC-4-82). 그때 Offline Banner 는
+    TopBar 밑(`ActivityCardOfflineBanner` — Page 가 헤더에 조립)이 맡는다. 카드가 없을 때만 이 안내를 쓴다.
+  */
+  if (isOffline && card === undefined) {
     return (
       <div className="haru-activity-deck">
         <div className="haru-activity-deck__slot">
@@ -70,7 +75,7 @@ export function ActivityCardDeck() {
     **실패를 빈 상태로 보여 주지 않는다.** `isError` 를 뒤에 두면 parse 실패·서버 오류가
     "오늘 카드가 아직 없다" 로 둔갑해 재시도 경로가 사라진다.
   */
-  if (isError) {
+  if (isError && !isCached) {
     return (
       <div className="haru-activity-deck">
         <div className="haru-activity-deck__slot">

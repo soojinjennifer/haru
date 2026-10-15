@@ -77,5 +77,11 @@ export const activityDeckCopy = {
     retry: 'Try again',
     offlineTitle: "You're offline.",
     offlineDescription: "We'll load today's options when the connection is back.",
+    /**
+     * 오프라인 + 최근 카드 캐시 (`D-11`, AC-4-82) — TopBar 밑 Offline Banner (Stage 1 §5.4 패턴).
+     * ⚠️ 문구는 design-agent 명세에 없다 → Visual Gap 검토·사용자 확인 대상 (`S4-J` handoff).
+     */
+    cachedTitle: "You're offline.",
+    cachedDescription: "This is your most recent card. It will update when you're back online.",
   },
 } as const;

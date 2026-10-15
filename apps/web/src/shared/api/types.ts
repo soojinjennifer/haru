@@ -19,7 +19,11 @@ import type { HealthApi } from './health-api';
 import type { HomeApi } from './home-api';
 import type { LibraryApi } from './library-api';
 import type { MeApi } from './me-api';
+import type { NotificationApi } from './notification-api';
 import type { OnboardingApi } from './onboarding-api';
+import type { RecordingApi } from './recording-api';
+import type { SessionApi } from './session-api';
+import type { UploadTransport } from './upload-transport';
 
 export interface ApiClients {
   readonly health: HealthApi;
@@ -37,4 +41,15 @@ export interface ApiClients {
   readonly activities: ActivityApi;
   /** Stage 3 — 서재. Home 재구현 범위는 `★ Save` 뿐이다 (API_CONTRACTS §3.7). */
   readonly library: LibraryApi;
+  /** Stage 4 — Storytime Session 생성 · 전이 · 조회 (FR-09 · FR-10 · FR-19). */
+  readonly sessions: SessionApi;
+  /** Stage 4 — Recording Upload Contract (FR-14, `API_CONTRACTS` §5.1.1). */
+  readonly recordings: RecordingApi;
+  /**
+   * Stage 4 — part 바이트 전송 (`API_CONTRACTS` §5.1.1). HTTP API 가 아니지만 `recordings` 와
+   * **같은 scenario store · 같은 서버 상태**를 공유해야 하므로 같은 선택 지점에서 함께 만든다.
+   */
+  readonly uploadTransport: UploadTransport;
+  /** Stage 4 (이월 `QA-3-001`) — 알림 설정 · 푸시 기기 등록. */
+  readonly notifications: NotificationApi;
 }

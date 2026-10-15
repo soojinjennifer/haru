@@ -14,6 +14,23 @@ export const DEFAULT_SCENARIO_KEY = 'success';
 /** `?scenario=loading` 처럼 그룹을 생략했을 때 쓰는 내부 표기. */
 export const WILDCARD_GROUP = '*';
 
+/**
+ * **메서드 단위 override** 구분자 (Stage 4 `S4-C`, Plan §8.3 · `R4-10` · AC-4-87).
+ *
+ * `?scenario=library.savebook:error` 는 `library` 그룹 안에서 **`saveBook` 만** `error` 로 돌린다.
+ * 그룹 단위 key 만으로는 "목록 성공 + 저장만 실패" 같은 **그룹 안 부분 실패**를 만들 수 없었다
+ * (`stage-3-approvals.md` §30.7). **새 key 가 아니라 조합 표기**다 — key 는 여전히
+ * `docs/API_CONTRACTS.md` §5.4 Catalogue 의 machine key 만 쓴다.
+ *
+ * URL 값은 소문자로 정규화되므로 메서드 이름도 **소문자**로 적는다 (`saveBook` → `savebook`).
+ */
+export const METHOD_SEPARATOR = '.';
+
+/** `group` + `method` → store 가 찾는 키 (`library.savebook`). */
+export function methodScope(group: string, method: string): string {
+  return `${group}${METHOD_SEPARATOR}${method.toLowerCase()}`;
+}
+
 /** 도메인 Mock 모듈이 선언하는 자기 그룹의 scenario 목록. */
 export interface ScenarioGroupDefinition<TKey extends string> {
   /** `?scenario=<group>:<key>` 의 `<group>`. */
@@ -26,7 +43,7 @@ export interface ScenarioGroupDefinition<TKey extends string> {
 export interface ScenarioSource {
   /** 계층 이름 — 로깅·디버깅용. */
   readonly name: 'url' | 'panel' | 'env';
-  /** group → key */
+  /** group(또는 `group.method`) → key */
   readonly explicit: Readonly<Record<string, string>>;
   /** 그룹을 생략한 지정 (`?scenario=loading`) */
   readonly wildcard: string | undefined;

@@ -50,6 +50,29 @@ const stubClients: ApiClients = {
     saveBook: () => Promise.reject(new Error('not used in this test')),
     unsaveBook: () => Promise.reject(new Error('not used in this test')),
   },
+  sessions: {
+    create: () => Promise.reject(new Error('not used in this test')),
+    getDetail: () => Promise.reject(new Error('not used in this test')),
+    transition: () => Promise.reject(new Error('not used in this test')),
+    list: () => Promise.reject(new Error('not used in this test')),
+  },
+  recordings: {
+    init: () => Promise.reject(new Error('not used in this test')),
+    refreshTokens: () => Promise.reject(new Error('not used in this test')),
+    complete: () => Promise.reject(new Error('not used in this test')),
+    status: () => Promise.reject(new Error('not used in this test')),
+  },
+  uploadTransport: {
+    uploadPart: () => Promise.reject(new Error('not used in this test')),
+    resume: () => Promise.reject(new Error('not used in this test')),
+    abort: () => Promise.reject(new Error('not used in this test')),
+  },
+  notifications: {
+    getPreferences: () => Promise.reject(new Error('not used in this test')),
+    updatePreferences: () => Promise.reject(new Error('not used in this test')),
+    registerPushDevice: () => Promise.reject(new Error('not used in this test')),
+    deletePushDevice: () => Promise.reject(new Error('not used in this test')),
+  },
 };
 
 function Probe() {

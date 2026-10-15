@@ -28,6 +28,11 @@
  * | `unsave` | 해제 성공 경로 | `G-13` 토글 + `libraryKeys.overview` 무효화 |
  * | `offline` | `NetworkError` | 실패 경로와 같게 다룬다 (사전 차단 UI 를 만들지 않는다) |
  *
+ * ── 메서드 단위 override (Stage 4 `S4-C`, AC-4-87 · `stage-3-approvals.md` §30.7) ──
+ * `?scenario=library.savebook:error` 는 **`saveBook` 만** 실패시키고 나머지 메서드는 그룹 지정
+ * (없으면 `success`)을 따른다 → "목록 성공 + 저장만 실패" 를 실브라우저에서 재현한다.
+ * 시도 카운터는 **그룹 단위 그대로**다 (Stage 3 동작 불변).
+ *
  * **멱등**: 같은 책을 두 번 저장해도 같은 응답(`savedAt` 포함)이며 오류가 아니다. 그래서 이
  * Adapter 는 `savedAt` 을 **처음 저장 시각에 고정**한다 (주입 clock 기준).
  *
@@ -263,7 +268,7 @@ export function createMockLibraryApi(deps: MockLibraryApiDeps): LibraryApi {
       void request.childId;
       requestLog?.record(OVERVIEW_OPERATION);
 
-      const scenario = store.resolve(libraryScenarioGroup);
+      const scenario = store.resolve(libraryScenarioGroup, 'getOverview');
       const attempt = consumeAttempt(store, libraryScenarioGroup.group, options.signal);
 
       const run = (): LibraryOverview =>
@@ -294,7 +299,7 @@ export function createMockLibraryApi(deps: MockLibraryApiDeps): LibraryApi {
       });
       requestLog?.record(LIST_OPERATION, query);
 
-      const scenario = store.resolve(libraryScenarioGroup);
+      const scenario = store.resolve(libraryScenarioGroup, 'getList');
       const attempt = consumeAttempt(store, libraryScenarioGroup.group, options.signal);
 
       const run = (): LibraryListResponse =>
@@ -339,7 +344,7 @@ export function createMockLibraryApi(deps: MockLibraryApiDeps): LibraryApi {
       const replayed = replay(addBookIdempotency, options.idempotencyKey, body);
       if (replayed !== undefined) return replayed;
 
-      const scenario = store.resolve(libraryScenarioGroup);
+      const scenario = store.resolve(libraryScenarioGroup, 'addOwnBook');
       const attempt = consumeAttempt(store, libraryScenarioGroup.group, options.signal);
 
       /*
@@ -395,7 +400,7 @@ export function createMockLibraryApi(deps: MockLibraryApiDeps): LibraryApi {
       void request.childId;
       requestLog?.record(GIFT_LIST_OPERATION);
 
-      const scenario = store.resolve(libraryScenarioGroup);
+      const scenario = store.resolve(libraryScenarioGroup, 'getGiftRequests');
       const attempt = consumeAttempt(store, libraryScenarioGroup.group, options.signal);
 
       const run = (): GiftRequestListResponse =>
@@ -433,7 +438,7 @@ export function createMockLibraryApi(deps: MockLibraryApiDeps): LibraryApi {
       const replayed = replay(giftIdempotency, options.idempotencyKey, body);
       if (replayed !== undefined) return replayed;
 
-      const scenario = store.resolve(libraryScenarioGroup);
+      const scenario = store.resolve(libraryScenarioGroup, 'createGiftRequest');
       const attempt = consumeAttempt(store, libraryScenarioGroup.group, options.signal);
 
       if (scenario === 'gift-duplicate') {
@@ -475,7 +480,7 @@ export function createMockLibraryApi(deps: MockLibraryApiDeps): LibraryApi {
       });
       requestLog?.record(SAVE_OPERATION, parsed);
 
-      const scenario = store.resolve(libraryScenarioGroup);
+      const scenario = store.resolve(libraryScenarioGroup, 'saveBook');
       const attempt = consumeAttempt(store, libraryScenarioGroup.group, options.signal);
       const bookId = resolveSaveTarget(parsed.target);
       if (bookId === undefined) fail('RESOURCE_NOT_FOUND', 'Unknown book.');
@@ -499,7 +504,7 @@ export function createMockLibraryApi(deps: MockLibraryApiDeps): LibraryApi {
       void request.childId;
       requestLog?.record(UNSAVE_OPERATION, { bookId: request.bookId });
 
-      const scenario = store.resolve(libraryScenarioGroup);
+      const scenario = store.resolve(libraryScenarioGroup, 'unsaveBook');
       const attempt = consumeAttempt(store, libraryScenarioGroup.group, options.signal);
 
       const run = (): SavedBook => respond(request.bookId, false, UNSAVE_OPERATION);

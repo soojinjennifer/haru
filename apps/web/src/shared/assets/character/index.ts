@@ -27,17 +27,38 @@
  * 그 사각형은 프레임 배경과 거의 같은 색이라 보이지 않는 것이 의도된 모습이다.
  * 기하(위치·크기)는 교체 전과 동일하다 — 캐릭터 bounds 를 원본 JPEG 에 맞춰 정렬했다.
  */
+import headphonesAvif from './headphones.avif';
 import headphones from './headphones.png';
+import headphonesWebp from './headphones.webp';
+import homeCharacterAvif from './home-character.avif';
 import homeCharacter from './home-character.png';
+import homeCharacterWebp from './home-character.webp';
+import helloHeartFullAvif from './hello-heart-full.avif';
 import helloHeartFull from './hello-heart-full.png';
+import helloHeartFullWebp from './hello-heart-full.webp';
+import helloHeartAvif from './hello-heart.avif';
 import helloHeart from './hello-heart.png';
+import helloHeartWebp from './hello-heart.webp';
+
+/**
+ * 래스터 에셋 1종의 세 포맷 — `pnpm assets:optimize` 산출물 (Stage 4 `S4-J`, 이월 `QA-3-003`).
+ *
+ * `png` 이 마스터이자 fallback 이고, `avif` · `webp` 는 스크립트가 같은 디렉토리에 만든다.
+ * 화면은 `<picture>` 로 **AVIF → WebP → PNG** 순서로 고른다 (`entities/character`).
+ * 현재 품질은 **무손실**이라 세 포맷의 디코드 픽셀이 같다 — `scripts/assets-optimize.mjs` 머리말.
+ */
+export interface RasterAsset {
+  readonly png: string;
+  readonly webp: string;
+  readonly avif: string;
+}
 
 export const CHARACTER_ASSETS = {
-  'hello-heart': helloHeart,
-  'hello-heart-full': helloHeartFull,
-  'home-character': homeCharacter,
-  headphones,
-} as const;
+  'hello-heart': { png: helloHeart, webp: helloHeartWebp, avif: helloHeartAvif },
+  'hello-heart-full': { png: helloHeartFull, webp: helloHeartFullWebp, avif: helloHeartFullAvif },
+  'home-character': { png: homeCharacter, webp: homeCharacterWebp, avif: homeCharacterAvif },
+  headphones: { png: headphones, webp: headphonesWebp, avif: headphonesAvif },
+} as const satisfies Record<string, RasterAsset>;
 
 export type CharacterAssetName = keyof typeof CHARACTER_ASSETS;
 

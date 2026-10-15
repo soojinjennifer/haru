@@ -113,16 +113,30 @@ function shelfItems(clock: Clock, books: readonly BookSummary[], offset: number)
   );
 }
 
+/**
+ * 외부 구매 링크 fixture (`stage-3-approvals.md` §30.7 ②, Stage 4 AC-4-88).
+ *
+ * `favorite_only` 책 시트의 `Where to buy` 는 `purchaseUrl` 이 있을 때만 그려진다. 이 값이 fixture 에
+ * 0건이라 **어떤 Mock 시나리오에서도** 그 분기가 렌더되지 않았다. Favorites **첫 권에만** 넣는다 —
+ * 링크가 없는 `favorite_only`(아무것도 그리지 않는 분기)도 둘째·셋째 권으로 계속 재현된다.
+ *
+ * 가상 주소다 (`.example` — RFC 2606 예약 도메인). 실제 판매처를 가리키지 않는다.
+ */
+export const MOCK_PURCHASE_URL = 'https://books.example/where-the-wild-things-are';
+
 function favoriteItems(clock: Clock, count: number): LibraryBook[] {
-  return DECK_BOOKS.slice(0, count).map((book, position) =>
-    libraryBook(clock, {
+  return DECK_BOOKS.slice(0, count).map((book, position) => {
+    const item = libraryBook(clock, {
       book,
       index: 100 + position,
       saved: true,
       rating: null,
       sessions: 0,
-    }),
-  );
+    });
+    return position === 0
+      ? RenderableLibraryBookSchema.parse({ ...item, purchaseUrl: MOCK_PURCHASE_URL })
+      : item;
+  });
 }
 
 /** `Finished together` — 행 메타(`{n} sessions · finished {date}`)와 평점이 있는 목록이다. */

@@ -23,11 +23,15 @@ import { createQueryClient } from '../src/app/providers/QueryProvider';
 import { AppRoutes } from '../src/app/router';
 import { settingsCopy } from '../src/features/settings/copy';
 import { SettingsMenu } from '../src/features/settings/ui/SettingsMenu';
-import { createMockApiClientsBundle } from '../src/mocks';
+import { createActivityCardFixture, createMockApiClientsBundle, MOCK_CHILD_ID } from '../src/mocks';
 import { findChildDataKeys } from '../src/mocks/request-log';
 import { createImmediateTimer } from '../src/shared/api/helpers';
 import { homeOverviewCopy } from '../src/features/home-overview';
 import { ROUTES } from '../src/shared/config/routes';
+import {
+  ACTIVITY_CARD_CACHE_STORAGE_KEY,
+  createActivityCardCache,
+} from '../src/shared/lib/activity-card-cache';
 import { createFixedClock } from '../src/shared/lib/clock';
 import {
   createOnboardingDraftStore,
@@ -79,6 +83,12 @@ async function expectPath(expected: string): Promise<void> {
 /** 이 기기에 남아 있는 온보딩 draft 를 seed 한다 (Trial 응답 = 아동 데이터). */
 function seedDraft(): void {
   createOnboardingDraftStore({ clock: createFixedClock(NOW) }).write(DRAFT);
+}
+
+/** Stage 4 `S4-J` — Activity Card 오프라인 캐시 (`D-11`). 로그아웃이 지워야 한다 (AC-4-83). */
+function seedActivityCardCache(): void {
+  const clock = createFixedClock(NOW);
+  createActivityCardCache({ clock }).write(MOCK_CHILD_ID, createActivityCardFixture(clock));
 }
 
 async function openLogOutDialog(): Promise<HTMLElement> {
@@ -207,6 +217,8 @@ describe('로그아웃 (AC-2-29 · AC-2-41 · D-7 · D-3)', () => {
 
   it('확인하면 로컬 draft · Query 캐시가 비고 Guard 가 `/auth/welcome` 으로 보낸다', async () => {
     seedDraft();
+    seedActivityCardCache();
+    expect(globalThis.localStorage.getItem(ACTIVITY_CARD_CACHE_STORAGE_KEY)).not.toBeNull();
     const harness = await renderSignedIn(ROUTES.settings);
 
     // 로그아웃 전에는 `GET /v1/me` 응답이 캐시에 있다.
@@ -221,6 +233,8 @@ describe('로그아웃 (AC-2-29 · AC-2-41 · D-7 · D-3)', () => {
 
     // AC-2-29 — 저장소 전수 검사: HARU 가 쓴 키가 하나도 남지 않는다.
     expect(globalThis.localStorage.getItem(ONBOARDING_DRAFT_STORAGE_KEY)).toBeNull();
+    // AC-4-83 — Activity Card 오프라인 캐시도 로그아웃이 지운다 (`D-11` ④).
+    expect(globalThis.localStorage.getItem(ACTIVITY_CARD_CACHE_STORAGE_KEY)).toBeNull();
     expect(haruStorageKeys()).toStrictEqual([]);
     // 캐시에 **남은 데이터**가 0건이다. Welcome 화면의 `useMe` 가 곧바로 비활성 observer 를
     // 다시 등록하므로 "항목 수 0" 이 아니라 "보관된 응답 0" 으로 확인한다.

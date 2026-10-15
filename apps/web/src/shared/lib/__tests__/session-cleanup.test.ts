@@ -7,7 +7,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { performSessionCleanup } from '../session-cleanup';
 
-function makeDeps(signOut: () => Promise<void> = () => Promise.resolve()) {
+function makeDeps(
+  signOut: () => Promise<void> = () => Promise.resolve(),
+  clearLocalRecordings: () => Promise<void> = () => Promise.resolve(),
+) {
   const calls: string[] = [];
 
   return {
@@ -20,6 +23,13 @@ function makeDeps(signOut: () => Promise<void> = () => Promise.resolve()) {
       clearOnboardingDraft: vi.fn(() => {
         calls.push('clearOnboardingDraft');
       }),
+      clearActivityCardCache: vi.fn(() => {
+        calls.push('clearActivityCardCache');
+      }),
+      clearLocalRecordings: vi.fn(async () => {
+        calls.push('clearLocalRecordings');
+        await clearLocalRecordings();
+      }),
       clearQueryCache: vi.fn(() => {
         calls.push('clearQueryCache');
       }),
@@ -28,12 +38,33 @@ function makeDeps(signOut: () => Promise<void> = () => Promise.resolve()) {
 }
 
 describe('performSessionCleanup', () => {
-  it('세션 · 로컬 draft · Query 캐시를 이 순서로 정리한다', async () => {
+  it('세션 · 로컬 draft · 카드 캐시(AC-4-83) · 로컬 녹음(AC-4-72) · Query 캐시를 이 순서로 정리한다', async () => {
     const { calls, deps } = makeDeps();
 
     await performSessionCleanup(deps);
 
-    expect(calls).toStrictEqual(['signOut', 'clearOnboardingDraft', 'clearQueryCache']);
+    expect(calls).toStrictEqual([
+      'signOut',
+      'clearOnboardingDraft',
+      'clearActivityCardCache',
+      'clearLocalRecordings',
+      'clearQueryCache',
+    ]);
+  });
+
+  it('로컬 녹음 정리가 실패해도 Query 캐시는 지우고, 실패는 숨기지 않는다', async () => {
+    const { calls, deps } = makeDeps(undefined, () => Promise.reject(new Error('storage')));
+
+    await expect(performSessionCleanup(deps)).rejects.toThrow('storage');
+
+    expect(deps.clearQueryCache).toHaveBeenCalledTimes(1);
+    expect(calls).toStrictEqual([
+      'signOut',
+      'clearOnboardingDraft',
+      'clearActivityCardCache',
+      'clearLocalRecordings',
+      'clearQueryCache',
+    ]);
   });
 
   it('`signOut()` 이 실패해도 이 기기의 아동 데이터(draft)와 캐시는 지운다', async () => {
@@ -43,7 +74,15 @@ describe('performSessionCleanup', () => {
 
     // 실패를 숨기지 않으면서도 로컬에는 아무것도 남기지 않는다.
     expect(deps.clearOnboardingDraft).toHaveBeenCalledTimes(1);
+    expect(deps.clearActivityCardCache).toHaveBeenCalledTimes(1);
+    expect(deps.clearLocalRecordings).toHaveBeenCalledTimes(1);
     expect(deps.clearQueryCache).toHaveBeenCalledTimes(1);
-    expect(calls).toStrictEqual(['signOut', 'clearOnboardingDraft', 'clearQueryCache']);
+    expect(calls).toStrictEqual([
+      'signOut',
+      'clearOnboardingDraft',
+      'clearActivityCardCache',
+      'clearLocalRecordings',
+      'clearQueryCache',
+    ]);
   });
 });

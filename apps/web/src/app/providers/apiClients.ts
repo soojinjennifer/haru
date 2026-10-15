@@ -17,24 +17,40 @@
 import { createHttpApiClients } from '../../shared/api/http';
 import type { ApiClients } from '../../shared/api/types';
 import { createUnavailableAuthGateway, type AuthGateway } from '../../shared/auth';
+import { createSystemClock } from '../../shared/lib/clock';
 import { env } from '../../shared/lib/env';
+import {
+  createWebPushPermissionPort,
+  type PushPermissionPort,
+} from '../../shared/platform/push-permission';
 
 export interface AppAdapters {
   clients: ApiClients;
   authGateway: AuthGateway;
+  /**
+   * Stage 4 (이월 `QA-3-001`, `D-16`) — push 권한 포트. `mock` = Mock 포트(scenario `push:*`),
+   * `http` = Web 구현(`Notification` API 까지만). Native 는 후속 `S4N-D` 가 여기에 한 줄 추가한다.
+   */
+  pushPermission: PushPermissionPort;
 }
 
 export async function resolveAdapters(): Promise<AppAdapters> {
   if (import.meta.env.VITE_API_MODE === 'mock') {
     const { createBrowserMockApiClients } = await import('../../mocks');
-    const bundle = createBrowserMockApiClients(env.mockScenario);
+    // 세 번째 인자 = **기기** 시계 (Mock 서버 시계가 아니다) — `offline-cached-card` 캐시 seed 가 쓴다.
+    const bundle = createBrowserMockApiClients(env.mockScenario, undefined, createSystemClock());
 
-    return { clients: bundle.clients, authGateway: bundle.authGateway };
+    return {
+      clients: bundle.clients,
+      authGateway: bundle.authGateway,
+      pushPermission: bundle.pushPermission,
+    };
   }
 
   return {
     clients: createHttpApiClients({ baseUrl: env.apiBaseUrl }),
     // 실제 인증 Adapter 는 아직 없다 (#27) — 조용히 성공하지 않고 명시적으로 실패한다.
     authGateway: createUnavailableAuthGateway(),
+    pushPermission: createWebPushPermissionPort(),
   };
 }

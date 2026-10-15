@@ -13,8 +13,9 @@
  * | `/__dev/ui/a11y`        | focus 순회 · 터치 타깃 · 대비 실측 |
  * | `/__dev/ui/frame`       | (보조) gallery chrome 없는 순수 앱 컬럼 화면 — iframe · 측정 대상 |
  * | `/__dev/ui/recording-spike` | (Stage 4 `S4-A`) Web 녹음 측정판 — 자동 드라이버 대상 + 실기기 수동 측정 |
+ * | `/__dev/ui/recording-measure` | (Stage 4 `S4-E`) **AC-4-108 재현 경로** — 제품 파이프라인(실제 마이크 + OPFS·IndexedDB)으로 백그라운드 청크 수신 측정 + 저장소 self-test |
  *
- * `recording-spike` 는 `frame` 과 같이 **`GalleryLayout` 밖**에 둔다 — gallery 상단
+ * `recording-spike` · `recording-measure` 는 `frame` 과 같이 **`GalleryLayout` 밖**에 둔다 — gallery 상단
  * 내비게이션을 끼우면 chip 이 한 줄 늘어 그 아래 스크롤되는 영역 screenshot baseline 이
  * 깨진다 (`DevScreens.tsx` 머리말과 같은 이유 · `R-BASELINE-1`). 링크도 추가하지 않는다.
  */
@@ -26,6 +27,7 @@ import { A11yPage } from './ui-gallery/A11yPage';
 import { ComponentsPage } from './ui-gallery/ComponentsPage';
 import { FramePage } from './ui-gallery/FramePage';
 import { GalleryLayout } from './ui-gallery/GalleryLayout';
+import { RecordingMeasurePage } from './recording-measure/RecordingMeasurePage';
 import { RecordingSpikePage } from './recording-spike/RecordingSpikePage';
 import { ResponsivePage } from './ui-gallery/ResponsivePage';
 import { StatesPage } from './ui-gallery/StatesPage';
@@ -40,6 +42,7 @@ export default function DevGallery() {
         <Routes>
           <Route path="frame" element={<FramePage />} />
           <Route path="recording-spike" element={<RecordingSpikePage />} />
+          <Route path="recording-measure" element={<RecordingMeasurePage />} />
           <Route element={<GalleryLayout />}>
             <Route index element={<Navigate to="tokens" replace />} />
             <Route path="tokens" element={<TokensPage />} />

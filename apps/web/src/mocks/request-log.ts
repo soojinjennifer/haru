@@ -27,7 +27,15 @@ export const CHILD_DATA_KEYS = [
 ] as const;
 
 /** 로그에 남겨서는 안 되는 키 — 값 대신 표식으로 바꾼다. */
-const SECRET_KEYS = ['password', 'newPassword', 'accessToken', 'refreshToken', 'token'];
+const SECRET_KEYS = [
+  'password',
+  'newPassword',
+  'accessToken',
+  'refreshToken',
+  'token',
+  // Stage 4 — 녹음 업로드 토큰 (`RecordingUploadTargetSchema`: "로그에 남기지 않는다").
+  'uploadToken',
+];
 
 export const REDACTED = '[redacted]';
 

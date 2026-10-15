@@ -14,10 +14,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppRoutes } from '../src/app/router';
 import { activityDeckCopy } from '../src/features/activity-card-deck';
 import { homeOverviewCopy } from '../src/features/home-overview';
-import { MOCK_EPOCH_MS } from '../src/mocks';
+import {
+  applyActivityCardCacheSeed,
+  createActivityCardFixture,
+  MOCK_CHILD_ID,
+  MOCK_EPOCH_MS,
+} from '../src/mocks';
+import { createScenarioSource, createScenarioStore } from '../src/mocks/scenarios';
 import { DECK_BOOKS } from '../src/mocks/fixtures/saved-books';
 import { MOCK_CARD_PROMPTS } from '../src/mocks/fixtures/prompt-sets';
 import { ROUTES } from '../src/shared/config/routes';
+import {
+  ACTIVITY_CARD_CACHE_STORAGE_KEY,
+  createActivityCardCache,
+} from '../src/shared/lib/activity-card-cache';
+import { createFixedClock } from '../src/shared/lib/clock';
 import { tabCopy } from '../src/shared/config/tabs';
 import { capabilityCopy } from '../src/shared/copy/capability-copy';
 import { libraryCopy } from '../src/shared/copy/library-copy';
@@ -393,6 +404,83 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
     await renderHome({ scenarios: ['activity-cards:offline'] });
 
     expect(await screen.findByText(activityDeckCopy.states.offlineTitle)).toBeDefined();
+  });
+
+  /*
+    ── Stage 4 `S4-J` — 오프라인 캐시 (`D-11`, 이월 `QA-3-002`, AC-4-82) ──
+    이 파일은 시스템 시계를 `MOCK_EPOCH_MS` 로 고정한다 → Mock 카드 날짜(= 같은 날)가 "최근 카드" 다.
+  */
+  it('`success` 응답을 받으면 카드만 로컬 캐시에 남긴다 (D-11)', async () => {
+    await renderHome();
+    await waitForTrack();
+
+    await waitFor(() => {
+      expect(globalThis.localStorage.getItem(ACTIVITY_CARD_CACHE_STORAGE_KEY)).not.toBeNull();
+    });
+    const cached = createActivityCardCache({ clock: createFixedClock(MOCK_EPOCH_MS) }).read(
+      MOCK_CHILD_ID,
+    );
+    expect(cached.card).toStrictEqual(createActivityCardFixture(createFixedClock(MOCK_EPOCH_MS)));
+  });
+
+  it('`offline-cached-card` — 캐시 카드와 Offline Banner 가 **동시에** 보인다 (AC-4-82)', async () => {
+    // 브라우저 조립 지점과 같은 seed 를 넣는다 (기기 시계 = 이 파일의 고정 시계).
+    expect(
+      applyActivityCardCacheSeed({
+        store: createScenarioStore([
+          createScenarioSource('url', { 'activity-cards': 'offline-cached-card' }),
+        ]),
+        deviceClock: createFixedClock(MOCK_EPOCH_MS),
+      }),
+    ).toBe(true);
+    await renderHome({ scenarios: ['activity-cards:offline-cached-card'] });
+
+    await waitForTrack();
+    expect(track().children).toHaveLength(3);
+    const banner = await screen.findByText(activityDeckCopy.states.cachedDescription);
+    // 배너는 TopBar 슬롯(헤더 밑)에 있다 — 덱 슬롯의 오프라인 안내가 아니다.
+    expect(banner.closest('.haru-app-shell__bar-top')).not.toBeNull();
+    expect(banner.closest('.haru-alert--banner')).not.toBeNull();
+    expect(document.querySelector('.haru-activity-deck__slot')).toBeNull();
+    // 세션 시작은 여전히 비활성이다 (`D-3`).
+    expect(
+      within(frontFace(0))
+        .getByRole('button', { name: activityDeckCopy.card.startSession.label })
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+  });
+
+  it('`offline-cached-card` 인데 캐시가 없으면 Stage 3 의 오프라인 안내 (배너 없음)', async () => {
+    await renderHome({ scenarios: ['activity-cards:offline-cached-card'] });
+
+    expect(await screen.findByText(activityDeckCopy.states.offlineDescription)).toBeDefined();
+    expect(screen.queryByText(activityDeckCopy.states.cachedDescription)).toBeNull();
+    expect(document.querySelector('.haru-activity-track')).toBeNull();
+  });
+
+  it('서버 오류에는 캐시를 쓰지 않는다 — 오류를 감추지 않는다', async () => {
+    createActivityCardCache({ clock: createFixedClock(MOCK_EPOCH_MS) }).write(
+      MOCK_CHILD_ID,
+      createActivityCardFixture(createFixedClock(MOCK_EPOCH_MS)),
+    );
+    await renderHome({ scenarios: ['activity-cards:error'] });
+
+    expect(await screen.findByText(activityDeckCopy.states.errorTitle)).toBeDefined();
+    expect(document.querySelector('.haru-activity-track')).toBeNull();
+    expect(screen.queryByText(activityDeckCopy.states.cachedDescription)).toBeNull();
+  });
+
+  it('2일 지난 캐시는 쓰지 않고 지운다 (D-11 ③)', async () => {
+    const twoDaysAgo = createFixedClock(MOCK_EPOCH_MS - 2 * 86_400_000);
+    createActivityCardCache({ clock: twoDaysAgo }).write(
+      MOCK_CHILD_ID,
+      createActivityCardFixture(twoDaysAgo),
+    );
+    await renderHome({ scenarios: ['activity-cards:offline'] });
+
+    expect(await screen.findByText(activityDeckCopy.states.offlineDescription)).toBeDefined();
+    expect(document.querySelector('.haru-activity-track')).toBeNull();
+    expect(globalThis.localStorage.getItem(ACTIVITY_CARD_CACHE_STORAGE_KEY)).toBeNull();
   });
 
   /*

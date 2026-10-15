@@ -5,6 +5,14 @@ Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (**Rev 8: Stage 4 승�
 > **Rev 8 (2026-10-13, plan-agent — Stage 4 Plan 승인 후 적용)** — `docs/plans/stage-4-plan.md` §7.5 의 **18 지점**을 반영했다 (목록 20건 중 무효 2건 제외).
 > 적용 지점: §2.2(enum 수 정정 `P4-FIX-3` + Stage 4 신규 2종) · **§3.1 전이표 2행 추가(12 → 14 — `D4-13`)** · §3.2(`SessionSummary.bubble` 렌더 지점·null 거동·길이 요구 — `D4-20`·`D4-21`·`D4-22` / `SessionTransitionRequest.to='abandoned'` 세 경로 주석 / `StickerAward` / `readingContext`) · §3.3(`partNo`·`mimeType` = `S4-A` spike 확정 대기) · **§3.9 `RecordingStatus` 신설** · §4 Stage 3·4 표(이월 표기 · 네이티브 후속 단계 주석) · §5.1.1(`RecorderAdapter`·`recordingApi`·`UploadTransport`) · **§5.4 신규 scenario key 2건** · **§6 `G-08`·`G-09` Resolved**.
 > ⛔ **구현으로 확정되는 내용(실제 `packages/contracts` 파일·Mock 위치)의 반영은 development-agent 소관**이다 (`rules/workflow.md` §5). Rev 8 은 **설계·계획 변경**만 담는다.
+>
+> **Rev 8.1 (2026-10-14, development-agent — Stage 4a `S4-B` 구현 반영)** — `packages/contracts` 에 Stage 4 contracts 가 구현되었다. 반영 지점: §2.2(enum **+3** — `PushPlatform`·`StickerType`·**`RecordingContainer`(`D4-23`)**) · §3.1(전이표 **14행 구현**) · §3.2(실제 파일·필드 — `StickerAward.title`·`message`, `readingContext` nullable **CONFIRMED `D4-25`**) · §3.3(**`mimeType` = 원문 문자열 + `container` enum — `D4-23`**, **`partNo ≤ 20` + part 정의 주석 — `D4-24`**) · §3.9(구현) · §4 Stage 3 이월 `notifications/preferences.ts`·`push-device.ts`(`NotificationPreferences` = `{ cardRefreshTime, reminderDays(0–6, 중복 금지), reminderTime: TimeOfDay \| null, pushEnabled }` · `PushDevice` = `{ id, platform, lastSeenAt }` — **token 미반환**). 설계 변경은 없다 — 사용자 결정 `D4-23`·`D4-24`·`D4-25`(2026-10-14) 의 반영뿐이다.
+>
+> **Rev 8.2 (2026-10-14, development-agent — Stage 4a `S4-C` Mock 구현 반영)** — 설계 변경 없음. 반영 지점: §5.1.1(`UploadTransport` 인자·반환 **초안** · `TusUploadTransport` 골격 · `recordingApi.status` 경로 공백) · §5.4(**메서드 단위 override 표기** `group.method:key` · `recorder` 그룹 · `web-background-warning` = `D4-26` · 폐기 전이 실패 분기 판단). 상세 `docs/qa/stage-4a-handoff.md` `S4-C`.
+>
+> **Rev 8.3 (2026-10-15, development-agent — Stage 4a `S4-E` 구현 반영)** — 사용자 결정 **`D4-29`**(로컬 미업로드 녹음 보관 상한 14일 · 7일 안내)로 §5.4 에 **`local-retention-exceeded` 등재**(Rev 8 의 "등재하지 않는다" 판단은 `N4-09` 미결이 근거였고 그 근거가 해소됐다). §5.1.1 `UploadTransport` 인자·반환 **확정**(초안과 동일 — `UploadQueue` 가 그대로 쓴다). contracts 변경 0. 상세 `docs/qa/stage-4a-handoff.md` `S4-E`.
+>
+> **Rev 8.4 (2026-10-15, development-agent — Stage 4a `S4-J` 이월 구현 반영)** — 설계 변경 없음 · contracts 변경 0. 반영 지점: §5.1.1 Platform Port 표의 **`PushPermissionPort` 구현**(`shared/platform/push-permission/` — interface `getStatus`·`request`·`getToken` + `platform`, 상태 `prompt`·`granted`·`denied`·`unsupported`, Web 토큰 = 자리표시 값 `web-permission-only:v1` — 실제 구독 토큰은 `BACKEND_INTEGRATION_PENDING`) · §5.4 **`push-permission-denied` = 플랫폼 포트 그룹 `push`**(`?scenario=push:push-permission-denied`, Mock = `mocks/platform/MockPushPermissionPort.ts`) · §5.4 **`offline-cached-card` = `activity-cards` 그룹 구현**(API 는 `offline` 과 같은 `NetworkError`, 기기 캐시 seed 는 브라우저 조립 지점 — `mocks/activities/activityCardCacheSeed.ts`). 상세 `docs/qa/stage-4a-handoff.md` `S4-J`.
 Reflects: `docs/decisions/stage-0-approvals.md` #7 · #8 · #13 · #14 · #15 · #16 · #17 · #19 · #27 · C-1~C-10 · C-12 · C-13 · C-15 · C-16 · C-18 (Rev 5) · #33 · C-19 (Rev 6)
 Decision log: `docs/decisions/stage-0-approvals.md` + **`docs/decisions/stage-3-approvals.md` (Stage 3 — §3 · §6 · §6.1 · §7 · §7.1 · §8 · §8.1~§8.6)** — 이 문서와 다르면 결정 기록이 우선한다. 라벨: `CONFIRMED (사용자 결정 YYYY-MM-DD, #id)` · `RECOMMENDED` · `NEEDS DECISION (법무, L-xx)`.
 Based on: PRD v1.4, `docs/ARCHITECTURE.md` (DRAFT 2026-09-14), `docs/DATA_MODEL.md` (DRAFT 2026-09-14), design-agent `docs/FIGMA_SCREEN_MAP.md` · `docs/COMPONENT_MAP.md` (DRAFT 2026-09-14) — Rev 2: Figma 대비 gap §6 추가
@@ -123,6 +131,8 @@ Author: plan-agent (2026-09-14)
 > | `PromptKind` (Stage 3) | `question, follow_up` | §3.6 Prompt 표시 필드 — `enums/prompt-kind.ts` **[직독]** |
 > | `PromptPhase` (Stage 3) | `pre, post` | §6 `G-03` 채택(`D-8`) — `'during'` **미채택**. `enums/prompt-phase.ts` **[직독]** |
 >
+> ⭐ **구현 반영 (Stage 4 `S4-B`, 2026-10-14)**: 아래 2 종 + **`RecordingContainer` = `webm, mp4`** (`D4-23` — §3.3) 이 구현되어 `z.enum` **31 → 34 종**, 스냅샷 테스트(`enums.test.ts`, `SurveyAnswerValue` 포함) **32 → 35 항목**이 되었다. 파일: `enums/push-platform.ts` · `enums/sticker.ts` · `enums/recording-container.ts`. **기존 enum 의 값 추가 0 건** (스냅샷 불변).
+>
 > **Stage 4 에서 추가 예정 2 종** (Plan §7.2 — 구현은 development-agent): `PushPlatform` = `ios, android, web` (이월 `QA-3-001`. ⭐ **3값 유지** — Contract 는 Backend 요구사항이므로 네이티브 분리(`D4-1`)와 무관) · `StickerType` = `attendance` (`C4-OPEN-5` **만든다** — `DATA_MODEL §8 sticker_awards.sticker_type`). → 설계 목표 **33 종**.
 > ⭐ **`D4-13` 확인**: 녹음 폐기 채택으로 **enum 신규는 0 건**이다 — `SessionStatus` **8값 유지**, `CompletedReason` **3값 유지**, `AbandonedReason` **만들지 않는다**, `UploadStatus` 신규 0, error code 신규 **0**. 전이표만 2행 늘어난다 (§3.1).
 > ⭐ **error code 수는 정확하다** — **[직독]** `common/error-codes.ts` 의 `ERROR_CODES` 배열 = **29 종**이고 파일 주석의 "총 29 종" 과 일치한다. Stage 3 보고가 예고한 "31 → 32종" 은 **반영되지 않았고 반영할 필요도 없다**(실측 29).
@@ -229,9 +239,24 @@ export const READY_ABANDON_SECONDS = 10 * 60;  // §13
 > ⚠️ **Frontend 는 폐기 사유를 보내지 않는다** — 서버가 사유를 남기려면 Frontend 가 보내지 않는 정보(요청 출처·타이머 여부)를 추론해야 한다. 이 사실을 Handoff 에 명시한다.
 > **삭제 순서 (불변)**: **서버 전이 확정 응답을 받은 뒤** 로컬을 지운다. 전이 실패 시 로컬 청크를 **보존**하고, 오프라인이면 `SessionOutbox` 에 폐기 전이를 적재한 뒤 전송 확정 전까지 보존한다. `rules/architecture.md` §7 의 *"업로드 확정 전 삭제 금지"* 는 **유실 방지** 규칙이므로 사용자 주도 폐기는 그 규칙이 막으려는 사건이 아니다 — **예외가 아니라 다른 사건**이다.
 > ⛔ **구현(이 2행을 `packages/contracts` 에 넣는 것)은 development-agent 가 `S4-B` 에서 한다.** 이 문서는 설계 확정만 기록한다.
+>
+> ✅ **구현 반영 (Stage 4 `S4-B`, 2026-10-14)**: `rules/session-transitions.ts` 의 `SESSION_TRANSITIONS` 가 **14 행**(modes 전개 **16 조합**)이 되었다. 추가는 위 2 행뿐이며 앞 12 행과 `canTransition()` 은 변경 없음 — `src/__tests__/session-transitions.test.ts` 가 **14 행 전수 스냅샷**(앞 12 행 불변 포함) + 8×8×3×2 전수 검사로 보증한다.
 
 ### 3.2 CreateSessionRequest / Transition
 
+> ✅ **구현 반영 (Stage 4 `S4-B`, 2026-10-14)** — `packages/contracts/src/sessions/` 4 파일로 구현되었다. 스케치와의 차이:
+>
+> | 항목 | 구현 |
+> |---|---|
+> | `StickerAwardSchema` 위치 | `transition.ts` 가 아니라 **`session.ts`** — `SessionDetail.sticker` 도 쓰므로 순환 import 를 피했다. 소비자 import 경로(패키지 진입점)는 같다 |
+> | `StickerAward` 필드 | `{ id, sessionId, stickerType: StickerType, awardedAt, title, message }` — 문구 2 필드는 응답 값(`D4-2`), **`dayCount`·`streakDays` 없음** (섞여 와도 parse 가 버린다). 필드명 `message` 는 Design Spec §2.7.1 `stickerAward.message` 와 맞췄다 |
+> | `SessionTransitionRequest.to` | `ClientSessionTransitionTargetSchema = SessionStatusSchema.extract([...4값])` — **새 enum 값이 아니라 `SessionStatus` 부분집합**이다 |
+> | `occurredAt` | **필수** (`OccurredAtSchema`) — 스케치와 같다 |
+> | `CreateSessionRequest.customTime` | `TimeOfDaySchema.optional()` + **`createCustomTimeRefine()` 재사용**. 팩토리의 입력 타입을 `ReadingContext \| null` 로 넓혔다 (판정 로직 불변) |
+> | `SessionDetail` | `SessionSummary` + `recording: RecordingStatus \| null` + `sticker: StickerAward \| null`. `reflection` 없음 (Stage 5) |
+> | `SessionTransitionResult` | `{ session, completionBubble?: SessionBubbleCopy, stickerAward?: StickerAward \| null }` |
+> | `ListSessions` | `CursorPageRequestSchema.extend({ status?: SessionStatus })` · `paginated(SessionSummarySchema)` |
+>
 > ⭐ **Rev 8 (2026-10-13) — 아래 스케치는 Stage 4 에서 세 파일로 나뉜다** (승인된 `stage-4-plan.md` §7.2. 현재 `packages/contracts/src/sessions/` 디렉토리는 **아직 없다** — **[직독]**)
 >
 > | 파일 | 담는 것 |
@@ -321,7 +346,7 @@ export const SessionTransitionRequestSchema = z.object({
 | ⛔ 비포함 필드 | **`dayCount` · `streakDays` 를 넣지 않는다** — Figma `29:85` 의 `Day 12 · keep the streak going` 은 **미채택**(`D4-2`, PRD §7.4 "streak 표시하지 않는다" · `D-6` 유지). 허용 차이 **`AD-S4-1`**(`APPROVED 2026-10-13, user`) |
 | 멱등성 | 재진입 시 중복 표시 없음 (FR-19) — 같은 요청 replay 가 **같은 응답**을 준다 |
 
-**`readingContext` nullable 범위 (`D-9` / `N4-04`)** — `CreateSessionRequest.readingContext` 는 **이미 `.nullable()`** 이므로 *"Reading Context 없이 세션 시작"* 을 **계약이 이미 허용**한다. `N4-04` 는 **그 사실의 확인만** 남은 항목이며(`RECOMMENDED`) **schema 변경은 없다**. 확인되면 이 줄을 `CONFIRMED` 로 바꾼다.
+**`readingContext` nullable 범위 (`D-9` / `N4-04`)** — **CONFIRMED (사용자 결정 2026-10-14, `D4-25`)**. 서재 경로는 Reading Context 없이 세션을 시작한다 — `CreateSessionRequest.readingContext` **nullable 유지**, schema 변경 없음. Activity Card 경로의 필수(`D-9`)는 `SelectActivityOptionRequest` 가 소유한다. 녹음 세션은 경로와 무관하게 책이 필요하다(기존 refine). `src/__tests__/sessions.test.ts` 가 서재 경로(`readingContext: null`) parse 를 고정한다.
 
 ### 3.3 RecordingUploadInit / Complete
 
@@ -330,6 +355,7 @@ export const SessionTransitionRequestSchema = z.object({
 export const RecordingUploadInitRequestSchema = z.object({
   parts: z.array(z.object({
     partNo: z.number().int().min(1).max(20),
+    // ⛔ Rev 8.1: 아래 enum 은 D4-23 으로 교체되었다 — 원문 문자열 + container enum (아래 "구현 반영")
     mimeType: z.enum(['audio/webm', 'audio/mp4', 'audio/aac', 'audio/m4a']),   // 플랫폼별 (Stage 4 spike로 확정)
     bytes: z.number().int().positive().max(100 * 1024 * 1024),
   })).min(1),
@@ -367,6 +393,25 @@ export const RecordingUploadCompleteResponseSchema = z.object({
 // Errors: CONSENT_REQUIRED, RECORDING_NOT_ALLOWED_FOR_MODE, UPLOAD_TOKEN_EXPIRED, RECORDING_INCOMPLETE, SESSION_INVALID_TRANSITION
 ```
 
+> ✅ **구현 반영 (Stage 4 `S4-B`, 2026-10-14) — `D4-23` · `D4-24` (사용자 결정 2026-10-14) 로 아래 Rev 8 미결 2건이 해소되었다.** 파일: `packages/contracts/src/recordings/upload.ts` · `status.ts` · `enums/recording-container.ts`.
+>
+> ```ts
+> // RecordingPart (= RecordingUploadInitRequest.parts[])
+> partNo:    z.int().min(1).max(RECORDING_PART_NO_MAX /* 20 */),
+> mimeType:  z.string().min(1).refine(base ∈ {'audio/webm','audio/mp4'}),  // 브라우저 원문, 정규화 없이 보관
+> container: RecordingContainerSchema,                                     // 'webm' | 'mp4'
+> bytes:     z.int().positive().max(100 * 1024 * 1024),
+> // + superRefine: container 는 mimeType 의 base type 과 일치해야 한다 (webm ↔ audio/webm, mp4 ↔ audio/mp4)
+> ```
+>
+> | 결정 | 구현 |
+> |---|---|
+> | **`D4-23`** `mimeType` | **`BlobEvent.data.type` 원문 문자열**을 그대로 받는다 — 실측 `audio/webm;codecs=opus`(Chromium) · `audio/mp4; codecs=mp4a.40.2`(WebKit, 세미콜론 뒤 공백). 검증은 **`;` 앞을 잘라 `trim()` 한 base type** 이 `audio/webm` \| `audio/mp4` 인지(`recordingMimeBaseType()` · `recordingContainerForMimeType()`). 대소문자 정규화는 하지 않는다. **`audio/aac` · `audio/m4a` 제거** — 두 엔진 모두 `MediaRecorder` 생성자가 던지는 값이다. ⚠️ **후속 네이티브 단계가 AAC 등 컨테이너를 추가할 수 있다** — 그때 `RecordingContainer` enum 과 `RECORDING_CONTAINER_BASE_MIME_TYPE` 을 함께 늘린다 (`D4-1`, Handoff 명시 대상) |
+> | **`D4-24`** `partNo` | **상한 20 유지.** ⚠️ **part 는 연속 녹음 구간(`MediaRecorder` 세션 1개)이며 timeslice 청크가 아니다 — 30분 세션의 청크는 약 1766개다** (spike §9). 정상 녹음 = part 1개, 크래시·인터럽션 재시작마다 +1 |
+> | 추가 검증 | 같은 요청 안 `partNo` 중복 금지 (`recording_parts UNIQUE(recording_id, part_no)`) — init · complete · `RefreshUploadTokens.partNos` 공통. 완료 요청의 `partNo` 도 상한 20 |
+> | `RecordingUploadComplete` | `sha256` = `^[a-f0-9]{64}$` (`Sha256HexSchema`), 응답 `uploadStatus: z.literal('uploaded')` + `expiresAt` 필수 |
+> | 기타 상수 | `RECORDING_PART_BYTES_MAX` = 100 MiB · `RECORDING_TOTAL_DURATION_GRACE_SECONDS` = 60 (`totalDurationSeconds ≤ 1860`) |
+>
 > ⭐ **Rev 8 (2026-10-13) — 위 두 값은 `S4-A` Web 녹음 spike 결과로 확정한다** (`stage-4-plan.md` §7.4 · §16.1 `S4-A`). **현재 값은 잠정이며 이 문서가 확정하지 않는다.**
 >
 > | 미결 | 무엇이 걸려 있는가 | 확정 방법 |
@@ -714,6 +759,7 @@ Stage 8 Handoff 대상: `BACKEND_HANDOFF.md` (`GET /v1/children/:childId/home` �
 
 > **왜 신설하는가**: §5.1.1 이 `recordingApi` 의 메서드로 **`status`** 를 선언하고 §4 Stage 4 표가 `SessionDetail` 에 *"recording upload status"* 를 요구하는데, **§3 에 그 응답 스케치가 없었다** (`stage-4-plan.md` §7.5-4). Mock·Http Adapter·`UploadQueue` 가 같은 모양을 봐야 한다.
 > **설계 스케치다.** 필드 이름·optional 범위의 **확정은 development-agent** (`S4-C`/`S4-E`).
+> ✅ **구현 반영 (Stage 4 `S4-B`, 2026-10-14)**: 아래 스케치 그대로 `packages/contracts/src/recordings/status.ts` 에 구현했다. 검토 후보 2건(`sessionStatus` · 업로드 진행률)은 **넣지 않았다** — `S4-C`/`S4-E` 가 필요를 판정한다.
 
 ```ts
 // packages/contracts/src/recordings/status.ts  (설계 — 구현 확정은 development-agent)
@@ -969,6 +1015,17 @@ apps/web/src/
 
 > ⭐ **Rev 8 (2026-10-13) — `UploadTransport` 시그니처는 `S4-A` spike 결과로 구체화한다**
 > `uploadPart` / `resume` / `abort` 의 인자·반환은 **Web `MediaRecorder` 청크 모델과 TUS offset 재개 방식의 실측**에 달려 있다 (`S4-A` ①②④). **이 문서는 메서드 이름만 확정**하고 시그니처는 열어 둔다 — 구현 확정은 development-agent(`S4-E`). ⚠️ `abort` 는 **transport 계층의 바이트 전송 취소**이고, 위의 *"`recordingApi.abort()` 를 추가하지 않는다"* 와 **다른 층의 다른 것**이다.
+>
+> ✅ **구현 반영 (Stage 4 `S4-C`, 2026-10-14) → ✅ 확정 (Stage 4 `S4-E`, 2026-10-15)** — 위치 `apps/web/src/shared/api/upload-transport.ts`. 아래 초안을 **그대로 확정**한다 — `UploadQueue`(`features/recording/model/upload-queue.ts`)가 이 시그니처로 `uploadPart → (409) resume` · `UPLOAD_TOKEN_EXPIRED → refreshTokens → 재시도` · `abort`(큐 취소 시)를 실제로 쓴다. 바꾼 것 0
+>
+> | 메서드 | 초안 | 의미 (TUS core 1.0.0) |
+> |---|---|---|
+> | `uploadPart({ target, data: Blob }, { signal?, onProgress? })` | `→ UploadPartResult { partNo, bytesUploaded, bytesTotal, bytesSent }` | offset 0 PATCH. 서버가 이미 바이트를 가졌으면 **보내지 않고** `UploadOffsetConflictError(serverOffset)` (TUS 409) |
+> | `resume(같은 인자)` | 같은 반환 | HEAD 로 서버 offset 조회 → **그 뒤만** PATCH. 끝난 part 는 `bytesSent: 0` — 재전송이 중복 업로드를 만들지 않는다 (AC-4-28) |
+> | `abort({ target })` | `→ void` | 진행 중 전송 취소. 서버 바이트는 지우지 않는다 |
+>
+> 오류: 토큰 만료 `UPLOAD_TOKEN_EXPIRED` · 폐기 `RECORDING_DELETED` · 전송 실패 `NetworkError` · offset 충돌 `UploadOffsetConflictError`(contracts code 아님 — 프로토콜 사실). `TusUploadTransport`(골격, 외부 라이브러리 없음)의 상태 코드 해석(401/403 → 만료, 404/410 → 삭제)은 **가정**이며 `BACKEND_INTEGRATION_PENDING`.
+> ⚠️ **`recordingApi.status` 의 endpoint 가 §4 Stage 4 표에 없다** — Http 골격은 `GET /v1/recordings/:recordingId` 를 쓴다. §4 표 등재는 plan-agent 확인 대상이다.
 
 ### 5.2 Adapter 규칙
 
@@ -1069,6 +1126,7 @@ apps/web/src/
 | `recording-incomplete` | — | complete 시 `RECORDING_INCOMPLETE` | recordings | 4 | — |
 | `offline-queued` | — | 오프라인 녹음 완료 → 큐 대기 → 복구 후 업로드 | recordings | 4 | — |
 | `upload-stalled-48h` | — | 업로드 실패 48h 경과 (clock 주입) → 안내 | recordings | 4 | `stalled-48h` |
+| **`local-retention-exceeded`** ⭐ Rev 8.3 | — | **기기 로컬 미업로드 녹음 보관 상한 초과** (`D4-29`, 2026-10-15) — 녹음 시작(첫 part) 후 **14일** 지난 미업로드 로컬 녹음을 **로컬에서 삭제**하고 신호를 낸다(`retention_expired`). **7일** 시점 안내 신호(`retention_notice`, 1회)는 key 없이 주입 clock 으로 재현한다. 서버 요청 없음 — 로컬 저장소 seed(`apps/web/src/mocks/fixtures/local-recordings.ts` `seedStaleRecording`). 안내 **화면**은 `S4-H2` | sessions (RecorderAdapter mock 그룹 `recorder` · LocalRecordingStore seed) | 4 | — |
 | **`recording-discarded`** ⭐ Rev 8 | — | **사용자 `Discard`** — `POST /v1/sessions/:id/transitions` `to=`**`abandoned`** 확정 응답 → 클라이언트가 **업로드 큐를 취소하고 로컬 청크를 삭제**한다. 서버 업로드 없음. 재조회 시 `uploadStatus=`**`deleted`** (§3.9). ⛔ **폐기 사유 필드 없음** · 신규 error code 0 · 신규 enum 값 0 (`D4-13`). **선행 조건이 `D4-13` 으로 풀렸다** — Mock 이 보낼 `to` 값이 **`abandoned`** 로 확정됐다 | sessions, recordings | 4 | — |
 | **`web-background-warning`** ⭐ Rev 8 | — | **Web 백그라운드·탭 비활성 녹음 한계 안내** — `visibilitychange` 로 탭이 비활성되거나 화면이 잠겼을 때 **청크 수신이 중단될 수 있음**을 사용자에게 알린다. ⭐ **`D4-4` 로 필수가 됐다**(네이티브가 Stage 4 에서 빠진 대가로 **Web 한계를 측정·기록·안내**하는 것이 요구사항이 되었다 — Plan AC-4-70 · AC-4-108). 실제 중단 여부·조건은 `S4-A` ⑥ 실측으로 채운다 | sessions (RecorderAdapter mock) | 4 | — |
 | `reflection-already-submitted` | — | `REFLECTION_ALREADY_SUBMITTED` / 멱등 재제출 동일 응답 | reflections | 5 | `already-submitted` |
@@ -1095,8 +1153,31 @@ apps/web/src/
 > | **`web-background-warning`** | ✅ **등재** — `D4-4` 로 **필수** |
 > | **폐기 전이 실패 분기** (로컬 보존 검증) | ⏳ **별도 key 로 두지 않는다 (잠정)** — 공통 **`error`**/**`retry`** + `offline` 으로 덮을 수 있는지가 **development-agent 판단**이다(`S4-B`/`S4-E`). 덮을 수 없으면 그때 등재한다. ⚠️ 어느 쪽이든 **"전이 실패 시 로컬 청크를 보존한다"** 는 **AC 로 검증**된다 |
 > | `library:save-error` 류 **메서드 단위 override** | ⏳ **key 가 아니라 조합 표기 문제**다 — "조합 표기 방식은 Stage 1 Plan 에서 확정" 이 미완인 채 남아 있다. Stage 4 에서 새 key 를 만들지 않는다 |
-> | **`local-retention-exceeded`** (기기 로컬 미업로드 녹음 보관 상한 초과) | ⛔ **등재하지 않는다** — `N4-09`(보관 기간, `OAQ-11`)가 **미결**이다. 결정 전에는 **삭제하지 않는 쪽**을 유지하므로 재현할 동작이 없다 |
+> | **`local-retention-exceeded`** (기기 로컬 미업로드 녹음 보관 상한 초과) | ~~⛔ **등재하지 않는다** — `N4-09`(보관 기간, `OAQ-11`)가 **미결**이다. 결정 전에는 **삭제하지 않는 쪽**을 유지하므로 재현할 동작이 없다~~ → ✅ **등재 (Rev 8.3, 2026-10-15)** — `D4-29` 로 `N4-09` 해소(14일 삭제 · 7일 안내). 위 Catalogue 행 참조 |
 > | **인터럽션 3종 구분** (`visibilitychange` · `devicechange` · `MediaStreamTrack.onended`) | ⛔ **기존 `recording-interrupted` 를 쪼개지 않는다** — 셋의 **사용자 대면 동작이 같다**(일시정지·재개 안내 + 로컬 청크 보존). 구분은 **`S4-A` spike 산출물과 테스트 이름**에서 하고 scenario key 를 늘리지 않는다 |
+
+> ✅ **구현 반영 (Rev 8.2, Stage 4 `S4-C`, 2026-10-14)**
+>
+> | 항목 | 구현 |
+> |---|---|
+> | **메서드 단위 override** (조합 표기 — 새 key 아님) | `?scenario=<group>.<method>:<key>` — 예: `library.savebook:error`(목록 성공 + 저장만 실패, AC-4-87) · `sessions.transition:error` · `recordings.uploadpart:offline`. 메서드 이름은 **소문자**. 한 계층 안 우선순위 **메서드 > 그룹 > wildcard**, 계층 우선순위(URL > panel > env)는 그대로. 구현 `apps/web/src/mocks/scenarios/` |
+> | 그룹 이름 | `sessions` · `recordings`(`MockRecordingApi` + `MockUploadTransport` 공유) · `notifications` · **`recorder`**(RecorderAdapter mock 재현 계획 — `mic-permission-denied` · `recording-interrupted` · `web-background-warning` · `auto-timeout` · `crash-recovered`) |
+> | **인터럽션 3종 구분** | key 를 쪼개지 않는다(위 Rev 8 판단 유지). 원인은 **메서드 자리**로 고른다: `recorder.visibilitychange:` · `recorder.devicechange:` · `recorder.track-ended:recording-interrupted`. 그룹 지정은 3종 모두 |
+> | **`web-background-warning`** | ⭐ **`D4-26` (사용자 결정 2026-10-14)** — **조건 없는 안내**. Mock 은 녹음 중 탭이 1회 숨겨졌다 돌아오는 신호만 낸다(녹음은 계속). 중단 조건·시간 같은 **측정값을 담지 않는다** (AC-4-108 `NOT VERIFIED`). 측정 후 `apps/web/src/mocks/recorder/recorderScenarios.ts` 의 이 key 하나만 고친다. 사용자 문구는 feature copy 모듈(`S4-F`) 소관 |
+> | **폐기 전이 실패 분기** | **별도 key 를 만들지 않는다** — `sessions.transition:error` / `:retry` / `:offline` 메서드 override 로 재현한다 (로컬 보존 검증은 `S4-E`) |
+> | `recording-discarded` | 동작은 **상태 규칙**이 만든다 — `to='abandoned'` 확정 → 녹음 `uploadStatus='deleted'`, 이후 토큰 재발급·확정·전송 `RECORDING_DELETED`. key 는 그 경로를 이름으로 고정한다 (API 동작은 `success` 와 같다) |
+> | `error` 의 code 지정 | 번들 옵션 `errorCodes`(키 `group` 또는 `group.method`). 기본 `INTERNAL_ERROR` |
+> | `retry` | Stage 4 그룹은 **메서드별** 1회차 실패 (Stage 1–3 그룹은 그룹 단위 그대로) |
+> | `offline-queued` | 연결 끊김에서 시작 → 테스트 `connectivity.goOnline()` / 브라우저 `online` 이벤트로 복구 |
+
+> ✅ **구현 반영 (Rev 8.3, Stage 4 `S4-E`, 2026-10-15)**
+>
+> | 항목 | 구현 |
+> |---|---|
+> | `local-retention-exceeded` | `recorder` 그룹 key (`RECORDER_SCENARIO_KEYS`). 녹음기 계획(`RecorderScenarioPlan`)에는 영향 없음 — 저장소 seed 해석은 `apps/web/src/mocks/recorder/localStoreScenarios.ts` `resolveLocalStoreSeed` |
+> | `crash-recovered` | 같은 해석기 — `seedCrashedRecording`(part 1 · 청크 8 · `endPart` 없음). 복구 = `features/recording/model/recording-recovery.ts` |
+> | 로컬 저장소 Mock | `apps/web/src/mocks/platform/MockRecordingStorage.ts` (메모리 · 파일 수 측정 · 할당량 초과/잘림/유실 주입 · Mock 디코드 규칙) · `MockAppStatePort.ts` (연결·화면·장치 신호 주입) |
+> | 브라우저 조립(scenario → seed · Mock 서버 세션 준비) | **`S4-F`** — seed 는 세션 id 를 받는다 (Mock 서버에도 같은 세션이 있어야 전이·업로드가 성공한다) |
 
 - Mock 응답도 contracts schema로 parse (fixture drift 방지).
 - Fixture 아동 데이터는 가상 이름만 사용 (실제 아동 데이터 금지 — rules/frontend.md §5 fixtures 규칙).

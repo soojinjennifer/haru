@@ -9,6 +9,8 @@
  * | `error` | `INTERNAL_ERROR` Error Envelope |
  * | `retry` | 1회차 실패 → 2회차부터 성공 |
  * | `offline` | `NetworkError` |
+ * | `offline-cached-card` | `NetworkError` (조회·선택 모두) + **최근 카드 캐시가 있는 기기** — 캐시 seed 는
+ * |   | 브라우저 조립 지점이 넣는다 (`activityCardCacheSeed.ts`, 이월 `QA-3-002` · AC-4-82) |
  * | `reread-option` | 덱에 `kind=reread_book` 포함 (§2.6) |
  * | `book-saved` | 첫 카드가 **저장된 상태**로 시작한다 (`G-14` 초기 상태 반영) |
  * | `books-exhausted` | 3장 전부 **재독 카드** (§13 "추천할 책 소진" — 책 없는 카드는 폐지) |
@@ -54,6 +56,7 @@ export const ACTIVITY_SCENARIO_KEYS = [
   'error',
   'retry',
   'offline',
+  'offline-cached-card',
   'reread-option',
   'books-exhausted',
   'book-saved',
@@ -129,6 +132,7 @@ export function createMockActivityApi(deps: MockActivityApiDeps): ActivityApi {
           return attempt === 1 ? fail('INTERNAL_ERROR', 'Mock activity card failed.') : card();
 
         case 'offline':
+        case 'offline-cached-card':
           throw new NetworkError('Mock adapter is offline.');
 
         case 'onboarding-incomplete':
@@ -178,6 +182,7 @@ export function createMockActivityApi(deps: MockActivityApiDeps): ActivityApi {
           return attempt === 1 ? fail('INTERNAL_ERROR', 'Mock selection failed.') : selection();
 
         case 'offline':
+        case 'offline-cached-card':
           throw new NetworkError('Mock adapter is offline.');
 
         default:

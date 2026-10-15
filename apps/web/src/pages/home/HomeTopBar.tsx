@@ -1,6 +1,7 @@
 import { Icon, IconButton, Text, TopBar } from '@haru/ui';
 import { useNavigate } from 'react-router';
 
+import { ActivityCardOfflineBanner } from '../../features/activity-card-deck';
 import { homeOverviewCopy, HomeWeekSummary } from '../../features/home-overview';
 import { settingsCopy } from '../../features/settings';
 import { ROUTES } from '../../shared/config/routes';
@@ -29,33 +30,39 @@ import { ROUTES } from '../../shared/config/routes';
  *
  * Layout 은 `app/router.tsx` 가 씌우므로 TopBar 도 route element 로 주입된다
  * (`pages → app` import 금지 — rules/architecture §3).
+ *
+ * **Offline Banner** (Stage 4 `S4-J`, `D-11` · AC-4-82) — 오프라인 + 최근 카드 캐시일 때만 헤더 밴드 **밑**에
+ * 붙는다 (TopBar 바로 아래 — Stage 1 §5.4). 평소에는 아무것도 렌더하지 않아 헤더 기하가 그대로다.
  */
 export function HomeTopBar() {
   const navigate = useNavigate();
 
   return (
-    <div className="haru-home-top-bar">
-      <TopBar
-        variant="large"
-        leading={
-          <Text as="span" variant="title-2" weight="heavy" tone="primary">
-            {homeOverviewCopy.wordmark}
-          </Text>
-        }
-        trailing={
-          <>
-            <HomeWeekSummary />
-            <IconButton
-              icon={<Icon name="settings" size="md" decorative />}
-              label={settingsCopy.entryLabel}
-              variant="plain"
-              onPress={() => {
-                void navigate(ROUTES.settings);
-              }}
-            />
-          </>
-        }
-      />
-    </div>
+    <>
+      <div className="haru-home-top-bar">
+        <TopBar
+          variant="large"
+          leading={
+            <Text as="span" variant="title-2" weight="heavy" tone="primary">
+              {homeOverviewCopy.wordmark}
+            </Text>
+          }
+          trailing={
+            <>
+              <HomeWeekSummary />
+              <IconButton
+                icon={<Icon name="settings" size="md" decorative />}
+                label={settingsCopy.entryLabel}
+                variant="plain"
+                onPress={() => {
+                  void navigate(ROUTES.settings);
+                }}
+              />
+            </>
+          }
+        />
+      </div>
+      <ActivityCardOfflineBanner />
+    </>
   );
 }

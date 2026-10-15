@@ -185,6 +185,29 @@ describe('세션 만료 2회 실패 → /auth/log-in (AC-2-07)', () => {
       saveBook: () => Promise.reject(new Error('not used')),
       unsaveBook: () => Promise.reject(new Error('not used')),
     },
+    sessions: {
+      create: () => Promise.reject(new Error('not used')),
+      getDetail: () => Promise.reject(new Error('not used')),
+      transition: () => Promise.reject(new Error('not used')),
+      list: () => Promise.reject(new Error('not used')),
+    },
+    recordings: {
+      init: () => Promise.reject(new Error('not used')),
+      refreshTokens: () => Promise.reject(new Error('not used')),
+      complete: () => Promise.reject(new Error('not used')),
+      status: () => Promise.reject(new Error('not used')),
+    },
+    uploadTransport: {
+      uploadPart: () => Promise.reject(new Error('not used')),
+      resume: () => Promise.reject(new Error('not used')),
+      abort: () => Promise.reject(new Error('not used')),
+    },
+    notifications: {
+      getPreferences: () => Promise.reject(new Error('not used')),
+      updatePreferences: () => Promise.reject(new Error('not used')),
+      registerPushDevice: () => Promise.reject(new Error('not used')),
+      deletePushDevice: () => Promise.reject(new Error('not used')),
+    },
   };
 
   function wrapper({ children }: { children: ReactNode }) {

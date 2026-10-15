@@ -305,7 +305,12 @@ async function probeHideTechniques(context, page, engineName) {
     } catch {
       // 되돌리기 실패는 시도 결과를 바꾸지 않는다.
     }
-    attempts.push({ technique: name, visibilityStateAfter: state, hiddenAchieved: state === 'hidden', error });
+    attempts.push({
+      technique: name,
+      visibilityStateAfter: state,
+      hiddenAchieved: state === 'hidden',
+      error,
+    });
   };
 
   /** @type {import('@playwright/test').Page | null} */
@@ -457,7 +462,8 @@ async function measureQuota(page, bytesPerSecond) {
   const estimate = await page.evaluate(() => globalThis.__haruRecordingSpike.storageEstimate());
   const thirtyMinBytes = bytesPerSecond === null ? null : Math.round(bytesPerSecond * 1800);
   return {
-    method: 'navigator.storage.estimate() 를 측정 직후 호출하고, 30분 크기는 실측 bytesPerSecond × 1800 으로 환산했다.',
+    method:
+      'navigator.storage.estimate() 를 측정 직후 호출하고, 30분 크기는 실측 bytesPerSecond × 1800 으로 환산했다.',
     estimate,
     projectedThirtyMinuteBytes: thirtyMinBytes,
     quotaRatio:
@@ -485,7 +491,10 @@ async function measureMicPath(page) {
       for (const track of stream.getAudioTracks()) track.stop();
       return { ok: true, error: null };
     } catch (error) {
-      return { ok: false, error: error instanceof Error ? `${error.name}: ${error.message}` : String(error) };
+      return {
+        ok: false,
+        error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+      };
     }
   });
   if (!reachable.ok) {

@@ -194,10 +194,12 @@ describe('DEV_SCENARIO_GROUPS — Catalogue 준수 (AC-1-40)', () => {
 
   /**
    * Stage 3 이 쓰는 특화 key (Plan §8.2 — 전부 Catalogue 기존 값, **신규 key 0건**).
-   * `offline-cached-card` · `push-permission-denied` 는 해당 화면이 들어오는 단계에서 등록한다.
+   * `offline-cached-card` 는 Stage 4 `S4-J`(이월 `QA-3-002`)에서 `activity-cards` 그룹에 등록됐다.
+   * `push-permission-denied` 는 플랫폼 포트 그룹(`push`)이라 이 패널에 없다 (URL 로 전환).
    */
   const CATALOGUE_STAGE_3 = [
     'session-already-active',
+    'offline-cached-card',
     'reread-option',
     'books-exhausted',
     'onboarding-incomplete',

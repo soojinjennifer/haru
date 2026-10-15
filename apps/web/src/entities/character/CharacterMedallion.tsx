@@ -13,6 +13,8 @@
  */
 import { CHARACTER_ASSETS, type CharacterAssetName } from '../../shared/assets/character';
 
+import { CharacterPicture } from './CharacterPicture';
+
 export type CharacterMedallionSize = 'sm' | 'md' | 'lg';
 
 export interface CharacterMedallionProps {
@@ -26,7 +28,7 @@ export function CharacterMedallion({ asset, size = 'md' }: CharacterMedallionPro
       className={`haru-character-medallion haru-character-medallion--${size}`}
       aria-hidden="true"
     >
-      <img src={CHARACTER_ASSETS[asset]} alt="" decoding="async" />
+      <CharacterPicture asset={CHARACTER_ASSETS[asset]} />
     </div>
   );
 }

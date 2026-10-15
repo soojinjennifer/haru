@@ -15,18 +15,27 @@ import { createFixedClock, type Clock } from '../shared/lib/clock';
 import { createSeededIdFactory, type IdFactory } from '../shared/lib/idFactory';
 
 import type { AuthGateway } from '../shared/auth';
+import type { PushPermissionPort } from '../shared/platform/push-permission';
 
+import { applyActivityCardCacheSeed } from './activities/activityCardCacheSeed';
 import { createMockActivityApi } from './activities/MockActivityApi';
 import { createMockAuthGateway } from './auth/MockAuthGateway';
 import { createMockBooksApi } from './books/MockBooksApi';
+import { createMockConnectivity, type MockConnectivity } from './common/connectivity';
+import { createMockFailure, type MockErrorCodes } from './common/delivery';
+import { createIdempotencyLedger } from './common/idempotency';
 import { createMockConsentApi } from './consent/MockConsentApi';
 import { createMockConsentState, type MockConsentState } from './consent/consentState';
 import { createMockHealthApi } from './health/MockHealthApi';
 import { createMockHomeApi } from './home/MockHomeApi';
 import { createMockLibraryApi } from './library/MockLibraryApi';
 import { createMockMeApi } from './me/MockMeApi';
+import { createMockNotificationApi } from './notifications/MockNotificationApi';
 import { createMockOnboardingApi } from './onboarding/MockOnboardingApi';
 import { createMockOnboardingState, type MockOnboardingState } from './onboarding/onboardingState';
+import { createMockPushPermissionPort } from './platform/MockPushPermissionPort';
+import { createMockRecordingApi } from './recordings/MockRecordingApi';
+import { createMockUploadTransport } from './recordings/MockUploadTransport';
 import { createRequestLog, type RequestLog } from './request-log';
 import {
   createScenarioStoreFrom,
@@ -34,6 +43,8 @@ import {
   type ScenarioStore,
   type ScenarioStoreInput,
 } from './scenarios';
+import { createMockSessionApi } from './sessions/MockSessionApi';
+import { createMockSessionState, type MockSessionState } from './sessions/sessionState';
 
 /** 빌드 산출물 검증용 표식 (`scripts/assert-no-mocks.mjs`). 값을 바꾸면 스크립트도 함께 바꾼다. */
 export const __HARU_MOCK_SENTINEL__ = '__HARU_MOCK_SENTINEL__';
@@ -69,6 +80,18 @@ export interface MockApiClientsOptions extends ScenarioStoreInput {
    * 주지 않으면 번들마다 새로 만든다 — 테스트 간 상태가 새지 않는다.
    */
   onboardingState?: MockOnboardingState;
+  /**
+   * Stage 4 — `MockSessionApi` · `MockRecordingApi` · `MockUploadTransport` 가 공유하는 서버 상태.
+   * 주지 않으면 번들마다 새로 만든다.
+   */
+  sessionState?: MockSessionState;
+  /** Stage 4 — `offline-queued` 의 복구 시점. 주지 않으면 **끊김**에서 시작한다. */
+  connectivity?: MockConnectivity;
+  /**
+   * Stage 4 — `error`/`retry` 가 쓸 code (Plan §8.1 "error — code 지정", AC-4-24).
+   * 키 = `group` 또는 `group.method`(소문자). 없으면 `INTERNAL_ERROR`.
+   */
+  errorCodes?: MockErrorCodes;
 }
 
 export interface MockApiClientsBundle {
@@ -76,12 +99,21 @@ export interface MockApiClientsBundle {
   store: ScenarioStore;
   /** `AuthGateway` 는 HTTP API 가 아니므로 `clients` 와 분리해 제공한다 (Plan §5.2). */
   authGateway: AuthGateway;
+  /**
+   * Stage 4 (이월 `QA-3-001`) — push 권한 **플랫폼 포트**. HTTP API 가 아니므로 `clients` 밖에 두고,
+   * 같은 scenario store 를 쓰도록 같은 지점에서 만든다 (`push:push-permission-denied`).
+   */
+  pushPermission: PushPermissionPort;
   /** 이 번들이 기록한 모든 요청 (AC-2-13 전수 검사용). */
   requestLog: RequestLog;
   /** 기록된 동의 (테스트가 "동의 전/후" 를 구분할 때 쓴다). */
   consentState: MockConsentState;
   /** 온보딩 진행·제출 상태 (테스트가 "제출 전/후" 를 구분할 때 쓴다). */
   onboardingState: MockOnboardingState;
+  /** Stage 4 세션·녹음·업로드 서버 상태 (테스트가 "확정 전/후" 를 관찰할 때 쓴다). */
+  sessionState: MockSessionState;
+  /** Stage 4 `offline-queued` 연결 상태 (테스트가 `goOnline()` 으로 복구시킨다). */
+  connectivity: MockConnectivity;
   /**
    * sentinel 을 **실제로 사용하는** 자리. 이 참조가 없으면 Rollup 이
    * `mock` 빌드에서도 상수를 tree-shaking 으로 지워 버려서
@@ -108,15 +140,24 @@ export function createMockApiClientsBundle(
   const requestLog = options.requestLog ?? createRequestLog();
   const consentState = options.consentState ?? createMockConsentState();
   const onboardingState = options.onboardingState ?? createMockOnboardingState();
+  const sessionState = options.sessionState ?? createMockSessionState();
+  const connectivity = options.connectivity ?? createMockConnectivity();
+  const errorCodes = options.errorCodes;
+  // 세션·녹음 endpoint 가 **하나의** `Idempotency-Key` 보관소를 쓴다 (서버도 키 공간이 하나다).
+  const idempotency = createIdempotencyLedger(createMockFailure(idFactory));
   const deps = { store, clock, idFactory, timer, requestLog };
+  const stage4 = { ...deps, errorCodes, state: sessionState };
 
   return {
     store,
     requestLog,
     consentState,
     onboardingState,
+    sessionState,
+    connectivity,
     sentinel: __HARU_MOCK_SENTINEL__,
     authGateway: createMockAuthGateway(deps),
+    pushPermission: createMockPushPermissionPort({ store }),
     clients: {
       health: createMockHealthApi({ store, clock, idFactory, timer }),
       me: createMockMeApi({ ...deps, consentState, onboardingState }),
@@ -126,6 +167,10 @@ export function createMockApiClientsBundle(
       home: createMockHomeApi(deps),
       activities: createMockActivityApi(deps),
       library: createMockLibraryApi(deps),
+      sessions: createMockSessionApi({ ...stage4, idempotency }),
+      recordings: createMockRecordingApi({ ...stage4, idempotency, connectivity }),
+      uploadTransport: createMockUploadTransport({ ...stage4, connectivity }),
+      notifications: createMockNotificationApi({ ...deps, errorCodes }),
     },
   };
 }
@@ -148,13 +193,31 @@ export function createMockApiClients(options: MockApiClientsOptions = {}): ApiCl
 export function createBrowserMockApiClients(
   envValue: string | undefined,
   clock?: Clock,
+  /**
+   * 기기 시계 — **서버(Mock) 시계가 아니다.** 기기 쪽 seed(`offline-cached-card` 의 카드 캐시)가 쓴다.
+   * Mock 소스는 시계를 직접 읽지 않으므로 조립 지점(`app/providers`)이 넘긴다.
+   */
+  deviceClock?: Clock,
 ): MockApiClientsBundle {
-  return createMockApiClientsBundle({
+  const bundle = createMockApiClientsBundle({
     search: globalThis.location?.search ?? '',
     panelValue: readScenarioPanelValue(),
     envValue,
     ...(clock === undefined ? {} : { clock }),
   });
+
+  // `activity-cards:offline-cached-card` — "최근 카드 캐시가 있는 기기" 를 만든다 (AC-4-82).
+  if (deviceClock !== undefined) {
+    applyActivityCardCacheSeed({ store: bundle.store, deviceClock });
+  }
+
+  // `offline-queued` — 브라우저의 `online` 이벤트가 Mock 연결을 복구한다 (한 방향).
+  // Playwright `context.setOffline(true → false)` 가 이 이벤트를 낸다 (AC-4-31).
+  globalThis.addEventListener?.('online', () => {
+    bundle.connectivity.goOnline();
+  });
+
+  return bundle;
 }
 
 export {
@@ -210,6 +273,8 @@ export {
   ACTIVITY_LOADING_DELAY_MS,
 } from './activities/MockActivityApi';
 export type { ActivityScenarioKey } from './activities/MockActivityApi';
+export { applyActivityCardCacheSeed } from './activities/activityCardCacheSeed';
+export type { ActivityCardCacheSeedOptions } from './activities/activityCardCacheSeed';
 export {
   createMockLibraryApi,
   libraryScenarioGroup,
@@ -226,6 +291,7 @@ export {
   createLibraryOverviewFixture,
   findLibraryBook,
   LIBRARY_LIST_NEXT_CURSOR,
+  MOCK_PURCHASE_URL,
   SHELF_BOOKS,
 } from './fixtures/library';
 export type { LibraryListFixtureOptions, LibraryOverviewShape } from './fixtures/library';
@@ -287,4 +353,94 @@ export {
 } from './health/MockHealthApi';
 export type { HealthScenarioKey } from './health/MockHealthApi';
 export { createHealthResponseFixture, MOCK_API_VERSION } from './fixtures/health';
+export {
+  createMockSessionApi,
+  sessionScenarioGroup,
+  SESSION_SCENARIO_KEYS,
+  SESSION_LOADING_DELAY_MS,
+} from './sessions/MockSessionApi';
+export type { SessionScenarioKey } from './sessions/MockSessionApi';
+export { createMockSessionState, findActiveSession } from './sessions/sessionState';
+export type {
+  MockRecordingRecord,
+  MockSessionRecord,
+  MockSessionState,
+  MockUploadPartRecord,
+} from './sessions/sessionState';
+export { createMockRecordingApi } from './recordings/MockRecordingApi';
+export {
+  createMockUploadTransport,
+  TUS_ABORT_OPERATION,
+  TUS_HEAD_OPERATION,
+  TUS_PATCH_OPERATION,
+} from './recordings/MockUploadTransport';
+export {
+  recordingScenarioGroup,
+  RECORDING_SCENARIO_KEYS,
+  RECORDING_LOADING_DELAY_MS,
+} from './recordings/recordingScenarios';
+export type { RecordingScenarioKey } from './recordings/recordingScenarios';
+export {
+  createMockNotificationApi,
+  notificationScenarioGroup,
+  NOTIFICATION_SCENARIO_KEYS,
+  NOTIFICATION_LOADING_DELAY_MS,
+} from './notifications/MockNotificationApi';
+export type { NotificationScenarioKey } from './notifications/MockNotificationApi';
+export {
+  INTERRUPTION_CAUSES,
+  RECORDER_EVENT_AFTER_CHUNKS,
+  RECORDER_SCENARIO_KEYS,
+  recorderScenarioGroup,
+  resolveRecorderScenario,
+} from './recorder/recorderScenarios';
+export type {
+  InterruptionCause,
+  RecorderScenarioKey,
+  RecorderScenarioPlan,
+} from './recorder/recorderScenarios';
+export { createMockConnectivity } from './common/connectivity';
+export type { MockConnectivity } from './common/connectivity';
+export type { MockErrorCodes } from './common/delivery';
+export {
+  createActiveSessionFixture,
+  createReadySessionFixture,
+  createSessionHistoryFixture,
+  createStickerAwardFixture,
+  MOCK_COMPLETION_BUBBLE,
+  MOCK_HISTORY_SESSION_IDS,
+  MOCK_READY_BUBBLE,
+  MOCK_STICKER_MESSAGE,
+  MOCK_STICKER_TITLE,
+} from './fixtures/sessions';
+export { MOCK_UPLOAD_ORIGIN, mockObjectKey } from './fixtures/recordings';
 export * from './scenarios';
+export {
+  createMockRecordingStorage,
+  MOCK_SECONDS_PER_CHUNK,
+} from './platform/MockRecordingStorage';
+export type {
+  MockRecordingStorage,
+  MockRecordingStorageControls,
+  MockRecordingStorageOptions,
+} from './platform/MockRecordingStorage';
+export { createMockAppStatePort } from './platform/MockAppStatePort';
+export {
+  createMockPushPermissionPort,
+  MOCK_PUSH_TOKEN,
+  PUSH_SCENARIO_KEYS,
+  pushScenarioGroup,
+} from './platform/MockPushPermissionPort';
+export type { MockPushPermissionPort, PushScenarioKey } from './platform/MockPushPermissionPort';
+export type { MockAppStatePort } from './platform/MockAppStatePort';
+export { resolveLocalStoreSeed } from './recorder/localStoreScenarios';
+export type { LocalStoreSeed } from './recorder/localStoreScenarios';
+export {
+  MOCK_CRASH_CHUNKS,
+  MOCK_STALE_AGE_MS,
+  MOCK_STALE_CHUNKS,
+  mockChunkBytes,
+  seedCrashedRecording,
+  seedStaleRecording,
+} from './fixtures/local-recordings';
+export type { LocalRecordingSeedTarget } from './fixtures/local-recordings';

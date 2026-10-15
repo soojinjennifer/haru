@@ -13,7 +13,12 @@
  *   3. **전역 1개** — Playwright 드라이버가 `page.evaluate` 로 여러 번 호출하므로 상태는
  *      모듈 싱글턴에 둔다. `window.__haruRecordingSpike` 가 그 입구다.
  */
-import { SpikeChunkStore, type RunRecord, type StoreCapability, type WriteLatency } from './spike-store';
+import {
+  SpikeChunkStore,
+  type RunRecord,
+  type StoreCapability,
+  type WriteLatency,
+} from './spike-store';
 
 /* ===== 공개 타입 ========================================================== */
 
@@ -478,7 +483,10 @@ export async function stopRun(): Promise<RunSnapshot> {
   if (!stopEventSeen) {
     pushEvent(run, 'recorder-stop', 'stop 이벤트 4000ms 내 미도착');
   }
-  await Promise.race([run.pendingWrites, new Promise((resolve) => window.setTimeout(resolve, 4000))]);
+  await Promise.race([
+    run.pendingWrites,
+    new Promise((resolve) => window.setTimeout(resolve, 4000)),
+  ]);
   await store.closeRun(run.chunks.length);
 
   if (run.intervalId !== null) window.clearInterval(run.intervalId);
@@ -587,8 +595,7 @@ export async function recover(runId?: string): Promise<RecoveryProbe> {
   const blobType = (await store.storedBlobType(target.runId)) || target.mimeType;
 
   const whole = await probePlayability(bytes, blobType);
-  const withoutFirst =
-    bytes.length > 1 ? await probePlayability(bytes.slice(1), blobType) : null;
+  const withoutFirst = bytes.length > 1 ? await probePlayability(bytes.slice(1), blobType) : null;
   const lastOnly = bytes.length > 1 ? await probePlayability(bytes.slice(-1), blobType) : null;
 
   return {

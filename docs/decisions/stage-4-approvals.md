@@ -29,7 +29,7 @@ design-agent 가 자체 제안한 허용 차이 4건(**Drawer 폭** · **메달�
 
 ---
 
-## 1. 결정 목록 `D4-1` ~ `D4-22`
+## 1. 결정 목록 `D4-1` ~ `D4-31`
 
 | ID | 결정 | 일자 | 라벨 |
 |---|---|---|---|
@@ -55,6 +55,15 @@ design-agent 가 자체 제안한 허용 차이 4건(**Drawer 폭** · **메달�
 | **`D4-20`** ⭐ | **PRD FR-10 세션 시작 인사 = 버블 제목 줄.** `139:2803` 의 제목 줄(현재 `Try this prompt !`)이 **서버가 주는 인사 문구**의 자리이고, 그 아래 **pill 5개는 Prompt** 다. **Figma 기하는 그대로 지킨다**(329 폭 · pill 5개 · pill 간격 6). → **`N4-32` 해소** (plan-agent 권고안 채택) | 2026-10-13 | 사용자 결정 |
 | **`D4-21`** ⭐ | **세션 시작 인사를 1줄 제약에 맞춘다.** 인사 문구는 **≤ 240px @ SF Pro Semibold 16 (≈ 28자)** 여야 하고 **320px 뷰포트에서도 1줄**이어야 한다. **Figma 를 바꾸지 않는다** — 제목 줄은 **1줄 clamp(말줄임)**. **PRD §7.5 `:410` 예시 인사가 수정 대상 15** 가 된다 | 2026-10-13 | 사용자 결정 (**PRD 수정 대상 발생** — §6.2) |
 | **`D4-22`** ⭐ | **인사 문구가 없으면(null/빈값) 제목 줄을 렌더하지 않는다.** placeholder·빈 줄 **0건** · **Frontend fallback 문구 0건**. 버블은 렌더되고 기하는 유지되며 **높이만 28px 짧아진다**. ⛔ **`Try this prompt !` 는 Figma placeholder 이며 제품 코드에 넣지 않는다** | 2026-10-13 | 사용자 결정 |
+| **`D4-23`** | **`RecordingPart.mimeType` = 브라우저 원문 문자열**(`BlobEvent.data.type`, 정규화하지 않고 보관) + **별도 `container` enum `webm` \| `mp4`**. 검증은 enum 이 아니라 `;` 앞을 잘라 `trim()` 한 base type 검사(`audio/webm` \| `audio/mp4`). **`audio/aac`·`audio/m4a` 제거**(두 엔진 모두 생성자가 던지는 죽은 값) — 후속 네이티브 단계에서 추가될 수 있음을 Handoff 에 명시. 근거 `docs/qa/stage-4a-spike-report.md` §5.5 권고 A (`M-1`, `C4-OPEN-2` 해소) | 2026-10-14 | 사용자 결정 |
+| **`D4-24`** | **`partNo` 상한 20 유지.** contract·`API_CONTRACTS.md` 에 **"part 는 연속 녹음 구간(`MediaRecorder` 세션 1개)이며 timeslice 청크가 아니다 — 30분 세션의 청크는 약 1766개"** 를 명시한다. 근거 spike 리포트 §9.3 (`M-2`, `C4-OPEN-1` 해소) | 2026-10-14 | 사용자 결정 |
+| **`D4-25`** | **서재 경로는 Reading Context("언제 읽을지") 없이 세션을 시작한다** — `CreateSession.readingContext` nullable 유지. Activity Card 경로는 필수(`D-9`) 유지. **책은 어느 경로든 녹음 세션에 필수**(기존 refine). contract 변경 없음 (`N4-04` 해소) | 2026-10-14 | 사용자 결정 |
+| **`D4-26`** | **`web-background-warning` 은 조건 없는 안내로 먼저 만든다** — *"Web 에서는 화면을 켜 두어야 녹음이 보장된다"* 수준. 중단 조건·문구는 실기기 측정(spike 리포트 §7.4) 후 다듬는다. AC-4-108 은 `NOT VERIFIED` 유지 (`M-13` 해소) | 2026-10-14 | 사용자 결정 |
+| **`D4-27`** | **WebKit/iOS 청크 녹음 미확정 상태로 `S4-D`·`S4-E` 를 진행한다.** Chromium 실측 기준으로 만들되 Adapter 는 청크 미수신을 **watchdog 으로 감지**한다(`M-7`). **Stage 4a QA 전에 사용자가 iPhone 실기기에서 `/__dev/ui/recording-spike` 로 확인**하고, 안 되면 Adapter 만 고친다 (`M-12` 해소) | 2026-10-15 | 사용자 결정 |
+| **`D4-28`** | **timeslice 기본값 1000ms** — 크래시 시 최대 손실 ≈1초, 30분 ≈1766 청크 파일 (`M-9` 해소) | 2026-10-15 | 사용자 결정 |
+| **`D4-29`** | **로컬 미업로드 녹음 보관 상한 = 14일, 7일 시점 안내.** 근거는 용량이 아니라 아동 음성 최소 보관 원칙. 14일 경과 시 로컬 삭제. Mock key `local-retention-exceeded` 를 만든다 (`N4-09` · `OAQ-11` 해소, `R4-11` 완화) | 2026-10-15 | 사용자 결정 |
+| **`D4-30`** | **`navigator.storage.persist()` 를 요청하고 `persisted()` 결과를 기록한다.** false 인 기기에서는 업로드 큐 우선순위를 높인다 (`M-8` 해소) | 2026-10-15 | 사용자 결정 |
+| **`D4-31`** | **`sharp` 를 빌드 전용 devDependency 로 도입한다** — `QA-3-003` 에셋 파이프라인용. 런타임 번들에 포함하지 않는다(`assert` 로 증명). 스택 외 라이브러리 승인 (`rules/frontend.md` §1, `N4-20` 해소) | 2026-10-15 | 사용자 결정 |
 | **Toast 문구** | **`Recording submitted`** (design-agent 안 `T-A`) | 2026-10-13 | **Orchestrator 채택, 변경 가능** (§7) |
 
 ### 1.1 `D4-13` — 녹음 폐기 contracts (안 A 확정, **Stage 0 #16 변경**)

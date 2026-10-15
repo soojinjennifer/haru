@@ -8,8 +8,12 @@ import { createHttpHealthApi } from './HttpHealthApi';
 import { createHttpHomeApi } from './HttpHomeApi';
 import { createHttpLibraryApi } from './HttpLibraryApi';
 import { createHttpMeApi } from './HttpMeApi';
+import { createHttpNotificationApi } from './HttpNotificationApi';
 import { createHttpOnboardingApi } from './HttpOnboardingApi';
+import { createHttpRecordingApi } from './HttpRecordingApi';
+import { createHttpSessionApi } from './HttpSessionApi';
 import { createHttpClient, type HttpClientOptions } from './httpClient';
+import { createTusUploadTransport } from './TusUploadTransport';
 
 export { createHttpClient, normalizeBaseUrl, DEFAULT_HTTP_TIMEOUT_MS } from './httpClient';
 export type { AuthTokenProvider, HttpClient, HttpClientOptions } from './httpClient';
@@ -30,6 +34,21 @@ export {
   activityCardSelectionPath,
 } from './HttpActivityApi';
 export { createHttpLibraryApi, savedBooksPath, savedBookPath } from './HttpLibraryApi';
+export {
+  childSessionsPath,
+  createHttpSessionApi,
+  sessionPath,
+  sessionTransitionsPath,
+  SESSIONS_PATH,
+} from './HttpSessionApi';
+export { createHttpRecordingApi, recordingPath, sessionRecordingsPath } from './HttpRecordingApi';
+export {
+  createHttpNotificationApi,
+  NOTIFICATION_PREFERENCES_PATH,
+  PUSH_DEVICES_PATH,
+  pushDevicePath,
+} from './HttpNotificationApi';
+export { createTusUploadTransport, TUS_VERSION } from './TusUploadTransport';
 
 export function createHttpApiClients(options: HttpClientOptions): ApiClients {
   const client = createHttpClient(options);
@@ -43,5 +62,11 @@ export function createHttpApiClients(options: HttpClientOptions): ApiClients {
     home: createHttpHomeApi(client),
     activities: createHttpActivityApi(client),
     library: createHttpLibraryApi(client),
+    sessions: createHttpSessionApi(client),
+    recordings: createHttpRecordingApi(client),
+    uploadTransport: createTusUploadTransport(
+      options.fetchImpl === undefined ? {} : { fetchImpl: options.fetchImpl },
+    ),
+    notifications: createHttpNotificationApi(client),
   };
 }

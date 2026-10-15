@@ -11,6 +11,7 @@ import type { ReactNode } from 'react';
 
 import type { ApiClients } from '../../shared/api/types';
 import type { AuthGateway } from '../../shared/auth';
+import type { PushPermissionPort } from '../../shared/platform/push-permission';
 
 import { ApiClientProvider } from './ApiClientProvider';
 import { QueryProvider } from './QueryProvider';
@@ -20,6 +21,8 @@ export interface AppProvidersProps {
   /** 테스트 · dev gallery 전용 주입 지점. */
   clients?: ApiClients | undefined;
   authGateway?: AuthGateway | undefined;
+  /** 테스트 · dev gallery 전용 주입 지점 (push 권한 포트). */
+  pushPermission?: PushPermissionPort | undefined;
   queryClient?: QueryClient | undefined;
   /** Adapter 준비 전 표시할 내용. */
   fallback?: ReactNode;
@@ -29,12 +32,18 @@ export function AppProviders({
   children,
   clients,
   authGateway,
+  pushPermission,
   queryClient,
   fallback,
 }: AppProvidersProps) {
   return (
     <QueryProvider client={queryClient}>
-      <ApiClientProvider clients={clients} authGateway={authGateway} fallback={fallback}>
+      <ApiClientProvider
+        clients={clients}
+        authGateway={authGateway}
+        pushPermission={pushPermission}
+        fallback={fallback}
+      >
         {/* Toast 는 화면 위에 하나만 뜬다 (§4.12). 앱 조립 지점에서 한 번 마운트한다. */}
         <ToastProvider>{children}</ToastProvider>
       </ApiClientProvider>

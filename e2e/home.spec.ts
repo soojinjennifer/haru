@@ -11,9 +11,13 @@ import { gotoApp } from './support/gallery';
 
 const DRAFT_KEY = 'haru.onboarding.draft.v1';
 
+/** Activity Card 오프라인 캐시 키 (`D-11`, Stage 4 `S4-J`). */
+const CARD_CACHE_KEY = 'haru.activity-card.v1';
+
 /** 로그인해서 `/` 에 착지한다 — 기본 `me` 는 온보딩까지 마친 사용자다. */
-async function logIn(page: Page): Promise<void> {
-  await gotoApp(page, '/auth/log-in');
+async function logIn(page: Page, scenario?: string): Promise<void> {
+  const query = scenario === undefined ? '' : `?scenario=${encodeURIComponent(scenario)}`;
+  await gotoApp(page, `/auth/log-in${query}`);
 
   await page.getByLabel('Email').fill('sam@example.com');
   await page.getByRole('textbox', { name: 'Password', exact: true }).fill('sunny-evening-8');
@@ -447,6 +451,117 @@ test.describe('`/` Home (AC-3-04 · AC-3-09 · AC-3-10 · AC-3-18 · AC-3-87)', 
     await expect(page.getByRole('button', { name: 'Pick a time' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: /Show all \d+ prompts/ })).toHaveCount(0);
     await expect(page.getByText(/prepared for/i)).toHaveCount(0);
+  });
+});
+
+/*
+ * Stage 4 `S4-J` — 이월 `QA-3-003` (에셋 파이프라인, AC-4-84). `<picture>` 가 실제 브라우저에서
+ * **AVIF 를 고르는지** 는 DOM 구조만으로는 알 수 없다 — `currentSrc` 로 확인한다.
+ */
+test.describe('캐릭터 `<picture>` (AC-4-84)', () => {
+  test('Home 캐릭터가 picture 로 그려지고 브라우저가 AVIF 를 고른다', async ({ page }) => {
+    await logIn(page);
+
+    const img = page.locator('.haru-home-stage__character picture img');
+    await expect(img).toHaveCount(1);
+    await expect
+      .poll(async () => img.evaluate((node) => (node as HTMLImageElement).complete))
+      .toBe(true);
+
+    const picked = await img.evaluate((node) => {
+      const image = node as HTMLImageElement;
+      const picture = image.parentElement;
+      return {
+        currentSrc: image.currentSrc,
+        naturalWidth: image.naturalWidth,
+        sources: [...(picture?.querySelectorAll('source') ?? [])].map((source) =>
+          source.getAttribute('type'),
+        ),
+        pictureDisplay: picture === null ? null : getComputedStyle(picture).display,
+      };
+    });
+    expect(picked.sources).toEqual(['image/avif', 'image/webp']);
+    expect(picked.currentSrc).toMatch(/\.avif$/);
+    // 같은 마스터에서 나온 무손실 산출물 — 해상도가 PNG 와 같다 (915×1133).
+    expect(picked.naturalWidth).toBe(915);
+    // 레이아웃 상자를 만들지 않는다.
+    expect(picked.pictureDisplay).toBe('contents');
+  });
+});
+
+/*
+ * Stage 4 `S4-J` — 이월 `QA-3-002` (Activity Card 오프라인 캐시, `D-11`).
+ * 실제 브라우저의 `localStorage` 와 **TopBar 슬롯 안의 배너 위치**는 여기에서만 확인된다.
+ */
+test.describe('오프라인 캐시 카드 (AC-4-82 · AC-4-83, `D-11`)', () => {
+  test('`offline-cached-card` — 캐시된 카드 3장과 Offline Banner 가 동시에 보인다', async ({
+    page,
+  }) => {
+    await logIn(page, 'activity-cards:offline-cached-card');
+
+    const track = page.locator('.haru-activity-track:not(.haru-activity-track--skeleton)');
+    await expect(track).toBeVisible();
+    await expect(track.locator('.haru-activity-card--front')).toHaveCount(3);
+
+    const banner = page.locator('.haru-app-shell__bar-top .haru-alert--banner');
+    await expect(banner).toBeVisible();
+    await expect(banner).toContainText("You're offline.");
+    await expect(banner).toContainText('This is your most recent card.');
+    // 카드가 없을 때의 덱 슬롯 안내는 뜨지 않는다.
+    await expect(page.locator('.haru-activity-deck__slot')).toHaveCount(0);
+
+    // 배너는 헤더 밴드 **밑**이다 — 헤더(48) 아래에서 시작하고 탭바를 가리지 않는다.
+    const geometry = await page.evaluate(() => {
+      const header = document.querySelector('.haru-home-top-bar');
+      const alert = document.querySelector('.haru-app-shell__bar-top .haru-alert--banner');
+      if (header === null || alert === null) throw new Error('header or banner missing');
+      return {
+        headerBottom: header.getBoundingClientRect().bottom,
+        bannerTop: alert.getBoundingClientRect().top,
+      };
+    });
+    expect(geometry.bannerTop).toBeGreaterThanOrEqual(geometry.headerBottom);
+
+    // 저장된 것은 카드 1건뿐이다 (D-11 — `{ schemaVersion, childId, card }`).
+    const stored = await page.evaluate(
+      (key) => JSON.parse(globalThis.localStorage.getItem(key) ?? 'null') as unknown,
+      CARD_CACHE_KEY,
+    );
+    expect(Object.keys(stored as Record<string, unknown>).sort()).toEqual([
+      'card',
+      'childId',
+      'schemaVersion',
+    ]);
+  });
+
+  test('캐시 없는 `offline` 은 Stage 3 의 덱 슬롯 안내 그대로 — 배너 없음', async ({ page }) => {
+    await logIn(page, 'activity-cards:offline');
+
+    await expect(page.locator('.haru-activity-deck__slot')).toBeVisible();
+    await expect(
+      page.getByText("We'll load today's options when the connection is back."),
+    ).toBeVisible();
+    await expect(page.locator('.haru-app-shell__bar-top .haru-alert--banner')).toHaveCount(0);
+  });
+
+  test('로그아웃하면 카드 캐시가 지워진다 (AC-4-83)', async ({ page }) => {
+    await logIn(page, 'activity-cards:offline-cached-card');
+    await expect(page.locator('.haru-app-shell__bar-top .haru-alert--banner')).toBeVisible();
+    expect(
+      await page.evaluate((key) => globalThis.localStorage.getItem(key), CARD_CACHE_KEY),
+    ).not.toBeNull();
+
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('button', { name: 'Log out', exact: true }).click();
+    await page
+      .getByRole('alertdialog')
+      .getByRole('button', { name: 'Log out', exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/auth\/welcome$/);
+
+    expect(
+      await page.evaluate((key) => globalThis.localStorage.getItem(key), CARD_CACHE_KEY),
+    ).toBeNull();
   });
 });
 

@@ -549,3 +549,48 @@ test.describe('진입점 (§7.1) · 하위 화면 (§7.2 · §7.3)', () => {
     });
   }
 });
+
+/*
+  Stage 4 `S4-C` — **메서드 단위 override** (`AC-4-87`, `stage-3-approvals.md` §30.7 ①).
+  그룹 단위 key 만 있을 때는 `library:error` 가 `getOverview` 까지 실패시켜 **열 책 행이 0개**였다.
+  `library.savebook:error` 는 저장만 실패시키므로 "목록 성공 + 저장만 실패" 를 실브라우저에서 재현한다.
+*/
+test.describe('그룹 안 부분 실패 — 목록 성공 + 저장만 실패 (AC-4-87)', () => {
+  test('`library.savebook:error` — 선반이 그려지고, 시트의 Save 만 error Toast 를 띄운다', async ({
+    page,
+  }) => {
+    await goToLibrary(page, 'library.savebook:error');
+    await expect(page.locator('.haru-shelf-item--pressable').first()).toBeVisible();
+
+    await openBookSheet(page);
+    const sheet = page.locator('.haru-sheet--inset-card');
+    await sheet.getByRole('button', { name: 'Save', exact: true }).click();
+
+    await expect(page.locator('.haru-toast')).toBeVisible();
+    // 목록은 여전히 성공 상태다 — ErrorState 로 바뀌지 않았다
+    await expect(page.locator('.haru-library-shelves')).toBeVisible();
+  });
+});
+
+/*
+  Stage 4 `S4-J` — `stage-3-approvals.md` §30.7 ② (`AC-4-88`). `purchaseUrl` fixture 가 0건이라
+  `favorite_only` 의 `Where to buy` 가 **어떤 시나리오에서도** 렌더되지 않았다. Favorites 첫 권에 넣었다.
+*/
+test.describe('`favorite_only` 외부 구매 링크 (AC-4-88)', () => {
+  test('Favorites 첫 권 시트에 `Where to buy` 가 새 탭 링크로 보인다', async ({ page }) => {
+    await goToLibrary(page);
+
+    await page
+      .getByRole('group', { name: 'Favorites' })
+      .locator('.haru-shelf-item--pressable')
+      .first()
+      .click();
+    const sheet = page.locator('.haru-sheet--inset-card');
+    await expect(sheet).toBeVisible();
+
+    const link = sheet.getByRole('link', { name: /Where to buy/ });
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute('href', 'https://books.example/where-the-wild-things-are');
+    await expect(link).toHaveAttribute('target', '_blank');
+  });
+});

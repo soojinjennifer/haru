@@ -4,6 +4,14 @@
  * 지름은 semantic size 토큰만 쓴다 (임의 수치 금지 — AC-2-58).
  * 이미지는 medallion 을 꽉 채우되 비율을 유지한다. 원형 클리핑은 `border-radius: 50%` 다.
  */
+/*
+ * `CharacterPicture` — `<picture>` 는 레이아웃 상자를 만들지 않는다 (Stage 4 `S4-J`, AC-4-84).
+ * 크기·`object-fit` 은 아래 medallion / illustration 규칙이 `img` 에 그대로 건다.
+ */
+.haru-character-picture {
+  display: contents;
+}
+
 .haru-character-medallion {
   display: block;
   flex: none;

@@ -80,7 +80,16 @@ describe('결정성 (Plan §8.5 — 같은 key 는 같은 3장 구성·같은 �
 describe('contracts parse (AC-3-60 계열)', () => {
   it.each(
     ACTIVITY_SCENARIO_KEYS.filter(
-      (key) => !['empty', 'error', 'offline', 'retry', 'onboarding-incomplete'].includes(key),
+      // `offline-cached-card` 는 API 쪽이 `offline` 과 같다 (NetworkError — `activity-card-cache-seed.test.ts`).
+      (key) =>
+        ![
+          'empty',
+          'error',
+          'offline',
+          'offline-cached-card',
+          'retry',
+          'onboarding-incomplete',
+        ].includes(key),
     ),
   )('`%s` 응답이 ActivityCardSchema 를 통과한다', async (scenario) => {
     const card = await activityApi(scenario).api.getTodayCard({ childId: CHILD_ID });

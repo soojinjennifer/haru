@@ -2,8 +2,8 @@
  * Scenario store — 3계층 우선순위 해석 + 그룹별 호출 횟수 (Plan §16 D-5).
  *
  * 우선순위: **URL query > dev Scenario Panel(session) > `VITE_MOCK_SCENARIO` > `success`**
- * 한 계층 안에서는 명시 지정(`health:error`)이 wildcard(`error`)를 이긴다.
- * 계층은 위에서부터 훑되, 해당 그룹을 언급한 **첫 계층**에서 결정이 끝난다.
+ * 한 계층 안에서는 **메서드 지정(`library.savebook:error`) > 그룹 지정(`health:error`) > wildcard(`error`)**.
+ * 계층은 위에서부터 훑되, 해당 그룹(또는 그 메서드)을 언급한 **첫 계층**에서 결정이 끝난다.
  *
  * 결정성: store 는 시간·난수를 쓰지 않는다. `retry` 처럼 호출 순서에 따라 달라지는
  * scenario 를 위해 그룹별 attempt 카운터만 갖고, 같은 순서의 호출은 항상 같은 결과를 낸다.
@@ -11,14 +11,35 @@
 import { logger } from '../../shared/lib/logger';
 
 import { parseScenarioParam, parseScenarioSearch } from './scenario-url';
-import { DEFAULT_SCENARIO_KEY, type ScenarioGroupDefinition, type ScenarioSource } from './types';
+import {
+  DEFAULT_SCENARIO_KEY,
+  methodScope,
+  type ScenarioGroupDefinition,
+  type ScenarioSource,
+} from './types';
+
+/** 결정된 key 가 **어느 표기**에서 왔는지. 메서드 override 여부를 구분해야 하는 Mock 이 쓴다. */
+export type ScenarioScope = 'method' | 'group' | 'wildcard' | 'default';
+
+export interface ScopedScenario<TKey extends string> {
+  readonly key: TKey;
+  readonly scope: ScenarioScope;
+}
 
 /** dev Scenario Panel(Stage 1-G)이 쓰는 sessionStorage 키. */
 export const SCENARIO_SESSION_KEY = 'haru:scenario';
 
 export interface ScenarioStore {
-  /** 그룹의 현재 scenario key. 목록에 없는 값은 그룹 기본값으로 떨어진다. */
-  resolve<TKey extends string>(definition: ScenarioGroupDefinition<TKey>): TKey;
+  /**
+   * 그룹의 현재 scenario key. 목록에 없는 값은 그룹 기본값으로 떨어진다.
+   * `method` 를 주면 `group.method` 지정이 그룹 지정보다 먼저다 (메서드 단위 override).
+   */
+  resolve<TKey extends string>(definition: ScenarioGroupDefinition<TKey>, method?: string): TKey;
+  /** `resolve` 와 같지만 결정된 표기(`method`·`group`·`wildcard`·`default`)도 돌려준다. */
+  resolveScoped<TKey extends string>(
+    definition: ScenarioGroupDefinition<TKey>,
+    method?: string,
+  ): ScopedScenario<TKey>;
   /** 그룹의 n번째 호출인지 (1부터). `retry` scenario 가 쓴다. */
   nextAttempt(group: string): number;
   /**
@@ -39,31 +60,52 @@ export interface ScenarioStore {
 export function createScenarioStore(sources: readonly ScenarioSource[]): ScenarioStore {
   const attempts = new Map<string, number>();
 
-  function resolveKey(group: string): string | undefined {
+  function resolveKey(
+    group: string,
+    method: string | undefined,
+  ): { key: string; scope: ScenarioScope } | undefined {
+    const scoped = method === undefined ? undefined : methodScope(group, method);
+
     for (const source of sources) {
+      if (scoped !== undefined) {
+        const byMethod = source.explicit[scoped];
+        if (byMethod !== undefined) return { key: byMethod, scope: 'method' };
+      }
       const explicit = source.explicit[group];
-      if (explicit !== undefined) return explicit;
-      if (source.wildcard !== undefined) return source.wildcard;
+      if (explicit !== undefined) return { key: explicit, scope: 'group' };
+      if (source.wildcard !== undefined) return { key: source.wildcard, scope: 'wildcard' };
     }
 
     return undefined;
   }
 
+  function resolveScoped<TKey extends string>(
+    definition: ScenarioGroupDefinition<TKey>,
+    method?: string,
+  ): ScopedScenario<TKey> {
+    const requested = resolveKey(definition.group, method) ?? {
+      key: DEFAULT_SCENARIO_KEY,
+      scope: 'default' as const,
+    };
+    const match = definition.keys.find((key) => key === requested.key);
+
+    if (match === undefined) {
+      // Catalogue(§5.4) 밖의 key 이거나 이 그룹에 적용되지 않는 key.
+      logger.warn('mock_scenario_unknown_key', { scenario: definition.group });
+      return { key: definition.defaultKey, scope: 'default' };
+    }
+
+    return { key: match, scope: requested.scope };
+  }
+
   return {
     sources,
 
-    resolve<TKey extends string>(definition: ScenarioGroupDefinition<TKey>): TKey {
-      const requested = resolveKey(definition.group) ?? DEFAULT_SCENARIO_KEY;
-      const match = definition.keys.find((key) => key === requested);
-
-      if (match === undefined) {
-        // Catalogue(§5.4) 밖의 key 이거나 이 그룹에 적용되지 않는 key.
-        logger.warn('mock_scenario_unknown_key', { scenario: definition.group });
-        return definition.defaultKey;
-      }
-
-      return match;
+    resolve<TKey extends string>(definition: ScenarioGroupDefinition<TKey>, method?: string): TKey {
+      return resolveScoped(definition, method).key;
     },
+
+    resolveScoped,
 
     nextAttempt(group: string): number {
       const next = (attempts.get(group) ?? 0) + 1;
@@ -111,6 +153,26 @@ export function consumeAttempt(
   }
 
   return attempt;
+}
+
+/**
+ * 한 호출의 scenario 와 시도 번호를 함께 정한다 (Stage 4 `S4-C` 신규 Mock 의 공통 진입점).
+ *
+ * - scenario 는 **메서드 override 를 먼저** 본다 (`resolve(definition, method)`).
+ * - 시도 카운터는 **메서드 단위**(`group.method`)다. 한 그룹에 메서드가 여럿인 Stage 4 그룹
+ *   (sessions: create/transition/detail …)에서 그룹 단위로 세면, `retry` 의 1회차 실패를
+ *   **다른 메서드가 먼저 소비**해 "실패 → 재시도 성공" 이 관찰되지 않는다.
+ *   Stage 1–3 Mock 은 그룹 단위 카운터를 그대로 쓴다 (동작 불변).
+ */
+export function beginScenarioCall<TKey extends string>(
+  store: ScenarioStore,
+  definition: ScenarioGroupDefinition<TKey>,
+  method: string,
+  signal: AbortSignal | undefined,
+): { scenario: TKey; attempt: number } {
+  const scenario = store.resolve(definition, method);
+  const attempt = consumeAttempt(store, methodScope(definition.group, method), signal);
+  return { scenario, attempt };
 }
 
 export interface ScenarioStoreInput {

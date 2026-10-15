@@ -20,6 +20,18 @@ export type { BooksApi } from './books-api';
 export type { HomeApi } from './home-api';
 export type { ActivityApi } from './activity-api';
 export type { LibraryApi } from './library-api';
+export type { SessionApi } from './session-api';
+export type { RecordingApi } from './recording-api';
+export type { NotificationApi } from './notification-api';
+export {
+  isUploadOffsetConflictError,
+  UploadOffsetConflictError,
+  type UploadPartRequest,
+  type UploadPartResult,
+  type UploadProgress,
+  type UploadTransport,
+  type UploadTransportOptions,
+} from './upload-transport';
 export {
   isHaruApiError,
   isNetworkError,

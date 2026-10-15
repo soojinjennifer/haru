@@ -28,7 +28,7 @@ import type { LibraryBook } from '@haru/contracts';
 
 import { AppRoutes } from '../src/app/router';
 import { BookDetailSheet, LibraryShelfSheet } from '../src/features/library';
-import { MOCK_EPOCH_MS } from '../src/mocks';
+import { MOCK_EPOCH_MS, MOCK_PURCHASE_URL } from '../src/mocks';
 import { ROUTES } from '../src/shared/config/routes';
 import { createBookReasonFixture } from '../src/mocks/fixtures/books';
 import { createLibraryOverviewFixture } from '../src/mocks/fixtures/library';
@@ -713,6 +713,39 @@ describe('증정 (FR-22) — `BookDetailSheet` 에 신청 경로가 없다 (사�
     expect(operations(harness, GIFT_POST)).toHaveLength(0);
     /* 신청한 적이 없으므로 `favorite_only` 에는 `D-15` 접수 안내가 없다. */
     expect(screen.queryByText(libraryCopy.giftRequests.noticeTitle)).toBeNull();
+  });
+
+  /*
+    Stage 4 `S4-J` — `stage-3-approvals.md` §30.7 ② (AC-4-88). `purchaseUrl` fixture 가 0건이라
+    `favorite_only` 분기가 **어떤 시나리오에서도** 아무것도 그리지 않았다. 이제 Favorites 첫 권에 있다.
+  */
+  it('`favorite_only` + `purchaseUrl` — `Where to buy` 외부 링크가 그려진다 (AC-4-88)', async () => {
+    await renderLibrary();
+    const favorites = await screen.findByRole('group', { name: 'Favorites' });
+    const first = favorites.querySelector('.haru-shelf-item--pressable');
+    if (first === null) throw new Error('favorites item not rendered');
+    fireEvent.click(first);
+    await waitFor(() => {
+      expect(within(dialog()).getByRole('button', { name: libraryCopy.closeSheet })).toBeTruthy();
+    });
+
+    const link = within(dialog()).getByRole('link', {
+      name: new RegExp(libraryCopy.bookSheet.whereToBuy),
+    });
+    expect(link.getAttribute('href')).toBe(MOCK_PURCHASE_URL);
+    expect(link.getAttribute('target')).toBe('_blank');
+    // 신청 CTA 는 여전히 없다 (사용자 결정 2026-10-10).
+    expect(within(dialog()).queryByRole('button', { name: REQUEST_CTA })).toBeNull();
+  });
+
+  it('`favorite_only` 인데 `purchaseUrl` 이 없으면 링크도 빈 상자도 없다', async () => {
+    await renderLibrary();
+    await openFavoriteBook();
+
+    expect(
+      within(dialog()).queryByRole('link', { name: new RegExp(libraryCopy.bookSheet.whereToBuy) }),
+    ).toBeNull();
+    expect(dialog().querySelector('.haru-book-sheet__gift')).toBeNull();
   });
 
   it('`gift-duplicate` 시나리오에서도 신청 경로가 열리지 않는다', async () => {

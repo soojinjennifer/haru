@@ -77,8 +77,19 @@ async function probeToastAgainstTopBar(page: Page) {
   });
 }
 
-/** 공통 단정 — 기하(겹침 0) + hit-test(최상단 요소가 TopBar). */
-async function expectTopBarNotCovered(page: Page, screen: string): Promise<void> {
+/**
+ * 공통 단정 — 기하(겹침 0) + hit-test(최상단 요소가 TopBar).
+ *
+ * `controls` — 그 화면 TopBar 의 **대화형 요소 접근성 이름 목록(실측)**. `QA-3-011` 이후 필수다:
+ * 목록이 비어 있는 화면(`/auth/log-in` · `/library`)에서는 아래 hit-test 루프가 **공집합**이라 아무것도
+ * 물지 않는다. 그 사실을 **값으로 고정**해 두면 ① 대화형 요소가 생겼는데 검사가 따라오지 않는 일과
+ * ② 전환 중 **다른 화면의 TopBar** 를 잰 경우(목록이 달라진다)가 둘 다 실패로 드러난다.
+ */
+async function expectTopBarNotCovered(
+  page: Page,
+  screen: string,
+  controls: readonly string[],
+): Promise<void> {
   const probe = await probeToastAgainstTopBar(page);
 
   expect(probe.toastPresent, `${screen}: Toast 가 떠 있는 상태에서 재야 한다`).toBe(true);
@@ -92,6 +103,12 @@ async function expectTopBarNotCovered(page: Page, screen: string): Promise<void>
       `bar=${probe.bar.top}–${probe.bar.bottom}(h${probe.bar.height}) ` +
       `inset=${probe.insetBlockStart} class="${probe.viewportClass}"`,
   );
+
+  // ⓪ 잰 TopBar 가 그 화면의 것인가 — 대화형 요소 목록이 실측과 같아야 한다 (`QA-3-011`).
+  expect(
+    probe.controls.map((control) => control.label),
+    `${screen}: TopBar 대화형 요소 목록 ${diagnostic}`,
+  ).toStrictEqual([...controls]);
 
   // ① 기하 — Toast 위 끝이 TopBar 아래 끝보다 아래에 있어야 한다 (겹침 0).
   expect(probe.toast.top, `Toast 가 TopBar 를 덮는다 ${diagnostic}`).toBeGreaterThanOrEqual(
@@ -148,7 +165,8 @@ test.describe('상단 Toast 는 TopBar 를 가리지 않는다 (2026-10-10)', ()
     await page.getByRole('button', { name: 'Save', exact: true }).first().click();
     await expect(page.locator('.haru-toast')).toBeVisible();
 
-    await expectTopBarNotCovered(page, '/');
+    // `/` 헤더의 대화형 요소는 설정 IconButton 하나다 (칩 `26:40` 은 버튼이 아니다).
+    await expectTopBarNotCovered(page, '/', ['Settings']);
   });
 
   /*
@@ -165,8 +183,14 @@ test.describe('상단 Toast 는 TopBar 를 가리지 않는다 (2026-10-10)', ()
 
     await expect(page.locator('.haru-toast')).toBeVisible();
     await expect(page).toHaveURL(/\/auth\/log-in$/);
+    /*
+      `QA-3-011` — URL 은 `navigate()` 즉시 바뀌고 새 화면의 커밋은 그 뒤다. 화면 고유 요소가 뜨고
+      직전 화면의 요소가 사라진 뒤에 잰다.
+    */
+    await expect(page.getByLabel('Email')).toBeVisible();
+    await expect(page.getByLabel('New password', { exact: true })).toHaveCount(0);
 
-    await expectTopBarNotCovered(page, '/auth/log-in');
+    await expectTopBarNotCovered(page, '/auth/log-in', ['Back']);
   });
 
   /*
@@ -184,8 +208,15 @@ test.describe('상단 Toast 는 TopBar 를 가리지 않는다 (2026-10-10)', ()
 
     await expect(page.locator('.haru-toast')).toBeVisible();
     await expect(page).toHaveURL(/\/library$/);
+    /*
+      `QA-3-011` — 수정 전에는 여기서 **`/library/add` 의 TopBar**(대화형 요소 `Go back`)를 쟀다 (실측
+      2026-10-15: 이 단정을 넣자 `["Go back"]` 이 나왔다). 서재 화면이 커밋되고 등록 폼이 사라진 뒤에 잰다.
+    */
+    await expect(page.getByRole('button', { name: 'Add a book you own' })).toBeVisible();
+    await expect(page.getByLabel(/^Title/)).toHaveCount(0);
 
-    await expectTopBarNotCovered(page, '/library');
+    // 서재 TopBar 는 제목만 있다 — 대화형 요소 0개 (hit-test 는 밴드 중앙만 문다).
+    await expectTopBarNotCovered(page, '/library', []);
   });
 });
 

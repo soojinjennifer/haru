@@ -8,6 +8,8 @@
  */
 import { CHARACTER_ASSETS, type CharacterAssetName } from '../../shared/assets/character';
 
+import { CharacterPicture } from './CharacterPicture';
+
 /**
  * `default` — 폭 `min(100%, --size-illustration-max)` · 가운데 정렬 (Stage 2 화면).
  * `stage`   — **부모 폭을 그대로 채운다.** Stage 3 Home 의 배경 레이어처럼 bleed 기하를
@@ -27,7 +29,7 @@ export function CharacterIllustration({ asset, variant = 'default' }: CharacterI
       className={`haru-character-illustration haru-character-illustration--${variant}`}
       aria-hidden="true"
     >
-      <img src={CHARACTER_ASSETS[asset]} alt="" decoding="async" />
+      <CharacterPicture asset={CHARACTER_ASSETS[asset]} />
     </div>
   );
 }

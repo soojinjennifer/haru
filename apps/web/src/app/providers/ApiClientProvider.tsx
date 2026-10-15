@@ -2,6 +2,7 @@
  * `ApiClientProvider` — Adapter 를 고르고(=`apiClients.ts`) 앱 트리에 공급한다 (Plan §5.2).
  *
  * Stage 2-AUTH 부터 `ApiClients` 와 `AuthGateway` **두 Adapter**를 함께 공급한다.
+ * Stage 4(`S4-J`)부터 push 권한 **플랫폼 포트**(`PushPermissionPort`)도 같은 지점에서 공급한다.
  * 둘을 한 번에 만들어야 `mock` 모드에서 scenario store 와 요청 로그를 공유한다.
  *
  * `mock` 모드의 Adapter 는 동적 import 로 들어오므로 첫 프레임에서는 아직 없다.
@@ -16,6 +17,11 @@ import { ApiClientsProvider } from '../../shared/api/context';
 import type { ApiClients } from '../../shared/api/types';
 import { createUnavailableAuthGateway, type AuthGateway } from '../../shared/auth';
 import { errorName, logger } from '../../shared/lib/logger';
+import {
+  createWebPushPermissionPort,
+  PushPermissionProvider,
+  type PushPermissionPort,
+} from '../../shared/platform/push-permission';
 
 import { resolveAdapters, type AppAdapters } from './apiClients';
 import { AuthProvider } from './AuthProvider';
@@ -26,6 +32,8 @@ export interface ApiClientProviderProps {
   clients?: ApiClients | undefined;
   /** 주입된 인증 Gateway. `clients` 만 주입하면 "Gateway 없음" 구현이 들어간다. */
   authGateway?: AuthGateway | undefined;
+  /** 주입된 push 권한 포트. `clients` 만 주입하면 Web 구현이 들어간다 (jsdom = `unsupported`). */
+  pushPermission?: PushPermissionPort | undefined;
   /** Adapter 준비 전에 보여줄 내용. */
   fallback?: ReactNode;
 }
@@ -34,16 +42,24 @@ export function ApiClientProvider({
   children,
   clients,
   authGateway,
+  pushPermission,
   fallback = null,
 }: ApiClientProviderProps) {
   const [loaded, setLoaded] = useState<AppAdapters | null>(null);
   const [failure, setFailure] = useState<unknown>(null);
 
   // 주입이 있으면 그것이 곧 결과다 — effect 로 state 를 동기화하지 않는다.
+  const [injectedPush] = useState<PushPermissionPort>(
+    () => pushPermission ?? createWebPushPermissionPort(),
+  );
   const resolved: AppAdapters | null =
     clients === undefined
       ? loaded
-      : { clients, authGateway: authGateway ?? createUnavailableAuthGateway() };
+      : {
+          clients,
+          authGateway: authGateway ?? createUnavailableAuthGateway(),
+          pushPermission: pushPermission ?? injectedPush,
+        };
 
   useEffect(() => {
     if (clients !== undefined) return;
@@ -72,7 +88,9 @@ export function ApiClientProvider({
 
   return (
     <ApiClientsProvider clients={resolved.clients}>
-      <AuthProvider gateway={resolved.authGateway}>{children}</AuthProvider>
+      <PushPermissionProvider port={resolved.pushPermission}>
+        <AuthProvider gateway={resolved.authGateway}>{children}</AuthProvider>
+      </PushPermissionProvider>
     </ApiClientsProvider>
   );
 }

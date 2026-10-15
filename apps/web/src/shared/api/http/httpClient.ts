@@ -50,6 +50,11 @@ export interface HttpRequestConfig<T> {
 
 export interface HttpClient {
   request<T>(config: HttpRequestConfig<T>): Promise<T>;
+  /**
+   * 응답 body 가 없는 요청 (`204 No Content` — 예: `DELETE /v1/push-devices/:id`).
+   * 실패 응답은 `request` 와 똑같이 Error Envelope 으로 해석한다.
+   */
+  send(config: Omit<HttpRequestConfig<never>, 'schema'>): Promise<void>;
 }
 
 /** `https:` 전용 검사 + 뒤 슬래시 정리. */
@@ -92,64 +97,77 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
   const idFactory = options.idFactory ?? createRandomIdFactory();
   const fetchImpl = options.fetchImpl ?? globalThis.fetch;
 
+  /** 전송 + 오류 해석까지. 성공 응답의 body 해석은 호출자가 고른다. */
+  async function exchange(
+    config: Omit<HttpRequestConfig<unknown>, 'schema'>,
+  ): Promise<{ body: unknown; requestId: string; operation: string }> {
+    const operation = `${config.method} ${config.path}`;
+    const requestId = createRequestId(idFactory);
+
+    const headers = new Headers({ Accept: 'application/json' });
+    headers.set(REQUEST_ID_HEADER, requestId);
+    if (config.body !== undefined) headers.set('Content-Type', 'application/json');
+    if (config.idempotencyKey !== undefined) {
+      headers.set('Idempotency-Key', config.idempotencyKey);
+    }
+
+    if (config.auth !== false && options.getAuthToken !== undefined) {
+      const token = await options.getAuthToken();
+      if (token !== null && token.length > 0) headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    const timeoutController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      timeoutController.abort();
+    }, timeoutMs);
+
+    const signal =
+      config.signal === undefined
+        ? timeoutController.signal
+        : AbortSignal.any([config.signal, timeoutController.signal]);
+
+    let response: Response;
+
+    try {
+      response = await fetchImpl(joinUrl(baseUrl, config.path), {
+        method: config.method,
+        headers,
+        ...(config.body === undefined ? {} : { body: JSON.stringify(config.body) }),
+        signal,
+      });
+    } catch (cause) {
+      const timedOut = timeoutController.signal.aborted;
+      throw new NetworkError(
+        timedOut ? `Request timed out: ${operation}` : `Request failed to reach the server.`,
+        { timedOut, cause },
+      );
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    const echoedRequestId = readRequestId(response.headers, requestId);
+    const body = await readBody(response);
+
+    if (!response.ok) {
+      throw toHaruApiError(body, { requestId: echoedRequestId });
+    }
+
+    return { body, requestId: echoedRequestId, operation };
+  }
+
   return {
     async request<T>(config: HttpRequestConfig<T>): Promise<T> {
-      const operation = `${config.method} ${config.path}`;
-      const requestId = createRequestId(idFactory);
-
-      const headers = new Headers({ Accept: 'application/json' });
-      headers.set(REQUEST_ID_HEADER, requestId);
-      if (config.body !== undefined) headers.set('Content-Type', 'application/json');
-      if (config.idempotencyKey !== undefined) {
-        headers.set('Idempotency-Key', config.idempotencyKey);
-      }
-
-      if (config.auth !== false && options.getAuthToken !== undefined) {
-        const token = await options.getAuthToken();
-        if (token !== null && token.length > 0) headers.set('Authorization', `Bearer ${token}`);
-      }
-
-      const timeoutController = new AbortController();
-      const timeoutId = setTimeout(() => {
-        timeoutController.abort();
-      }, timeoutMs);
-
-      const signal =
-        config.signal === undefined
-          ? timeoutController.signal
-          : AbortSignal.any([config.signal, timeoutController.signal]);
-
-      let response: Response;
-
-      try {
-        response = await fetchImpl(joinUrl(baseUrl, config.path), {
-          method: config.method,
-          headers,
-          ...(config.body === undefined ? {} : { body: JSON.stringify(config.body) }),
-          signal,
-        });
-      } catch (cause) {
-        const timedOut = timeoutController.signal.aborted;
-        throw new NetworkError(
-          timedOut ? `Request timed out: ${operation}` : `Request failed to reach the server.`,
-          { timedOut, cause },
-        );
-      } finally {
-        clearTimeout(timeoutId);
-      }
-
-      const echoedRequestId = readRequestId(response.headers, requestId);
-      const body = await readBody(response);
-
-      if (!response.ok) {
-        throw toHaruApiError(body, { requestId: echoedRequestId });
-      }
+      const { body, requestId, operation } = await exchange(config);
 
       return parseResponse(config.schema, body, {
         operation,
         direction: 'response',
-        requestId: echoedRequestId,
+        requestId,
       });
+    },
+
+    async send(config: Omit<HttpRequestConfig<never>, 'schema'>): Promise<void> {
+      await exchange(config);
     },
   };
 }
