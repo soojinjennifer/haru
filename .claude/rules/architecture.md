@@ -16,7 +16,7 @@
 
 ```
 apps/web                 React + Vite (Caregiver UI) — mocks 포함
-apps/mobile              Capacitor iOS/Android 셸 [승인 2026-09-14, Stage 0 #7 — Stage 4에서 생성, Stage 1–3은 웹 전용]
+apps/mobile              Capacitor iOS/Android 셸 [승인 2026-09-14, Stage 0 #7 → 2026-10-12 D4-1 변경: Stage 4에서 만들지 않음, 후속 단계 S4N-A에서 생성. 그 전까지 apps/mobile 부재가 Stage Exit 조건]
 packages/contracts       Zod schema · enum · error code · session state · validation rule (Frontend ↔ 향후 Backend 공식 Interface)
 packages/design-tokens   Figma Variables → CSS Variables → Tailwind preset
 packages/ui              Shared UI (도메인 지식 없음)
@@ -31,7 +31,7 @@ packages/config          tsconfig / eslint / prettier / vitest 공통 설정
 | 패키지 | import 가능 |
 |---|---|
 | `apps/web` | `ui`, `design-tokens`, `contracts`, `config` |
-| `apps/mobile` | `apps/web` 빌드 산출물 (코드 import 아님) |
+| `apps/mobile` | `apps/web` 빌드 산출물 (코드 import 아님) — 후속 단계 S4N-A 에서 생성 후 적용 |
 | `packages/ui` | `design-tokens` (도메인·contracts import 금지) |
 | `packages/contracts` | `zod` 외 런타임 의존 없음 |
 | `packages/design-tokens` | 없음 |
@@ -95,6 +95,7 @@ RecordingController (상태 머신, features/recording)
 → ConsentGate / PermissionService
 → RecorderAdapter (Web | Native)
 → LocalRecordingStore (청크 단위 영속, 크래시 복구)
+→ SessionOutbox (세션 전이 이벤트 영속·재전송, Idempotency-Key — 오프라인·전이 실패 시 적재)
 → UploadQueue (재시도 / 네트워크 복구 감지)
 → recordingApi (Mock | Http — init / complete / status, Recording Upload Contract)
 → UploadTransport (Mock | TUS — 바이트 전송)
@@ -102,6 +103,7 @@ RecordingController (상태 머신, features/recording)
 
 - 녹음 시작 전 동의 상태와 마이크 권한을 확인한다.
 - 로컬 녹음은 업로드 확정 응답 전까지 삭제하지 않는다 (Mock 확정 응답 포함).
+- 사용자 주도 폐기(`Discard`, `D4-12`)는 유실과 다른 사건이다. 서버 전이 확정 응답 후에 로컬을 삭제하고, 실패하거나 오프라인이면 보존한 채 SessionOutbox에 적재한다 (`docs/decisions/stage-4-approvals.md`).
 - Mock은 업로드 성공 / 실패 / 지연 / 재시도를 재현한다.
 - 백그라운드·화면 잠금 동작은 `docs/ARCHITECTURE.md` 의 승인된 플랫폼 결정을 따른다. Web은 보장 불가.
 - 실제 Storage 업로드·서버 확정·분석 Job 연결은 `BACKEND_INTEGRATION_PENDING`.
