@@ -188,6 +188,60 @@ export async function recoverMeasure(): Promise<Record<string, unknown>> {
   };
 }
 
+/** 재생 준비 결과 — part 하나 = 연속 녹음 구간 하나 (이어 붙이지 않는다). */
+export interface PlaybackPart {
+  readonly partNo: number;
+  /** 색인에 남은 청크 수 (실제 파일 수가 아니라 색인 기준). */
+  readonly chunks: number;
+  readonly bytes: number;
+  /** 첫 청크에서 확정된 원문 mimeType — Blob type 으로 쓴다. */
+  readonly mimeType: string;
+  readonly decodedSeconds: number | null;
+  readonly blob: Blob;
+}
+
+export interface PlaybackPreparation {
+  readonly bytesIn: string;
+  readonly parts: readonly PlaybackPart[];
+}
+
+/**
+ * 저장된 녹음을 **들어 보기** 위해 되읽는다 — `recoverMeasure()` 와 같은 경로(`store.readPart`, 색인 순서로
+ * 이어 붙임)를 part 마다 돈다. 이 화면에서 만든 세션이 없으면(새로고침 뒤) 저장소의 가장 최근 레코드를 쓴다.
+ * 🔒 세션 id 는 결과에 싣지 않는다.
+ */
+export async function preparePlayback(): Promise<PlaybackPreparation | null> {
+  const { store, storage } = env();
+  let sessionId = lastSessionId;
+  if (sessionId === null) {
+    const latest = [...(await store.list())].sort((a, b) => b.createdAtMs - a.createdAtMs)[0];
+    sessionId = latest?.sessionId ?? null;
+  }
+  if (sessionId === null) return null;
+  const record = await store.get(sessionId);
+  if (record === null) return null;
+  const index = await store.listChunks(sessionId);
+  const parts: PlaybackPart[] = [];
+  for (const part of [...record.parts].sort((a, b) => a.partNo - b.partNo)) {
+    const entries = index
+      .filter((entry) => entry.partNo === part.partNo)
+      .sort((a, b) => a.seq - b.seq);
+    const firstMime = entries.find((entry) => entry.mimeType !== '')?.mimeType;
+    const mimeType = firstMime ?? part.mimeType;
+    const bytes = await store.readPart(sessionId, part.partNo);
+    const decoded = await storage.decoder.decode(bytes, mimeType);
+    parts.push({
+      partNo: part.partNo,
+      chunks: entries.length,
+      bytes: bytes.byteLength,
+      mimeType,
+      decodedSeconds: decoded.ok ? decoded.durationSeconds : null,
+      blob: new Blob([new Uint8Array(bytes)], mimeType === '' ? {} : { type: mimeType }),
+    });
+  }
+  return { bytesIn: storage.bytes.kind, parts };
+}
+
 export async function storageState(): Promise<Record<string, unknown>> {
   const { store, storage } = env();
   // 파일 수를 먼저 센다 — 쓰기 계층(`bytesIn`)은 첫 사용 때 실측으로 정해진다.

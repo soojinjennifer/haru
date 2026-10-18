@@ -1162,7 +1162,7 @@ Stage 3 화면은 Stage 1 §3 + Stage 2 §6.1 의 토큰으로 표현된다. **s
 | `error` | 전체 | 화면 전체 실패 = `ErrorState` + Retry. 부분 실패(캐러셀 1개) = 해당 섹션만 inline `InlineAlert tone=error` + 재시도 |
 | `retry` | 전체 | Error → 재시도 → 정상. **`/library/add` 입력값·스크롤 위치 유지** |
 | `offline` | 전체 | `InlineAlert tone=offline placement=banner`, TopBar 바로 아래 sticky. 수동 닫기 없음 |
-| **`offline-cached-card`** | `/` | **캐시 카드 표시 + Offline Banner 동시**. 카드는 정상 렌더하되 **선택 CTA `disabled`** + 사유 문구. 캐시 날짜가 오늘이 아니면 **카드 날짜를 화면에 밝힌다**(`CONFIRMED (D-10)` ③) |
+| **`offline-cached-card`** | `/` | **캐시 카드 표시 + Offline Banner 동시**. 카드는 정상 렌더하되 ~~**선택 CTA `disabled`** + 사유 문구~~ → `D4-33`/`D4-39` 로 대체: Start Session 만 `aria-disabled`, 사유는 배너(`aria-describedby`), Save 활성. ~~캐시 날짜가 오늘이 아니면 **카드 날짜를 화면에 밝힌다**(`CONFIRMED (D-10)` ③)~~ — **철회 (2026-10-05, `stage-3-approvals.md` §12.8 `AC-3-11`)** |
 | **`conversation-only-option`** | `/` | 덱에 `kind=conversation_only` 카드 (§2.6) |
 | **`reread-option`** | `/` | 덱에 `kind=reread_book` 카드 (§2.6) |
 | **`books-exhausted`** | `/` | 덱 3장 전부 대체 카드 + 덱 상단 `InlineAlert tone=info` + 하단 2개 `TextLink`(§2.6) |
@@ -1473,7 +1473,7 @@ design-agent 의 이전 결론("최대 3개 고정", `promptPreview: string[]` 1
 | `D-7` 서재 범위 | **동의.** `AD-S3-6/7/8` 로 사전 등록했다 | **승인.** 평점·"Reading now"·"My Saved" 는 **허용 차이로 기록**(approvals §7) |
 | `D-8` phaseTag | **동의 + 이견 1** — `PromptPill.phaseTag` prop 을 "정의하되 쓰지 않는다"는 **미사용 prop 을 남기는 것**이라 lint·테스트에서 죽은 코드가 된다. **prop 정의도 Stage 3에서 하지 않고**, 채택 시 추가할 것을 권고한다 (Figma 근거는 이 문서 §11.3 `AD-S3-15` 가 이미 보존한다) | **★ 이견 기각 — Figma 기준 반영 결정** (approvals §8 · §8.1). 사용자 지시: "피그마를 기준으로 반영해줘. 이번 Stage가 아니면 다음 Stage에라도 반영하여 최종적으로 보이게 되어야 돼". **`phaseTag` 는 더 이상 '사용처 없는 prop' 이 아니다** — `PromptPill` 이 배지를 **실제로 렌더**한다(§5.4.1). 이견의 전제(값을 쓰지 않는 prop)가 결정으로 사라졌다 |
 | `D-9` Context 필수 범위 | **동의** | **승인.** 카드 경로 필수 / 서재 경로 nullable (§2.4) |
-| `D-10` timezone | **동의.** §8 `offline-cached-card` 에서 **카드 날짜를 화면에 밝히는** 처리를 명세에 넣었다 | **승인.** 서버 기준 신뢰 — 클라이언트 재판정 금지 |
+| `D-10` timezone | **동의.** ~~§8 `offline-cached-card` 에서 **카드 날짜를 화면에 밝히는** 처리를 명세에 넣었다~~ — **철회 (2026-10-05, §12.8 `AC-3-11`)** | **승인.** 서버 기준 신뢰 — 클라이언트 재판정 금지 |
 | `D-11` 수동 캐시 | **동의**(UI 영향 없음) | **승인.** `localStorage` 수동 캐시 (UI 영향 없음) |
 | `D-12` Q5 표지 그리드 | **이견 있음 (§13.1 ⑥)** — Stage 3 design 범위 밖(온보딩 Step 3 = Stage 2 화면)이고, 되돌릴 경우 **Stage 2 §2.10 Step 3 명세와 통과한 시각 baseline 1건이 무효화**된다. Stage 3 Design Spec 이 Stage 2 화면을 재명세하는 것은 문서 소유 경계를 흐린다 → **별도 Stage 2 Design Spec 개정**으로 처리할 것을 권고한다 | **의견 채택 — Stage 2 Design Spec 개정으로 처리** (approvals §8 · §8.5 ⑥). **Stage 3 Spec 은 Stage 2 화면을 재명세하지 않는다.** 명세는 `docs/design/stage-2-design-spec.md` §2.10 Step 3 에 추가했고 **구현 Stage 는 Stage 3** 다 |
 | `D-13` 에셋 | **조건부 동의** — ②의 "2x 상한"은 **책 표지에는 충분하지만 Home 캐릭터에는 원본이 모자란다**(§12.10) | **결정 = C — 1.77x 수용** (approvals §7.1). 의견의 "원본이 모자란다"는 사실은 유지되지만 **처리 방식이 디자이너 대기가 아니라 허용 차이**로 결정되었다 → §12.10.1 · `AD-S3-25` |

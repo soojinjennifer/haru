@@ -353,8 +353,9 @@ test.describe('Stage 2 온보딩 화면 baseline (S2-HOME-2, 영역 클립)', ()
  *
  * 폐기: `s3-home-deck-prompts-expanded` (확장 트리거가 Figma 에 없다).
  */
-async function logInToHome(page: Page): Promise<void> {
-  await gotoApp(page, '/auth/log-in');
+async function logInToHome(page: Page, scenario?: string): Promise<void> {
+  const query = scenario === undefined ? '' : `?scenario=${encodeURIComponent(scenario)}`;
+  await gotoApp(page, `/auth/log-in${query}`);
   await page.getByLabel('Email').fill('sam@example.com');
   await page.getByRole('textbox', { name: 'Password', exact: true }).fill('sunny-evening-8');
   await page.getByRole('button', { name: 'Log in', exact: true }).click();
@@ -474,6 +475,41 @@ test.describe('Home baseline (audit §11.12)', () => {
 
     await expect(page).toHaveScreenshot('s3-tabbar-bottom.png', { ...REGION_SNAPSHOT, clip });
   });
+});
+
+/**
+ * 오프라인 캐시 Home baseline — **신규** (Stage 4a `S4-J` 후속, `D4-37` · `D4-38`, 2026-10-18).
+ *
+ * `offline-cached-card` 상태 = 캐시 카드 + TopBar 밑 **1줄** Offline Banner
+ * (`Go online to start a session`). 배너 높이만큼 캐릭터가 54px 내려가는 것은 허용 차이
+ * `AD-S4-11` 이다 — 이 baseline 은 그 상태의 **회귀 기준**이며 Figma 대조 대상이 아니다
+ * (Figma 에 오프라인 배너가 없다).
+ *
+ * `R-BASELINE-1` 준수: ① 로그인 후 클라이언트 이동이므로 `logInToHome` 이 이미지 디코드 +
+ * `settle()` 을 기다리고, 배너·트랙 표시 뒤 한 번 더 `settle()` 한다 ② dev Scenario Panel 은
+ * 이 파일의 `beforeEach` 가 가린다. 393 · 320 두 폭 (§6.2 실측 폭).
+ */
+test.describe('오프라인 캐시 Home baseline (AC-4-82 — 신규)', () => {
+  for (const width of [393, 320] as const) {
+    test(`s4-home-offline-cached-${width} — 1줄 배너 + 캐시 카드 (전체 프레임)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 852 });
+      await logInToHome(page, 'activity-cards:offline-cached-card');
+      await expect(page.locator('.haru-app-shell__bar-top .haru-alert--banner')).toHaveText(
+        'Go online to start a session',
+      );
+      await expect(
+        page.locator('.haru-activity-track:not(.haru-activity-track--skeleton)'),
+      ).toBeVisible();
+      await settle(page);
+
+      await expect(page).toHaveScreenshot(`s4-home-offline-cached-${width}.png`, {
+        fullPage: false,
+        ...FRAME_SNAPSHOT,
+      });
+    });
+  }
 });
 
 /**

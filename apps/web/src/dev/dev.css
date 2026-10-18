@@ -682,3 +682,8 @@
   white-space: pre-wrap;
   word-break: break-all;
 }
+
+/* `/__dev/ui/recording-measure` 재생 준비 — part 별 플레이어 */
+.haru-dev-measure-audio {
+  inline-size: 100%;
+}

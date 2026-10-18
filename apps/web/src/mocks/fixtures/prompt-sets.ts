@@ -12,7 +12,7 @@
  *    그 개수만큼 그린다. `follow_up` 은 노트를 갖지 않는다.
  *  - 문구에 진단·판정·비교 표현을 쓰지 않는다 (§10 금지어).
  */
-import { PromptSetSchema, type Prompt, type PromptSet } from '@haru/contracts';
+import { PromptSetSchema, type Prompt, type PromptPhase, type PromptSet } from '@haru/contracts';
 
 /**
  * fixture id 는 scenario 간에도 같아야 비교가 쉽다 (idFactory 와 달리 고정값).
@@ -28,7 +28,7 @@ function promptId(seed: string, index: number): string {
 
 interface PromptSeed {
   text: string;
-  phase?: 'pre' | 'post' | null;
+  phase?: PromptPhase | null;
   pageRef?: string | null;
   /** 질문 Prompt 에만 있다 (`follow_up` 은 `null`). */
   coachingNote?: string;

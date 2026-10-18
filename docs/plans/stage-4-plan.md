@@ -21,6 +21,8 @@ Status: **APPROVED (2026-10-13, user)**
 >   - 사용자 결정 전문은 **`docs/decisions/stage-4-approvals.md`**(신규)가 정본이다.
 
 > - ⭐ **2026-10-13 승인 (`APPROVED`)** — 사용자 발화 *"승인 — 4a 구현 착수"*. 승인 범위 = Plan + Design Spec + **허용 차이 4건**(`AD-S4-1`·`AD-S4-4`·`AD-S4-5`·`AD-S4-6`) + **가값 `P-25`**. 함께 **신규 결정 2건** 확정: **`D4-21`**(인사 1줄 제약 ≤240px ≈28자 · 1줄 clamp · PRD §7.5 `:410` 예시 문구가 **수정 대상 15**) · **`D4-22`**(인사 없으면 제목 줄 미렌더 · **28px 단축** · Frontend fallback 0건 · `Try this prompt !` 제품 코드 금지). **AC 3건 정합화**(AC-4-120·121·122 — 신규 0, 합계 **111** 유지). ⚠️ `AD-S4-7`~`AD-S4-10` 4건은 **승인 대기**(approvals §4 등재).
+> - ⭐ **2026-10-18 개정 3 (plan-agent)** — 4a 구현 중 확정된 사용자 결정 **`D4-23`~`D4-39`** + **"`D4-27` 확인"**(iPhone 실기기) + 허용 차이 **`AD-S4-11`** 을 **반영만** 했다(결정 내용 변경 0). 전문 = **§0.10**. 요지: ① **신규 AC 2건 AC-4-123·124**(`D4-33`·`D4-39` — 오프라인 캐시 상태 Start Session 비활성 + 배너 `aria-describedby`, **4b `S4-F`**) ② **AC-4-86 이동 4a → 4b `S4-F`**(`D4-35`, 폐기 아님) ③ **AC-4-81 화면 부분 = 사용자 수용**(`D4-34` → 4a QA `PASS (accepted: D4-34)`) ④ **AC-4-82 수정**(`D4-37`·`D4-38` 배너 1줄 문구 · `AD-S4-11`) ⑤ `N4-04`·`N4-09`·`N4-20` **해소**(`D4-25`·`D4-29`·`D4-31`) · `C4-OPEN-1`·`2` **해소**(`D4-24`·`D4-23`) · timeslice **1000ms**(`D4-28`) ⑥ WebKit 청크 녹음 **확정**(`D4-27` 확인) — AC-4-108 은 **`NOT VERIFIED` 유지** ⑦ **§16.4.3 4a QA 목록 정본화** — 종전 "약 73" 은 **목록 실측 67** 의 오기였다. 재집계: AC **111 → 113** · 4a **66** · 4b **50**(겹침 3) · NEEDS DECISION **15 → 12**.
+> - ⭐ **2026-10-18 개정 3.1 (plan-agent)** — 사용자 결정 **`D4-42`**(`D4-11` IconButton glass `--shadow-bubble` 적용 + **AC-4-110 → 4b `S4-F`**, baseline 재생성 동반) · **`D4-43`**(**AC-4-104 → 4b `S4-H1`**) · **`NV-4A-1` 수용**(AC-4-108 → 4a `NOT VERIFIED (accepted: NV-4A-1)`, 측정은 4b `S4-H2` 전) 반영 — 이동이며 폐기 아님. 4a **66 → 64** · 4b **50**(변동 없음) · 겹침 **3 → 1**(AC-4-113) · 합계 **113** 유지. 근거 `docs/decisions/stage-4-approvals.md` §1.
 
 Based on:
 - PRD **v1.5** (`docs/source/HARU_PRD_v1.5.md`) — FR-09 · FR-10 · FR-11 · FR-14 · FR-19 · FR-02 · FR-21 · FR-23 · FR-25 · §5.2 · §7.4~§7.6 · §11 · §12.1 · §12.2 · §13
@@ -210,6 +212,30 @@ Based on:
 | 버블 자체 | **렌더된다.** 기하 유지 (pill 간격 6 · 세로 padding 위 14 / 아래 13) |
 | 높이 변화 | **28px 짧아진다** `[design-agent 계산]` — 제목 **22** + 그 뒤 **flex gap 6** 이 함께 사라진다 → **`h = 21 + 6n + Σpill`** |
 | `Try this prompt !` | ⛔ **Figma placeholder 이며 제품 코드에 넣지 않는다** (리터럴 0건 — AC-4-120 ③) |
+
+### 0.10 ⭐ 개정 3 (2026-10-18) — `D4-23`~`D4-39` · "`D4-27` 확인" · `AD-S4-11` 반영 지점
+
+> **정본 = `docs/decisions/stage-4-approvals.md` §1 · §4.** 이 절은 결정을 **옮겨 적은 색인**이며 결정 내용을 바꾸지 않는다. 결정과 이 Plan 본문이 다르면 **결정이 우선**한다.
+
+| 결정 | 요지 | 이 Plan 에서 바뀐 곳 |
+|---|---|---|
+| `D4-23` | `RecordingPart.mimeType` = **브라우저 원문 문자열** + 별도 **`container` enum `webm`\|`mp4`**, 검증 = base type(`;` 앞 `trim()`) · `audio/aac`·`audio/m4a` **제거** | §7.4 `C4-OPEN-2` **해소** · AC-4-15 정정 |
+| `D4-24` | `partNo ≤ 20` 유지 — **part = 연속 녹음 구간(`MediaRecorder` 세션 1개), timeslice 청크 아님** (30분 ≈ 1766 청크) | §6 `recording_parts` · §7.4 `C4-OPEN-1` **해소** · AC-4-15 정정 |
+| `D4-25` | 서재 경로 `readingContext` null 허용 · Activity Card 경로 필수(`D-9`) · contract 변경 0 | §6 `storytime_sessions` · §14.2 `N4-04` **해소** · §16.1 `S4-B` 선행 |
+| `D4-26` | `web-background-warning` = **조건 없는 안내**로 먼저 · AC-4-108 `NOT VERIFIED` 유지 | AC-4-70 · AC-4-108 |
+| `D4-27` + **"`D4-27` 확인"** | Chromium 기준 + watchdog 으로 진행 → **iPhone Safari 실기기 확인 완료(2026-10-18)**: OPFS · 청크 8 / 8.66초 · `audio/mp4; codecs=mp4a.40.2` · 재생 정상 → **WebKit 청크 녹음 확정, Adapter 수정 불필요**. ⚠️ 화면 잠금·앱 전환 미확인 · iOS/Safari 버전 미기록 | §13 `R4-05` · **`R4-17` 신설(해소)** · AC-4-15 · AC-4-108 |
+| `D4-28` | timeslice 기본값 **1000ms** | §9.4 `RecorderAdapter` 행 |
+| `D4-29` | 로컬 미업로드 보관 상한 **14일 + 7일 안내**, 14일 경과 시 로컬 삭제 · Mock key `local-retention-exceeded` 생성 | §8.3 · §13 `R4-11` **완화** · §14.2 `N4-09` **해소** · §16.1 `S4-E` 선행 |
+| `D4-30` | `navigator.storage.persist()` 요청 + `persisted()` 기록 · false 면 업로드 큐 우선순위 상향 | §16.1 `S4-E` 범위 주석 |
+| `D4-31` | `sharp` = **빌드 전용 devDependency** (런타임 번들 0) | §14.2 `N4-20` **해소** · §16.1 `S4-J` 선행 |
+| `D4-32` · **`D4-37`** | 오프라인 배너 **1줄** · 최종 문구 **`Go online to start a session`**(제목 없이, 본문 미렌더) | **AC-4-82 수정** (4a `S4-J` 후속) |
+| `D4-33` · **`D4-39`** | 오프라인 캐시 상태 **Start Session 만 비활성**, 사유 = 배너 · **Save 활성** · `InlineAlert` 선택 prop `titleId` + Start Session `aria-disabled` + `aria-describedby` · **구현 = 4b `S4-F`, `D-3` 해제와 같은 패스** | ⭐ **신규 AC-4-123 · AC-4-124** (§11.12-D) · §16.1 `S4-F` · §16.5.3 |
+| `D4-34` | push 사전 안내 **화면 재이연** — 4a 는 port · Web 구현 · Mock · providers 선택 지점 · 요청 후 등록 hook 까지. **AC-4-81 화면 부분 = 사용자 수용** | AC-4-81 · §16.4.3 (QA: **`PASS (accepted: D4-34)`**) |
+| `D4-35` | Activity Card 경로 Reading Context 시트(**AC-4-86**) → **4b `S4-F`** 와 함께 (트리거·시간 선택기 명세는 그때) | AC-4-86 **이동 4a → 4b** (폐기 아님) · §14.2 `N4-05` 행 · §16.1 `S4-J`/`S4-F` · §16.4.3 · §16.5.3 |
+| `D4-36` | Stage 3 Spec §8 날짜 표시 ③ 철회 표기 — 코드 변경 0 | 없음 (design 문서 소관) |
+| `D4-38` · **`AD-S4-11`** | 1줄 배너로도 남는 **54px 밀림 수용** — 허용 차이 **`AD-S4-11` 등록(2026-10-18, user)** | **AC-4-82 수정** ⑤ |
+
+⚠️ **반영하면서 발견한 Plan 내부 오기 3건 (정정함)** — ① §16.4.3 "4a 약 73건" ↔ 목록 실측 **67건**(4b "약 38" ↔ 실측 **47**, 겹침 3 → 67 + 47 − 3 = 111 은 맞았다) ② AC-4-48 "허용 12" ↔ `D4-13` 이후 **14행** ③ §16.4.4 Exit 4 의 "`N4-25` 승인안(A / A′ / B)" ↔ `D4-13` **안 A 확정**.
 
 ---
 
@@ -412,7 +438,7 @@ Express route/controller/service/repository · Supabase migration/RLS/Storage �
 | ✅ **해소** | ~~`M-25`(세션 준비 버블 내용)~~ → ⭐ **`D4-14` — Figma 채택**(`139:2803` 그대로. ~~`D4-6`~~ 철회) → **PRD 수정 대상 7건** §0.7 · ~~`R-16`(애니메이션 포맷)~~ → **`D4-3`** · ~~`G-09`(Discard/Submit)~~ → **`D4-12`**(둘 다 채택; ~~`D4-7`~~ 무효) · ~~`N4-07`(플러그인 선정)~~ → **`D4-1` 로 Stage 4 범위 밖** · ~~`OAQ-10`(Web 녹음 허용)~~ → **`D4-1` 의 직접 귀결**(Stage 4 = Web 녹음까지) |
 | ⏳ **산출물 대기 (차단 아님)** | **`M-26`** 잔여 ⭐ **대폭 축소 (2026-10-13)** — Figma section `285:1126` 이 `ready`·`recording` 구성과 하단 액션 영역을 확정했다(§2.1-A). **남은 것 3건**: `paused` 재개 컨트롤(`N4-27`) · 녹음 경과 표시(`C13-3`) · Prompt Drawer 트리거(`C13-4`·`N4-28`). `C13-14` Figma 수령 전까지 `S4-F`·`S4-G` **일부** 보류 → 경계는 **§16.5** |
 | ⛔ **완료 판정 차단** | **4a**: ⭐ **0건** — ~~`N4-25`~~ 가 **`D4-13`(안 A)** 으로 해소됐다. · **4b**: **`N4-10`** 잔여 1건(대화 전용 **흐름** 최소안 — C-13 분배는 §4.3 에서 해소됐다). ✅ ~~`N4-22`~~(→`D4-9`) · ~~`N4-23`~~(→`D4-12`) · ~~`N4-25`~~(→`D4-13`) · ~~`N4-26`~~(→`D4-17`·`D4-18`) 해소 |
-| ⚠️ **작업 단위별 선행** | **4a**: `N4-04`(`D-9` `readingContext` nullable 범위 → **S4-B 전**) · `N4-09`(`OAQ-11` 로컬 보관 상한 → **S4-E 전**) · `N4-20`(`sharp` → **S4-J 전**) · **4b**: `N4-32`(ready 버블의 인사 문구 노출 지점 — `D4-14` 파생) · `N4-27`(`paused` 재개) · `N4-31`(바 규격 `S4F-16`) · `N4-15`(`78:353` TopBar) **전부 S4-F 전** · `N4-28`(Drawer 진입점 → **S4-G 전**). ✅ ~~`N4-05`~~(§4.3 정정) · ~~`N4-29`~~(→`D4-16`) 해소 |
+| ⚠️ **작업 단위별 선행** | **4a**: ✅ **0건** — ~~`N4-04`~~(→`D4-25`) · ~~`N4-09`~~(→`D4-29`) · ~~`N4-20`~~(→`D4-31`) 해소 (개정 3) · **4b**: `N4-32`(ready 버블의 인사 문구 노출 지점 — `D4-14` 파생) · `N4-27`(`paused` 재개) · `N4-31`(바 규격 `S4F-16`) · `N4-15`(`78:353` TopBar) **전부 S4-F 전** · `N4-28`(Drawer 진입점 → **S4-G 전**). ✅ ~~`N4-05`~~(§4.3 정정) · ~~`N4-29`~~(→`D4-16`) 해소 |
 | 비차단 | `OAQ-17`(`skipped_audio_deleted`) · `OAQ-19`(실제 Supabase Adapter 시점) · `N4-11`(push provider) · `N4-13`(대화 전용 스티커) · `N4-16`~`N4-18` · `G-12`~`G-14`(`★ Save` 후속 — Stage 3 잔여) |
 
 ### 4.3 디자인 누락 (C-13) — **`D4-8` 분배 적용**
@@ -499,11 +525,11 @@ apps/web/src/
 
 | 테이블 | 이미 정의된 것 | Stage 4 에서 확인·보강할 것 |
 |---|---|---|
-| `storytime_sessions` (R2) | `mode`·`status`(8값)·`completed_reason`·`recorded_seconds ≤1800`·`analysis_outcome`·`consent_event_id`·`client_session_key UNIQUE`·`reading_context` | ① `reading_context` **nullable 허용 범위** = `D-9` 결정 의존 (§14.2 `N4-04`) ② `activity_card_option_id` 와 `child_book_id` 동시 지정 가능성 |
+| `storytime_sessions` (R2) | `mode`·`status`(8값)·`completed_reason`·`recorded_seconds ≤1800`·`analysis_outcome`·`consent_event_id`·`client_session_key UNIQUE`·`reading_context` | ① `reading_context` **nullable 허용 범위** — ✅ **`D4-25`**: 서재 경로 null 허용 · Activity Card 경로 필수(`D-9`) (~~`N4-04`~~ 해소) ② `activity_card_option_id` 와 `child_book_id` 동시 지정 가능성 |
 | `session_events` (R2) | `from_status`·`to_status`·`occurred_at`(client)·`received_at`(server)·`idempotency_key UNIQUE`·`source` | **오프라인 outbox 재전송 시 순서 보장** 요구 — 서버가 `occurred_at` 순서로 적용해야 한다 (Frontend 가 지연 전송한다) |
 | `session_prompts` (R2) | `shown_in` (`activity_card` \| `prompt_drawer`) | Prompt Drawer **최초 노출 시각** 기록을 Frontend 가 보내야 하는가 — 현재 Contract 에 경로가 **없다** (§7.4 `C4-OPEN-3`) |
 | `recordings` (R2) | `upload_status`(5값)·`part_count`·`total_bytes`·`duration_seconds`·`mime_type`·`expires_at = uploaded_at + 90d`·`deletion_reason`·`upload_failed_notice_sent_at` | ① `mime_type` **실제 값 집합**은 Stage 4 spike 가 확정한다 — ⭐ **`D4-1` 로 spike 범위가 Web 전용이 된다**(브라우저별 `MediaRecorder.isTypeSupported` 실측). **네이티브 포맷(AAC/m4a)은 후속 단계에서 추가될 수 있으므로 enum 을 Web 값으로 닫지 않는다** ② `upload_failed_notice_sent_at` 은 서버 push 용이고 **Frontend 48h 안내는 로컬 판정**이다(이중 원천 주의) |
-| `recording_parts` (R3) | `part_no`·`storage_path`·`bytes`·`sha256`·`duration_seconds`·`UNIQUE(recording_id, part_no)` | **part 상한** — Contract 초안이 `partNo ≤ 20` 으로 못 박았다(`API_CONTRACTS §3.3`). 30분 세션에서 청크 재시작이 20회를 넘을 수 있는지 spike 로 확인 (§7.4 `C4-OPEN-1`) |
+| `recording_parts` (R3) | `part_no`·`storage_path`·`bytes`·`sha256`·`duration_seconds`·`UNIQUE(recording_id, part_no)` | **part 상한** — ✅ **`D4-24`**: `partNo ≤ 20` **유지**. **part = 연속 녹음 구간(`MediaRecorder` 세션 1개)이며 timeslice 청크가 아니다** — 30분 세션의 청크는 약 1766개 (~~`C4-OPEN-1`~~ 해소) |
 | `sticker_awards` (R2) | `session_id UNIQUE`·`sticker_type('attendance')` | ① **대화 전용 세션도 지급 대상인가** — `DATA_MODEL.md:299` 가 NEEDS DECISION 으로 남겨 둔 항목 (§14.2 `N4-13`) ② ⭐ **`D4-2` 로 해소**: Figma `29:85` 의 `Day 12 · keep the streak going` 을 **채택하지 않으므로 `day_count`/`streak_days` 컬럼을 요구하지 않는다.** 대신 **표시 문구를 서버가 제공**한다(`P4-BIP-18`) → Data Requirement 는 *"`sticker_awards` 에 표시 문구(또는 문구 키)를 담는다 — streak 중립"* 이다. **운영이 문구를 바꿀 때 Frontend 배포가 필요 없게** 하는 것이 이 요구의 목적이다 |
 | `notification_preferences` · `push_devices` (R1) | `platform(ios/android/web)`·`provider_token`(암호화 저장 권장)·`last_seen_at`·`revoked_at` | **이월 `QA-3-001`** 로 Stage 4 에서 Contract 가 처음 생긴다. `provider_token` 은 **응답에 반환하지 않는다** |
 
@@ -629,8 +655,8 @@ apps/web/src/
 
 | ID | 미결 | 왜 지금 결정해야 하는가 | 권장안 |
 |---|---|---|---|
-| `C4-OPEN-1` | `partNo ≤ 20` 상한이 현실적인가 | 30분 세션에서 인터럽션·크래시 재시작이 반복되면 part 가 20을 넘을 수 있다. 넘으면 **업로드 자체가 schema parse 로 막힌다** | **spike 결과로 확정** (§16 `S4-A` — ⭐ **`D4-1` 로 Web 전용 측정**). 넘칠 가능성이 있으면 상한을 올리거나 part 병합 규칙을 둔다 |
-| `C4-OPEN-2` | `mimeType` 허용 집합 (`audio/webm`·`audio/mp4`·`audio/aac`·`audio/m4a`) | 플랫폼 실제 출력과 다르면 parse 실패 | **spike 결과로 확정** — ⭐ **`D4-1` 로 Stage 4 측정 대상은 Web 뿐**이다(데스크톱 Chrome/Safari/Firefox + iOS Safari 의 `MediaRecorder.isTypeSupported` 실측). ⚠️ **enum 을 Web 값으로 닫지 않는다** — 후속 단계의 네이티브 포맷(Capawesome=AAC, Cap-go=미명시)이 추가될 수 있다. 권장: **열거형 + 확장 주석**, 또는 Web 값만 넣고 후속 단계에서 추가하는 것을 Handoff 에 명시 |
+| `C4-OPEN-1` | `partNo ≤ 20` 상한이 현실적인가 | 30분 세션에서 인터럽션·크래시 재시작이 반복되면 part 가 20을 넘을 수 있다. 넘으면 **업로드 자체가 schema parse 로 막힌다** | ✅ **해소 — `D4-24` (2026-10-14)**: 상한 **20 유지**. part 는 연속 녹음 구간(`MediaRecorder` 세션 1개)이며 timeslice 청크가 아니다(30분 ≈ 1766 청크) — contract·`API_CONTRACTS.md` 에 명시. 근거 `docs/qa/stage-4a-spike-report.md` §9.3 |
+| `C4-OPEN-2` | `mimeType` 허용 집합 (`audio/webm`·`audio/mp4`·`audio/aac`·`audio/m4a`) | 플랫폼 실제 출력과 다르면 parse 실패 | **spike 결과로 확정** — ⭐ **`D4-1` 로 Stage 4 측정 대상은 Web 뿐**이다(데스크톱 Chrome/Safari/Firefox + iOS Safari 의 `MediaRecorder.isTypeSupported` 실측). ⚠️ **enum 을 Web 값으로 닫지 않는다** — 후속 단계의 네이티브 포맷(Capawesome=AAC, Cap-go=미명시)이 추가될 수 있다. 권장: **열거형 + 확장 주석**, 또는 Web 값만 넣고 후속 단계에서 추가하는 것을 Handoff 에 명시. ✅ **해소 — `D4-23` (2026-10-14)**: `mimeType` = **브라우저 원문 문자열**(정규화하지 않음) + 별도 **`container` enum `webm` \| `mp4`**. 검증은 enum 이 아니라 base type(`;` 앞 `trim()`) = `audio/webm` \| `audio/mp4`. **`audio/aac`·`audio/m4a` 제거**(두 엔진 모두 생성자가 던지는 값) — 후속 네이티브 단계에서 추가될 수 있음을 Handoff 에 명시. ⭐ iPhone 실기기 출력 `audio/mp4; codecs=mp4a.40.2` 가 이 규칙을 통과한다("`D4-27` 확인") |
 | `C4-OPEN-3` | Prompt Drawer 최초 노출 기록(`session_prompts.shown_in='prompt_drawer'`) 을 Frontend 가 보내는가 | 보내야 한다면 **endpoint 가 하나 더 필요**하다 (현재 `API_CONTRACTS §4 Stage 4` 표에 없다) | **보내지 않는다** (RECOMMENDED) — 서버가 `prompts` 를 내려준 시점으로 충분하고, 추가 왕복은 "무음·무진동" 원칙과 맞지 않는다. Handoff 에 *"Drawer 노출 시각은 Frontend 가 보고하지 않는다"* 로 명시 |
 | `C4-OPEN-4` | `GET /v1/children/:childId/sessions` 를 Stage 4 에서 Contract 로 만들 것인가 (화면 소비는 Stage 7/8) | Contract 는 화면보다 앞서도 된다(`D-18` 선례)지만, 쓰이지 않는 schema 는 drift 한다 | **만든다** (RECOMMENDED) — 세션 목록 없이는 **FR-21 세션별 녹음 삭제 대상 목록**(Stage 8)과 크래시 복구 시 "진행 중 세션 찾기" 를 표현할 수 없다. 단 **Mock fixture 는 최소**로 |
 | `C4-OPEN-5` | `StickerType` enum 을 단일 값으로 만들 것인가 | 값이 하나면 enum 비용이 효용을 넘을 수 있다 | **만든다** (RECOMMENDED) — `DATA_MODEL` 이 컬럼으로 두고 있고 PRD §7.9 가 수집 요소 확장을 예고한다. enum 스냅샷 테스트에 1행 추가로 끝난다 |
@@ -712,7 +738,7 @@ apps/web/src/
 |---|---|---|
 | `library:save-error` 류 (그룹 안 **부분 실패**) | **[직독]** `stage-3-approvals.md` §30.7 — scenario key 가 **그룹 단위**라 `library:error` 가 `getOverview` 까지 실패시켜 "목록 성공 + 저장만 실패" 를 **실브라우저로 재현할 수 없다**. 같은 구조 문제가 Stage 4 에서 더 커진다(sessions 그룹 안에 create/transition/detail 3종) | **RECOMMENDED** — 그룹 안 **메서드 단위 override** 를 scenario 문법에 추가 |
 | `web-background-warning` | ⭐ **`D4-4` 로 필수가 되었다.** Stage 4 는 "Web 백그라운드·탭 비활성 녹음 한계" 를 **판정 대상**으로 삼으므로(AC-4-70 · AC-4-108) 경고 UX 를 **결정적으로 재현할 시나리오가 반드시 있어야** 한다. 실제 탭 비활성은 e2e 에서 결정적이지 않으므로 **시나리오로 주입**한다 | **RECOMMENDED → 채택** (`D4-4` 귀결. `OAQ-10` 도 `D4-1` 로 해소) |
-| `local-retention-exceeded` | `OAQ-11`(로컬 미업로드 보관 상한) 결정 시 그 경계 UX 를 재현 | **NEEDS DECISION 의존** (`OAQ-11` — §14.2 `N4-09`). 결정이 "상한 없음" 이면 **key 를 만들지 않는다** |
+| `local-retention-exceeded` | `OAQ-11`(로컬 미업로드 보관 상한) 결정 시 그 경계 UX 를 재현 | ✅ **만든다 — `D4-29`** (14일 상한 + 7일 시점 안내 · 14일 경과 시 로컬 삭제). ~~NEEDS DECISION 의존~~ (`N4-09` 해소) |
 | `recording-interrupted` 하위 구분 | ⭐ **`D4-1`·`D4-4` 로 인터럽션 종류가 Web 3종으로 한정**됐다(§2.3): `visibilitychange` · `devicechange` · `MediaStreamTrack.onended`. 한 key 로 3종을 다 재현하면 **어느 경로가 깨졌는지 QA 가 구분할 수 없다** | **RECOMMENDED** — 기존 `recording-interrupted` key 에 **원인 파라미터**를 받거나 3개 key 로 분할. 어느 쪽이든 §5.4 등재 필요 |
 | `sticker-already-awarded` | 재진입 시 스티커 중복 표시 없음(FR-19)을 **멱등 replay 로** 검증 | `API_CONTRACTS §5.4` 단서 *"출석 스티커 멱등성은 같은 요청 replay 테스트"* 가 **key 를 만들지 말라**고 적는다 → **key 를 만들지 않고 replay 테스트로** (CONFIRMED by §5.4) |
 | **`recording-discarded`** ⭐ 신규 (`D4-12`) | **`Discard` 경로**를 결정적으로 재현한다 — ① 폐기 전이 **성공** ② **로컬 청크·`UploadQueue` 항목이 비는 것**을 2시점으로 측정 ③ **홈 복귀**. ⚠️ 함께 필요한 **실패 분기**: 폐기 전이가 **실패**했을 때 **로컬 녹음이 보존**되는지(§7.3-A ④ 삭제 순서) — AC-4-113 ②의 증거원이다. ⭐ **확인 다이얼로그 경유**(`D4-17`)이므로 시나리오는 **다이얼로그 확인 이후**부터 재현한다 | ⭐ **선행 해소 (2026-10-13, `D4-13`)** — Mock 이 보낼 값은 **`to: 'abandoned'`** 다(actor `caregiver`, modes `['recorded']`). **`recording-discarded` 를 §5.4 에 등재하고 `S4-C` 에서 구현한다.** 실패 분기는 공통 `RETRY` 로 덮을지 별도 key 로 둘지 development-agent 가 정한다 |
@@ -769,7 +795,7 @@ apps/web/src/
 
 | Port | **Web (Stage 4)** | ~~Native~~ → 후속 §3.0 | **Mock (Stage 4)** |
 |---|---|---|---|
-| `RecorderAdapter` | `MediaRecorder` timeslice → OPFS + IndexedDB | `S4N-B` 플러그인 | 가짜 청크 + clock 주입 + 권한·인터럽션(Web 3종)·크래시 주입 |
+| `RecorderAdapter` | `MediaRecorder` timeslice(**1000ms — `D4-28`**, 상수 1곳) → OPFS + IndexedDB | `S4N-B` 플러그인 | 가짜 청크 + clock 주입 + 권한·인터럽션(Web 3종)·크래시 주입 |
 | `PushPermissionPort` | `Notification.permission` / `requestPermission()` **까지만** (`D-16`) | `S4N-D` | `push-permission-denied` |
 | `UploadTransport` | `MockUploadTransport` / `TusUploadTransport`(골격) | — | 성공·실패·지연·토큰 만료 주입 |
 | `AuthGateway`(기존) | Web 구현(Stage 2 — **변경 없음**) | `S4N-C` | `MockAuthGateway` |
@@ -856,7 +882,7 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 | AC-4-12 | `to='completed'` 인데 `completedReason` 이 없으면 **parse 실패**한다 | 단위 테스트 | — |
 | AC-4-13 | `recordedSeconds > MAX_RECORDED_SECONDS` 는 **parse 실패**한다 | 단위 테스트 (1800 통과 / 1801 실패) | — |
 | AC-4-14 | `canTransition()` 이 `conversation_only` 의 `completed → analyzing` 을 **거부**한다 | 단위 테스트 | — |
-| AC-4-15 **(수정)** | `RecordingUploadInitRequest` 가 `partNo`·`mimeType`·`bytes` 상한을 적용하고, 확정된 집합(§7.4 `C4-OPEN-1`·`2`)과 **일치**한다. ⭐ **`D4-1` 로 집합의 근거가 Web 실측으로 한정**된다 — spike 산출물에 **측정한 브라우저·버전·`isTypeSupported` 결과**가 적혀 있어야 하고, **네이티브 포맷 추가 가능성이 주석으로 남아** 있어야 한다 | 단위 테스트 + spike 결론 참조(브라우저·버전 명시) | — |
+| AC-4-15 **(수정)** | `RecordingUploadInitRequest` 가 `partNo`·`mimeType`·`bytes` 상한을 적용하고, 확정된 집합(§7.4 `C4-OPEN-1`·`2`)과 **일치**한다. ⭐ **`D4-1` 로 집합의 근거가 Web 실측으로 한정**된다 — spike 산출물에 **측정한 브라우저·버전·`isTypeSupported` 결과**가 적혀 있어야 하고, **네이티브 포맷 추가 가능성이 주석으로 남아** 있어야 한다. ⭐ **개정 3 — 확정된 집합**: `partNo ≤ 20`(part = 연속 녹음 구간, `D4-24`) · `mimeType` = 원문 문자열 + `container` enum `webm`\|`mp4` · base type 검증 · `audio/aac`·`audio/m4a` **0건**(`D4-23`). iPhone 실기기 원문 `audio/mp4; codecs=mp4a.40.2` 를 **parse 통과 케이스로 포함**한다("`D4-27` 확인") | 단위 테스트 + spike 결론 참조(브라우저·버전 명시) | — |
 | AC-4-16 | `RecordingUploadCompleteRequest.parts[].sha256` 가 `^[a-f0-9]{64}$` 를 강제한다 | 단위 테스트 | — |
 | AC-4-17 | `RecordingUploadCompleteResponse` 가 `uploadStatus='uploaded'` 와 `expiresAt` 을 **반드시** 포함한다 | 단위 테스트 | — |
 | AC-4-18 | `PushDevice` 응답에 **`token` 필드가 없다** | 단위 테스트 (schema key 집합) | — |
@@ -899,7 +925,7 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 | AC-4-45 | 자동 종료 시 **그때까지의 로컬 녹음이 보존**된다 (파일 수·총 바이트 측정) | 단위 테스트 | — |
 | AC-4-46 | `ready` 에서 **10분(600s) 경과 시 `abandoned`** 전이가 발생하고, 그 전에 **리마인드 버블이 정확히 1회** 표시된다 | 주입 clock 단위 + 렌더 횟수 측정 | — |
 | AC-4-47 | `RecordingController` 가 **React 를 import 하지 않는다**(순수 TS) | grep + 단위 테스트가 React 없이 돈다 | — |
-| AC-4-48 | `RecorderAdapter` 를 mock 한 **상태 머신 테스트**가 전이 전수(허용 12 + 거부 샘플)를 덮는다 | 테스트 목록 + 커버리지 | — |
+| AC-4-48 | `RecorderAdapter` 를 mock 한 **상태 머신 테스트**가 전이 전수(허용 ~~12~~ **14** — `D4-13` + 거부 샘플)를 덮는다 | 테스트 목록 + 커버리지 | — |
 | AC-4-49 | 허용되지 않은 전이를 클라이언트가 시도하면 **요청 전에 막히거나**, 요청 시 Mock 의 `SESSION_INVALID_TRANSITION` 으로 귀결된다 (둘 중 어느 쪽인지 코드로 결정돼 있다) | 단위 테스트 | — |
 | AC-4-50 **(수정)** | **녹음 시작 지연 ≤ 1s** — 버튼 탭 → 첫 청크 수신까지, **동일 기기 5회 중위값**. ⭐ **`D4-1`·`D4-4` 로 측정 대상 = Web**: 데스크톱 Chrome · 데스크톱 Safari · **iOS Safari 실기기**(기기 있음). ~~네이티브~~ → 후속 `S4N-B`. **Android 모바일 Web 은 기기 부재** → `NOT VERIFIED`(`N4-21`) | 계측 스크립트 로그 (브라우저·기기·회차 명시) | ⚠️ **Android 모바일 Web만** |
 | AC-4-51 | 버블 등장·상태 전환 **≤ 1s** (로컬 전환 기준, 네트워크 제외) | 계측 | — |
@@ -931,7 +957,7 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 | AC-4-67 | **48h 경과 안내** — 주입 clock 으로 48h 를 넘기면 안내가 나타나고, 그 전에는 나타나지 않는다 (경계 양쪽 측정) | 단위 + 화면 | — |
 | AC-4-68 **(수정)** | **인터럽션 발생 시** 일시정지·재개 안내가 나오고 **로컬 청크가 유실되지 않는다**. ⭐ **`D4-1`·`D4-4` 로 Web 3종으로 한정**: ① `visibilitychange`(탭 비활성) ② `devicechange`(오디오 입력 변경) ③ `MediaStreamTrack.onended`(OS 가 마이크 회수 — iOS Safari 전화 수신 포함). **3종 각각** 판정한다. ~~네이티브 `call`·`route_change` 실기기~~ → 후속 `S4N-B` | 어댑터 이벤트 주입(3종 각각) + 파일 수 측정 + **iOS Safari 실기기에서 ③ 1회 수동 확인** | — (실기기 iOS 있음) |
 | AC-4-69 | `abandoned` 이후 **언제든 새 세션을 시작할 수 있다** (재시작 = 새 세션) | e2e | — |
-| AC-4-70 **(수정)** | **Web 백그라운드·탭 비활성·화면 잠금에서 녹음이 보장되지 않는다는 사실이 사용자에게 안내**된다. ⭐ **`D4-4` 로 필수 판정 항목으로 승격**(초판은 `OAQ-10` 의존 → **`D4-1` 이 "Stage 4 = Web 녹음까지" 로 확정했으므로 `OAQ-10` ⓐ(foreground 허용 + 경고)가 전제**다). 안내 문구·시점·형태는 **design-agent 명세**(`D4-8` 안내 UI) | 화면 + `web-background-warning` 시나리오 e2e + 결정 참조 | — (더 이상 의존 없음) |
+| AC-4-70 **(수정)** | **Web 백그라운드·탭 비활성·화면 잠금에서 녹음이 보장되지 않는다는 사실이 사용자에게 안내**된다. ⭐ **`D4-4` 로 필수 판정 항목으로 승격**(초판은 `OAQ-10` 의존 → **`D4-1` 이 "Stage 4 = Web 녹음까지" 로 확정했으므로 `OAQ-10` ⓐ(foreground 허용 + 경고)가 전제**다). 안내 문구·시점·형태는 **design-agent 명세**(`D4-8` 안내 UI). ⭐ **`D4-26`**: 안내는 **조건 없는 안내**로 먼저 만든다(*"Web 에서는 화면을 켜 두어야 녹음이 보장된다"* 수준) — 중단 조건·문구는 실기기 측정 후 다듬는다 | 화면 + `web-background-warning` 시나리오 e2e + 결정 참조 | — (더 이상 의존 없음) |
 | AC-4-71 | **확정 응답 전 로컬 파일이 삭제되지 않는다** — complete 응답 **직전**과 **직후** 파일 수를 각각 측정해 `직전 > 0`, `직후 = 0` | 단위 테스트(두 시점 측정) | — |
 | AC-4-72 | 세션 녹음 삭제·로그아웃 시 **로컬 녹음·캐시가 정리**된다 — `performSessionCleanup` 확장이 `LocalRecordingStore.clear()` 를 포함한다 | 단위 테스트 + 저장소 조회 | — |
 
@@ -957,12 +983,12 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 
 | ID | 요구사항 | 증거 | PENDING? |
 |---|---|---|---|
-| AC-4-81 **(수정)** | **`QA-3-001`** — `PushPermissionPort`(`getStatus`·`request`·`getToken`) + **Web 구현**(`Notification.permission`/`requestPermission()` **까지만**) + 사전 안내 UX + `push-permission-denied` 시나리오 + `notification-preferences`/`push-devices` contracts + `PushPlatform` enum(**3값 유지**) **6요소 전부** 존재. ⭐ **`D4-1` 반영**: **네이티브 Push Adapter 는 포함하지 않는다**(→ `S4N-D`, 구 AC-4-79). 6요소는 **전부 Web 범위**다 | 파일 목록 + e2e + grep(`PushManager`·VAPID·provider SDK **0건** · **Capacitor push 플러그인 0건**) | ✅ 실제 발송 |
-| AC-4-82 | **`QA-3-002`** — offline 에서 **최근 Activity Card 캐시 + Offline Banner 가 동시에** 표시된다 | e2e(`offline-cached-card`) | — |
+| AC-4-81 **(수정)** | **`QA-3-001`** — `PushPermissionPort`(`getStatus`·`request`·`getToken`) + **Web 구현**(`Notification.permission`/`requestPermission()` **까지만**) + 사전 안내 UX + `push-permission-denied` 시나리오 + `notification-preferences`/`push-devices` contracts + `PushPlatform` enum(**3값 유지**) **6요소 전부** 존재. ⭐ **`D4-1` 반영**: **네이티브 Push Adapter 는 포함하지 않는다**(→ `S4N-D`, 구 AC-4-79). 6요소는 **전부 Web 범위**다. ⭐ **`D4-34` (2026-10-17, 사용자 결정) — 사전 안내 UX 의 화면(표면)은 재이연**: 알림 설정 화면(`/settings/notifications`)을 만드는 단계로 미룬다. 4a 는 **port · Web 구현 · Mock(`push-permission-denied`) · providers 선택 지점 · 요청 후 등록 hook** 까지 판정한다. **화면 부분은 사용자 수용 항목** → 4a QA 는 이 AC 를 **`PASS (accepted: D4-34)`** 로 기록한다(`rules/qa.md` §2 — 수용 범위 밖, 즉 나머지 요소는 일반 규칙으로 판정. AC-4-02 *"`/settings/notifications` 화면 0건"* 과 일치) | 파일 목록 + **단위·hook 테스트**(화면 e2e 없음 — `D4-34`) + grep(`PushManager`·VAPID·provider SDK **0건** · **Capacitor push 플러그인 0건**) | ✅ 실제 발송 |
+| AC-4-82 **(수정 — `D4-37`·`D4-38`, 개정 3)** | **`QA-3-002`** — offline 에서 **최근 Activity Card 캐시 + Offline Banner 가 동시에** 표시된다. ⭐ 배너는 ① **제목 없이 1줄** 문구 **`Go online to start a session`**(`D4-37`, copy 모듈 소유) ② **본문(`description`) 미렌더** ③ 320·393 폭에서 **1줄**(배너 높이 54 — `docs/design/stage-4a-visual-gap-s4j.md` §6.2) ④ 확대 시 줄바꿈 허용·잘라내기 0(§6.1) ⑤ 남는 **54px 밀림은 허용 차이 `AD-S4-11`**(`D4-38`, 등록 2026-10-18) — 그 외 어긋남은 일반 판정. ⚠️ Start Session 비활성 **사유 연결**은 이 AC 가 아니라 **AC-4-123**(4b) | e2e(`offline-cached-card`) + 배너 텍스트·`boundingBox` 높이 단정 + `AD-S4-11` 기록 참조 | — |
 | AC-4-83 | **`QA-3-002`** — 캐시가 **로그아웃 시 삭제**되고 유효기간·폐기 규칙이 테스트로 고정된다 | 단위 + 저장소 조회 | — |
 | AC-4-84 | **`QA-3-003` (Stage 4 부분)** — 에셋 파이프라인 스크립트(`assets:optimize`)가 존재하고 **AVIF/WebP/PNG 를 생성**하며 `<picture>`+`srcset` 적용 지점이 ≥1 곳 있다 | 명령 실행 + 산출물 목록 + DOM 확인 | — |
 | AC-4-85 | **`QA-3-003` (경계)** — **표지 에셋 교체(`P3-BIP-19`)는 Stage 8 게이트로 남아 있음**이 문서로 확인된다 (Stage 4 에서 교체하지 않는다) | Plan §2.4 + `PLANNING` 참조 | ✅ 법무 |
-| AC-4-86 | **`AC-3-22`~`26`** — C-13 결정이 "design-agent 명세" 면 Reading Context 6값 선택 UI·`custom_time` 조건부 입력·요청 body 포함·키보드 조작·미선택 진행 규칙(`D-9`)이 구현된다. 결정이 "디자이너 Figma 요청" 이면 **재이월 사실이 Plan·QA 에 기록**된다. ⚠️ **`D4-8` 의 C-13 분배에 이 화면이 포함되지 않았다**(안내 UI 가 아니라 입력 화면) → **`N4-05` 여전히 미결** | 결정 문서 + (구현 시) e2e·단위 | `N4-05` 의존 |
+| AC-4-86 **(이동 4a → 4b `S4-F` — `D4-35`, 개정 3)** | ⭐ **`D4-35` (2026-10-17)**: Activity Card 경로의 Reading Context 시트는 **4b `S4-F` 와 함께** 만든다 — 트리거·시간 선택기 명세를 그때 정한다. **폐기가 아니라 이동**이며 **4a QA 판정 대상이 아니다**(4a QA 는 "이동(4b, `D4-35`)" 으로 기록). 원문: **`AC-3-22`~`26`** — C-13 결정이 "design-agent 명세" 면 Reading Context 6값 선택 UI·`custom_time` 조건부 입력·요청 body 포함·키보드 조작·미선택 진행 규칙(`D-9`)이 구현된다. 결정이 "디자이너 Figma 요청" 이면 **재이월 사실이 Plan·QA 에 기록**된다. ⚠️ **`D4-8` 의 C-13 분배에 이 화면이 포함되지 않았다**(안내 UI 가 아니라 입력 화면) → **`N4-05` 여전히 미결** → ✅ ~~미결~~ (§14.2 `N4-05` 해소 · `D4-35` 로 단계 확정) | 결정 문서 + e2e·단위 (**4b**) | — |
 | AC-4-87 | **§30.7 ①** — 그룹 안 **부분 실패**를 재현할 scenario 수단이 생기고, "목록 성공 + 저장만 실패" 가 실브라우저에서 재현된다 | e2e | — |
 | AC-4-88 | **§30.7 ②** — `purchaseUrl` fixture 가 ≥1건 생겨 `favorite_only` 가 실제로 무언가를 렌더한다 | 화면 + fixture 확인 | — |
 
@@ -1000,18 +1026,18 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 
 | ID | 요구사항 | 증거 | 근거 결정 | PENDING? |
 |---|---|---|---|---|
-| **AC-4-104** | **Stage 4/5 경계의 빈 영역 처리** — `29:62` 구현에서 **y 468 아래(= 53px 빈 간격 + Stage 5 회고 카드 영역 y 521~823)** 에 ① **Figma 에 없는 요소를 넣지 않았고**(최우선 규칙 2) ② **Stage 5 카드를 미리 만들지 않았고**(규칙: 다음 Stage 선행 구현 금지) ③ **하단이 비어 있는 것이 의도임이 코드 주석과 QA 리포트에 기록**돼 있다. ⚠️ 빈 공간을 "채우기 위해" 레이아웃을 재배치하면 **Stage 5 에서 다시 옮겨야 하므로**, Stage 4 는 **`29:62` 의 y 좌표를 그대로** 쓴다 | DOM 요소 목록(y > 468, 배경 외 **0건**) + 주석 grep + QA 리포트 기록 | 감사 §3.6 · `S4F-14` | — |
+| **AC-4-104** | **Stage 4/5 경계의 빈 영역 처리** — `29:62` 구현에서 **y 468 아래(= 53px 빈 간격 + Stage 5 회고 카드 영역 y 521~823)** 에 ① **Figma 에 없는 요소를 넣지 않았고**(최우선 규칙 2) ② **Stage 5 카드를 미리 만들지 않았고**(규칙: 다음 Stage 선행 구현 금지) ③ **하단이 비어 있는 것이 의도임이 코드 주석과 QA 리포트에 기록**돼 있다. ⚠️ 빈 공간을 "채우기 위해" 레이아웃을 재배치하면 **Stage 5 에서 다시 옮겨야 하므로**, Stage 4 는 **`29:62` 의 y 좌표를 그대로** 쓴다 | DOM 요소 목록(y > 468, 배경 외 **0건**) + 주석 grep + QA 리포트 기록 | 감사 §3.6 · `S4F-14` · ⭐ **`D4-43`**(개정 3.1): **전부 4b `S4-H1`** — 완료 화면이 4b 라 4a 에 주석 위치가 없다(`QA-4A-003`). 4a 판정 대상 아님 | — |
 | ~~**AC-4-105**~~ | ⛔ **폐기 (2026-10-13)** — ~~"`Discard` 미구현 … 화면에 `Discard` 버튼 0건"~~. `D4-12` 가 `Discard` 를 **채택**했으므로 이 AC 는 **반대 사실을 요구**하게 된다. **AC-4-111 ~ 114 가 대체**한다. ⚠️ Stage 3 에서 AC 폐기 표기를 누락해 QA 가 막힌 전례(`QA-3-010`)를 피하려고 **원문과 함께 남긴다** | — | ~~`D4-7`~~ → `D4-12` | **폐기** |
 | ~~**AC-4-106**~~ | ⛔ **폐기 (2026-10-13, `D4-14`)** — ~~*"Prompt 를 버블에 표시하지 않는다 — ① ready 버블 서브트리에 Prompt 본문·pill 0건 ② `139:2803` 의 Prompt pill 5개 구조를 구현하지 않았다 ③ Prompt 에 도달하는 경로가 Drawer 하나뿐이다 ④ `AD-S4-3` 등록 대기 기록"*~~. `D4-14` 가 **`139:2803` 을 Figma 그대로 채택**했으므로 이 AC 는 **반대 사실을 요구**하게 된다. **AC-4-40(재수정)·AC-4-53(재수정) 이 대체**한다. ⚠️ Stage 3 에서 AC 폐기 표기를 누락해 QA 가 막힌 전례(`QA-3-010`)를 피하려고 **원문과 함께 남긴다** | — | ~~`D4-6`~~ → `D4-14` | **폐기** |
 | **AC-4-107** | **출석 스티커 부제의 streak 언어 0건** — ① `streak` **0건** · `Day \d` 패턴 **0건**(copy 모듈·fixture·컴포넌트 전수) ② 표시 문구가 **Mock 응답 값**이다(하드코딩 0건) ③ 대체 문구가 **design-agent 제안 + 사용자 승인**을 거친 것이다 | grep + Mock 응답 ↔ DOM 대조 + 승인 기록 | **`D4-2`** (`D-6`·`AD-S3-9`·PRD §7.4) | — |
-| **AC-4-108** | **Web 녹음의 백그라운드·탭 비활성·화면 잠금 한계가 측정되어 기록**된다 — ① **탭 비활성** ② **브라우저 백그라운드/최소화** ③ **iOS Safari 화면 잠금** 각각에서 **청크 수신이 계속되는지 끊기는지**를 측정하고, **측정 환경(브라우저·버전·OS·기기)과 결과**를 `docs/decisions/stage-4-recording-spike.md` 에 남긴다. ⚠️ *"보장 불가"* 를 **문서 인용으로 적지 않는다** — `rules/frontend.md` §6-2 ⑤: **무엇을 어떻게 쟀는지가 증거다** | 측정 로그(시각·청크 수·중단 시점) + spike 문서 | **`D4-4`** · `rules/architecture.md` §7 | — (iOS 실기기 있음). Android 모바일 Web 은 **`NOT VERIFIED`**(`N4-21`) |
+| **AC-4-108** | **Web 녹음의 백그라운드·탭 비활성·화면 잠금 한계가 측정되어 기록**된다 — ① **탭 비활성** ② **브라우저 백그라운드/최소화** ③ **iOS Safari 화면 잠금** 각각에서 **청크 수신이 계속되는지 끊기는지**를 측정하고, **측정 환경(브라우저·버전·OS·기기)과 결과**를 `docs/decisions/stage-4-recording-spike.md` 에 남긴다. ⚠️ *"보장 불가"* 를 **문서 인용으로 적지 않는다** — `rules/frontend.md` §6-2 ⑤: **무엇을 어떻게 쟀는지가 증거다** | 측정 로그(시각·청크 수·중단 시점) + spike 문서. ⭐ **경로 정정 (개정 3)**: 측정 본문 = **`docs/qa/stage-4a-spike-report.md`**, `docs/decisions/stage-4-recording-spike.md` 는 **포인터**다 — 정본 경로 결정은 미결(`S4-SPIKE-2`). 재현 경로 = dev `/__dev/ui/recording-measure` | **`D4-4`** · **`D4-26`** · `rules/architecture.md` §7 | ⚠️ **`NOT VERIFIED` 예상 (개정 3)** — "`D4-27` 확인"(2026-10-18) 은 **foreground 청크 수신**만 확정했다. ③ **화면 잠금 · 앱 전환 중 녹음은 미측정**이며 iOS/Safari 버전도 미기록 → `D4-26` 대로 `NOT VERIFIED` 유지. Android 모바일 Web 도 **`NOT VERIFIED`**(`N4-21`). ⚠️ 4a Verdict 는 이 항목 때문에 `INCOMPLETE` 가 되며 **항목별 명시 수용**(`rules/qa.md` §2) 대상이다 → ⭐ **개정 3.1: `NV-4A-1` 수용(2026-10-18)** — 4a 판정 = **`NOT VERIFIED (accepted: NV-4A-1)`**. 측정은 **4b `S4-H2`(안내 UI) 전에** 수행한다 |
 | **AC-4-109** | **애니메이션이 CSS 만으로 구현된다** — ① `package.json` 에 Lottie/Rive/애니메이션 라이브러리 의존성 **0건**(`lottie-web`·`@lottiefiles/*`·`@rive-app/*`·`gsap`·`framer-motion` 등) ② `.lottie`·`.riv`·애니메이션 JSON 에셋 **0건** ③ 모션이 `@keyframes`/`transition`/Pointer Events 로만 구현됐다 | 의존성 목록 diff + 에셋 파일 목록 + grep | **`D4-3`** (Stage 0 #9 선례) | — |
 
 ### 11.12-A ⭐ 신규 AC (AC-4-110 ~ 114) — 사용자 결정 `D4-11`·`D4-12` 에서 파생
 
 | ID | 요구사항 | 증거 | 근거 결정 | 4a/4b | PENDING? |
 |---|---|---|---|---|---|
-| **AC-4-110** | **`IconButton` glass 그림자 교체가 완결됐다** — ① `IconButton` glass 변형의 `box-shadow` 가 **`--shadow-bubble`**(1겹)이고 `--shadow-rest` 참조가 **0건** ② **JSX 호출 35곳 / 21파일**(테스트 제외)이 모두 같은 변형을 쓴다 — 회귀 누락이 없다 ③ **Stage 1~3 시각 baseline 재생성이 `R-BASELINE-1` ⑤ 절차를 거쳤다**: diff 를 **픽셀 연결성분으로 분해**해 **IconButton 주변 클러스터만 바뀐 것을 확인**한 기록이 있고, **설명되지 않는 클러스터가 0건**임을 확인한 뒤 **`--update-snapshots=all`**(기본 `changed` 모드 금지 — `R-BASELINE-1` ③-1)로 재생성했다 ④ 재생성 후 **단독 실행** Playwright 전체 통과 | CSS grep + `<IconButton` grep(`.tsx`, `__tests__` 제외) = **35/21** + 클러스터 분해 기록 + `git log` 의 `--update-snapshots=all` 실행 기록 + Playwright 리포트 | **`D4-11`** (`S4F-12` 옵션 A) | **4a** (코드) + **4b**(baseline 최종) | — |
+| **AC-4-110** | **`IconButton` glass 그림자 교체가 완결됐다** — ① `IconButton` glass 변형의 `box-shadow` 가 **`--shadow-bubble`**(1겹)이고 `--shadow-rest` 참조가 **0건** ② **JSX 호출 35곳 / 21파일**(테스트 제외)이 모두 같은 변형을 쓴다 — 회귀 누락이 없다 ③ **Stage 1~3 시각 baseline 재생성이 `R-BASELINE-1` ⑤ 절차를 거쳤다**: diff 를 **픽셀 연결성분으로 분해**해 **IconButton 주변 클러스터만 바뀐 것을 확인**한 기록이 있고, **설명되지 않는 클러스터가 0건**임을 확인한 뒤 **`--update-snapshots=all`**(기본 `changed` 모드 금지 — `R-BASELINE-1` ③-1)로 재생성했다 ④ 재생성 후 **단독 실행** Playwright 전체 통과 | CSS grep + `<IconButton` grep(`.tsx`, `__tests__` 제외) = **35/21** + 클러스터 분해 기록 + `git log` 의 `--update-snapshots=all` 실행 기록 + Playwright 리포트 | **`D4-11`** (`S4F-12` 옵션 A) | ~~**4a** (코드) + **4b**(baseline 최종)~~ → ⭐ **전부 4b `S4-F`** (`D4-42`, 개정 3.1 — 폐기 아님) — `D4-11` 적용 자체를 세션 화면과 함께 하고 **영향 baseline 을 그때 재생성**한다(`QA-4A-002`). 4a 판정 대상 아님 | — |
 | **AC-4-111** **(수정 — `D4-18`)** | **`ready` 상태**: Record Control 이 **`Record` 변형**이고 라벨이 **`Tap to recording`** 이며, **`Discard`·`Submit` 이 비활성**이다 — ① **시각이 `opacity: 0.5` 이고 면·라벨 색은 활성과 동일**하다(`D4-18`, `Submit` 의 `17:18` `Accent/Disabled` 와 같은 값) ② **`aria-disabled="true"` + 포커스 가능**이며 **사유가 접근성 이름·안내로 읽힌다**(`D-3` 선례 — `disabled` 속성만 쓰면 스크린리더가 건너뛴다) ③ **클릭해도 전이 요청이 나가지 않는다**(Mock 요청 로그 0건) ④ **상태 전환 시 같은 슬롯에서 토글**되고 **재마운트되지 않는다**(`R-BASELINE-1` — 전환 중 프레임이 baseline 에 굳지 않게) | computed `opacity` 측정 + DOM 속성 + Mock 요청 로그 2시점 + 키보드 탐색 기록 + 마운트 ID 비교 | **`D4-12`·`D4-18`** | **4b** | — |
 | **AC-4-112** | **`Record` 탭 → `recording`**: Record Control 이 **`Pause` 변형**으로 바뀌고 **`Discard`·`Submit` 이 활성**된다. 전이 요청은 **`ready → recording`(기존 전이) 1건**이며 전이표 외 값이 나가지 않는다 | DOM 변형 + Mock 요청 본문 + `canTransition()` 단위 테스트 | **`D4-12`** | **4b** | — |
 | **AC-4-113** **(수정 — `D4-13`·`D4-17`)** | **`Discard` → 홈**: ① **확인 다이얼로그 확인 이후** 전이가 나가고, 요청이 **`recording → abandoned` 또는 `paused → abandoned`**(actor `caregiver`)다 — **전이표 14행 안의 값**이며 `completedReason`·사유 필드가 **실리지 않는다**(`D4-13` 안 A) ② **서버 전이 확정 응답을 받은 뒤** 로컬을 지운다 — 폐기 **전/후 2시점**의 로컬 청크 수·`UploadQueue` 항목 수 측정 증거 ③ 전이 **실패** 주입 시 **로컬 청크가 그대로**다 ④ 최종적으로 **`/` 로 이동**한다 ⑤ 오프라인이면 **`SessionOutbox` 에 폐기 전이가 적재**되고 로컬은 **보존**된다 | Mock 요청 본문 + 2시점 측정 테스트 + 실패 주입 + route 확인 + Outbox 검사 | **`D4-12`·`D4-13`·`D4-17`** · `rules/architecture.md` §7 · §7.3-A ④ | **4b**(UI) + **4a**(저장소·Outbox 로직) | ✅ 서버 측 part 정리 = **`P4-BIP-21`** |
@@ -1038,6 +1064,15 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 > ⚠️ **`AC-4-122` ②는 contract 결정과 맞물린다** — `promptPreview`/`promptSet.questions` 는 `D-21` 로 **`.min(1)` 유지**다. `SessionSummary.prompts` 에 같은 규칙을 적용할지는 `S4-B` 에서 확정하고, **빈 배열 허용 여부를 AC 로 못박는다**(현재 Plan §7.2 는 `prompts` 의 최소 길이를 명시하지 않았다).
 
 
+
+### 11.12-D ⭐ 신규 AC (AC-4-123 ~ 124) — 사용자 결정 `D4-33`·`D4-39` 에서 파생 (개정 3, 2026-10-18)
+
+> **둘 다 4b `S4-F`** 다. `D4-39`: *"`D-3` 해제와 **같은 패스**(따로 하면 오프라인에서 Start Session 이 켜진다)"* — 그래서 **AC-4-38(`D-3` 해제)과 같은 커밋·같은 QA 회차**에서 판정한다. 명세 = `docs/design/stage-4a-visual-gap-s4j.md` §6.3.
+
+| ID | 요구사항 | 증거 | 근거 결정 | 4a/4b | PENDING? |
+|---|---|---|---|---|---|
+| **AC-4-123** | **오프라인 캐시 상태(`activity-cards:offline-cached-card`)에서 Start Session 이 비활성이고, 사유는 배너가 대신한다** — ① **모든 옵션**의 Start Session 이 `aria-disabled="true"` 이고 native `disabled` 가 **아니다**(포커스 가능 — `D-3` 선례) ② 시각은 기존 `opacity: var(--opacity-disabled)`(= 0.5, `D4-18`) **그대로**이며 신규 비활성 스타일 **0건** ③ Start Session 의 `aria-describedby` 가 가리키는 요소의 텍스트 = **배너 제목**(`D4-37` 문구) — Shared UI **`InlineAlert` 의 선택 prop `titleId`** 로 제목 요소에 id 를 주고 버튼이 그 id 를 가리킨다(`D4-39`). 기존 `reason` 슬롯 id 와 함께 있으면 공백으로 이어 붙인다 ④ 버튼 옆 **별도 사유 문구 0건**(`D4-33`) — `copy.card.startSession.reason` 은 `null` 유지 ⑤ 클릭·Enter·Space 시 **세션 시작 요청 0건**(Mock 요청 로그) ⑥ `titleId` 는 도메인 지식 없는 **선택 prop** 이며 `titleId` 를 주지 않는 기존 `InlineAlert` 호출의 DOM·baseline 은 **불변**이다 | DOM 속성 단정(옵션 전수) + `aria-describedby` → 대상 텍스트 비교 + computed `opacity` + Mock 요청 로그 0 + `InlineAlert` 단위 테스트(prop 유무 2케이스) + 기존 baseline 불변 | **`D4-33`** · **`D4-39`** · `D-3` · `D4-18` | **4b** (`S4-F`) | — |
+| **AC-4-124** | **같은 상태에서 Save 는 활성이고, `D-3` 해제와 비활성 규칙이 한 패스로 들어왔다** — ① `offline-cached-card` 에서 `★ Save` 에 `aria-disabled` 가 **없고** 누를 수 있다(실패 시 기존 `saveFailed` Toast — 동작 변경 0) ② **회귀 단정**: `D-3` 해제 이후에도 **오프라인 캐시 상태에서 Start Session 이 활성인 순간이 0** 이다 — 해제와 비활성 규칙이 **같은 커밋**에 있다(`git log` 증거) ③ 온라인 복구로 `isCached` 가 false 가 되면 Start Session 이 **`S4-F` 의 활성 규칙(AC-4-38)** 으로 돌아가고 `aria-describedby` 가 배너를 더 이상 가리키지 않는다(가리키는 대상 없는 id 0건) ④ 캐시 없는 `offline`(덱 슬롯 안내)은 **변경 0** | DOM 속성(Save·Start Session) + Toast + 커밋 diff + 상태 전환 e2e(offline-cached → online) + dangling id 검사 | **`D4-33`** · **`D4-39`** | **4b** (`S4-F`) | — |
 
 ### 11.13 ⭐ AC 재집계 — 폐기 / 이동 / 수정 / 신규
 
@@ -1075,10 +1110,35 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 | 그중 **4a** | **약 73** | §16.4 — 변동 없음 (AC-4-07 은 수정됐으나 4a 에 그대로 있다) |
 | 그중 **4b** | ⭐ **약 38** | §16.5 — 31 − 1(AC-4-106 폐기) + 8(신규) = **38** |
 
+**⭐ 2026-10-18 개정 3 재집계 (`D4-23`~`D4-39`)**
+
+| 구분 | 수 | ID |
+|---|---|---|
+| 개정 2 기준 | **111** | AC-4-01 ~ AC-4-122 (이동 9 · 폐기 2 제외) |
+| **신규** | **2** | **AC-4-123**·**124** (`D4-33`·`D4-39` — 4b `S4-F`) |
+| **이동 (4a → 4b)** | **1** | **AC-4-86** (`D4-35`) — Stage 4 판정 대상에는 **남는다** |
+| **수정** | **6** | **AC-4-15**(확정 집합 `D4-23`·`D4-24`) · **AC-4-48**(허용 14 오기 정정) · **AC-4-70**(`D4-26`) · **AC-4-81**(`D4-34` 화면 부분 수용) · **AC-4-82**(`D4-37`·`D4-38`) · **AC-4-108**(경로 정정 · `NOT VERIFIED` 예상 명시) |
+| **폐기** | **0** | — |
+| **Stage 4 판정 대상 합계** | ⭐ **113** | 111 + 2. ID 범위 **AC-4-01 ~ AC-4-124** |
+| 그중 **4a** | ⭐ **66** (정본 목록 §16.4.3) | 종전 "약 73" 은 **목록 실측 67** 의 오기 → 67 − 1(AC-4-86) = **66** |
+| 그중 **4b** | ⭐ **50** (§16.5.3) | 실측 47 + 1(AC-4-86) + 2(신규) = **50** |
+| 4a·4b **겹침** | **3** | AC-4-104 · 110 · 113 — 66 + 50 − 3 = **113** |
+
+**⭐ 2026-10-18 개정 3.1 재집계 (`D4-42`·`D4-43`·`NV-4A-1` 수용)**
+
+| 구분 | 수 | ID |
+|---|---|---|
+| **Stage 4 판정 대상 합계** | **113** (변동 없음) | 신규 0 · 폐기 0 |
+| **이동 (4a/4b 걸침 → 4b 전부)** | **2** | **AC-4-110** → `S4-F`(`D4-42`) · **AC-4-104** → `S4-H1`(`D4-43`) |
+| **판정 특례** | **1** | **AC-4-108** → 4a `NOT VERIFIED (accepted: NV-4A-1)` |
+| 그중 **4a** | ⭐ **64** | 66 − 2(AC-4-104 · 110) = **64** (정본 §16.4.3) |
+| 그중 **4b** | **50** | 변동 없음 — 104·110 은 이미 4b 목록에 있었다 |
+| 4a·4b **겹침** | **1** | AC-4-113 — 64 + 50 − 1 = **113** |
+
 ⚠️ **폐기 2건은 "없어진 것" 이 아니라 "반대 사실이 된 것"** 이다. 둘 다 **원문을 남겨 두었다** — QA 가 폐기 사실을 모르고 과거 AC 를 집행하면 `D4-12`·`D4-14` 와 충돌한다 (`QA-3-010` 전례).
 
 **요구사항 ID 매핑 (개정)**:
-⭐ **2026-10-13 개정 2**: FR-09 → AC-4-38~52 · 64 · 69 · **111**~**114** · **117**·**118** / FR-10 → AC-4-40 · 52 · 58 · ⭐ **120**·**121**·**122** (~~106~~ **폐기**) / FR-11 → AC-4-53~56 · 98 · **109** (~~106~~ **폐기**) / FR-14 → AC-4-26~33 · 66 · 67 · 71 / FR-19 → AC-4-59 · 60 · **107** / FR-02 → AC-4-62 · 89 / FR-21 → AC-4-72 · 93 · **113** · **115**·**116** / FR-23 → AC-4-09 · 38 / FR-25 → AC-4-99 (~~AC-4-75~~ 이동) / ~~FR-01~~ **제외** (~~AC-4-78~~ 이동) / FR-08 → AC-4-81 · 86 (~~AC-4-79~~ 이동) / NFR → AC-4-50 · 51 · 68 · 70 · 97~100 · **108** (~~AC-4-80~~ 이동) / §13 → AC-4-62~69 / contracts → AC-4-05~20 · **105** / Mock → AC-4-21~37 · 87 · 88 / 이월 → AC-4-81~88 / Privacy → AC-4-89~94 / Design·a11y → AC-4-95~100 · **117**·**118**·**119** / Scope → AC-4-01~03 · **104** · ~~**105**~~·~~**106**~~ **폐기** (~~AC-4-04~~ 이동) / 회귀 → AC-4-101~103.
+⭐ **2026-10-13 개정 2**: FR-09 → AC-4-38~52 · 64 · 69 · **111**~**114** · **117**·**118** / FR-10 → AC-4-40 · 52 · 58 · ⭐ **120**·**121**·**122** (~~106~~ **폐기**) / FR-11 → AC-4-53~56 · 98 · **109** (~~106~~ **폐기**) / FR-14 → AC-4-26~33 · 66 · 67 · 71 / FR-19 → AC-4-59 · 60 · **107** / FR-02 → AC-4-62 · 89 / FR-21 → AC-4-72 · 93 · **113** · **115**·**116** / FR-23 → AC-4-09 · 38 / FR-25 → AC-4-99 (~~AC-4-75~~ 이동) / ~~FR-01~~ **제외** (~~AC-4-78~~ 이동) / FR-08 → AC-4-81 · 86 (~~AC-4-79~~ 이동) / NFR → AC-4-50 · 51 · 68 · 70 · 97~100 · **108** (~~AC-4-80~~ 이동) / §13 → AC-4-62~69 / contracts → AC-4-05~20 · **105** / Mock → AC-4-21~37 · 87 · 88 / 이월 → AC-4-81~88 (⭐ 개정 3: **86 은 4b**) · **123**·**124**(`QA-3-002` 오프라인 캐시 상태의 CTA — `D4-33`) / Privacy → AC-4-89~94 / Design·a11y → AC-4-95~100 · **117**·**118**·**119** / Scope → AC-4-01~03 · **104** · ~~**105**~~·~~**106**~~ **폐기** (~~AC-4-04~~ 이동) / 회귀 → AC-4-101~103.
 
 ---
 
@@ -1107,17 +1167,18 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 | ~~**`R4-02`**~~ | ~~Capacitor 녹음 플러그인이 청크 분할 기록을 문서화하지 않는다~~ | **Stage 4 범위 밖** | ⭐ **이 위험이 `D4-1` 의 사유였다.** 조사 결과는 §3.0 에 **보존**(다시 조사하지 않기 위해). **후속 단계의 Critical 위험으로 이연** — 청크가 끝까지 불가하면 `ARCHITECTURE §10.5` 의 part 모델 자체를 네이티브에서 재검토해야 한다. ⚠️ **Stage 4 의 Web 청크 측정 결과(`S4-A`)가 그 판단의 기준선**이 된다 — 그래서 `S4-A` 는 여전히 착수 첫 작업이다 |
 | ~~**`R4-03`**~~ | ~~Android 14+ foreground service 직접 구현~~ | **Stage 4 범위 밖** | `D4-1` 의 사유 ③. §3.0 의 이연 미결(`N4-19`) |
 | ~~**`R4-04`**~~ (= `R-16`) | ~~경청·인사·완료 애니메이션 에셋이 없다~~ | ✅ **해소** | ⭐ **`D4-3`** — **CSS 모션으로 시작**(Stage 0 #9 선례와 일치), Lottie/Rive 도입 없음, `prefers-reduced-motion` 대체 필수. 잔여 위험은 *"CSS 로 '듣고 있음'이 충분히 전달되는가"* 이며 이는 **design-agent 명세 + 사용자 검수** 사안이다. `DESIGN_SYSTEM.md:151`·`PLANNING.md:383` 표기 해소 = §0.6 |
-| **`R4-05`** ⭐ **등급 상향** | **Web 녹음의 백그라운드·탭 비활성·잠금 보장 불가** (iOS Safari/PWA 는 캡처 중단, Android 모바일 Web 미검증) | **Critical** — `D4-1` 로 **Stage 4 가 Web 뿐**이 되었으므로, 이 한계가 *"네이티브로 보완된다"* 는 전제가 **Stage 4 안에 없다**. PRD NFR *"백그라운드·화면 잠금·일시정지에도 녹음 유지"* 는 Stage 4 에서 **충족되지 않는다** | ① **`D4-4` 로 "측정·기록·안내"가 요구사항이 되었다** → AC-4-108(측정) · AC-4-70(안내) · `web-background-warning` 시나리오 ② **충족되지 않는다는 사실을 Stage 4 QA 리포트와 Stage 8 Handoff 에 명시**한다 — `BACKEND_INTEGRATION_PENDING` 이 아니라 **"후속 단계(네이티브) 의존"** 으로 분류한다(§10.1 주의) ③ **로컬 청크 영속**(`LocalRecordingStore`)이 유일한 방어선이므로 `S4-E` 의 완료 판정을 느슨하게 두지 않는다 |
+| **`R4-05`** ⭐ **등급 상향** | **Web 녹음의 백그라운드·탭 비활성·잠금 보장 불가** (iOS Safari/PWA 는 캡처 중단, Android 모바일 Web 미검증) | **Critical** — `D4-1` 로 **Stage 4 가 Web 뿐**이 되었으므로, 이 한계가 *"네이티브로 보완된다"* 는 전제가 **Stage 4 안에 없다**. PRD NFR *"백그라운드·화면 잠금·일시정지에도 녹음 유지"* 는 Stage 4 에서 **충족되지 않는다** | ① **`D4-4` 로 "측정·기록·안내"가 요구사항이 되었다** → AC-4-108(측정) · AC-4-70(안내) · `web-background-warning` 시나리오 ② **충족되지 않는다는 사실을 Stage 4 QA 리포트와 Stage 8 Handoff 에 명시**한다 — `BACKEND_INTEGRATION_PENDING` 이 아니라 **"후속 단계(네이티브) 의존"** 으로 분류한다(§10.1 주의) ③ **로컬 청크 영속**(`LocalRecordingStore`)이 유일한 방어선이므로 `S4-E` 의 완료 판정을 느슨하게 두지 않는다. ⭐ **개정 3 — "`D4-27` 확인"(2026-10-18)**: iPhone Safari foreground 청크 녹음은 **확정**(→ `R4-17`). 그러나 **화면 잠금·앱 전환은 미측정**이라 이 위험의 핵심(백그라운드)은 **줄지 않았다** — AC-4-108 `NOT VERIFIED` 유지, 안내는 `D4-26`(조건 없는 안내) |
 | **`R4-06`** | **`features/storytime-session` ↔ `features/recording` 직접 import** 로 레이어 규칙이 깨진다 | Medium — `lint:boundaries` FAIL | `entities/session`·`entities/recording` 구독 hook 경유 설계를 Design Spec 단계에서 못 박고, 경계 테스트를 **먼저** 추가 |
 | ~~**`R4-07`**~~ | ~~`apps/mobile` 생성이 write guard 에 막힌다~~ | **Stage 4 범위 밖** | `D4-1`. 조사 결과는 §9.5 에 **보존**(후속 단계에서 필요). **Stage 4 에서는 반대로 `apps/mobile` 부재가 Exit 조건**이다 (AC-4-01) |
 | **`R4-13`** ⭐ 신규 | **디자이너 Figma(`C13-1`·`C13-14`) 수령이 지연되면 Stage 4 가 닫히지 않는다** (`D4-8`) | **High — 일정** | §16.3 에 **"지금 닫을 수 있는 경계"** 를 제시했다. 선택지: ⓐ Figma 를 기다려 단일 Stage 4 로 닫는다 ⓑ **Stage 4a(비시각) / 4b(시각)로 쪼갠다** → `N4-22` **사용자 결정**. ⚠️ 어느 쪽이든 **`S4-A`~`S4-E`·`S4-J` 는 지금 착수 가능**하므로 대기 중에 멈춰 있을 필요가 없다 |
 | ~~**`R4-14`**~~ | ✅ **해소 (2026-10-13)** — ~~`D4-6` 이 Orchestrator 해석이다~~ | — | ⭐ **`D4-14` 로 재확인이 끝났다. 해석은 틀렸고 결정은 뒤집혔다**(ready 버블 = `139:2803` Figma 그대로). 되돌림의 비용은 실제로 발생했다 — `AD-S4-3` 무효 · `AC-4-106` 폐기 · AC-4-40·53 재수정. **교훈은 `rules/frontend.md` §6-2 ⑤ 와 같다**: Orchestrator 해석을 사용자 결정으로 올릴 때는 **해석임을 표기하고 착수 전에 재확인**한다 — 이 Plan 은 그렇게 표기해 두었고(`N4-24`) 그 덕에 **구현 전에** 뒤집혔다 |
 | **`R4-15`** ⭐ 신규 | **`D4-14` 로 되살아난 2건이 ready 화면 구현을 늦춘다** — `S4F-01`(Prompt n 가변 시 버블 높이) · `S4F-02`(pill 본문이 **Figma 자체에서 38px 를 넘긴다**) | Medium — `S4-F` | ① `D-21`(개수 상한 없음)과 묶어 **n=1/3/5/7 케이스를 Design Spec 에서 먼저 확정**한다 ② Home pill 선례(`--prompt-pill-text-line: 12` × 2줄)를 **그대로 쓸 수 있는지** 판정한다 ③ ⚠️ **Figma 자체가 넘치는 것**이므로 "Figma 대로" 가 답이 되지 않는다 — 최우선 규칙 4 의 *"실측값과 다르게 구현해야 할 이유"* 를 보고하고 승인받는 경로로 처리한다 |
 | **`R4-16`** ⭐ 신규 | **전이표 2행 추가가 승인 범위를 넘어 번진다** — `D4-13` 은 **2행만** 허용했는데, 구현 중 `AbandonedReason`·`abandonedReason?`·`discarded` 가 "필요해 보여" 들어갈 수 있다 (Stage 0 #16 위반) | **High — Scope** | ① **AC-4-07** 이 14행 전수 스냅샷 + `git diff` 로 **승인 범위 외 변경 0건**을 요구한다 ② `S4-B` 완료 판정에 **enum 스냅샷 불변**(AC-4-06)을 함께 둔다 ③ 사유 구분이 필요해지면 **`N4-30` 으로 올린다** — 구현 중에 정하지 않는다 |
+| ~~**`R4-17`**~~ ✅ **해소 (개정 3, "`D4-27` 확인")** | **WebKit/iOS 에서 `MediaRecorder` timeslice 청크가 오지 않을 수 있다** (`M-12`, spike 미확정 — `D4-27` 로 Chromium 기준 진행 + watchdog) | High — 오면 iOS 녹음 전체가 `chunk_stalled` | ✅ **iPhone Safari 실기기 확인 완료 (사용자, 2026-10-18)** — `/__dev/ui/recording-measure`(실제 마이크 + 제품 파이프라인): 저장 계층 **OPFS** · part 1 · **청크 8 / 8.66초**(1초 단위 = Chromium 과 동일) · `audio/mp4; codecs=mp4a.40.2` · `decodeAudioData` 8.66초 · `<audio>.duration` 유한 · 재생 정상. → **청크 녹음 확정, Adapter 수정 불필요**. watchdog(`M-7`)은 **그대로 유지**한다(정상 경로에서 발동하지 않음을 확인했을 뿐 불필요해진 것이 아니다). ⚠️ 남은 것: 화면 잠금·앱 전환(AC-4-108 `NOT VERIFIED`) · iOS/Safari **버전 미기록**(QA 리포트에 "미기록" 으로 남긴다) · headless WebKit 의 OPFS `createWritable()` `UnknownError`(handoff E-8 ①)는 **실기기에서 재현되지 않았다**(실기기 = OPFS) |
 | **`R4-08`** | 모션이 있는 화면의 **시각 baseline 에 과도기 프레임이 굳는다** (`R-BASELINE-1` ④ 재발) | Medium | 모션 정지 전략을 **baseline 저장 전에** 확정. `settle()` 보장. 재생성은 `--update-snapshots=all` |
 | **`R4-09`** | Stage 4 작업량이 커서 **agent stall** 이 난다 (Stage 3 전례) | Medium → ⭐ **완화됨** | §16(작업 분해)의 **11개 단위**로 쪼개고 각 단위마다 완료 판정 기준을 둔다. 한 단위에 contracts+화면을 섞지 않는다. ⭐ **`D4-1` 이 `S4-I`(Capacitor 셸, 가장 이질적인 단위)를 Stage 4 에서 덜어냈다** — 이것이 이 위험의 가장 큰 완화다 |
 | **`R4-10`** | Mock scenario key 가 **그룹 단위**라 Stage 4 의 복합 상태(세션은 성공 + 업로드만 실패)를 재현할 수 없다 | Medium — AC-4-27·30·87 이 막힌다 | §8.3 의 **메서드 단위 override** 를 S4-C 초반에 처리 |
-| **`R4-11`** | 로컬 녹음이 기기에 무한정 남는다 (`OAQ-11` 미결) | Medium — 프라이버시·저장공간 | §14.2 `N4-09`. 결정 전에는 **삭제하지 않는 쪽**(유실 방지 우선, `ARCHITECTURE §10.5-6`)을 유지하고 그 사실을 기록 |
+| **`R4-11`** ⭐ **완화 (`D4-29`)** | 로컬 녹음이 기기에 무한정 남는다 (~~`OAQ-11` 미결~~) | Medium — 프라이버시·저장공간 | ✅ **`D4-29`**: 상한 **14일**, **7일 시점 안내**, 14일 경과 시 로컬 삭제 · Mock key `local-retention-exceeded`. 근거 = 아동 음성 최소 보관 원칙. ⚠️ 잔여: 14일 삭제는 **유실**이므로 7일 안내의 **화면**(`S4-H2`, 4b)이 빠지면 사용자가 모르고 잃는다 — 안내 화면 판정을 4b 에서 느슨하게 두지 않는다. 브라우저 임의 비움은 `D4-30`(`persist()` 요청 + 비영속 시 큐 우선) |
 | ~~**`R4-12`**~~ | ~~Figma `29:62` 의 스티커 문구가 "keep the streak going" 인데 `D-6` 이 streak 표시를 폐기했다~~ | ✅ **해소** | ⭐ **`D4-2`** — **`D-6` 유지, 문구 교체.** 잔여 작업: ① **대체 문구를 design-agent 가 관찰 언어로 제안** ② **사용자 승인** ③ **허용 차이 `AD-S4-1` 등록**(승인 후). 검증 = AC-4-59 · AC-4-107 |
 
 ---
@@ -1154,7 +1215,7 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 | **`N4-14`** (실기기 부재 시 처리) | **NEEDS DECISION** (수용 범위) | ✅ **해소 — `D4-1`+`D4-4`.** 초판이 예상한 **`NOT VERIFIED` 4건(네이티브)이 Stage 4 판정 대상에서 빠졌다** → `rules/qa.md` §2 상 `INCOMPLETE` 를 강제하던 구조적 장애가 사라졌다 | ⚠️ **`N4-21`** 로 분리 — **Android 모바일 Web** 실기기 부재 (`NOT VERIFIED` 예상 **1건**) |
 | **`N4-19`** (Android FGS 가 Frontend Scope 인가) | **NEEDS DECISION** | ⛔ **소멸 (Stage 4 범위 밖) — `D4-1`.** 오히려 **이 질문이 `D4-1` 의 사유 ③** 이었다 | 후속 단계 선행 결정 (§3.0) |
 
-### 14.2 결정 필요 — ⭐ **남은 15건** (승인 체크포인트에서 물을 것)
+### 14.2 결정 필요 — ⭐ **남은 15건** (승인 체크포인트에서 물을 것) → ⭐ **개정 3: 12건** (`N4-04`·`N4-09`·`N4-20` 해소 — §14.3)
 
 > **⭐ 2026-10-13 개정 2 신규 3건**
 >
@@ -1165,6 +1226,7 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 > | **`N4-30`** ⭐ | — (**이연**) | **방치/폐기 사유 구분 수단** — `D4-13` 안 A 의 명시된 귀결. 10분 방치와 사용자 폐기가 **구분되지 않는다** | **Stage 4 에서 추가하지 않는다.** Audit·지표 요구가 실제로 생기는 시점에 `AbandonedReason` 또는 동등 수단을 **별도 결정**한다. ⚠️ 구현 중에 "필요해 보여" 넣지 않는다 (`R4-16`) | **비차단 (이연)** |
 >
 > **⛔ 차단 집계 (개정 2 최종)**: **4a = 0건** · **4b = 1건**(`N4-10`) · ⚠️ 작업 단위 선행 = ⭐ **6건**(`N4-04`·`N4-09`·`N4-20` → 4a / `N4-27`·`N4-31`·`N4-15` → `S4-F`, `N4-28` → `S4-G`). `N4-32` 는 **`D4-20` 으로 해소**됐다.
+> **⭐ 개정 3 (2026-10-18)**: 4a 작업 단위 선행 3건(`N4-04`·`N4-09`·`N4-20`)이 **`D4-25`·`D4-29`·`D4-31` 로 해소** → 작업 단위 선행 = **4건**(전부 4b).
 >
 > 아래 표에서 **`N4-24`·`N4-25`·`N4-26`·`N4-29`·`N4-32` 는 해소**됐다 (§14.1). 원문은 변경 이력을 위해 남긴다.
 
@@ -1182,11 +1244,11 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 | **`N4-23`** ⭐ 신규 | ⛔ **S4-F 전** | **`ready` 상태의 하단 버튼** | `D4-5` 는 `recording`→`Submit` · `paused`→`Resume` **2개만** 정했다. Figma `28:51`(ready/recording 혼합 프레임)에 배치된 하단 버튼은 **`Resume`** 인데 ready 에서 `Resume` 은 의미가 맞지 않는다. 선택지: ⓐ **버튼 없음**(Record Control 만) ⓑ **Prompt Drawer 트리거**로 쓴다(PRD §7.5 *"하단 보조 버튼('Prompt 모아보기')"* 와 일치) ⓒ 다른 라벨 | **ⓑ 권장** — PRD §7.5 가 하단 보조 버튼을 **"Prompt 모아보기"** 로 명시하고, `C13-4`(Drawer 트리거 없음)를 **같은 슬롯으로 동시에 해소**한다. ⚠️ 라벨 신규 생성이므로 **규칙 2 대상** → `C13-1` Figma 요청에 **함께 포함**하는 것이 가장 안전 | **NEEDS DECISION** |
 | **`N4-10`** | ⛔ **S4-H2 전** | **`OAQ-16` 대화 전용 세션 흐름** (C-13) | Figma **없음**(감사 `C13-6` 전수 확인). *"녹음 없는 체크리스트 모드"* 가 무엇인지 미정. ⚠️ **`D4-8` 의 분배에 들어 있지 않다** — 안내·상태 UI 가 아니라 **흐름**이기 때문이다. PRD §13 의 **P0**("마이크 권한 거부 → 대화만 하기")가 여기 걸린다 → AC-4-63 | **최소안**: ready 버블 → Prompt Drawer → `Submit` → `completed`(녹음·업로드·분석 없음). **체크리스트 UI 를 새로 만들지 않는다**(규칙 2). 분배는 **design-agent 명세**를 권장 — 새 화면이 아니라 **기존 세션 화면의 녹음 요소 제거판**이므로 | **NEEDS DECISION** (C-13 분배 + 흐름) |
 | ~~**`N4-24`**~~ ✅ **해소 (`D4-14` — 해석이 틀렸고 `D4-6` 철회)** | ~~⚠️ S4-F 전~~ | **`D4-6` 의 Orchestrator 해석 재확인** | 사용자 직접 서술은 *"책관현 프롬프트는 버블에 표시하지 않는다"* 였다. Orchestrator 는 이를 ① ready 버블 = `88:757` 교체 ② `139:2803` pill 5개 미채택 ③ Prompt = Drawer 전용 으로 **해석**했다. 틀리면 ready 화면 전체와 `AD-S4-3` 등록이 되돌려진다 (`R4-14`) | **Plan 승인과 함께 확인** — 추가 왕복이 없다 | **NEEDS DECISION** (재확인) |
-| **`N4-04`** | ⚠️ **S4-B 전** | **`M-32` 잔여 — Reading Context 없이 세션 시작 허용 여부** (`D-9`) | 서재 시트(`145:1132`·`163:1669`)는 **Context 선택 없이 바로 "Start Session"**. `CreateSession.readingContext` 는 **nullable** 로 이미 허용. Activity Card 경로는 `SelectActivityOptionRequest.readingContext` **필수**(`D-9`) | **서재 경로 `null` 허용 · Activity Card 경로 필수** — Contract 가 **이미 그렇게 표현**하고 있다 (**[직독]** `activity/selection.ts` 주석: *"서재 경로(`CreateSession.readingContext`)는 nullable 로 남으며 그쪽은 Stage 4 다"*). **확인만 받으면 된다** | **RECOMMENDED** |
-| **`N4-09`** | ⚠️ **S4-E 전** | **`OAQ-11` 기기 로컬 미업로드 녹음 최대 보관 기간** | 상한 없음 / 7일 / 14일 / 48h+N … ⚠️ **`D4-1` 로 더 중요해졌다** — Stage 4 가 Web 뿐이므로 로컬 저장소는 **OPFS(브라우저 할당량 제약)** 이고, 네이티브 샌드박스보다 **브라우저가 임의로 비울 수 있다** | **상한을 두되 삭제 전 안내** — 권장 **14일 + 7일 시점 안내**. 근거: 48h 안내(§2.3)가 이미 있고 무한 보관은 최소 보관 원칙과 어긋난다. ⚠️ **결정 전에는 삭제하지 않는 쪽**(유실 방지 우선 — `ARCHITECTURE §10.5-6`)을 유지하고 그 사실을 기록한다. 삭제는 **유실**이므로 사용자 결정 필수 | **NEEDS DECISION** |
+| ~~**`N4-04`**~~ ✅ **해소 (`D4-25`, 2026-10-14)** — 서재 경로 null · Activity Card 경로 필수 · contract 변경 0 | ~~⚠️ S4-B 전~~ | **`M-32` 잔여 — Reading Context 없이 세션 시작 허용 여부** (`D-9`) | 서재 시트(`145:1132`·`163:1669`)는 **Context 선택 없이 바로 "Start Session"**. `CreateSession.readingContext` 는 **nullable** 로 이미 허용. Activity Card 경로는 `SelectActivityOptionRequest.readingContext` **필수**(`D-9`) | **서재 경로 `null` 허용 · Activity Card 경로 필수** — Contract 가 **이미 그렇게 표현**하고 있다 (**[직독]** `activity/selection.ts` 주석: *"서재 경로(`CreateSession.readingContext`)는 nullable 로 남으며 그쪽은 Stage 4 다"*). **확인만 받으면 된다** | **RECOMMENDED** |
+| ~~**`N4-09`**~~ ✅ **해소 (`D4-29`, 2026-10-15)** — **14일 상한 + 7일 안내** · `local-retention-exceeded` | ~~⚠️ S4-E 전~~ | **`OAQ-11` 기기 로컬 미업로드 녹음 최대 보관 기간** | 상한 없음 / 7일 / 14일 / 48h+N … ⚠️ **`D4-1` 로 더 중요해졌다** — Stage 4 가 Web 뿐이므로 로컬 저장소는 **OPFS(브라우저 할당량 제약)** 이고, 네이티브 샌드박스보다 **브라우저가 임의로 비울 수 있다** | **상한을 두되 삭제 전 안내** — 권장 **14일 + 7일 시점 안내**. 근거: 48h 안내(§2.3)가 이미 있고 무한 보관은 최소 보관 원칙과 어긋난다. ⚠️ **결정 전에는 삭제하지 않는 쪽**(유실 방지 우선 — `ARCHITECTURE §10.5-6`)을 유지하고 그 사실을 기록한다. 삭제는 **유실**이므로 사용자 결정 필수 | **NEEDS DECISION** |
 | **`N4-15`** | ⚠️ **S4-F 전** | **세션 화면 상단 TopBar `78:353`** | `78:353`(= `Title Titla type=two`, **뒤로가기 38×38 + gap 18 + 책 칩**)은 **section `31:204` 의 직계 자식**이고 `28:51` 의 **자식이 아니다**. 캔버스상 `28:51` local y=56 에 **겹친다**. `get_screenshot(28:51)` 에 **나타나지 않는다**. ⚠️ **감사도 "배치 의도인지 작업 잔여물인지 확인 불가"** 로 남겼다 (hidden 플래그가 MCP 에 노출되지 않는다) — 감사 §5 · §13. TopBar 에 **종료 버튼·제목·타이머가 없다** | ⓐ 배치하지 않는다(Figma 대로) / ⓑ `78:353` 을 상단에 쓴다. **세션 중 이탈 경로가 필요하므로 ⓑ 가 실용적**이고, `29:62` 에는 닫기(`29:76`)가 있으나 `28:51` 에는 **어떤 이탈 경로도 없다**. ⚠️ 규칙 2 대상 → **`C13-1` Figma 요청에 "TopBar 를 쓰는가 + 세션 이탈 경로" 를 포함**하는 것을 권장 | **NEEDS DECISION** |
-| **`N4-05`** | ⚠️ **S4-J 전** | **`AC-3-22`~`26` Reading Context 선택 UI 의 디자인 소스** (C-13) | Figma 에 **진입점이 없다**(그 자리는 `★ Save`). 결과 chip `86:538` 만 존재. ⚠️ **`D4-8` 의 분배에 들어 있지 않다** — 안내 UI 가 아니라 **입력 화면**이기 때문이다 | ⓐ 디자이너 Figma 요청 / ⓑ design-agent 명세. **권장 ⓐ + 도달 Stage 재이월** — Stage 4 가 이미 크고, `C13-1`·`C13-14` 요청과 **묶어 보내면 왕복이 1회로 줄어든다** | **NEEDS DECISION** (C-13 절차) |
-| **`N4-20`** | ⚠️ **S4-J 전** | **`QA-3-003` 에셋 파이프라인 도구** | `sharp` 도입 (스택 외 라이브러리) | **빌드 전용 devDependency 로 `sharp` 도입** — 런타임 번들에 들어가지 않는다. 라이브러리 추가는 승인 사항 (`rules/frontend.md` §1) | **NEEDS DECISION** |
+| ~~**`N4-05`**~~ ✅ **해소 (원문 보존 — 해소 행은 위 표, 단계는 `D4-35` 로 4b `S4-F`)** | ~~⚠️ S4-J 전~~ | **`AC-3-22`~`26` Reading Context 선택 UI 의 디자인 소스** (C-13) | Figma 에 **진입점이 없다**(그 자리는 `★ Save`). 결과 chip `86:538` 만 존재. ⚠️ **`D4-8` 의 분배에 들어 있지 않다** — 안내 UI 가 아니라 **입력 화면**이기 때문이다 | ⓐ 디자이너 Figma 요청 / ⓑ design-agent 명세. **권장 ⓐ + 도달 Stage 재이월** — Stage 4 가 이미 크고, `C13-1`·`C13-14` 요청과 **묶어 보내면 왕복이 1회로 줄어든다** | **NEEDS DECISION** (C-13 절차) |
+| ~~**`N4-20`**~~ ✅ **해소 (`D4-31`, 2026-10-15)** — 빌드 전용 devDependency | ~~⚠️ S4-J 전~~ | **`QA-3-003` 에셋 파이프라인 도구** | `sharp` 도입 (스택 외 라이브러리) | **빌드 전용 devDependency 로 `sharp` 도입** — 런타임 번들에 들어가지 않는다. 라이브러리 추가는 승인 사항 (`rules/frontend.md` §1) | **NEEDS DECISION** |
 | **`N4-21`** ⭐ 신규 | — | **Android 모바일 Web 실기기 부재 수용 범위** | `D4-4` 로 **Android 실기기가 없다.** Stage 4 는 Web 이므로 **Android Chrome 모바일 Web** 검증이 불가하다 → `NOT VERIFIED` **1건 예상**(AC-4-50 의 Android 모바일 Web 측정, AC-4-108 의 Android 백그라운드 거동). `rules/qa.md` §2 상 `NOT VERIFIED` 1건 이상 = **`INCOMPLETE`** 이므로 **항목별 명시 수용이 필요**하다 (Stage 3 `NV-1`·`NV-2` 선례) | **에뮬레이터·BrowserStack 등으로 대체하지 않는다**(`rules/frontend.md` §6-2 ⑤ — 측정 환경이 증거다). **`NOT VERIFIED` + 수동 절차 문서화**로 처리하고 **Stage Verdict 에서 항목별 수용**을 받는다 | **NEEDS DECISION** (수용 범위) |
 | **`N4-11`** | — | **Push provider** | OneSignal(공식 Capacitor 플러그인, FCM+APNs+Web) / FCM·APNs 직접 / 보류 | **Stage 4 에서 선정하지 않는다** — `D-16` 이 이미 "provider SDK 금지" 로 결정했고, ⭐ **`D4-1` 로 네이티브 Push Adapter 자체가 후속 단계(`S4N-D`)로 갔으므로 선정 시점을 더 늦출 수 있다.** 선정은 후속 단계 또는 Backend 착수 시점 | **NEEDS DECISION** (`PLANNING.md:356`) — ⚠️ 알림 문구에 아이 이름이 들어가면 provider 가 **아동 PII** 를 처리한다(법무) |
 | **`N4-13`** | — | **대화 전용 세션도 출석 스티커 지급 대상인가** | PRD 는 "세션 완료 시" 로만 적는다. `DATA_MODEL.md:299` 가 NEEDS DECISION 으로 남겨 뒀다 | **지급한다** — "출석"의 의미는 함께 읽은 시간이고, 마이크 거부로 대화만 한 보호자를 벌할 근거가 없다. ⭐ `D4-2` 로 문구가 **서버 제공**이 되었으므로 *"대화 전용에는 다른 문구"* 도 Frontend 변경 없이 가능하다 | **RECOMMENDED** |
@@ -1227,6 +1289,18 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 | ⚠️ **작업 단위 착수 전 필요** | ⭐ **6** | **4a**: `N4-04`(S4-B) · `N4-09`(S4-E) · `N4-20`(S4-J) — **전부 ⚠️ 등급, 착수를 막지 않는다** / **4b**: `N4-27`·`N4-31`·`N4-15`(S4-F) · `N4-28`(S4-G) |
 | **`S4-A` 착수를 막는 것** | **0** | 녹음 spike 는 **지금 시작할 수 있다** |
 | 비차단 | **5** | `N4-11` · `N4-13` · `N4-16`~`N4-18` · `N4-21`(수용 범위) · `N4-30`(이연) |
+
+**⭐ 2026-10-18 개정 3 재집계**
+
+| 구분 | 수 | ID |
+|---|---|---|
+| 개정 2 기준 | **15** | — |
+| **해소** | **3** | **`N4-04`**(`D4-25`) · **`N4-09`**(`D4-29`) · **`N4-20`**(`D4-31`) |
+| **신규** | **0** | (4a 구현 중 올라온 `N-J1`·`N-J2`·`N-D1`·`N-D2` 등은 `docs/qa/stage-4a-handoff.md` · `WORKFLOW_STATE` 소관 — `N-J1`·`N-J2` 는 `D4-34`·`D4-35` 로 해소) |
+| **합계** | ⭐ **12** | — |
+| ⛔ **4a 완료 판정을 막는 것** | **0** | — |
+| ⛔ **4b 완료 판정을 막는 것** | **1** | `N4-10` |
+| ⚠️ **작업 단위 착수 전 필요** | **4** | 4b: `N4-27`·`N4-31`·`N4-15`(S4-F) · `N4-28`(S4-G) |
 
 ### 14.4 이미 확정된 것 (재확인 — 다시 묻지 않는다)
 
@@ -1375,15 +1449,15 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 | 단위 | 범위 | 완료 판정 기준 | 선행 |
 |---|---|---|---|
 | **`S4-A`** ⭐ **성격 전환 — Web 녹음 spike** | ~~Capacitor 플러그인 조사~~ → **Web 전용**: ① `MediaRecorder` **timeslice 청크 기록** → **OPFS + IndexedDB 영속** ② **크래시 복구** — 탭 강제 종료·새로고침·브라우저 종료 후 **미완료 청크 복원** ③ **실제 `mimeType`** — 데스크톱 Chrome/Safari/Firefox + **iOS Safari** 의 `MediaRecorder.isTypeSupported` 실측 ④ **30분 세션의 실제 part 수** 추정(인터럽션·재시작 반복 시 20 초과 여부) ⑤ **Web 인터럽션 3종** 거동(`visibilitychange`·`devicechange`·`MediaStreamTrack.onended`) ⑥ **백그라운드·탭 비활성·iOS 화면 잠금 시 청크 수신 중단 여부 측정** ⑦ **OPFS 할당량·브라우저 임의 비움** 거동 | **문서 산출물**: `docs/decisions/stage-4-recording-spike.md` — 위 7항목에 **측정 환경(브라우저·버전·OS·기기)과 측정 방법**이 적혀 있다. *"보장 불가"* 같은 **문서 인용이 아니라 실측 로그**여야 한다 (`rules/frontend.md` §6-2 ⑤). **`C4-OPEN-1`·`C4-OPEN-2` 가 결정 가능 상태**가 되고, **AC-4-108 의 측정 데이터가 확보**되며, **`N4-09`(로컬 보관 상한) 판단 근거**(OPFS 거동)가 생긴다. **spike 코드는 제품 코드에 남기지 않는다** | **없음** — ⭐ **지금 착수 가능**(`N4-07` 승인 불필요, 네이티브가 빠졌으므로) |
-| **`S4-B`** | **contracts** — `sessions/` 4파일 · `recordings/` 2파일 · `enums/push-platform` · (`sticker`) + 단위 테스트. ⭐ `StickerAward` 에 **문구 필드 포함 · `dayCount` 비포함**(`D4-2`) ⭐ **`SESSION_TRANSITIONS` 에 2행 추가**(`D4-13` 안 A — `recording → abandoned` · `paused → abandoned`) | AC-4-05~20 통과. **전이표 행 `12 → 14`**(추가 2행만) · **enum 값 추가 0** · **error code 추가 0** 이 스냅샷으로 증명됨(**AC-4-07** · AC-4-06 · AC-4-08) + `git diff` 로 **승인 범위 외 변경 0건**(`R4-16`) | `S4-A`(mimeType·part 상한) · ⚠️ **`N4-04`** — ✅ ~~`N4-25`~~ **해소**(`D4-13`) |
+| **`S4-B`** | **contracts** — `sessions/` 4파일 · `recordings/` 2파일 · `enums/push-platform` · (`sticker`) + 단위 테스트. ⭐ `StickerAward` 에 **문구 필드 포함 · `dayCount` 비포함**(`D4-2`) ⭐ **`SESSION_TRANSITIONS` 에 2행 추가**(`D4-13` 안 A — `recording → abandoned` · `paused → abandoned`) | AC-4-05~20 통과. **전이표 행 `12 → 14`**(추가 2행만) · **enum 값 추가 0** · **error code 추가 0** 이 스냅샷으로 증명됨(**AC-4-07** · AC-4-06 · AC-4-08) + `git diff` 로 **승인 범위 외 변경 0건**(`R4-16`) | `S4-A`(mimeType·part 상한 — ✅ `D4-23`·`D4-24`) · ✅ ~~`N4-04`~~(`D4-25`) — ✅ ~~`N4-25`~~ **해소**(`D4-13`) |
 | **`S4-C`** | **Mock 기반** — `MockSessionApi` · `MockRecordingApi` · `MockUploadTransport` + scenario **메서드 단위 override** + Idempotency 보관·재생 + ⭐ **`web-background-warning` 시나리오**(`D4-4`) + **인터럽션 3종 구분**(`D4-1`) | AC-4-21~37 · AC-4-87 통과. 모든 응답 parse 통과 + 결정성 테스트 | `S4-B` |
 | **`S4-D`** | **RecordingController 코어** (순수 TS) — 상태 머신 · `ConsentGate` · `PermissionService` · 타이머(30분/10분) · ⭐ **`RecorderAdapter` interface + Web 구현**(`D4-1`) | AC-4-43~49 · AC-4-62 통과. **React 의존 0** grep 증거. `MockRecorderAdapter` 상태 머신 테스트 전수. ⭐ **`RecorderAdapter` interface 에 `MediaRecorder`·DOM 타입이 노출되지 않는다**(`R4-01` 완화 — 후속 단계가 Adapter 추가만으로 끝나려면 필수) | `S4-B` |
-| **`S4-E`** | **로컬 영속 + 업로드** — `LocalRecordingStore`(OPFS+IndexedDB) · `SessionOutbox` · `UploadQueue` · network/appState port(`visibilitychange`·`devicechange` 포함) | AC-4-27 · 31~33 · 66 · 67 · 71 · 72 통과. **확정 전/후 파일 수 2시점 측정** 테스트 존재. ⭐ **Web 백그라운드 한계 측정(AC-4-108) 재현 경로** 존재 | `S4-D` · ⚠️ **`N4-09`** |
-| **`S4-F`** | **세션 화면** — `pages/session` · `features/storytime-session` · `RecordControl` · 상태별 컨트롤(`Record`/`Pause` + `Discard`/`Submit`) · ⭐ **ready 버블 = `139:2803`**(Prompt pill 5개 — `D4-14`) · **비활성 `opacity .5`**(`D4-18`) · **바 가운데 정렬**(`D4-19`) · 타이머 표시 + **"Start Session" CTA 활성화** | AC-4-38~42 · 50~52 · 95~100 · **111**·**112**·**113**(화면·route)·**114**·**115**·**116**(확인 다이얼로그)·**117**·**118**·**119**·⭐ **120**~**122** 통과. Figma 감사 문서와 대조 완료. ⭐ **`Discard` 확인 다이얼로그(`D4-17`)는 이 단위에 포함**된다 — Stage 1 `Dialog` 재사용이므로 신규 Shared UI 0건 | `S4-D` · ⏳ **`C13-14` Figma**(`paused`·permission-denied) · **Design Spec D 승인** · ⚠️ `N4-32`·`N4-27`·`N4-31`·`N4-15` — ✅ ~~`N4-23`~~·~~`N4-26`~~ **해소** |
+| **`S4-E`** | **로컬 영속 + 업로드** — `LocalRecordingStore`(OPFS+IndexedDB) · `SessionOutbox` · `UploadQueue` · network/appState port(`visibilitychange`·`devicechange` 포함) | AC-4-27 · 31~33 · 66 · 67 · 71 · 72 통과. **확정 전/후 파일 수 2시점 측정** 테스트 존재. ⭐ **Web 백그라운드 한계 측정(AC-4-108) 재현 경로** 존재. ⭐ 개정 3: **14일 상한 + 7일 안내**(`D4-29`) · **`persist()` 요청 + `persisted()` 기록, 비영속이면 큐 우선**(`D4-30`) | `S4-D` · ✅ ~~`N4-09`~~(`D4-29`) |
+| **`S4-F`** | **세션 화면** — `pages/session` · `features/storytime-session` · `RecordControl` · 상태별 컨트롤(`Record`/`Pause` + `Discard`/`Submit`) · ⭐ **ready 버블 = `139:2803`**(Prompt pill 5개 — `D4-14`) · **비활성 `opacity .5`**(`D4-18`) · **바 가운데 정렬**(`D4-19`) · 타이머 표시 + **"Start Session" CTA 활성화** · ⭐ 개정 3: **오프라인 캐시 상태 Start Session 비활성 + `InlineAlert titleId` 사유 연결**(`D4-33`·`D4-39` — **`D-3` 해제와 같은 패스**) · **Activity Card 경로 Reading Context 시트**(`D4-35`) | ⭐ **AC-4-86 · 123 · 124** · AC-4-38~42 · 50~52 · 95~100 · **111**·**112**·**113**(화면·route)·**114**·**115**·**116**(확인 다이얼로그)·**117**·**118**·**119**·⭐ **120**~**122** 통과. Figma 감사 문서와 대조 완료. ⭐ **`Discard` 확인 다이얼로그(`D4-17`)는 이 단위에 포함**된다 — Stage 1 `Dialog` 재사용이므로 신규 Shared UI 0건 | `S4-D` · ⏳ **`C13-14` Figma**(`paused`·permission-denied) · **Design Spec D 승인** · ⚠️ `N4-32`·`N4-27`·`N4-31`·`N4-15` — ✅ ~~`N4-23`~~·~~`N4-26`~~ **해소** |
 | **`S4-G`** | **Prompt Drawer** — `features/prompt-drawer` · `PromptCarousel` | AC-4-53~56 통과. 무음·무진동 런타임 스파이 증거. ⭐ **`D4-14` 로 요구가 바뀌었다** — *"닫힌 상태 DOM 에 Prompt 본문 0건"* 은 **폐기**되고(ready 버블이 이미 보여준다), **ready 버블과 Drawer 가 같은 `prompts` 출처를 쓴다**는 동일성 증거로 대체된다(AC-4-53 재수정) | `S4-F`(트리거 슬롯) · ⚠️ **`N4-28`** — ⭐ Spec A(Drawer 본체)는 Figma 완비라 먼저 쓸 수 있다 |
 | **`S4-H1`** ⭐ 신규 분할 | **완료 화면** — `SessionCompletePage`(`29:62` y 0~468) · `AttendanceStickerChip` · 종료 버블 | AC-4-57~61 · **104** · **107** 통과. **y 468 아래 렌더 요소 0건** 증거 | `S4-F` · ⚠️ **스티커 대체 문구 승인**(`D4-2`) |
 | **`S4-H2`** ⭐ 신규 분할 | **예외·안내 UI** (`D4-8` → **design-agent 명세로 진행 가능**) — 마이크 권한 · 대화 전용 · 업로드/오프라인/48h/크래시 안내 · **Web 백그라운드 경고** | AC-4-63~65 · 68~70 통과 | `S4-E` · **Design Spec C 승인** · ⛔ **`N4-10`**(대화 전용) |
-| **`S4-J`** | **이월 처리** — `QA-3-001` push 기능군(**Web 6요소**) · `QA-3-002` 오프라인 캐시 · `QA-3-003` 에셋 파이프라인 · §30.7 Mock 2건 · `QA-3-011` | AC-4-81~88 통과 | `S4-C` · ⚠️ **`N4-20`**·**`N4-05`** |
+| **`S4-J`** | **이월 처리** — `QA-3-001` push 기능군(**Web 6요소**) · `QA-3-002` 오프라인 캐시 · `QA-3-003` 에셋 파이프라인 · §30.7 Mock 2건 · `QA-3-011` | AC-4-81~85 · 87 · 88 통과 (⭐ 개정 3: **AC-4-86 → `S4-F`**(`D4-35`) · AC-4-81 화면 부분 = 사용자 수용(`D4-34`) · AC-4-82 = 1줄 배너(`D4-37`)) | `S4-C` · ✅ ~~`N4-20`~~(`D4-31`) · ~~`N4-05`~~ |
 | **`S4-K`** | **회귀 + e2e + 시각** — 모션 정지 전략(⭐ **CSS 기준** — `prefers-reduced-motion` 강제 + `animation-play-state`) · baseline · 양축 프로브 · 전체 스위트 | AC-4-101~103 · **109** 통과. Playwright **단독 실행** | 전 단위 |
 | ~~`S4-I`~~ | ~~Capacitor 셸~~ | ⛔ **삭제 → §3.0 `S4N-A`~`S4N-D`** (`D4-1`) | — |
 
@@ -1463,7 +1537,24 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 
 **요구사항 ID 기준 = 7항목 + 이월 6건.**
 
-### 16.4.3 AC 목록 (**약 73건** — 개정 2 에서 **수 변동 없음**)
+### 16.4.3 AC 목록 — ⭐ **정본 64건 (개정 3.1, 2026-10-18)** — stage-qa-agent 는 **이 목록**을 4a In Scope 로 쓴다
+
+> ⭐ **개정 3.1 정본 목록 (64건)** — `AC-4-01` ~ `03` (3) · `05` ~ `37` (33) · `43` ~ `49` (7) · `62` · `66` · `67` · `71` · `72` (5) · `81` ~ `85` · `87` ~ `94` (13) · `108` · `109` · `113`(저장소·Outbox 부분) (3)
+>
+> (개정 3 — 66건) 위 목록 + `104`(코드 주석 부분) · `110`(코드 부분) → ⭐ 개정 3.1 에서 **둘 다 4b 로 이동**(`D4-43` · `D4-42`)
+>
+> | 특례 | AC | 4a QA 판정 방법 |
+> |---|---|---|
+> | **사용자 수용** | **AC-4-81** | 화면(사전 안내 표면) 부분 = **`D4-34` 수용** → **`PASS (accepted: D4-34)`**. port · Web 구현 · `push-permission-denied` · contracts · `PushPlatform` 3값 · providers 선택 지점 · 등록 hook 은 **일반 판정**(하나라도 결함이면 FAIL) |
+> | **이동 (판정 안 함)** | **AC-4-86** | **"이동(4b `S4-F`, `D4-35`)"** 으로만 기록 — FAIL·NOT VERIFIED 아님 |
+> | **사용자 수용 (`NOT VERIFIED`)** | **AC-4-108** | ⭐ 개정 3.1 — **`NOT VERIFIED (accepted: NV-4A-1)`** 로 기록. 측정 경로·기록은 판정하되 **화면 잠금·앱 전환**(iOS)·Android 모바일 Web 미측정은 `NV-4A-1` 로 **명시 수용**됨(`D4-26`, "`D4-27` 확인", `N4-21`) → Verdict 계산에서 `INCOMPLETE` 사유가 되지 않는다. **측정은 4b `S4-H2` 전에** 수행 |
+> | **이동 (판정 안 함)** | **AC-4-110** · **AC-4-104** | ⭐ 개정 3.1 — **"이동(4b `S4-F`, `D4-42`)"** · **"이동(4b `S4-H1`, `D4-43`)"** 으로만 기록 — FAIL·NOT VERIFIED 아님. `D4-11` 적용·baseline 재생성은 `S4-F` 에서 |
+> | **4a/4b 걸침 (명시)** | AC-4-113 | 아래 원문 주석대로 — 4a 는 **저장소·Outbox 부분**만 (~~104 · 110~~ → 개정 3.1 4b 이동) |
+> | **4a/4b 걸침 (handoff 근거)** | AC-4-22 · 24 · 25 · 30 · 31 · 32 · 35 · 36 · 62 · 67 | **Mock·큐·컨트롤러 부분**을 4a 에서 판정하고, **화면 부분**은 `S4-F`·`S4-H2`(4b)에서 판정한다 — 근거 `docs/qa/stage-4a-handoff.md` C-5 · D-4 · E-4 "남은 부분" 열. QA 리포트에 **어느 쪽을 판정했는지 명시**한다 |
+> | ⚠️ **화면 귀속 불명** | **AC-4-23** | `empty` 의 **EmptyState 화면 = 세션 목록**인데 그 화면은 **Stage 7/8** 이다(handoff C-5). 4a 는 Mock 부분(`items: []`)만 판정 — **화면 부분의 귀속은 NEEDS DECISION**(아래 보고) |
+>
+> (원문 — 개정 2) **약 73건** — ⚠️ **오기**: 아래 목록을 세면 **67건**이다.
+
 
 `AC-4-01` ~ `03` · `05` ~ `37` · `43` ~ `49` · `62` · `66` · `67` · `71` · `72` · `81` ~ `94` · `104`(경계 기록 중 코드 주석 부분) · `108` · `109` · **`110`**(코드 부분) · **`113`**(저장소·Outbox 부분)
 — ⚠️ `AC-4-104` 와 `AC-4-110`·`AC-4-113` 은 **4a/4b 에 걸친다**. 걸친 AC 는 **4a 에서 로직·코드 부분**, **4b 에서 화면·baseline 부분**을 각각 판정하고, QA 리포트에 **어느 쪽을 판정했는지 명시**한다.
@@ -1474,14 +1565,15 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 1. 위 AC 가 모두 `PASS` 또는 `BACKEND_INTEGRATION_PENDING` 이다 (`rules/qa.md` §2).
 2. `pnpm typecheck && lint && test && build` 통과. Playwright 는 **단독 실행**.
 3. **`apps/api/`·`supabase/`·`apps/mobile/` 이 존재하지 않는다** (AC-4-01).
-4. `packages/contracts` 의 **enum·전이표 변경이 승인된 범위와 정확히 일치**한다 — `N4-25` 승인안(A / A′ / B) 외의 값·행이 **0건**임을 스냅샷으로 증명한다.
-5. `docs/decisions/stage-4-recording-spike.md` 가 **측정 환경과 방법**을 담고 있다 (AC-4-108).
+4. `packages/contracts` 의 **enum·전이표 변경이 승인된 범위와 정확히 일치**한다 — ⭐ **`D4-13` 안 A**(전이 2행) · **`D4-23`**(`container` enum `webm`\|`mp4` 신설 · `audio/aac`·`audio/m4a` 0건) 외의 값·행이 **0건**임을 스냅샷으로 증명한다. (원문의 "`N4-25` 승인안(A / A′ / B)" 은 `D4-13` 으로 확정됐다)
+5. spike 측정 기록(본문 **`docs/qa/stage-4a-spike-report.md`** · 포인터 `docs/decisions/stage-4-recording-spike.md`)이 **측정 환경과 방법**을 담고 있다 (AC-4-108). ⭐ 개정 3: **"`D4-27` 확인"**(iPhone Safari 실기기, 2026-10-18) 결과가 기록돼 있다 — approvals §1 행이 정본.
+5-1. ⭐ 개정 3: **AC-4-81 = `PASS (accepted: D4-34)`**, **AC-4-86 = 이동(4b)** 으로 기록돼 있다. AC-4-108 의 `NOT VERIFIED` 는 **항목별 사용자 수용** 전에는 `INCOMPLETE` 다(`rules/qa.md` §2). ⭐ 개정 3.1: **`NV-4A-1` 수용 완료** → AC-4-108 = `NOT VERIFIED (accepted: NV-4A-1)` · AC-4-104·110 = 이동(4b) — 4a Verdict 표기 `PASS (accepted: D4-34, NV-4A-1)` 대상.
 6. ⛔ **Stage 4a `PASS` 로 Stage 5 를 시작하지 않는다** (`D4-9`). 근거: Stage 5 회고 카드 `91:691` 이 완료 화면과 **같은 프레임 `29:62`** 이고 완료 화면(`S4-H1`)은 **4b** 다. 4b 를 건너뛰면 Stage 5 가 **빈 상단 위에** 카드를 얹게 된다.
 
 ### 16.4.5 착수를 막는 결정 — ⭐ **⛔ 0건 (2026-10-13 개정 2)**
 
 ~~⛔ `N4-25`(폐기 전이 표현)~~ → ✅ **`D4-13`(안 A) 으로 해소**. **Stage 4a 는 ⛔ 차단 없이 착수·종결할 수 있다.**
-⚠️ 남은 것은 작업 단위 선행 3건뿐이다: `N4-04`(S4-B — **확인만**) · `N4-09`(S4-E) · `N4-20`(S4-J).
+~~⚠️ 남은 것은 작업 단위 선행 3건뿐이다: `N4-04`(S4-B — **확인만**) · `N4-09`(S4-E) · `N4-20`(S4-J).~~ → ✅ **개정 3: 3건 모두 해소** (`D4-25`·`D4-29`·`D4-31`).
 **`S4-A` 는 결정 없이 지금 착수할 수 있다.**
 
 ---
@@ -1497,19 +1589,22 @@ Stage 4 는 `apps/mobile` 을 **만들지 않는다.** 아래는 후속 단계�
 
 **FR-09**(세션 화면·`285:1445` SessionActionBar·상태별 컨트롤) · **FR-10**(버블 2회) · **FR-11**(경청 모션 + Prompt Drawer) · **FR-19**(출석 스티커) · **FR-25**(세션·완료 화면 반응형) · **§13 예외 처리 6건의 화면 UX**.
 
-### 16.5.3 AC 목록 (⭐ **약 38건** — 개정 2)
+### 16.5.3 AC 목록 (⭐ **약 38건** — 개정 2) → ⭐ **개정 3: 50건** (목록 실측 47 + AC-4-86 이동 + 신규 AC-4-123·124)
 
-`AC-4-38` ~ `42` · `50` ~ `61` · `63` ~ `65` · `68` ~ `70` · `95` ~ `103` · `104`(DOM 증거) · `107` · **`110`**(baseline 재생성) · **`111`** · **`112`** · **`113`**(화면·route) · **`114`** · ⭐ **`115`** · **`116`** · **`117`** · **`118`** · **`119`** · ⭐ **`120`** · **`121`** · **`122`**
+> ⭐ **개정 3 추가**: **`AC-4-86`**(Reading Context 시트 — `D4-35`, `S4-F`) · **`AC-4-123`** · **`AC-4-124`**(오프라인 캐시 Start Session 비활성 + 배너 연결 · Save 활성 — `D4-33`·`D4-39`, `S4-F`, **AC-4-38 과 같은 패스**). 또 4a 에서 **Mock·로직 부분만** 판정된 AC(AC-4-22·23·24·25·30·31·32·35·36·62·67 — §16.4.3 특례)의 **화면 부분**을 4b 에서 판정한다.
+> ⭐ **개정 3.1**: **`AC-4-110`**(`D4-42`, `S4-F` — `D4-11` 적용 + baseline 재생성)·**`AC-4-104`**(`D4-43`, `S4-H1` — 코드 주석 포함)는 **전 부분을 4b 에서** 판정한다. 둘 다 이미 아래 목록에 있으므로 **50건 변동 없음**. AC-4-108 의 측정은 **`S4-H2` 착수 전** 선행.
+
+`AC-4-38` ~ `42` · `50` ~ `61` · `63` ~ `65` · `68` ~ `70` · `95` ~ `103` · `104`(⭐ 전부 — `D4-43`) · `107` · **`110`**(⭐ 전부 — `D4-11` 적용 + baseline 재생성, `D4-42`) · **`111`** · **`112`** · **`113`**(화면·route) · **`114`** · ⭐ **`115`** · **`116`** · **`117`** · **`118`** · **`119`** · ⭐ **`120`** · **`121`** · **`122`**
 — ⛔ **`AC-4-106` 은 폐기**됐다 (`D4-14`). 31 − 1 + 8 = **38**.
 
 ### 16.5.4 Exit Criteria
 
 1. 위 AC 가 모두 `PASS` 또는 `BACKEND_INTEGRATION_PENDING`.
 2. **Figma 대조**: `285:1126` 섹션(= `28:51` + `285:1445` + `163:1601`) 과 `29:62` **상단 y 0~468** 을 Playwright screenshot 과 비교한 기록이 있다. **`R-FIGMA-1` ①~④** 를 지켜 **선언값**(fill·shadow 겹)으로 대조한다.
-3. **허용 차이**가 **등록된 것만** 존재한다 — `AD-S4-1`(스티커 부제) · `AD-S4-3`(ready 버블 교체) · (`N4-26` 결과에 따라) `AD-S4-4`. **등록은 사용자 승인 이후**다.
+3. **허용 차이**가 **등록된 것만** 존재한다 — `AD-S4-1`(스티커 부제) · ~~`AD-S4-3`~~(**무효**, `D4-14`) · `AD-S4-4`(Discard 다이얼로그, `D4-17`) · `AD-S4-5` · `AD-S4-6` · ⭐ `AD-S4-11`(오프라인 캐시 Home 54px 밀림, `D4-38`). **등록은 사용자 승인 이후**다 — `AD-S4-7`~`10` 은 승인 대기.
 4. `R-SHADOW-1` **양축 프로브 회귀 테스트**가 세션·완료 화면을 덮는다.
 5. **Stage 1~3 시각 baseline 재생성**이 `R-BASELINE-1` ⑤ 절차(클러스터 분해 → 설명되지 않는 클러스터 0건 → `--update-snapshots=all`)를 거쳤다 (AC-4-110).
-6. Stage 4 전체(4a + 4b) In Scope AC **104건**에 판정이 있다 → **Stage 4 Verdict 보고 → 멈춤**.
+6. Stage 4 전체(4a + 4b) In Scope AC ~~**104건**~~ ⭐ **113건**(개정 3)에 판정이 있다 → **Stage 4 Verdict 보고 → 멈춤**.
 
 ### 16.5.5 착수를 막는 결정 — ⭐ **⛔ 1건 (2026-10-13 개정 2)**
 

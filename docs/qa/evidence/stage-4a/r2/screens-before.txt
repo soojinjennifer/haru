@@ -1,0 +1,2 @@
+?? e2e/__screenshots__/darwin/visual.spec.ts/s4-home-offline-cached-320.png
+?? e2e/__screenshots__/darwin/visual.spec.ts/s4-home-offline-cached-393.png

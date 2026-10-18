@@ -31,6 +31,7 @@ import {
   RECORDING_TOTAL_DURATION_GRACE_SECONDS,
   recordingContainerForMimeType,
   type ErrorCode,
+  type RecordingContainer,
   type RecordingUploadCompleteRequest,
   type RecordingUploadCompleteResponse,
   type RecordingUploadInitRequest,
@@ -160,7 +161,7 @@ function isEntry(value: unknown): value is UploadQueueEntry {
 interface PreparedPart {
   readonly partNo: number;
   readonly mimeType: string;
-  readonly container: 'webm' | 'mp4';
+  readonly container: RecordingContainer;
   readonly bytes: Uint8Array<ArrayBuffer>;
   readonly chunkCount: number;
   readonly decodedSeconds: number | null;

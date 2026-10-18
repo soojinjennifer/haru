@@ -437,10 +437,13 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
 
     await waitForTrack();
     expect(track().children).toHaveLength(3);
-    const banner = await screen.findByText(activityDeckCopy.states.cachedDescription);
+    const banner = await screen.findByText(activityDeckCopy.states.cachedTitle);
     // 배너는 TopBar 슬롯(헤더 밑)에 있다 — 덱 슬롯의 오프라인 안내가 아니다.
     expect(banner.closest('.haru-app-shell__bar-top')).not.toBeNull();
     expect(banner.closest('.haru-alert--banner')).not.toBeNull();
+    // 제목 없이 1줄 — 본문(`description`) 미렌더 (`D4-32` · `D4-37`).
+    expect(banner.textContent).toBe('Go online to start a session');
+    expect(banner.closest('.haru-alert__body')?.children).toHaveLength(1);
     expect(document.querySelector('.haru-activity-deck__slot')).toBeNull();
     // 세션 시작은 여전히 비활성이다 (`D-3`).
     expect(
@@ -454,7 +457,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
     await renderHome({ scenarios: ['activity-cards:offline-cached-card'] });
 
     expect(await screen.findByText(activityDeckCopy.states.offlineDescription)).toBeDefined();
-    expect(screen.queryByText(activityDeckCopy.states.cachedDescription)).toBeNull();
+    expect(screen.queryByText(activityDeckCopy.states.cachedTitle)).toBeNull();
     expect(document.querySelector('.haru-activity-track')).toBeNull();
   });
 
@@ -467,7 +470,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
 
     expect(await screen.findByText(activityDeckCopy.states.errorTitle)).toBeDefined();
     expect(document.querySelector('.haru-activity-track')).toBeNull();
-    expect(screen.queryByText(activityDeckCopy.states.cachedDescription)).toBeNull();
+    expect(screen.queryByText(activityDeckCopy.states.cachedTitle)).toBeNull();
   });
 
   it('2일 지난 캐시는 쓰지 않고 지운다 (D-11 ③)', async () => {

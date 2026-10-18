@@ -79,9 +79,9 @@ export const activityDeckCopy = {
     offlineDescription: "We'll load today's options when the connection is back.",
     /**
      * 오프라인 + 최근 카드 캐시 (`D-11`, AC-4-82) — TopBar 밑 Offline Banner (Stage 1 §5.4 패턴).
-     * ⚠️ 문구는 design-agent 명세에 없다 → Visual Gap 검토·사용자 확인 대상 (`S4-J` handoff).
+     * **제목 없이 1줄** — 본문(`description`) 없음 (`D4-32` · `D4-37`, 2026-10-18 사용자 결정,
+     * `docs/design/stage-4a-visual-gap-s4j.md` §6.1). 320px 텍스트 자리 206px 에 1줄로 들어간다.
      */
-    cachedTitle: "You're offline.",
-    cachedDescription: "This is your most recent card. It will update when you're back online.",
+    cachedTitle: 'Go online to start a session',
   },
 } as const;

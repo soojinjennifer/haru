@@ -96,3 +96,114 @@ Based on: Figma `26:21`(Home frame) · `163:2649`(Prompt Card/Home front) metada
 - G-01·G-03 결정 전 `offline-cached-card` 시각 baseline 을 만들지 않는다(handoff 판단 유지 — R-BASELINE-1).
 - G-02 는 `D-3` 해제(`S4-F`) 와 같은 패스에서 처리해야 오프라인 활성 회귀가 생기지 않는다. 테스트: `offline-cached-card` 에서 `Start Session` `aria-disabled="true"` + 접근성 설명 존재 단정.
 - G-05 높이 전환은 Shared UI(`InlineAlert` banner) 수준 변경 — 다른 화면 배너(`offline`·`offline-queued`)에도 적용된다.
+
+---
+
+## 6. 후속 명세 (2026-10-18) — `D4-32` · `D4-33` · `D4-36`
+
+Status: **DRAFT (2026-10-18, design-agent)** — 배너 최종 문구(§6.1)는 **사용자 승인 대상**. 허용 차이 등록 없음.
+근거: `stage-4-approvals.md` §1 `D4-32`·`D4-33`·`D4-36` (2026-10-17 사용자 결정). Production Code 미수정.
+
+**승인 결과 (2026-10-18, user)**: 문구 `Go online to start a session` = `D4-37` · 잔여 +54px 밀림 수용 = `D4-38`(허용 차이 `AD-S4-11`, `stage-4-approvals.md` §4) · 스크린리더 = `InlineAlert titleId` + `aria-describedby` = `D4-39`(구현 4b `S4-F`) · Stage 3 Spec :1165·:1476 정정 승인·반영.
+
+### 6.0 측정 방법
+
+- 기존 dev 서버 `https://localhost:5173` (재시작·포트 변경 없음), Playwright Chromium 단독 스크립트(scratchpad, `ignoreHTTPSErrors`, `deviceScaleFactor 1`, `reducedMotion: reduce`). 동시 실행 Playwright 0 확인.
+- 로그인 경로 = e2e `logIn()` 과 동일, 시나리오 `activity-cards:offline-cached-card`. 비교군 = 시나리오 없음.
+- 실제 `InlineAlert` 배너 DOM 에서 **제목 텍스트만 후보로 교체하고 본문(`description`)을 숨겨** 측정했다 → 폰트·패딩·아이콘·border 는 구현 그대로다.
+- 배너 computed (320 폭): 박스 272 · border 1 · padding `--space-4` 16 · 아이콘 `--size-icon-md` 20 · gap `--space-3` 12 → **텍스트 가용 폭 206px**. 393 폭: 박스 345 → 가용 폭 279px. 제목 = `subheadline` / `semibold` → computed `15px / 20px / 590`.
+- 폰트 2종 측정: 기본 스택(이 Mac Chromium → `-apple-system` = SF Pro) 과 **Inter 강제**(비-Apple 기기 근사, 저장소 번들 Inter). 판정은 **둘 다 1줄**일 때만 "들어감".
+- 텍스트 자연 폭 = `white-space: nowrap` 상태 Range 폭. 줄 수 = Range client rect 의 서로 다른 top 개수.
+
+### 6.1 `D4-32` — 배너 1줄 문구
+
+| 후보 | SF 폭 | Inter 폭 | 320 (가용 206) | 393 (가용 279) |
+|---|---|---|---|---|
+| `Offline — start a session once you're back online` (결정문 예시) | 345.7 | 350.3 | **2줄** ✗ | **2줄** ✗ |
+| `Offline — start a session once online` | 258.5 | 263.4 | 2줄 ✗ | 1줄 |
+| `Offline — sessions need internet` | 230.5 | 235.3 | 2줄 ✗ | 1줄 |
+| `Sessions start once you're online` | 236.0 | 240.5 | 2줄 ✗ | 1줄 |
+| `Offline — sessions start online` | 215.8 | 220.4 | 2줄 ✗ | 1줄 |
+| `Offline · start sessions online` | 207.3 | 210.1 | 2줄 ✗ (1.3px 초과) | 1줄 |
+| **`Go online to start a session`** ⭐ 권고 | **193.1** | **196.7** | **1줄** (여유 12.9 / 9.3) | 1줄 |
+| `Offline — reconnect to start` (대안 1) | 197.2 | 197.5 | 1줄 (여유 8.8 / 8.5) | 1줄 |
+| `Reconnect to start a session` (대안 2) | 202.5 | 204.2 | 1줄 (여유 3.5 / 1.8) — 여유 부족 | 1줄 |
+| `Connect to start a session` | 186.5 | 188.8 | 1줄 | 1줄 |
+
+- 결정문 예시는 **320은 물론 393에서도 1줄에 들어가지 않는다**(자연 폭 346 > 279). 그래서 더 짧은 후보를 쟀다.
+- **권고: `Go online to start a session`** — 안 B 의 뜻(세션은 온라인에서 시작)을 목적어(`session`)까지 담고, 두 폰트 모두 여유 9px 이상. 오프라인이라는 사실은 `wifi-off` 아이콘과 문장 자체("Go online")가 전한다. 진단·판정 표현 없음.
+- 대안 1 `Offline — reconnect to start` 은 "Offline" 단어를 보존하지만 `start` 의 목적어가 없다. 대안 2 는 여유가 1.8px 이라 폰트 렌더 차이에 취약 → 비권고. `Connect to start a session` 은 무엇에 연결하는지 모호 → 비권고.
+- ⚠️ 텍스트 확대(브라우저 글자 크기·OS 확대)에서는 2줄로 줄바꿈될 수 있다 — **잘라내지 않는다**(`text-overflow`/`line-clamp` 금지). 배너가 늘어나는 것은 허용한다(WCAG 1.4.4·1.4.10).
+- ⚠️ **최종 문구는 사용자 승인 대상**이다. 승인 전에는 아래 구현 메모의 문자열을 가값으로 다룬다.
+
+**구현 명세 (development-agent)**
+
+| 항목 | 값 |
+|---|---|
+| 컴포넌트 | `ActivityCardOfflineBanner` → `InlineAlert tone="offline" placement="banner"` (변경 없음) |
+| `title` | `activityDeckCopy.states.cachedTitle` = **승인된 1줄 문구** (권고 `Go online to start a session`) |
+| `description` | **전달하지 않는다** (prop 생략 → 본문 `<Text footnote>` 미렌더). `cachedDescription` 키는 copy 에서 삭제 |
+| 아이콘 · 색 · border · radius · padding | 현행 그대로 (`wifi-off` md · `--color-surface-note` · `--color-fg-primary` · `--color-border-subtle` · `--radius-surface` · `--space-4`) — 신규 토큰 없음 |
+| 줄 수 | 1줄 기대, 확대 시 줄바꿈 허용(자르지 않음) |
+| `role` / `aria-live` | 현행 `status` / `polite` 유지 |
+| 범위 | `offline-cached-card` 배너만. 카드가 없는 오프라인(`offlineTitle`/`offlineDescription`, 덱 슬롯 안내)은 **변경하지 않는다** |
+
+### 6.2 `D4-32` — 배치와 `G-01` 해소 여부 (실측)
+
+| 뷰포트 | 항목 | 배너 없음 | 현행 2단(제목+본문) | **1줄** | 1줄 Δ (vs 배너 없음) |
+|---|---|---|---|---|---|
+| 393×852 | 배너 높이 | — | 94 | **54** (= 20 + 16×2 + 1×2) | — |
+| 393×852 | 버블 top | 51 | 145 | **105** | **+54** (현행 +94) |
+| 393×852 | 캐릭터 img top | 29 | 123 | **83** | **+54** (현행 +94) |
+| 393×852 | 카드 위치 | 하단 고정 | 동일 | 동일 | 0 |
+| 320×852 | 배너 높이 / 버블 top | — / 51 | 112 / 163 | **54 / 105** | **+54** (현행 +112) |
+| 320×568 | 카드 top (스크롤 흐름) | 133 | 245 | **187** (계산: 133 + 54, 2줄 실측 207 = 133 + 74 와 일치하는 선형) | +54 (현행 +112) |
+| 320×568 | 스크롤 시 상단 고정 영역 | 48 | 160 (28%) | **102 (18%)** | +54 |
+
+- 캐릭터가 카드 위로 보이는 높이: 현행 대비 **40px 회복**(393: −94 → −54, 320: −112 → −54).
+- 시각 확인(스크린샷 `stage-4a-visual-gap-s4j/followup-1line-393x852.png` · `followup-1line-320x852.png`, dev Scenario Panel 이 함께 찍혀 있음 — baseline 아님): **눈·볼·입이 모두 카드 위에 보인다.** 현행(`393x852-cached.png`)은 눈만 보였다.
+- **판정: `G-01` 의 핵심 증상(얼굴 하단이 카드 뒤로 숨음)은 해소.** 남는 밀림은 **+54px** — 배너 없을 때 보이던 캐릭터 가슴의 하트 부분이 카드 뒤로 들어간다(393·320 공통).
+- 남는 밀림에 대한 추가 조치는 **제안만** 한다(이번 명세 범위 아님): ⓐ 수용(권고 — 오프라인 한정 상태, 얼굴 보존) ⓑ 배너 padding-block 을 `--space-3`(12) 으로 줄이면 54 → 46(−8) — Shared UI `InlineAlert` banner 전체에 영향, Stage 1 §4.11 명세 변경이라 승인 필요 ⓒ 버블과 배너 간 겹침 등 배치 변경 — Figma 에 없는 구성(최우선 규칙 2) → 비권고.
+- `G-05`(등장 모션 높이 전환)·`G-07`(스크롤 시 모서리)은 이번 명세에서 다루지 않는다. 1줄화로 `G-07` 노출 면적도 함께 준다.
+
+### 6.3 `D4-33` — 오프라인 캐시 상태의 CTA
+
+| 요소 | `offline-cached-card` (`isCached === true`) | 근거 |
+|---|---|---|
+| **Start Session** | **비활성** — `<Button variant="accent" aria-disabled>` (native `disabled` 쓰지 않음, 포커스 가능 유지) | `D4-33`, Stage 3 `D-3` 선례 |
+| Start Session 시각 | 기존 `.haru-button[aria-disabled='true']:not(:disabled)` → `opacity: var(--opacity-disabled)` (= 0.5, Figma `17:18` `Accent/Disabled`) **그대로**. 신규 스타일 없음 | **`D4-18` 준수** |
+| Start Session 사유 문구 | **화면에 별도 문구 없음** — 배너가 대신한다. `copy.card.startSession.reason` 은 `null` 유지 | `D4-33` |
+| **★ Save** | **활성 유지**. 탭 시 기존 동작(요청 실패 → `saveFailed` Toast) 그대로 | `D4-33` |
+| 온라인 복구 | `isCached` 가 false 가 되면 Start Session 은 **Stage 4b `S4-F` 가 정하는 활성 규칙**으로 돌아간다 | `S4-F` AC (plan-agent) |
+
+**접근성 — 비활성 사유 연결 (제안, 권고 ①)**
+
+`aria-disabled` 만으로는 스크린리더가 *왜* 누를 수 없는지 모른다. 배너 문장이 곧 사유이므로 **같은 텍스트를 한 번만 두고 `aria-describedby` 로 연결**한다.
+
+① **권고 — 배너 제목에 id 를 주고 버튼이 가리킨다**
+- Shared UI `InlineAlert` 에 선택 prop **`titleId?: string`** 추가 → 제목 `<Text>` 요소의 `id` 로 렌더. 도메인 지식 없는 범용 prop 이라 `packages/ui` 경계에 맞다.
+- feature 상수 `OFFLINE_CACHED_BANNER_TITLE_ID = 'haru-activity-offline-cached-title'` 를 `features/activity-card-deck` 안에 하나 둔다(배너와 덱이 같은 feature → feature 간 import 없음).
+- `ActivityCardOfflineBanner`: `<InlineAlert … titleId={OFFLINE_CACHED_BANNER_TITLE_ID} />`.
+- `ActivityCardDeck` Start Session: `isCached` 일 때 `aria-disabled` + `aria-describedby={OFFLINE_CACHED_BANNER_TITLE_ID}`. 기존 `reason` 슬롯 분기(`${option.id}-start-reason`)는 그대로 두되, 둘 다 있으면 공백으로 이어 붙인다.
+- 화면에 한 번에 하나의 배너만 존재하므로 id 는 문서 내 유일하다. 두 요소 모두 `isCached` 로 게이트되어 "가리키는 대상 없음" 상태가 생기지 않는다.
+
+② 대안 — 버튼 옆 `haru-visually-hidden` 사유 span 에 **배너와 같은 copy 키**(`states.cachedTitle`)를 넣고 `${option.id}-start-reason` 으로 연결. Shared UI 변경 없음. 단 스크린리더는 라이브 영역(배너) 낭독 + 버튼 설명으로 같은 문장을 두 번 듣는다 — ① 도 버튼 포커스 시 다시 읽지만 텍스트 출처가 하나라 copy 불일치 위험이 없다.
+
+**테스트 단정 (development-agent → stage-qa-agent)**
+- `offline-cached-card`: 모든 옵션의 Start Session `aria-disabled="true"`, `aria-describedby` 가 가리키는 요소의 텍스트 = 배너 제목, 클릭 시 세션 시작 요청 0건.
+- 같은 시나리오에서 `★ Save` 는 `aria-disabled` 없음, 클릭 가능.
+- 배너 제목 1줄: 320×852 에서 배너 높이 = 54 (Playwright `boundingBox`). 시각 baseline 은 **문구 승인 후**에만 만든다(R-BASELINE-1, §5 첫 줄 유지).
+- `D-3` 해제(`S4-F`)와 **같은 패스**에서 처리한다 — 해제만 먼저 하면 오프라인에서 Start Session 이 활성화되는 회귀가 생긴다(G-02).
+
+### 6.4 `D4-36` — Stage 3 Spec 정정 (실행 완료)
+
+- `docs/design/stage-3-design-spec.md` §8 `offline-cached-card` 행(:1165) 날짜 표시 ③ 구절에 취소선 + **"철회 (2026-10-05, `stage-3-approvals.md` §12.8 `AC-3-11`)"** 표기. 그 외 문구 변경 없음.
+- ⚠️ 같은 문서 :1476 (`D-10` timezone 응답 행, *"카드 날짜를 화면에 밝히는 처리를 명세에 넣었다"*) 도 같은 철회의 영향을 받는 스테일 서술이지만 지시 범위 밖이라 **수정하지 않았다** — 정정 여부 지시 필요.
+- 같은 행의 *"선택 CTA `disabled` + 사유 문구"* 는 `D4-33`(사유는 배너가 대신, Save 활성)과 표현이 다르다 — 역시 지시 범위 밖이라 그대로 두었다. `D4-33` 이 우선한다.
+
+### 6.5 사용자 승인 필요
+
+1. 배너 최종 문구 — 권고 `Go online to start a session` / 대안 `Offline — reconnect to start`
+2. `D4-33` 접근성 연결 방식 — ① `InlineAlert titleId` prop 추가(Shared UI API 확장, 권고) / ② visually-hidden 중복 문구
+3. (선택) G-01 잔여 +54px — 수용(권고) 또는 배너 padding 축소(Shared UI 명세 변경)
+4. (선택) Stage 3 Spec :1476 · :1165 CTA 구절 정정 지시 여부

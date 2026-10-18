@@ -1,0 +1,110 @@
+{
+  "results": {
+    "393x1": {
+      "text": "Go online to start a session",
+      "height": 54,
+      "width": 345,
+      "lines": 1,
+      "whiteSpace": "normal",
+      "textOverflow": "clip",
+      "overflow": "visible",
+      "fontSize": "15px",
+      "clipped": false,
+      "titleScroll": [
+        279,
+        279
+      ],
+      "bodyChildren": 1,
+      "docScrollW": 393,
+      "vw": 393,
+      "cards": 57,
+      "localStorageKeys": [
+        "haru.activity-card.v1"
+      ],
+      "url": "https://localhost:5173/"
+    },
+    "320x1": {
+      "text": "Go online to start a session",
+      "height": 54,
+      "width": 272,
+      "lines": 1,
+      "whiteSpace": "normal",
+      "textOverflow": "clip",
+      "overflow": "visible",
+      "fontSize": "15px",
+      "clipped": false,
+      "titleScroll": [
+        206,
+        206
+      ],
+      "bodyChildren": 1,
+      "docScrollW": 320,
+      "vw": 320,
+      "cards": 57,
+      "localStorageKeys": [
+        "haru.activity-card.v1"
+      ],
+      "url": "https://localhost:5173/"
+    },
+    "320x2": {
+      "text": "Go online to start a session",
+      "height": 54,
+      "width": 272,
+      "lines": 1,
+      "whiteSpace": "normal",
+      "textOverflow": "clip",
+      "overflow": "visible",
+      "fontSize": "15px",
+      "clipped": false,
+      "titleScroll": [
+        206,
+        206
+      ],
+      "bodyChildren": 1,
+      "docScrollW": 320,
+      "vw": 320,
+      "cards": 57,
+      "localStorageKeys": [
+        "haru.activity-card.v1"
+      ],
+      "url": "https://localhost:5173/"
+    },
+    "160x1": {
+      "text": "Go online to start a session",
+      "height": 54,
+      "width": 272,
+      "lines": 1,
+      "whiteSpace": "normal",
+      "textOverflow": "clip",
+      "overflow": "visible",
+      "fontSize": "15px",
+      "clipped": false,
+      "titleScroll": [
+        206,
+        206
+      ],
+      "bodyChildren": 1,
+      "docScrollW": 160,
+      "vw": 160,
+      "cards": 57,
+      "localStorageKeys": [
+        "haru.activity-card.v1"
+      ],
+      "url": "https://localhost:5173/"
+    }
+  },
+  "consoleLines": [
+    "[393] debug: [vite] connecting...",
+    "[393] debug: [vite] connected.",
+    "[393] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+    "[320] debug: [vite] connecting...",
+    "[320] debug: [vite] connected.",
+    "[320] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+    "[320] debug: [vite] connecting...",
+    "[320] debug: [vite] connected.",
+    "[320] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+    "[160] debug: [vite] connecting...",
+    "[160] debug: [vite] connected.",
+    "[160] info: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  ]
+}

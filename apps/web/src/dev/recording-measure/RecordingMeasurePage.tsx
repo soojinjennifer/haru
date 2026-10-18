@@ -15,11 +15,13 @@ import {
   clearMeasure,
   installRecordingMeasure,
   liveMeasure,
+  preparePlayback,
   recoverMeasure,
   selfTest,
   startMeasure,
   stopMeasure,
   storageState,
+  type PlaybackPart,
 } from './measure-core';
 
 import '../dev.css';
@@ -28,15 +30,73 @@ function format(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
+interface PreparedPart extends Omit<PlaybackPart, 'blob'> {
+  readonly url: string;
+}
+
+interface Playback {
+  readonly bytesIn: string;
+  readonly parts: readonly PreparedPart[];
+}
+
+/** `<audio>.duration` 원값 — Infinity / NaN 도 그대로 적는다 (비탐색 스트림 신호, RU-3). */
+function formatDuration(value: number | null): string {
+  if (value === null) return '(메타데이터 전)';
+  return String(value);
+}
+
+/**
+ * part 하나의 플레이어. iOS Safari 는 사용자 제스처 안에서만 재생하므로 `controls` 로 사람이 직접 누른다.
+ */
+function PartPlayer({ part }: { readonly part: PreparedPart }): React.JSX.Element {
+  const [duration, setDuration] = useState<number | null>(null);
+  const [errorCode, setErrorCode] = useState<number | null>(null);
+  return (
+    <div className="haru-dev-stack" data-measure-part={part.partNo}>
+      <p className="haru-dev-section__note haru-dev-mono">
+        {`part ${String(part.partNo)} · chunks ${String(part.chunks)} · ${String(part.bytes)} bytes · ${part.mimeType === '' ? '(mimeType 없음)' : part.mimeType}`}
+        <br />
+        {`decodeAudioData: ${part.decodedSeconds === null ? '실패' : `${String(part.decodedSeconds)}s`} · <audio>.duration: ${formatDuration(duration)}`}
+        {errorCode === null ? null : ` · audio error.code ${String(errorCode)}`}
+      </p>
+      {/* dev 측정용 원음 확인 — 자막 원본이 없다 (Production 에 포함되지 않는 화면). */}
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <audio
+        className="haru-dev-measure-audio"
+        controls
+        preload="metadata"
+        src={part.url}
+        onLoadedMetadata={(event) => {
+          setDuration(event.currentTarget.duration);
+        }}
+        onDurationChange={(event) => {
+          setDuration(event.currentTarget.duration);
+        }}
+        onError={(event) => {
+          setErrorCode(event.currentTarget.error?.code ?? -1);
+        }}
+      />
+    </div>
+  );
+}
+
 export function RecordingMeasurePage(): React.JSX.Element {
   const [readout, setReadout] = useState('아래 버튼을 눌러 측정을 시작한다.');
   const [recording, setRecording] = useState(false);
+  const [playback, setPlayback] = useState<Playback | null>(null);
   const pollRef = useRef<number | null>(null);
+  const urlsRef = useRef<string[]>([]);
+
+  const revokeUrls = (): void => {
+    for (const url of urlsRef.current) URL.revokeObjectURL(url);
+    urlsRef.current = [];
+  };
 
   useEffect(() => {
     installRecordingMeasure();
     return () => {
       if (pollRef.current !== null) window.clearInterval(pollRef.current);
+      revokeUrls();
     };
   }, []);
 
@@ -112,6 +172,8 @@ export function RecordingMeasurePage(): React.JSX.Element {
             className="haru-dev-nav__link"
             disabled={recording}
             onClick={() => {
+              revokeUrls();
+              setPlayback(null);
               run('clearMeasure()', clearMeasure);
             }}
           >
@@ -128,7 +190,47 @@ export function RecordingMeasurePage(): React.JSX.Element {
           >
             ⑥ 저장소 self-test
           </button>
+          <button
+            type="button"
+            id="measure-prepare-playback"
+            className="haru-dev-nav__link"
+            disabled={recording}
+            onClick={() => {
+              revokeUrls();
+              setPlayback(null);
+              run('preparePlayback()', async () => {
+                const prepared = await preparePlayback();
+                if (prepared === null) return { session: null };
+                const parts = prepared.parts.map(({ blob, ...rest }) => {
+                  const url = URL.createObjectURL(blob);
+                  urlsRef.current.push(url);
+                  return { ...rest, url };
+                });
+                setPlayback({ bytesIn: prepared.bytesIn, parts });
+                return {
+                  bytesIn: prepared.bytesIn,
+                  parts: parts.map(({ url: _url, ...rest }) => rest),
+                };
+              });
+            }}
+          >
+            ⑦ 재생 준비
+          </button>
         </div>
+
+        {playback === null ? null : (
+          <section className="haru-dev-section" id="measure-playback">
+            <h2 className="haru-dev-section__title">재생</h2>
+            <p className="haru-dev-section__note haru-dev-mono">
+              {`저장 계층 ${playback.bytesIn} · part ${String(playback.parts.length)}개`}
+            </p>
+            {playback.parts.length === 0 ? (
+              <p className="haru-dev-section__note">저장된 part 가 없다.</p>
+            ) : (
+              playback.parts.map((part) => <PartPlayer key={part.url} part={part} />)
+            )}
+          </section>
+        )}
 
         <section className="haru-dev-section">
           <h2 className="haru-dev-section__title">결과</h2>

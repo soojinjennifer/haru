@@ -505,8 +505,8 @@ test.describe('오프라인 캐시 카드 (AC-4-82 · AC-4-83, `D-11`)', () => {
 
     const banner = page.locator('.haru-app-shell__bar-top .haru-alert--banner');
     await expect(banner).toBeVisible();
-    await expect(banner).toContainText("You're offline.");
-    await expect(banner).toContainText('This is your most recent card.');
+    // 제목 없이 1줄 — 본문 없음 (`D4-32` · `D4-37`).
+    await expect(banner).toHaveText('Go online to start a session');
     // 카드가 없을 때의 덱 슬롯 안내는 뜨지 않는다.
     await expect(page.locator('.haru-activity-deck__slot')).toHaveCount(0);
 
@@ -533,6 +533,37 @@ test.describe('오프라인 캐시 카드 (AC-4-82 · AC-4-83, `D-11`)', () => {
       'schemaVersion',
     ]);
   });
+
+  /*
+   * 배너 1줄 프로브 (`D4-32` · `D4-37`, visual-gap-s4j §6.2 실측 기준).
+   * 높이 54 = 아이콘 20 + padding `--space-4` 16×2 + border 1×2 — 2줄이면 74 이상이 된다.
+   * 줄 수는 제목 텍스트 Range 의 client rect 서로 다른 top 개수로 센다 (§6.0 측정 방법).
+   */
+  for (const width of [393, 320] as const) {
+    test(`\`offline-cached-card\` 배너 — ${width}×852 에서 1줄 · 높이 54`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 852 });
+      await logIn(page, 'activity-cards:offline-cached-card');
+
+      const banner = page.locator('.haru-app-shell__bar-top .haru-alert--banner');
+      await expect(banner).toBeVisible();
+
+      const probe = await banner.evaluate((node) => {
+        const title = node.querySelector('.haru-alert__body > *');
+        if (title === null) throw new Error('banner title missing');
+        const range = document.createRange();
+        range.selectNodeContents(title);
+        const tops = new Set([...range.getClientRects()].map((rect) => Math.round(rect.top)));
+        return {
+          height: node.getBoundingClientRect().height,
+          lines: tops.size,
+          bodyChildren: node.querySelector('.haru-alert__body')?.children.length ?? 0,
+        };
+      });
+      expect(probe.height).toBe(54);
+      expect(probe.lines).toBe(1);
+      expect(probe.bodyChildren).toBe(1);
+    });
+  }
 
   test('캐시 없는 `offline` 은 Stage 3 의 덱 슬롯 안내 그대로 — 배너 없음', async ({ page }) => {
     await logIn(page, 'activity-cards:offline');

@@ -675,3 +675,32 @@ Status: **HANDOFF** · 작업 단위 **`S4-J` 만**. `S4-F`~ 세션 화면 · `S
 | NEEDS_DECISION | **N-J1 — push 권한 사전 안내 UX 의 표면.** Stage 3 Design Spec §2.14 가 명세한 표면은 `/settings/notifications`(push 권한 블록만)인데, Stage 4 Plan 은 그 화면을 **Out of Scope**(`D-18` 유지, AC-4-02 *"`/settings/notifications` 화면 0건"*)로 두었고 Figma 에도 다른 진입점이 없다. 그래서 **포트·Web·Mock·흐름 hook 까지만** 만들고 화면은 만들지 않았다(최우선 규칙 2). 또 §2.14 의 granted 상태 `Toggle` 은 `packages/ui` 에 **아직 없다**(가값 `P-20`, Stage 3 미구현). 선택지: ⓐ `/settings/notifications` 를 push 블록만으로 살린다(AC-4-02 문구 수정 + `Toggle` 신규 Shared UI) ⓑ 다른 표면(예: 세션 완료 후)에 사전 안내를 둔다(design-agent 명세 필요) ⓒ 알림 설정 화면 Figma 도착 Stage 로 **표면만 재이월**(AC-4-81 은 표면 부분 PARTIAL). **N-J2 — `AC-4-86`(Reading Context 시트) 미구현.** Design Spec §7.5 가 시트 내용은 명세했지만 ① **진입점(트리거 위치)** 이 없다(Figma 의 그 자리는 `★ Save`) ② picker 수치 규격이 *"`D-18` 이 도달 Stage 로 이월 → 미결"* 로 적혀 있다 ③ 사용 지점은 Activity Card 경로의 **세션 시작**(`D-9` 필수 · `D4-25` 서재 경로는 없음)인데 `Start Session` 활성화는 `S4-F` 범위다 — 지금 만들면 시트를 열 경로가 없다. **권장: `S4-F` 와 함께**(진입점 = `Start Session` 탭 시 시트), 단 트리거·picker 규격 결정이 선행 |
 
 **화면 변경 — design-agent Visual Gap 검토 필요**: ① Home `activity-cards:offline-cached-card` 상태(신규 상태 화면 — 헤더 밑 Offline Banner + 카드 3장). 이 상태의 시각 baseline 은 **만들지 않았다**(Visual Gap 검토·문구 확인 전에 굳히지 않는다 — R-BASELINE-1). ② 캐릭터 `<picture>` 전환은 **픽셀 변화 0**(baseline 290 통과 · 변경 0)이라 시각 검토 대상이 아니다. 그 밖의 화면 변경 0.
+
+## 후속 (2026-10-18) — 오프라인 배너 1줄 (`D4-32` · `D4-37` · `D4-38`, `AD-S4-11`)
+
+Status: **HANDOFF** · AC-4-82 (개정 3) · 명세 `docs/design/stage-4a-visual-gap-s4j.md` §6.1·§6.2. **커밋하지 않았다.** J-8 Non-blocking ① (배너 문구 명세 없음) 은 이 후속으로 **해소**.
+
+| 항목 | 내용 |
+|---|---|
+| 구현 | `offline-cached-card` 배너 = **제목 없이 1줄** `Go online to start a session` · `description` 미전달(본문 미렌더). 컴포넌트·토큰·아이콘·배치·`role`/`aria-live` 변경 0 (신규 토큰·arbitrary value 0). 카드 없는 오프라인(`offlineTitle`/`offlineDescription`) 변경 0 |
+| 수정 파일 | `apps/web/src/features/activity-card-deck/copy.ts` (`cachedTitle` 교체 · `cachedDescription` 삭제) · `apps/web/src/features/activity-card-deck/ui/ActivityCardOfflineBanner.tsx` · `apps/web/__tests__/home-stage3.test.tsx` · `e2e/home.spec.ts` · `e2e/visual.spec.ts` |
+| 하지 않은 것 | Start Session `aria-describedby` · `InlineAlert titleId`(`D4-39`) · `aria-disabled` 변경 → **4b `S4-F`**(`D-3` 해제와 같은 패스). 다른 화면 변경 0 |
+| 테스트 | unit: 배너 텍스트 = 승인 문구 · `.haru-alert__body` 자식 1개(본문 없음). e2e: 기대 문구 `toHaveText` 로 교체 + **프로브 2건**(393·320 ×852 — 배너 `boundingBox` 높이 **54**, 제목 Range client rect top **1개** = 1줄, 본문 0) |
+| baseline | **신규 2장** `e2e/__screenshots__/darwin/visual.spec.ts/s4-home-offline-cached-393.png` · `-320.png` (전체 프레임, `FRAME_SNAPSHOT`). R-BASELINE-1: `logInToHome`(이미지 디코드 + `settle`) → 배너·트랙 표시 확인 → `settle` 재호출 · dev 패널은 파일 `beforeEach` `hideDevPanel`. `--repeat-each=3` 6/6 통과(결정적). 신규 작성 첫 실행은 "snapshot 작성" 으로 실패 표기, 이후 통과. **기존 baseline 변경 0** |
+| 검증 (마지막 수정 이후) | `typecheck` ✓ · `lint` ✓ · `test` **152 files / 2140** ✓ · `lint:boundaries` ✓ (위반 0) · `build` ✓ · `format:check` ✓ · `assert:no-mocks` ✓ · `test:e2e` **단독 295 passed**(291 + 프로브 2 + baseline 2) |
+| 관찰 (판정 아님) | 320 baseline 에서는 캐릭터 가슴 하트가 카드 위로 **보인다** — §6.2 "하트가 카드 뒤(393·320 공통)" 서술과 다르다(393 은 가려짐). `AD-S4-11` 범위 확인은 design-agent/QA 몫 |
+
+## QA Fix Loop 1 (2026-10-18)
+
+Status: **HANDOFF** — 대상 `QA-4A-001` 만 (다른 Finding 은 사용자 결정으로 4b 이동 — 미수정). **커밋하지 않았다.** 화면 변경 0 → e2e 생략.
+
+| 항목 | 내용 |
+|---|---|
+| QA-4A-001 원인 | `features/recording/model/upload-queue.ts` `PreparedPart.container` 가 contracts `RecordingContainer`(`D4-23`) 리터럴 `'webm' \| 'mp4'` 를 앱 안에서 재선언 — enum 확장 시 이 지점만 어긋난다 |
+| 수정 | `upload-queue.ts`: `type RecordingContainer` 를 `@haru/contracts` 에서 import, `readonly container: RecordingContainer` |
+| 같은 패턴 추가 탐색 | `apps/web/src` 비테스트 파일의 문자열 리터럴 유니온 전수 grep 을 contracts `z.enum` 값 집합 23종과 대조. **같은 모양 1건 추가 발견·수정**: `mocks/fixtures/prompt-sets.ts:31` `PromptSeed.phase?: 'pre' \| 'post' \| null` → `PromptPhase \| null` (contracts `PromptPhaseSchema`) |
+| 해당 아님 (보고만, 미수정) | ① `shared/platform/recorder/recorder-adapter.ts:27` `RecorderPlatform = 'web' \| 'ios' \| 'android'` — 값 집합은 contracts `PushPlatform` 과 같으나 **다른 개념**(녹음 어댑터 플랫폼 vs push 기기 플랫폼, 앱 내부 포트 타입)이라 재선언이 아니다. 통합 여부는 판단 필요 시 별도 결정 ② `recording-controller.ts:168` `'ready' \| 'paused'` · `local-records.ts:16` `'recording' \| 'completed'` — `SessionStatus` 의 **부분집합/로컬 상태**(같은 모양 아님) |
+| 재확인 grep | `grep -rnE "'webm'\s*\|\s*'mp4'\|'pre'\s*\|\s*'post'" apps/web/src --include='*.ts' --include='*.tsx' \| grep -v __tests__` → **0건** |
+| 검증 (마지막 수정 이후) | `typecheck` ✓ · `lint` ✓ · `test` **152 files / 2140** ✓ (기준선 동일) · `lint:boundaries` ✓ · `build` ✓ · `format:check` ✓ · `assert:no-mocks` ✓ |
+
+stage-qa-agent 재검증 요청 (`QA-4A-001`).

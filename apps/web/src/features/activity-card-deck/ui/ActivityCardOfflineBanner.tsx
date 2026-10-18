@@ -7,6 +7,9 @@
  * 피하려고 Page 가 조립한다 (`rules/architecture.md` §3).
  *
  * 카드가 **없는** 오프라인은 이 배너가 아니라 덱 슬롯의 안내가 맡는다 (Stage 3 그대로). 수동 닫기 없음.
+ *
+ * **1줄 배너** — `description` 을 넘기지 않는다 (`D4-32` · `D4-37`, visual-gap-s4j §6.1). 393 기준 높이
+ * 54 = 아이콘 20 + padding 16×2 + border 1×2. 남는 54px 밀림은 허용 차이 `AD-S4-11` (`D4-38`).
  */
 import { InlineAlert } from '@haru/ui';
 
@@ -18,11 +21,6 @@ export function ActivityCardOfflineBanner() {
   if (!isCached) return null;
 
   return (
-    <InlineAlert
-      tone="offline"
-      placement="banner"
-      title={activityDeckCopy.states.cachedTitle}
-      description={activityDeckCopy.states.cachedDescription}
-    />
+    <InlineAlert tone="offline" placement="banner" title={activityDeckCopy.states.cachedTitle} />
   );
 }
