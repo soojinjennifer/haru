@@ -180,6 +180,13 @@ export function createMockApiClients(options: MockApiClientsOptions = {}): ApiCl
 }
 
 /**
+ * 브라우저 조립의 요청 로그 — **탭 하나에 하나**다. dev StrictMode 는 조립 effect 를 두 번 돌려 번들을
+ * 두 개 만들 수 있다(하나는 버려진다). 로그를 공유해 두면 버려진 번들이 e2e 증거 경로
+ * (`__HARU_MOCK_REQUEST_LOG__`)를 가로채지 않는다 — 버려진 번들에는 요청이 가지 않으므로 기록도 없다.
+ */
+const browserRequestLog = createRequestLog();
+
+/**
  * 브라우저 환경(URL · sessionStorage · 빌드 기본값)에서 Mock 을 조립한다.
  *
  * `clock` 은 조립 지점이 넘길 수 있다. **기본값은 `MOCK_EPOCH_MS` 고정 시계**이며 브라우저도
@@ -204,11 +211,20 @@ export function createBrowserMockApiClients(
     panelValue: readScenarioPanelValue(),
     envValue,
     ...(clock === undefined ? {} : { clock }),
+    requestLog: browserRequestLog,
   });
 
   // `activity-cards:offline-cached-card` — "최근 카드 캐시가 있는 기기" 를 만든다 (AC-4-82).
   if (deviceClock !== undefined) {
     applyActivityCardCacheSeed({ store: bundle.store, deviceClock });
+  }
+
+  // e2e 증거 경로 (Stage 4 `S4-F1`) — **dev 서버에서만** 요청 로그를 창에 노출한다. Playwright 가
+  // "요청 N건" 을 단정한다 (AC-4-38 · AC-4-111 ③ · AC-4-123 ⑤ · AC-4-136). `import.meta.env.DEV` 는
+  // 빌드에서 `false` 로 접혀 Mock 데모 빌드(Stage 8)에도 남지 않는다. 비밀 값은 로그가 이미 지운다.
+  if (import.meta.env.DEV) {
+    (globalThis as { __HARU_MOCK_REQUEST_LOG__?: RequestLog }).__HARU_MOCK_REQUEST_LOG__ =
+      browserRequestLog;
   }
 
   // `offline-queued` — 브라우저의 `online` 이벤트가 Mock 연결을 복구한다 (한 방향).
@@ -360,6 +376,18 @@ export {
   SESSION_LOADING_DELAY_MS,
 } from './sessions/MockSessionApi';
 export type { SessionScenarioKey } from './sessions/MockSessionApi';
+export {
+  resolveReadySessionShape,
+  SESSION_FIXTURE_SCENARIO_KEYS,
+  SESSION_GREETING_SCENARIO_KEYS,
+  sessionFixtureScenarioGroup,
+  sessionGreetingScenarioGroup,
+} from './sessions/sessionFixtureScenarios';
+export type {
+  ReadySessionShape,
+  SessionFixtureScenarioKey,
+  SessionGreetingScenarioKey,
+} from './sessions/sessionFixtureScenarios';
 export { createMockSessionState, findActiveSession } from './sessions/sessionState';
 export type {
   MockRecordingRecord,
@@ -410,6 +438,7 @@ export {
   MOCK_COMPLETION_BUBBLE,
   MOCK_HISTORY_SESSION_IDS,
   MOCK_READY_BUBBLE,
+  MOCK_READY_REMINDER_BUBBLE,
   MOCK_STICKER_MESSAGE,
   MOCK_STICKER_TITLE,
 } from './fixtures/sessions';
@@ -425,6 +454,8 @@ export type {
   MockRecordingStorageOptions,
 } from './platform/MockRecordingStorage';
 export { createMockAppStatePort } from './platform/MockAppStatePort';
+export { createMockRecordingPlatform } from './platform/mockRecordingPlatform';
+export type { MockRecordingPlatform } from './platform/mockRecordingPlatform';
 export {
   createMockPushPermissionPort,
   MOCK_PUSH_TOKEN,

@@ -43,6 +43,12 @@
   block-size: var(--size-medallion-lg);
 }
 
+/* Stage 4 세션 화면 아바타 174 (Figma `28:74` · `300:1312`, Spec `T-11`) */
+.haru-character-medallion--session {
+  inline-size: var(--size-medallion-session);
+  block-size: var(--size-medallion-session);
+}
+
 /*
  * CharacterIllustration — Design Spec §5.2.
  *

@@ -41,8 +41,9 @@ const CONFIRMED = [
  * (결정 `D-14`, stage-2-approvals §4).
  * `P-24` = `--color-fg-tertiary`(`#9aabaa`) 대비 1.56–2.38:1 — Book List 메타·`See all` 등
  * (stage-3-approvals §20.4). 디자이너 결정 전까지 주석이 남아 있어야 한다.
+ * `P-25` = 세션 `Discard` 흰 라벨 on `#aeaeb2` 2.211:1 — `Button` `neutral` 변형 (Stage 4 `D4-16`).
  */
-const REMAINING = ['P-01', 'P-02', 'P-04', 'P-16', 'P-17', 'P-24'];
+const REMAINING = ['P-01', 'P-02', 'P-04', 'P-16', 'P-17', 'P-24', 'P-25'];
 
 const MARKER_RE = /provisional:\s*(P-\d{2})/g;
 
@@ -80,7 +81,13 @@ describe('packages/ui CSS 의 provisional 주석 (approvals §9)', () => {
     );
   });
 
-  it('남아 있는 항목은 디자이너 대기 6건 안에만 있다', () => {
+  it('Stage 4 가값 P-25 가 Button neutral 변형 CSS 에 등록되어 있다 (D4-16)', () => {
+    expect(markers.filter((marker) => marker.item === 'P-25').map((marker) => marker.file)).toEqual(
+      ['button/Button.css'],
+    );
+  });
+
+  it('남아 있는 항목은 디자이너 대기 7건 안에만 있다', () => {
     const items = [...new Set(markers.map((marker) => marker.item))].sort();
     expect(items.filter((item) => !REMAINING.includes(item))).toEqual([]);
   });

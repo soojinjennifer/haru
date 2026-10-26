@@ -18,6 +18,7 @@ import { inflateSync } from 'node:zlib';
 import { expect, test, type Page } from '@playwright/test';
 
 import { hideDevPanel } from './support/gallery';
+import { startSession } from './support/session';
 
 /** Design Spec §7.2 의 4개 폭. */
 const VIEWPORTS = [
@@ -974,4 +975,89 @@ test('시트 표지에 Figma `85:536` 의 `--shadow-cover` + radius 10 이 **있
   expect(style.shadow).toMatch(/0px 1px 0px 0px inset/);
   /* radius 10 = `--book-cover-radius-xl` (Figma `85:536`). 목록(`lg`)의 12 와 다르다. */
   expect(style.radius).toBe('10px');
+});
+
+/*
+ * ── Stage 4 `S4-F1` — 세션 ready 화면 (`R-SHADOW-1` ⑥ — 세로·가로 **양축** 프로브) ──
+ *
+ * 세션 화면은 `AppShell scroll="none"` 의 뷰포트(= 화면 가장자리) 외에 `overflow` 박스가 없다
+ * (Stage 4 Spec §10 ① · §2.3.7). 그래서 하단 바·Record 코어·닫기·메달리온 링의 그림자는 **앱 컬럼
+ * 경계에서 잘리면 안 된다**. 같은 지점을 `box-shadow: none` 으로 다시 그려 비교한다 (배경 무관).
+ *
+ * 프로브 거리는 **실측 번짐 안쪽**이다: 바 버튼 `0 2 4`+`0 12 28`(아래 40 · 좌우 28 산술 상한) →
+ * 아래 6 · 오른쪽 6. Record 코어 `0 12 28` → 아래 10 · 오른쪽 8. 닫기 `--shadow-bubble`(`D4-11`,
+ * 아래 10 · 좌우 4) → 아래 4 · 오른쪽 2. 메달리온 링(같은 1겹) → 아래 4.
+ */
+test.describe('세션 ready 그림자 — 컬럼 경계·세로에서 잘리지 않는다 (S4-F1)', () => {
+  const TARGETS = [
+    {
+      name: '하단 바 Submit',
+      selector: '.haru-session-actions .haru-button >> nth=1',
+      below: 6,
+      right: 6,
+    },
+    { name: 'Record 코어', selector: '.haru-record__core', below: 10, right: 8 },
+    {
+      name: '닫기 IconButton (D4-11)',
+      selector: '.haru-session__top-row .haru-icon-button',
+      below: 4,
+      right: 2,
+    },
+    { name: '메달리온 링', selector: '.haru-session__medallion-ring', below: 4, right: null },
+  ] as const;
+
+  for (const viewport of [
+    { width: 320, height: 852 },
+    { width: 393, height: 852 },
+  ] as const) {
+    test(`${viewport.width}px — 아래·오른쪽 프로브`, async ({ page }) => {
+      await hideDevPanel(page);
+      await page.setViewportSize(viewport);
+      await startSession(page);
+
+      for (const target of TARGETS) {
+        const rect = await page.locator(target.selector).boundingBox();
+        if (rect === null) throw new Error(`${target.name} 없음`);
+        const below = {
+          x: Math.round(rect.x + rect.width / 2),
+          y: Math.round(rect.y + rect.height + target.below - 1),
+        };
+        const right =
+          target.right === null
+            ? null
+            : {
+                x: Math.round(rect.x + rect.width + target.right - 1),
+                y: Math.round(rect.y + rect.height * 0.75),
+              };
+
+        const withShadow = {
+          below: await pixelAt(page, below.x, below.y),
+          right: right === null ? null : await pixelAt(page, right.x, right.y),
+        };
+        const style = await page.addStyleTag({
+          content: `${target.selector.split(' >> ')[0] ?? ''} { box-shadow: none !important; }`,
+        });
+        await settle(page);
+        const without = {
+          below: await pixelAt(page, below.x, below.y),
+          right: right === null ? null : await pixelAt(page, right.x, right.y),
+        };
+        await style.evaluate((node) => {
+          (node as Element).remove();
+        });
+        await settle(page);
+
+        expect(
+          distance(withShadow.below, without.below),
+          `${target.name} 아래 그림자가 없다 (${String(below.x)},${String(below.y)})`,
+        ).toBeGreaterThanOrEqual(MIN_SHADOW_DELTA / 4);
+        if (right !== null && withShadow.right !== null && without.right !== null) {
+          expect(
+            distance(withShadow.right, without.right),
+            `${target.name} 오른쪽 그림자가 없다 (${String(right.x)},${String(right.y)})`,
+          ).toBeGreaterThanOrEqual(MIN_SHADOW_DELTA / 4);
+        }
+      }
+    });
+  }
 });

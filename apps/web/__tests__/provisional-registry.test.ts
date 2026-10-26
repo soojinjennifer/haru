@@ -49,7 +49,7 @@ describe('가값 등재 누락 가드 (Stage 0 #10-4 · QA-3-006)', () => {
 
   it('토큰 소스에서 활성 가값을 실제로 읽어냈다 (검사가 헛돌지 않는다)', () => {
     // `fonts.test.ts` 가 빌드 manifest 로 고정하는 목록과 같아야 한다.
-    expect(inTokens).toStrictEqual(['P-01', 'P-02', 'P-04', 'P-16', 'P-23', 'P-24']);
+    expect(inTokens).toStrictEqual(['P-01', 'P-02', 'P-04', 'P-16', 'P-23', 'P-24', 'P-25']);
   });
 
   it('`provisional` 주석이 남아 있는 토큰이 전부 dev gallery 목록에 등재되어 있다', () => {

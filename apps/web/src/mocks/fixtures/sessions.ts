@@ -33,6 +33,15 @@ export const MOCK_READY_BUBBLE: SessionBubbleCopy = {
   templateId: 'mock-ready-greeting',
 };
 
+/**
+ * ready 5분 리마인드 버블 제목 줄 (`D4-46`·`D4-59`, `API_CONTRACTS.md` §3.2.2) — 예시 문구.
+ * 제품 문구는 Backend 검수 템플릿이 만든다 (`P4-BIP-11`). 아이 이름 없음 (`D4-21`).
+ */
+export const MOCK_READY_REMINDER_BUBBLE: SessionBubbleCopy = {
+  text: 'Ready when you are!',
+  templateId: 'mock-ready-reminder',
+};
+
 /** 종료 버블 (`88:929`, FR-10). `completed` 전이 응답에만 실린다. */
 export const MOCK_COMPLETION_BUBBLE: SessionBubbleCopy = {
   text: 'What a cozy read that was.',
@@ -61,10 +70,61 @@ const MINUTE_MS = 60 * 1000;
 /** 원본 녹음 보관 기간 — PRD §7.8 (90일). 만료 시각 표시용. */
 export const MOCK_RAW_AUDIO_RETENTION_MS = 90 * DAY_MS;
 
+/**
+ * ready 인사 변형 (Stage 4 `S4-F1`, AC-4-120 ⑥ · AC-4-121) — 전부 **아이 이름 없음**.
+ *
+ * - `long` 은 `D4-21` 상한(≤240px @ Semibold 16)을 **393 가용 폭 297 까지** 넘긴다 → 두 폭 모두 말줄임.
+ * - `tight` 는 240 은 넘고 297 은 넘지 않는다 → 393 에서 1줄, **320 에서만** 말줄임.
+ *   (Spec §2.2.3-⑥ 의 `Ready for today's story with Emma?` 271.32px 와 같은 구간 — 이름만 뺐다.)
+ * 둘 다 **제약 위반 입력**이다 — clamp 가 조용히 빠지는 회귀를 잡는 용도다 (Spec §2.2.3-⑧).
+ */
+export const MOCK_READY_BUBBLE_LONG: SessionBubbleCopy = {
+  text: 'Ready for a cozy bedtime story together tonight?',
+  templateId: 'mock-ready-greeting-long',
+};
+export const MOCK_READY_BUBBLE_TIGHT: SessionBubbleCopy = {
+  text: "Ready for today's story with us?",
+  templateId: 'mock-ready-greeting-tight',
+};
+/** 인사 없음 2종 (`D4-22`) — `null` 과 빈 문자열. 제목 줄을 렌더하지 않는다. */
+export const MOCK_READY_BUBBLE_EMPTY: SessionBubbleCopy = {
+  text: '',
+  templateId: 'mock-ready-greeting-empty',
+};
+
+/** 기본 5개 뒤에 붙는 2개 — n=7 (Prompt 개수 상한 없음 `D-21`, 버블은 5개 컷오프). */
+const EXTRA_SESSION_PROMPTS: readonly Prompt[] = [
+  {
+    id: '55555555-5555-4555-8555-00005e5e0005',
+    kind: 'question',
+    text: 'What do you think happens after the last page?',
+    order: 5,
+    phase: 'post',
+    pageRef: null,
+    coachingNote:
+      'Imagining past the ending shows what your child thinks the story was really about. Any answer works; ask what made them think so.',
+  },
+  {
+    id: '55555555-5555-4555-8555-00005e5e0006',
+    kind: 'question',
+    text: 'Which picture would you want to step into?',
+    order: 6,
+    phase: null,
+    pageRef: null,
+    coachingNote:
+      'Choosing a picture is an easy way in for a quiet reader. Let them point first and talk second.',
+  },
+];
+
+/** 세션 Prompt 개수 변형 — `session:prompts-*` (Plan §12). */
+export type SessionPromptCount = 0 | 1 | 3 | 5 | 7;
+
 /** 세션 Prompt — ready 버블 pill 과 Drawer 가 **같은 출처**를 쓴다 (`D4-14`). */
-export function createSessionPromptsFixture(): Prompt[] {
+export function createSessionPromptsFixture(count: SessionPromptCount = 5): Prompt[] {
   // seed 는 uuid 마지막 그룹에 들어가므로 16진수 문자만 쓴다 (`prompt-sets.ts` fixtureId).
-  return createPromptPreviewFixture('5e55');
+  const base = createPromptPreviewFixture('5e55');
+  if (count === 7) return [...base, ...EXTRA_SESSION_PROMPTS];
+  return base.slice(0, count);
 }
 
 /**
@@ -118,6 +178,12 @@ export interface ReadySessionFixtureInput {
   book: BookSummary | null;
   readingContext: SessionSummary['readingContext'];
   readyAt: string;
+  /** 기본 = `MOCK_READY_BUBBLE` (scenario `session-greeting:*` 가 바꾼다). */
+  bubble?: SessionBubbleCopy;
+  /** 기본 = `MOCK_READY_REMINDER_BUBBLE` (scenario `session-greeting:reminder-missing` = `null`). */
+  reminderBubble?: SessionBubbleCopy;
+  /** 기본 = 5 (scenario `session:prompts-*` 가 바꾼다). */
+  promptCount?: SessionPromptCount;
 }
 
 /** 방금 만든 세션 (`POST /v1/sessions` 응답). */
@@ -134,8 +200,10 @@ export function createReadySessionFixture(input: ReadySessionFixtureInput): Sess
     completedReason: null,
     recordedSeconds: 0,
     analysisOutcome: null,
-    prompts: createSessionPromptsFixture(),
-    bubble: MOCK_READY_BUBBLE,
+    prompts: createSessionPromptsFixture(input.promptCount ?? 5),
+    bubble: input.bubble === undefined ? MOCK_READY_BUBBLE : input.bubble,
+    reminderBubble:
+      input.reminderBubble === undefined ? MOCK_READY_REMINDER_BUBBLE : input.reminderBubble,
   });
 }
 
@@ -159,6 +227,7 @@ export function createActiveSessionFixture(clock: Clock): SessionSummary {
     analysisOutcome: null,
     prompts: createSessionPromptsFixture(),
     bubble: MOCK_READY_BUBBLE,
+    reminderBubble: MOCK_READY_REMINDER_BUBBLE,
   });
 }
 
@@ -181,6 +250,7 @@ export function createSessionHistoryFixture(clock: Clock): SessionSummary[] {
       analysisOutcome: 'full',
       prompts: createSessionPromptsFixture(),
       bubble: MOCK_READY_BUBBLE,
+      reminderBubble: MOCK_READY_REMINDER_BUBBLE,
     }),
     SessionSummarySchema.parse({
       id: MOCK_HISTORY_SESSION_IDS[1],
@@ -196,6 +266,7 @@ export function createSessionHistoryFixture(clock: Clock): SessionSummary[] {
       analysisOutcome: null,
       prompts: createSessionPromptsFixture(),
       bubble: MOCK_READY_BUBBLE,
+      reminderBubble: MOCK_READY_REMINDER_BUBBLE,
     }),
   ];
 }

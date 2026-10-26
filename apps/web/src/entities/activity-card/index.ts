@@ -21,6 +21,6 @@ export type { CapabilityBadgeProps } from './CapabilityBadge';
 export { CoachingNote } from './CoachingNote';
 export type { CoachingNoteProps, CoachingNoteTone } from './CoachingNote';
 export { PromptPill } from './PromptPill';
-export type { PromptPillProps, PromptPillTone } from './PromptPill';
+export type { PromptPillDensity, PromptPillProps, PromptPillTone } from './PromptPill';
 export { PromptPreview } from './PromptPreview';
 export type { PromptPreviewProps } from './PromptPreview';

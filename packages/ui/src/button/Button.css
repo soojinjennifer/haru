@@ -61,6 +61,16 @@
   color: var(--color-action-secondary-fg);
 }
 
+/*
+ * Figma `Accent/Secondary` (`285:1228`, Stage 4 세션 `Discard`) — `accent` 와 면 색만 다르다.
+ * provisional: P-25 — 흰 라벨 on gray-2 = 2.211:1 (`D4-16`, 토큰 쪽이 주석을 갖는다).
+ * Hover·Pressed 변형은 Figma 에 없어 만들지 않는다 — 공통 선언을 그대로 쓴다 (`D4-18`).
+ */
+.haru-button--neutral {
+  background-color: var(--color-action-neutral-bg);
+  color: var(--color-action-neutral-fg);
+}
+
 /* backdrop-filter 미지원 · 투명도 축소 환경에서는 불투명 fill 로 대체한다 (§4.3-③). */
 @supports not (backdrop-filter: blur(1px)) {
   .haru-button--glass {

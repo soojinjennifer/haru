@@ -162,6 +162,7 @@ export function createFakeTransitionPort(mode: SessionMode = 'recorded'): FakeTr
           analysisOutcome: null,
           prompts: [],
           bubble: null,
+          reminderBubble: null,
         },
       };
       return Promise.resolve(result);

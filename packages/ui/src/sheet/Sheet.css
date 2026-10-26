@@ -106,6 +106,21 @@
 }
 
 /*
+ * `leading` 슬롯 (`D4-64`, 4b Spec §16.7) — 있을 때만 제목이 남은 폭을 채워 **왼쪽 정렬**을 유지하고
+ * `space-between` 은 trailing 을 오른쪽 끝에 두는 역할만 한다. leading 이 없는 시트는 이 규칙에
+ * 걸리지 않는다(외형 불변).
+ */
+.haru-sheet__leading {
+  display: flex;
+  flex: none;
+}
+
+.haru-sheet__leading + .haru-text {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+/*
  * `R-SHADOW-1` 근거 주석 — 이 `overflow-y: auto` 는 **기존 선언**이다 (Stage 2). 시트 본문이
  * 뷰포트보다 길 때 스크롤해야 하므로 회피할 수 없다 (`R-SHADOW-1` ①).
  */

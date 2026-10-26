@@ -23,12 +23,14 @@
 @import '../entities/book/book-shelf.css';
 @import '../entities/activity-card/activity-card.css';
 @import '../entities/library/library.css';
+@import '../entities/session/session.css';
 @import '../features/auth/auth.css';
 @import '../features/consent/consent.css';
 @import '../features/onboarding-survey/onboarding.css';
 @import '../features/home-overview/home-overview.css';
 @import '../features/activity-card-deck/activity-card-deck.css';
 @import '../features/library/library.css';
+@import '../features/storytime-session/storytime-session.css';
 
 /*
  * 앱 셸 기본값. 값은 전부 semantic token 이며 리터럴 수치를 쓰지 않는다.

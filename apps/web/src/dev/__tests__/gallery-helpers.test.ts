@@ -63,20 +63,22 @@ describe('가값 승인 자료 목록 (Plan §17-3)', () => {
    * 확정됐고 나머지는 토큰으로 만들어지지 않았다 (approvals §26.5 가 §21.5 기록을 정정).
    * 등재 기준은 **`packages/design-tokens` 의 `provisional` 주석** 이다.
    */
-  it('P-01 … P-17 + P-23 + P-24 를 제시한다', () => {
+  it('P-01 … P-17 + P-23 + P-24 + P-25 를 제시한다', () => {
     expect(PROVISIONAL_ITEMS.map((item) => item.id)).toStrictEqual([
       ...Array.from({ length: 17 }, (_, index) => `P-${String(index + 1).padStart(2, '0')}`),
       'P-23',
       'P-24',
+      // Stage 4 `D4-16` — 세션 Discard 흰 라벨 on #aeaeb2 (AC-4-119 ③).
+      'P-25',
     ]);
   });
 
-  it('확정 12건 / 디자이너 대기 7건으로 사용자 결정이 반영되어 있다', () => {
+  it('확정 12건 / 디자이너 대기 8건으로 사용자 결정이 반영되어 있다', () => {
     const waiting = PROVISIONAL_ITEMS.filter((item) => item.status === 'waiting').map(
       (item) => item.id,
     );
     // `P-05` 는 Figma 실측값 채택으로 해제됐다 (`L-NEW-09`), `P-23`·`P-24` 가 새로 들어왔다.
-    expect(waiting).toStrictEqual(['P-01', 'P-02', 'P-04', 'P-16', 'P-17', 'P-23', 'P-24']);
+    expect(waiting).toStrictEqual(['P-01', 'P-02', 'P-04', 'P-16', 'P-17', 'P-23', 'P-24', 'P-25']);
     expect(PROVISIONAL_ITEMS.filter((item) => item.status === 'confirmed')).toHaveLength(12);
   });
 

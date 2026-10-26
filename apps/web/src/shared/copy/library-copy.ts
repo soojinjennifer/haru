@@ -109,10 +109,12 @@ export const libraryCopy = {
     saved: 'Saved',
     saveFailed: "We couldn't save that book. Try again.",
     /**
-     * 주 CTA. **Stage 3 에서는 비활성**이다 (`CONFIRMED (D-3)`, approvals §13.10).
-     * `reason` 이 비어 있는 이유는 Home 과 같다 — "곧 나옵니다" 류를 쓰지 않는다.
+     * 주 CTA — Stage 4 `S4-F1` 에서 **책이 정해진 시트에서 활성**이다 (`D-3` 해제, AC-4-38).
+     * 대상 책이 없는 Shelf 시트에서만 비활성이며, `reason` 이 비어 있는 이유는 Home 과 같다.
      */
     startSession: { label: 'Start Session', reason: null as string | null },
+    /** 세션 생성 실패 (Toast). ⚠️ 문구 승인 대상 — Home 시트와 같은 문장. */
+    startFailed: "We couldn't start the session. Please try again.",
     /*
      * 증정 **신청** CTA 는 없다 (사용자 결정 2026-10-10: 신청 제거, 조회 유지).
      * `requestBook` 문구를 되살리지 않는다 — 조회는 `giftRequestStatusCopy` 와

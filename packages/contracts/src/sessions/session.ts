@@ -79,6 +79,12 @@ export const SessionSummarySchema = z.object({
   /** Prompt 모아보기(FR-11) + ready 버블 pill (`D4-14`·`D4-20`). */
   prompts: z.array(PromptSchema),
   bubble: SessionBubbleCopySchema,
+  /**
+   * ready 5분 리마인드(`D4-46`, 1회) 시 같은 ready 버블의 **제목 줄만** 이 문구로 바꾼다
+   * (`D4-59`, `API_CONTRACTS.md` §3.2.2). 필수 + nullable — `null` 이거나 `text` 가
+   * `null`/빈 문자열이면 리마인드 시각 변화가 없다. 길이 요구는 `bubble` 과 같다(`D4-21`).
+   */
+  reminderBubble: SessionBubbleCopySchema,
 });
 
 export type SessionSummary = z.infer<typeof SessionSummarySchema>;

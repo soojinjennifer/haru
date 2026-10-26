@@ -1,0 +1,47 @@
+/*
+ * entities/session — 세션 ready 버블 (Figma `139:2803`, Stage 4 Design Spec §2.2.1~§2.2.3)
+ *
+ * 실측 `[get_design_context(300:1309)]`
+ *   본체 329 × 269(n=5) · white 90% · radius 22 · drop `0 6 4 ink8%` 1겹 + inset 2겹
+ *   padding 좌우 16 · 위 14 · **아래 13** · 세로 gap 6
+ *   제목 `88:840` Semibold 16 / **22** · 가운데 · 1줄 (`D4-21` clamp)
+ *   tail `88:842` 22.627 컨테이너 · 16 정사각형 `-rotate-45` · radius 3 · 본체 위로 10.627
+ *
+ * 폭 = `min(329px, 100%)` + 가운데 정렬 — Figma x34 의 +2 치우침은 허용 차이 `AD-S4-9` (`D4-49`).
+ * 높이를 선언하지 않는다 (§2.2.3). `R-SHADOW-1`: 버블 안 자식은 drop 0겹이라 inset 불필요 (§10-⑦).
+ */
+
+.haru-session-bubble {
+  display: flex;
+  justify-content: center;
+  inline-size: 100%;
+}
+
+.haru-session-bubble .haru-bubble {
+  inline-size: min(var(--bubble-session-width), 100%);
+  padding-block-end: var(--bubble-session-pad-block-end);
+  /* 세션 tail — Home(`50:174`, skew) 기하가 아니라 정45° 정사각형이다 (`T-8`) */
+  --bubble-tail-inline-size: var(--bubble-tail-session-size);
+  --bubble-tail-block-size: var(--bubble-tail-session-size);
+  --bubble-tail-shape-size: var(--bubble-tail-session-shape);
+  --bubble-tail-rotate: var(--bubble-tail-session-rotate);
+  --bubble-tail-skew: var(--bubble-tail-session-skew);
+  --bubble-tail-overhang: var(--bubble-tail-session-overhang);
+}
+
+/* 제목 줄 — Figma 16/22. 1줄 clamp 는 `Text truncate={1}` 가 한다 (표시 처리 — 문구 가공 아님). */
+.haru-session-bubble .haru-bubble__content > .haru-text {
+  line-height: var(--bubble-session-title-line);
+}
+
+.haru-session-bubble__prompts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  /* 제목은 가운데(`align="center"`)지만 pill 본문은 Figma `139:2763` 처럼 **시작 정렬**이다 —
+     버블의 `text-align: center` 상속을 끊는다. */
+  text-align: start;
+}

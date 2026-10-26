@@ -1,0 +1,111 @@
+/*
+ * features/storytime-session — 세션 화면 ready (Figma `300:1309`, Stage 4 Design Spec §2.2.0 · §2.3,
+ * 4b Spec §2.1 · §2.4). Web y = Figma y − 56 (상태바는 OS 영역 — safe-area 가 맡는다).
+ *
+ * | Figma y | 요소 | 구현 |
+ * |---|---|---|
+ * | 66  | 닫기 38 @ x331 | 상단 줄 padding-top `--session-top-row-offset`(10) · 우 gutter 24 |
+ * | 132 | 메달리온 링 190 / 아바타 174 | 상태바 아래 `--session-medallion-offset`(76) |
+ * | 327 | 버블 tail 꼭짓점 | ring bottom + `--session-bubble-offset`(5) + overhang 10.627 → 본체 337.627 |
+ * | 621 | Record Control 150 | **아래에 앵커** — 바 위 18 |
+ * | 789 | 하단 바 279×45 | 프레임 아래 18 (+ safe-area 는 `AppColumn` 이 더한다) |
+ *
+ * 위 묶음과 아래 묶음 사이는 **유연 간격**이다 (버블 높이가 내용 가변 — §2.2.3). 393×852 브라우저
+ * 뷰포트는 Figma 콘텐츠 796 보다 56 길어 그 차이가 유연 간격에 들어간다.
+ *
+ * `R-SHADOW-1`: 이 화면은 `overflow` 를 새로 선언하지 않는다. 클립 선은 `AppShell scroll="none"` 의
+ * 뷰포트(= 화면 가장자리)뿐이다 — 바 그림자 아래 번짐(산술 40)은 화면 밖으로 나가 보이지 않는다
+ * (§2.3.7 · `e2e/shadow.spec.ts` 세션 케이스가 양축을 잰다).
+ */
+
+.haru-session {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-block-size: 0;
+}
+
+.haru-session--pending,
+.haru-session--error {
+  align-items: center;
+  justify-content: center;
+}
+
+.haru-session__top-row {
+  display: flex;
+  flex: none;
+  justify-content: flex-end;
+  padding-block-start: var(--session-top-row-offset);
+}
+
+/*
+ * 닫기 X = HARU 전용 15×15 글리프 (Figma `29:77` = `300:1319`, 4b Spec §16.4 · `VG-F1-01`).
+ * Icon 의 16/20/24 밖이라 사용 지점이 T-30 박스를 준다. IconButton 아이콘 칸(20)은 그대로 두고
+ * 가운데에 놓인다.
+ */
+.haru-session__top-row .haru-icon {
+  inline-size: var(--icon-button-icon-size-close);
+  block-size: var(--icon-button-icon-size-close);
+}
+
+.haru-session__medallion {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  align-self: center;
+  inline-size: var(--session-medallion-ring-size);
+  block-size: var(--session-medallion-ring-size);
+  /* 상태바 → ring top 76 = 상단 줄(10 + 38) 뒤 28 */
+  margin-block-start: calc(
+    var(--session-medallion-offset) - var(--session-top-row-offset) - var(--icon-button-size)
+  );
+}
+
+/* Figma `28:73` — white 50% + drop 1겹 + inset 2겹 (`--shadow-bubble`, `V-10`) */
+.haru-session__medallion-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-color: var(--color-surface-medallion-ring);
+  box-shadow: var(--shadow-bubble);
+}
+
+.haru-session__medallion .haru-character-medallion {
+  position: relative;
+}
+
+.haru-session__stage {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-block-size: 0;
+  /* ring bottom → tail 꼭짓점 5, 꼭짓점 → 본체 top 은 tail 돌출만큼 */
+  padding-block-start: calc(var(--session-bubble-offset) + var(--bubble-tail-session-overhang));
+}
+
+.haru-session__controls {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--session-bottom-gap);
+  padding-block-end: var(--session-bottom-gap);
+}
+
+/*
+ * 하단 바 — 135 + 9 + 135 = 279, **열 가운데** (`D4-19`, `AD-S4-5`). 320px 컬럼(272)에서는 버튼이
+ * 같이 줄어 각 131.5 가 된다 (`AD-S4-10`). Figma 에 `overflow` 선언이 없다 — 새로 만들지 않는다.
+ */
+.haru-session-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--session-action-bar-gap);
+  inline-size: min(var(--session-action-bar-width), 100%);
+}
+
+.haru-session-actions .haru-button {
+  flex: 1 1 var(--session-action-button-width);
+  min-inline-size: 0;
+  max-inline-size: var(--session-action-button-width);
+}

@@ -54,6 +54,15 @@
     inset 0 1.5px 0 var(--haru-white-a90),
     inset 0 -1px 0 color-mix(in srgb, var(--haru-ink-600) 5%, transparent);
 
+  /*
+   * Record Control 코어 — Figma `139:2837` (Stage 4 Design Spec `T-3`).
+   * drop **1겹** `0 12 28 ink16%` + inset `0 2 white55%`. SVG 164×164(노드 108)의 filter 역산으로
+   * 1겹이 확정됐다 (좌우 28 · 위 16 · 아래 40). white 55% 는 Primitive 알파에 없어 합성한다 (`T-2`).
+   */
+  --shadow-record-core:
+    0 12px 28px color-mix(in srgb, var(--haru-ink-600) 16%, transparent),
+    inset 0 2px 0 color-mix(in srgb, var(--haru-white) 55%, transparent);
+
   /* 책 표지 — Figma `163:2649` `85:536` (drop 0 6px 14px 28% + inset highlight 50%) */
   --shadow-cover:
     0 6px 14px color-mix(in srgb, var(--haru-ink-600) 28%, transparent),

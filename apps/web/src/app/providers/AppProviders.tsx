@@ -9,6 +9,7 @@ import { ToastProvider } from '@haru/ui';
 import type { QueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 
+import type { SessionRecorderEnvironment } from '../../entities/session';
 import type { ApiClients } from '../../shared/api/types';
 import type { AuthGateway } from '../../shared/auth';
 import type { PushPermissionPort } from '../../shared/platform/push-permission';
@@ -23,6 +24,8 @@ export interface AppProvidersProps {
   authGateway?: AuthGateway | undefined;
   /** 테스트 · dev gallery 전용 주입 지점 (push 권한 포트). */
   pushPermission?: PushPermissionPort | undefined;
+  /** 테스트 전용 주입 지점 (녹음 상태 머신 조립 — Stage 4 `S4-F1`). */
+  sessionRecorder?: SessionRecorderEnvironment | undefined;
   queryClient?: QueryClient | undefined;
   /** Adapter 준비 전 표시할 내용. */
   fallback?: ReactNode;
@@ -33,6 +36,7 @@ export function AppProviders({
   clients,
   authGateway,
   pushPermission,
+  sessionRecorder,
   queryClient,
   fallback,
 }: AppProvidersProps) {
@@ -42,6 +46,7 @@ export function AppProviders({
         clients={clients}
         authGateway={authGateway}
         pushPermission={pushPermission}
+        sessionRecorder={sessionRecorder}
         fallback={fallback}
       >
         {/* Toast 는 화면 위에 하나만 뜬다 (§4.12). 앱 조립 지점에서 한 번 마운트한다. */}

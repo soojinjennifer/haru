@@ -64,6 +64,14 @@
   --haru-white-a74: rgb(255 255 255 / 0.74);
   --haru-white-a50: rgb(255 255 255 / 0.5);
 
+  /* --- Gray (Stage 4 — `D4-16`, Design Spec `T-13`) ------------------------ */
+  /*
+   * Figma 변수 `grays/gray-2` (= iOS systemGray2). 세션 하단 바 `Discard` 면(`285:1228`).
+   * ink 계열(녹색조)로 흡수하지 않는다 — 중성 보라조이고 역할(버튼 면)도 다르다 (`R-FIGMA-1` ③).
+   * HARU palette 밖의 값이므로 Semantic 쪽이 가값 `P-25` 주석을 갖는다.
+   */
+  --haru-gray-2: #aeaeb2;
+
   /* --- Neutral surfaces ---------------------------------------------------- */
   --haru-mist-50: #edf3f1;
   --haru-mist-100: #dbeee7;

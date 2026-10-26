@@ -24,6 +24,14 @@
   margin-block-start: var(--space-2);
 }
 
+/*
+ * `legendVisuallyHidden` (`D4-63`) — legend 가 화면에서 빠지면 그 뒤 간격(8)도 함께 뺀다.
+ * 새 간격 값은 만들지 않는다 — 시트 기본 gap 이 제목 ↔ 첫 선택지 간격이 된다 (4b Spec §16.6).
+ */
+.haru-radio-group--legend-hidden .haru-radio-group__options {
+  margin-block-start: 0;
+}
+
 .haru-radio-group__option {
   display: flex;
   align-items: center;

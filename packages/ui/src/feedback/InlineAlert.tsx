@@ -35,6 +35,12 @@ export interface InlineAlertProps {
   onDismiss?: () => void;
   /** 닫기 버튼 접근성 이름 — `onDismiss` 와 함께 준다. */
   dismissLabel?: string;
+  /**
+   * 제목 요소의 `id` (선택). 다른 요소가 `aria-describedby` 로 **배너 문구를 사유로** 가리킬 때
+   * 쓴다 — 예: 오프라인 캐시 상태의 비활성 `Start Session` (`D4-39`, AC-4-123 ③).
+   * 주지 않으면 제목에 `id` 를 붙이지 않는다 (기존 호출의 DOM 은 그대로다).
+   */
+  titleId?: string;
 }
 
 /**
@@ -52,6 +58,7 @@ export function InlineAlert({
   action,
   onDismiss,
   dismissLabel,
+  titleId,
 }: InlineAlertProps) {
   const role = tone === 'error' || tone === 'warning' ? 'alert' : 'status';
 
@@ -65,7 +72,7 @@ export function InlineAlert({
         {icon ?? <Icon name={TONE_ICON[tone]} size="md" decorative />}
       </span>
       <div className="haru-alert__body">
-        <Text variant="subheadline" weight="semibold">
+        <Text variant="subheadline" weight="semibold" id={titleId}>
           {title}
         </Text>
         {description === undefined ? null : <Text variant="footnote">{description}</Text>}

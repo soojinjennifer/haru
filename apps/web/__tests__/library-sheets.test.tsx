@@ -10,7 +10,7 @@
  *   ④ 캐러셀 항목 · Book List 행 · `Reading now` 카드 탭 → `BookDetailSheet`, 닫으면 시트 0개
  *   ⑤ `BookDetailSheet` 가 `GET /v1/books/:bookId/prompts` 를 **1회** 부르고 서버 Prompt 를 그린다
  *   ⑥ `★ Save` 는 즉시 `Saved` 가 되고 `PUT …/saved-books` 뒤 **overview 를 재조회**한다 (`P3-BIP-15`)
- *   ⑦ `Start Session` 은 두 시트에서 모두 `aria-disabled` 다 (`D-3`)
+ *   ⑦ `Start Session` 은 Shelf 시트에서만 `aria-disabled` 다 — 상세 시트는 활성 (Stage 4 `S4-F1`, `D-3` 해제)
  *   ⑧ 카탈로그에 없는 책은 Prompt 를 **조회하지 않는다** (`bookId` 가 없다)
  *   ⑨ 증정(FR-22) — **신청 CTA 부재**(사용자 결정 2026-10-10) · `POST …/gift-requests` 미발생
  *   ⑩ Shelf 시트의 Loading / Empty / Error(+Retry)
@@ -256,7 +256,7 @@ describe('`BookDetailSheet` — 책별 Prompt 보기 (FR-20, §3.8)', () => {
     });
   });
 
-  it('`Start Session` 이 `aria-disabled` 다 (`D-3`)', async () => {
+  it('`Start Session` 이 활성이다 (Stage 4 `S4-F1` — `D-3` 해제, AC-4-38)', async () => {
     await renderLibrary();
 
     fireEvent.click(document.querySelector('.haru-shelf-item--pressable') as HTMLElement);
@@ -268,7 +268,7 @@ describe('`BookDetailSheet` — 책별 Prompt 보기 (FR-20, §3.8)', () => {
       within(dialog())
         .getByRole('button', { name: libraryCopy.bookSheet.startSession.label })
         .getAttribute('aria-disabled'),
-    ).toBe('true');
+    ).toBeNull();
   });
 
   it('카탈로그에 없는 책은 Prompt 를 **조회하지 않는다**', async () => {
@@ -541,10 +541,8 @@ describe('`BookDetailSheet` 뒤집기 — 코칭 노트 (2라운드-3)', () => {
     expect(bar().getAttribute('data-hidden')).toBe('false');
     expect(bar().hasAttribute('inert')).toBe(false);
     expect(
-      screen
-        .getByRole('button', { name: libraryCopy.bookSheet.startSession.label })
-        .getAttribute('aria-disabled'),
-    ).toBe('true');
+      screen.getByRole('button', { name: libraryCopy.bookSheet.startSession.label }),
+    ).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: libraryCopy.bookSheet.showNotes }));
     await waitFor(() => {
@@ -567,10 +565,8 @@ describe('`BookDetailSheet` 뒤집기 — 코칭 노트 (2라운드-3)', () => {
     });
     expect(bar().getAttribute('data-hidden')).toBe('false');
     expect(
-      screen
-        .getByRole('button', { name: libraryCopy.bookSheet.startSession.label })
-        .getAttribute('aria-disabled'),
-    ).toBe('true');
+      screen.getByRole('button', { name: libraryCopy.bookSheet.startSession.label }),
+    ).toBeTruthy();
   });
 
   it('뒷면에서도 닫기는 살아 있다 (헤더는 뒤집히지 않는다)', async () => {

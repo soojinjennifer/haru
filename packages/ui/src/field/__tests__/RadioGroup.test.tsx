@@ -123,3 +123,39 @@ describe('RadioGroup', () => {
     expect(screen.getByRole('alert').textContent).toBe('Choose one option.');
   });
 });
+
+describe('RadioGroup legendVisuallyHidden (D4-63)', () => {
+  it('keeps the group name for assistive tech but hides the legend visually', () => {
+    const { container } = render(
+      <RadioGroup
+        legend="When will you read?"
+        legendVisuallyHidden
+        options={options}
+        value={null}
+        onChange={() => {}}
+        name="q-hidden"
+      />,
+    );
+
+    expect(screen.getByRole('group', { name: 'When will you read?' })).toBeTruthy();
+    const legend = container.querySelector('legend');
+    expect(legend?.classList.contains('haru-visually-hidden')).toBe(true);
+    expect(legend?.getAttribute('aria-hidden')).toBeNull();
+    expect(container.firstElementChild?.classList.contains('haru-radio-group--legend-hidden')).toBe(
+      true,
+    );
+  });
+
+  it('is opt-in — the default legend stays visible', () => {
+    const { container } = render(
+      <RadioGroup legend="Q" options={options} value={null} onChange={() => {}} name="q-shown" />,
+    );
+
+    expect(container.querySelector('legend')?.classList.contains('haru-visually-hidden')).toBe(
+      false,
+    );
+    expect(container.firstElementChild?.classList.contains('haru-radio-group--legend-hidden')).toBe(
+      false,
+    );
+  });
+});

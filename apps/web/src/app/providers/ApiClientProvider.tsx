@@ -13,8 +13,12 @@
  */
 import { useEffect, useState, type ReactNode } from 'react';
 
+import { SessionRecorderProvider, type SessionRecorderEnvironment } from '../../entities/session';
 import { ApiClientsProvider } from '../../shared/api/context';
 import type { ApiClients } from '../../shared/api/types';
+import { createSystemClock } from '../../shared/lib/clock';
+import { createSystemScheduler } from '../../shared/lib/scheduler';
+import { wipeWebRecordingStorage } from '../../shared/platform/recording-storage';
 import { createUnavailableAuthGateway, type AuthGateway } from '../../shared/auth';
 import { errorName, logger } from '../../shared/lib/logger';
 import {
@@ -23,8 +27,9 @@ import {
   type PushPermissionPort,
 } from '../../shared/platform/push-permission';
 
-import { resolveAdapters, type AppAdapters } from './apiClients';
+import { createWebRecordingPlatform, resolveAdapters, type AppAdapters } from './apiClients';
 import { AuthProvider } from './AuthProvider';
+import { createSessionRecorderEnvironment } from './sessionRecorderEnvironment';
 
 export interface ApiClientProviderProps {
   children: ReactNode;
@@ -34,6 +39,11 @@ export interface ApiClientProviderProps {
   authGateway?: AuthGateway | undefined;
   /** 주입된 push 권한 포트. `clients` 만 주입하면 Web 구현이 들어간다 (jsdom = `unsupported`). */
   pushPermission?: PushPermissionPort | undefined;
+  /**
+   * 주입된 녹음 조립 (테스트 전용). `clients` 만 주입하면 그 clients + **Web** 플랫폼으로 만든다 —
+   * 런타임은 세션 화면이 처음 쓸 때 열리므로 세션을 다루지 않는 테스트는 브라우저 저장소를 열지 않는다.
+   */
+  sessionRecorder?: SessionRecorderEnvironment | undefined;
   /** Adapter 준비 전에 보여줄 내용. */
   fallback?: ReactNode;
 }
@@ -43,6 +53,7 @@ export function ApiClientProvider({
   clients,
   authGateway,
   pushPermission,
+  sessionRecorder,
   fallback = null,
 }: ApiClientProviderProps) {
   const [loaded, setLoaded] = useState<AppAdapters | null>(null);
@@ -52,13 +63,30 @@ export function ApiClientProvider({
   const [injectedPush] = useState<PushPermissionPort>(
     () => pushPermission ?? createWebPushPermissionPort(),
   );
-  const resolved: AppAdapters | null =
+  const [injectedRecorder] = useState<SessionRecorderEnvironment | null>(() =>
     clients === undefined
+      ? null
+      : (sessionRecorder ??
+        createSessionRecorderEnvironment({
+          clients,
+          clock: createSystemClock(),
+          scheduler: createSystemScheduler(),
+          platform: createWebRecordingPlatform,
+          wipeDevice: wipeWebRecordingStorage,
+        })),
+  );
+  const resolved:
+    | (Omit<AppAdapters, 'sessionRecorder'> & {
+        sessionRecorder: SessionRecorderEnvironment;
+      })
+    | null =
+    clients === undefined || injectedRecorder === null
       ? loaded
       : {
           clients,
           authGateway: authGateway ?? createUnavailableAuthGateway(),
           pushPermission: pushPermission ?? injectedPush,
+          sessionRecorder: sessionRecorder ?? injectedRecorder,
         };
 
   useEffect(() => {
@@ -89,7 +117,9 @@ export function ApiClientProvider({
   return (
     <ApiClientsProvider clients={resolved.clients}>
       <PushPermissionProvider port={resolved.pushPermission}>
-        <AuthProvider gateway={resolved.authGateway}>{children}</AuthProvider>
+        <SessionRecorderProvider environment={resolved.sessionRecorder}>
+          <AuthProvider gateway={resolved.authGateway}>{children}</AuthProvider>
+        </SessionRecorderProvider>
       </PushPermissionProvider>
     </ApiClientsProvider>
   );

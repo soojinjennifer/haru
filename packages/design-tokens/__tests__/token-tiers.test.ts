@@ -19,13 +19,14 @@ const components = tokens.filter((d) => d.tier === 'component');
 
 describe('Tier 1 — Primitive (Design Spec §3.1)', () => {
   /*
-   * 33 = 30 + `--haru-white-a82` + `--haru-white-a85` + **`--haru-palette-yellow-700`**.
+   * 34 = 30 + `--haru-white-a82` + `--haru-white-a85` + **`--haru-palette-yellow-700`**
+   *      + **`--haru-gray-2`** (Stage 4 `D4-16` · 가값 `P-25` — Semantic 쪽이 주석을 갖는다).
    * 마지막 1종은 칩 아이콘 대비 교정(사용자 결정 2026-10-10 ②)에서 추가됐다 — Figma palette
    * 밖의 값이므로 허용 차이 등록 대상이고, 그래서 **개수가 늘면 눈에 걸리도록** 여기서 센다.
    */
-  it('palette 색 33개 + status 8개 — 30 + white a82 · a85 + yellow-700', () => {
+  it('palette 색 34개 + status 8개 — 30 + white a82 · a85 + yellow-700 + gray-2', () => {
     const colors = primitives.filter((d) => d.file === 'src/primitive/color.css');
-    expect(colors.filter((d) => !d.name.startsWith('--haru-status-'))).toHaveLength(33);
+    expect(colors.filter((d) => !d.name.startsWith('--haru-status-'))).toHaveLength(34);
     expect(colors.filter((d) => d.name.startsWith('--haru-status-'))).toHaveLength(8);
   });
 
@@ -54,9 +55,21 @@ describe('Tier 1 — Primitive (Design Spec §3.1)', () => {
 });
 
 describe('Tier 2 — Semantic (Design Spec §3.2)', () => {
-  it('semantic color 가 73개다 — 67 + Home 재구현 5 + 칩 아이콘 1 (--gradient-app 제외)', () => {
+  it('semantic color 가 76개다 — 67 + Home 재구현 5 + 칩 아이콘 1 + 세션 neutral 2 + 메달리온 링 1 (--gradient-app 제외)', () => {
     const colors = semantics.filter((d) => d.name.startsWith('--color-'));
-    expect(colors).toHaveLength(73);
+    expect(colors).toHaveLength(76);
+  });
+
+  /*
+   * Stage 4 `D4-16` (Design Spec `T-13`) — 이름이 `--color-action-secondary-*` 가 **아니다**.
+   * 그 이름은 `glass` Button 면·라벨(가값 `P-11`)이며 값이 바뀌면 안 된다 (AC-4-119 ⓐ).
+   */
+  it('세션 Discard 면이 gray-2 Primitive 를 거치고 glass Button 토큰은 그대로다 (AC-4-119)', () => {
+    expect(byName.get('--haru-gray-2')?.value).toBe('#aeaeb2');
+    expect(byName.get('--color-action-neutral-bg')?.value).toBe('var(--haru-gray-2)');
+    expect(byName.get('--color-action-neutral-fg')?.value).toBe('var(--haru-white)');
+    expect(byName.get('--color-action-secondary-bg')?.value).toBe('var(--color-surface-glass)');
+    expect(byName.get('--color-action-secondary-fg')?.value).toBe('var(--haru-ink-600)');
   });
 
   /*
@@ -227,7 +240,15 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
    *        값이다. `--shadow-cover` 는 offset-y `+6` 이라 번짐이 비대칭이고(위 **8** · 아래
    *        **20** · 좌우 **14**, 전부 픽셀 프로브 실측) 위쪽만 본문 클립 선에 걸린다.
    */
-  it('Tier 3 토큰 152개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset + Library 1라운드 + 표지 그림자 자리)', () => {
+  /*
+   * Stage 4 `S4-F1`(세션 `ready`)에서 **31종 추가** → 183.
+   *  RecordControl 11 · 세션 버블 8 · 세션 pill 밀도 4 · 하단 바 3 · 세로 배치 5
+   *  (Stage 4 Design Spec §5.2 `T-6`·`T-8`·`T-9`·`T-10`·`T-12`·`T-14` + 4b Spec `T-21`).
+   *
+   * Stage 4b `S4-F1R` 에서 **2종 추가** → 185 (4b Spec §5.3).
+   *  `--icon-button-fg` (T-29, `D4-62` glass 글리프 색) · `--icon-button-icon-size-close` (T-30, `VG-F1-01`).
+   */
+  it('Tier 3 토큰 185개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset + Library 1라운드 + 표지 그림자 자리 + 세션 ready + S4-F1R)', () => {
     expect(components.map((d) => d.name).sort()).toEqual(
       [
         '--button-height-md',
@@ -240,6 +261,8 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
         '--icon-button-size',
         '--icon-button-icon-size',
         '--icon-button-hit-size',
+        '--icon-button-fg',
+        '--icon-button-icon-size-close',
         '--topbar-height',
         '--topbar-gap',
         '--topbar-pill-height',
@@ -382,6 +405,37 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
         '--dialog-radius',
         '--toast-radius',
         '--skeleton-radius',
+        '--record-size',
+        '--record-ring-mid-size',
+        '--record-core-size',
+        '--record-icon-size',
+        '--record-stroke',
+        '--record-ring-opacity-outer',
+        '--record-ring-opacity-inner',
+        '--record-label-size',
+        '--record-icon-offset-labeled',
+        '--record-pulse-opacity',
+        '--record-pulse-scale',
+        '--bubble-session-width',
+        '--bubble-session-pad-block-end',
+        '--bubble-session-title-line',
+        '--bubble-tail-session-size',
+        '--bubble-tail-session-shape',
+        '--bubble-tail-session-rotate',
+        '--bubble-tail-session-skew',
+        '--bubble-tail-session-overhang',
+        '--prompt-pill-session-height-min',
+        '--prompt-pill-session-pad-block',
+        '--prompt-pill-session-pad-inline',
+        '--prompt-pill-session-tag-gap',
+        '--session-action-bar-gap',
+        '--session-action-button-width',
+        '--session-action-bar-width',
+        '--session-top-row-offset',
+        '--session-medallion-offset',
+        '--session-medallion-ring-size',
+        '--session-bubble-offset',
+        '--session-bottom-gap',
       ].sort(),
     );
   });

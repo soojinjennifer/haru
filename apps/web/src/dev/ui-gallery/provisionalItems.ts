@@ -171,7 +171,7 @@ export const PROVISIONAL_ITEMS: readonly ProvisionalItem[] = [
   /*
     Home 라운드 신규 — Library 범위 밖이라 1라운드가 등재하지 않았다 (`S3-PROV-2` · `QA-3-006`).
     `P-18`~`P-22` 는 **토큰 자체가 없어 등재 대상이 아니다** (approvals §26.5 — `P-20` 은
-    `--toggle-*` 확정, 나머지는 미생성). 활성 가값은 `P-01 · P-02 · P-04 · P-16 · P-23 · P-24` 다
+    `--toggle-*` 확정, 나머지는 미생성). 활성 가값은 `P-01 · P-02 · P-04 · P-16 · P-23 · P-24 · P-25` 다
     (`packages/design-tokens/__tests__/fonts.test.ts` 가 그 목록을 고정한다).
   */
   {
@@ -191,5 +191,18 @@ export const PROVISIONAL_ITEMS: readonly ProvisionalItem[] = [
     status: 'waiting',
     decision:
       '디자이너 확인 요청 — 대비 1.56–2.30:1 (AA 4.5 및 대형 텍스트 3.0 모두 미달, chevron 비텍스트 3.0 미달 포함). P-01 과 다른 사례 (stage-3-approvals §20.4)',
+  },
+  /*
+    Stage 4 신설 — `D4-16` (stage-4-approvals §5). 세션 하단 바 `Discard`(Figma `285:1228`
+    `Accent/Secondary`). **`D-01` 범위 확장이 아니다** (D-01 은 teal 면 한정).
+  */
+  {
+    id: 'P-25',
+    title: '세션 Discard 면·라벨 --color-action-neutral-bg / -fg (gray-2 위 흰 라벨)',
+    adopted: 'Figma 그대로 — grays/gray-2 면 + 흰 라벨',
+    where: '/session/:id 하단 바 Discard (Button variant="neutral")',
+    status: 'waiting',
+    decision:
+      '디자이너 대기 — 대비 2.211:1 (AA 4.5 미달). Figma 그대로 구현하고 가값으로 등록 (stage-4-approvals §5 · D4-16)',
   },
 ];

@@ -111,3 +111,38 @@ describe('Button / IconButton loading indicator (S1-D1-3)', () => {
     expect(screen.getByText('Save')).toBeTruthy();
   });
 });
+
+/*
+ * Stage 4 Design Spec §2.3.4 — `neutral` = Figma `Accent/Secondary` (`285:1228`, 세션 `Discard`).
+ * 면 `--color-action-neutral-bg`(gray-2) · 라벨 `--color-action-neutral-fg`(white). disabled 는
+ * variant 와 무관한 공통 `opacity` 선언을 그대로 받는다 (`D4-18`).
+ */
+describe('Button neutral variant (D4-16 · D4-18)', () => {
+  it('renders the neutral class and keeps aria-disabled focusable', () => {
+    const onPress = vi.fn();
+    render(
+      <Button variant="neutral" aria-disabled onPress={onPress}>
+        Discard
+      </Button>,
+    );
+    const button = screen.getByRole('button', { name: 'Discard' });
+    expect(button.className).toContain('haru-button--neutral');
+    expect(button.hasAttribute('disabled')).toBe(false);
+    fireEvent.click(button);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('neutral CSS uses the neutral action tokens only (no extra disabled rule)', async () => {
+    const { readFileSync } = await import('node:fs');
+    const path = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const css = readFileSync(
+      path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'Button.css'),
+      'utf8',
+    );
+    const block = /\.haru-button--neutral \{([^}]*)\}/.exec(css)?.[1] ?? '';
+    expect(block).toContain('background-color: var(--color-action-neutral-bg);');
+    expect(block).toContain('color: var(--color-action-neutral-fg);');
+    expect(css).not.toMatch(/\.haru-button--neutral[^{]*(disabled|aria-disabled)/);
+  });
+});

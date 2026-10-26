@@ -68,6 +68,12 @@ export const ROUTES = {
   /** `2-HOME` 가 화면을 등록한다. */
   settings: '/settings',
 
+  /**
+   * Stage 4 세션 화면 (Plan §9.1 · Figma `300:1309`) — 탭이 아니라 **Fullscreen** 이다 (탭바 없음).
+   * 경로를 만들 때는 `sessionPath(id)` 를 쓴다 (문자열을 흩어 조립하지 않는다).
+   */
+  session: '/session/:sessionId',
+
   notFound: '*',
 } as const;
 
@@ -88,4 +94,9 @@ export type OnboardingStepSlug = (typeof ONBOARDING_STEP_SLUGS)[number];
 /** `/onboarding/child-info` 형태의 경로를 만든다. */
 export function onboardingStepPath(slug: OnboardingStepSlug): string {
   return `${ROUTES.onboarding.intro}/${slug}`;
+}
+
+/** `/session/:sessionId` 의 실제 경로. */
+export function sessionPath(sessionId: string): string {
+  return ROUTES.session.replace(':sessionId', encodeURIComponent(sessionId));
 }

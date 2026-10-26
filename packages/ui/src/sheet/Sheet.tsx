@@ -42,6 +42,11 @@ export interface SheetProps {
    * 전환하지 않는다).
    */
   surface?: SheetSurface | undefined;
+  /**
+   * 헤더 **왼쪽** 슬롯 (뒤로 IconButton 등 — `D4-64`, 4b Spec §16.7). `[leading] [title] … [trailing]`.
+   * 주지 않으면 렌더 0 — 기존 시트의 DOM·외형은 그대로다 (`trailing` 과 대칭).
+   */
+  leading?: ReactNode;
   /** 헤더 우측 슬롯 (닫기 IconButton 등). */
   trailing?: ReactNode;
   /**
@@ -88,6 +93,7 @@ export function Sheet({
   children,
   variant = 'bottom',
   surface,
+  leading,
   trailing,
   footer,
   initialFocus,
@@ -125,6 +131,7 @@ export function Sheet({
           <span className="haru-sheet__grabber" aria-hidden="true" />
         )}
         <div className="haru-sheet__header">
+          {leading === undefined ? null : <div className="haru-sheet__leading">{leading}</div>}
           <Text as="h2" id={titleId} variant="headline" tone="primary">
             {title}
           </Text>

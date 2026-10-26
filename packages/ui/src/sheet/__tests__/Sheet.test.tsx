@@ -231,4 +231,25 @@ describe('Sheet — 면 색(`surface`) · 표지 그림자 자리(`contentShadow
     );
     expect(document.querySelector('.haru-sheet__content--shadow-inset-cover')).toBeNull();
   });
+
+  it('renders a leading header slot before the title only when given (D4-64)', () => {
+    const { unmount } = render(
+      <Sheet open onClose={() => {}} title="Time" leading={<button type="button">Back</button>}>
+        <p>body</p>
+      </Sheet>,
+    );
+    const header = document.querySelector('.haru-sheet__header');
+    const children = [...(header?.children ?? [])];
+    expect(children[0]?.className).toBe('haru-sheet__leading');
+    expect(children[0]?.textContent).toBe('Back');
+    expect(children[1]?.tagName).toBe('H2');
+    unmount();
+
+    render(
+      <Sheet open onClose={() => {}} title="Prompts">
+        <p>body</p>
+      </Sheet>,
+    );
+    expect(document.querySelector('.haru-sheet__leading')).toBeNull();
+  });
 });

@@ -17,6 +17,7 @@
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { useState } from 'react';
 
+import { useOptionalSessionRecorderEnvironment } from '../../../entities/session';
 import { useAuth } from '../../../shared/auth';
 import {
   createActivityCardCache,
@@ -39,8 +40,9 @@ export interface UseSignOutOptions {
   activityCardCache?: ActivityCardCache | undefined;
   clock?: Clock | undefined;
   /**
-   * 로컬 녹음 정리 (AC-4-72). 주지 않으면 이 기기의 Web 녹음 저장소(IndexedDB + OPFS)를 지운다.
-   * 녹음 런타임이 조립되면(`S4-F`) 조립 지점이 `RecordingRuntime.clearAll` 을 넘긴다 — 메모리 상태까지 비운다.
+   * 로컬 녹음 정리 (AC-4-72). 주지 않으면 **조립 지점의 녹음 런타임 정리**(`S4-F1` — 메모리 큐·outbox +
+   * 기기 저장소, `S4-E` handoff E-8 ②)를 쓰고, 조립이 없는 트리(테스트)에서는 이 기기의 Web 녹음
+   * 저장소(IndexedDB + OPFS)를 지운다.
    */
   clearLocalRecordings?: (() => Promise<void>) | undefined;
 }
@@ -48,6 +50,7 @@ export interface UseSignOutOptions {
 export function useSignOut(options: UseSignOutOptions = {}): SignOutMutation {
   const { gateway } = useAuth();
   const queryClient = useQueryClient();
+  const recorderEnvironment = useOptionalSessionRecorderEnvironment();
 
   // 저장소는 마운트 동안 변하지 않는 싱글턴이다 (렌더 중 ref 를 읽지 않기 위해 lazy state).
   const [clock] = useState<Clock>(() => options.clock ?? createSystemClock());
@@ -68,7 +71,11 @@ export function useSignOut(options: UseSignOutOptions = {}): SignOutMutation {
         clearActivityCardCache: () => {
           activityCardCache.clear();
         },
-        clearLocalRecordings: options.clearLocalRecordings ?? wipeWebRecordingStorage,
+        clearLocalRecordings:
+          options.clearLocalRecordings ??
+          (recorderEnvironment === null
+            ? wipeWebRecordingStorage
+            : () => recorderEnvironment.clearLocalRecordings()),
         clearQueryCache: () => {
           queryClient.clear();
         },

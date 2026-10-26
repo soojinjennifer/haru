@@ -321,6 +321,20 @@
 }
 
 /*
+ * 세션 밀도 (Stage 4 Design Spec §2.2.1 · `T-14`, Figma `139:2763`) — 38 / py 8 / px 12 / gap 8.
+ * 면은 `#dbeee7`(`--color-surface-tinted`) **+** 1px `#5e73702e` 테두리를 함께 쓴다. 테두리는
+ * `--outline` 의 inset 그림자 그대로다(`V-1`·`V-2` — 높이에 2px 를 더하지 않는다).
+ * 카드 밀도(42)를 쓰면 5개 누적 289 → Record Control(y621) 5.6px 침범이다 (§2.2.3-③).
+ */
+.haru-prompt-pill--session {
+  gap: var(--prompt-pill-session-tag-gap);
+  min-block-size: var(--prompt-pill-session-height-min);
+  padding-inline: var(--prompt-pill-session-pad-inline);
+  padding-block: var(--prompt-pill-session-pad-block);
+  background-color: var(--color-surface-tinted);
+}
+
+/*
  * 단계·페이지 배지 (§5.4.1) — 배지는 **첫 줄에 세로 정렬**하고 줄어들지 않는다.
  * 질문이 2줄이 되어도 배지가 세로 중앙으로 내려가지 않는다.
  *

@@ -53,3 +53,33 @@ describe('InlineAlert', () => {
     expect(onPress).toHaveBeenCalledOnce();
   });
 });
+
+/*
+ * `D4-39` (AC-4-123 ③⑥) — 선택 prop `titleId`. 다른 요소가 배너 문구를 `aria-describedby` 로
+ * 가리킬 수 있게 제목에 id 를 준다. 주지 않으면 DOM 이 바뀌지 않는다 (기존 baseline 불변).
+ */
+describe('InlineAlert titleId (D4-39)', () => {
+  it('puts the id on the title element so another control can be described by it', () => {
+    render(
+      <>
+        <InlineAlert
+          tone="offline"
+          placement="banner"
+          title="Go online to start a session"
+          titleId="t-1"
+        />
+        <button type="button" aria-describedby="t-1">
+          Start Session
+        </button>
+      </>,
+    );
+    const title = document.getElementById('t-1');
+    expect(title?.textContent).toBe('Go online to start a session');
+    expect(title?.closest('.haru-alert')).not.toBeNull();
+  });
+
+  it('renders no id attribute at all when titleId is omitted (DOM unchanged)', () => {
+    const { container } = render(<InlineAlert tone="offline" title="Offline." />);
+    expect(container.querySelectorAll('[id]')).toHaveLength(0);
+  });
+});

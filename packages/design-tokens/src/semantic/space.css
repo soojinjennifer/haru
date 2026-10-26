@@ -59,6 +59,12 @@
   --size-medallion-md: 188px;
   /* provisional: P-16 (docs/decisions/stage-0-approvals.md §4) */
   --size-medallion-lg: 232px;
+  /*
+   * 세션 화면 아바타 — Figma `28:74` / `300:1312` 174 (Stage 4 Design Spec `T-11`).
+   * sm 136 / md 188 / lg 232 어느 것과도 Δ≥14 라 흡수할 수 없다. ring = 174 + 2 × 8 = 190 ✓.
+   */
+  /* provisional: P-16 (docs/decisions/stage-0-approvals.md §4) */
+  --size-medallion-session: 174px;
   /* ring 바깥 지름 − avatar 지름 = 좌우 8px (Figma `28:73` 190 − `28:74` 174) */
   --size-medallion-ring-offset: 8px;
 

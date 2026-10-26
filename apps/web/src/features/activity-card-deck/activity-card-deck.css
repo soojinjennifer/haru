@@ -115,3 +115,13 @@
     scroll-behavior: auto;
   }
 }
+
+/*
+ * Reading Context 시트 본문 (Stage 3 Design Spec §2.4, Stage 4 `S4-F1`) — 라디오 묶음 · 시간 행 ·
+ * 오류 안내를 세로로 쌓는다. 시트 자신은 `createPortal` + `position: fixed` 라 그림자 inset 이 필요 없다.
+ */
+.haru-reading-context {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}

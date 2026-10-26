@@ -16,11 +16,22 @@ import { InlineAlert } from '@haru/ui';
 import { useTodayActivityCard } from '../../../entities/activity-card';
 import { activityDeckCopy } from '../copy';
 
+/**
+ * 배너 제목의 id — 덱의 비활성 `Start Session` 이 `aria-describedby` 로 **이 문구를 사유로** 가리킨다
+ * (`D4-33` · `D4-39`, AC-4-123 ③). 배너는 화면에 하나뿐이라 고정 id 다.
+ */
+export const ACTIVITY_CARD_OFFLINE_TITLE_ID = 'activity-card-offline-title';
+
 export function ActivityCardOfflineBanner() {
   const { isCached } = useTodayActivityCard();
   if (!isCached) return null;
 
   return (
-    <InlineAlert tone="offline" placement="banner" title={activityDeckCopy.states.cachedTitle} />
+    <InlineAlert
+      tone="offline"
+      placement="banner"
+      title={activityDeckCopy.states.cachedTitle}
+      titleId={ACTIVITY_CARD_OFFLINE_TITLE_ID}
+    />
   );
 }

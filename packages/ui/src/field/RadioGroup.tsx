@@ -46,6 +46,12 @@ export interface RadioGroupProps {
    * 시각 변화는 없다 — `required` 시각 슬롯은 만들지 않는다 (§2.9).
    */
   required?: boolean;
+  /**
+   * `<legend>` 를 **화면에서만** 숨긴다 — 스크린리더 그룹 이름은 그대로다 (`D4-63`, 4b Spec §16.6).
+   * 시트 제목이 같은 문장을 이미 보여 줄 때 쓴다. **opt-in** — 기본 `false` 면 외형이 바뀌지 않는다.
+   * `display: none`·`aria-hidden` 이 아니라 `.haru-visually-hidden` 이다 (접근성 이름 유지).
+   */
+  legendVisuallyHidden?: boolean;
 }
 
 /**
@@ -65,6 +71,7 @@ export function RadioGroup({
   disabled = false,
   describedBy,
   required = false,
+  legendVisuallyHidden = false,
 }: RadioGroupProps) {
   const groupId = useId();
   const errorId = `${groupId}-error`;
@@ -72,14 +79,22 @@ export function RadioGroup({
 
   return (
     <fieldset
-      className={cx('haru-radio-group', `haru-radio-group--${variant}`)}
+      className={cx(
+        'haru-radio-group',
+        `haru-radio-group--${variant}`,
+        legendVisuallyHidden && 'haru-radio-group--legend-hidden',
+      )}
       disabled={disabled}
       role={required ? 'radiogroup' : undefined}
       aria-required={required ? true : undefined}
       aria-invalid={error ? true : undefined}
       aria-describedby={described.length > 0 ? described : undefined}
     >
-      <legend className="haru-radio-group__legend">{legend}</legend>
+      <legend
+        className={cx('haru-radio-group__legend', legendVisuallyHidden && 'haru-visually-hidden')}
+      >
+        {legend}
+      </legend>
       <div className="haru-radio-group__options">
         {options.map((option) => {
           const selected = option.value === value;

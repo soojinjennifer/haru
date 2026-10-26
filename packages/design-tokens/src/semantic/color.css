@@ -48,6 +48,12 @@
   --color-surface-solid: var(--haru-white);
   --color-surface-subtle: var(--haru-mist-50);
   --color-surface-tinted: var(--haru-mist-100);
+  /*
+   * 메달리온 링 면 — Figma `28:73`·`300:1311` `fill white · fill-opacity .5` (Stage 4 Design Spec §2.2.0).
+   * Spec §5.1 은 Primitive `--haru-white-a50` 를 직접 적었지만 화면 코드는 Semantic 만 쓴다
+   * (`rules/frontend.md` §6) → 값 그대로 Semantic 1단을 둔다 (신규 HEX 0).
+   */
+  --color-surface-medallion-ring: var(--haru-white-a50);
   --color-surface-note: var(--haru-paper-100);
   /*
    * Stage 3 Home 재구현 (Figma 재대조 2026-10-05).
@@ -83,6 +89,15 @@
    * `--color-surface-strong`(0.90) 과 **다른 값**이다 — 재사용하면 `V-11` 이 재발한다.
    */
   --color-action-white-bg: var(--haru-white-a85);
+  /*
+   * Stage 4 `D4-16` (Design Spec `T-13`) — Figma `Accent/Secondary` (`285:1228`) = 세션 `Discard`.
+   * 불투명 중성 회색 면 + 흰 라벨 = **2.211:1** → 가값 `P-25` (Figma 그대로 구현, 흡수·색 변경 없음).
+   * ⚠ `--color-action-secondary-*` 는 `glass` Button 의 면·라벨이다 — 이름을 재사용하지 않는다.
+   */
+  /* provisional: P-25 (docs/decisions/stage-4-approvals.md §5) */
+  --color-action-neutral-bg: var(--haru-gray-2);
+  /* provisional: P-25 (docs/decisions/stage-4-approvals.md §5) */
+  --color-action-neutral-fg: var(--haru-white);
 
   /* ===== Selection ======================================================= */
   --color-selected-bg: var(--color-action-primary-bg);

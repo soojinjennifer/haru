@@ -121,6 +121,8 @@ export { PageIndicator } from './progress/PageIndicator';
 export type { PageIndicatorProps } from './progress/PageIndicator';
 
 export { SpeechBubble } from './bubble/SpeechBubble';
+export { RecordControl } from './record/RecordControl';
+export type { RecordControlProps, RecordControlState } from './record/RecordControl';
 export type { SpeechBubbleAlign, SpeechBubbleProps, SpeechBubbleTail } from './bubble/SpeechBubble';
 
 export { Sheet } from './sheet/Sheet';

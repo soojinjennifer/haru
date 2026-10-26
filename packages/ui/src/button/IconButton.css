@@ -41,9 +41,20 @@
 }
 
 /* ===== variant ============================================================ */
+/*
+ * 그림자 = `--shadow-bubble` (drop **1겹** + inset 2겹) — `D4-11` (Stage 4 Design Spec §12.2 옵션 A).
+ * Figma `78:157`(뒤로)·`29:76`·`300:1318`(닫기) 인스턴스는 `HARU/Shadow Rest` Style 이름을 달고
+ * 있지만 **첫 drop 1겹만** 렌더한다 (`R-FIGMA-1` ②, `V-10` 선례). 이전 값 `--shadow-rest`(3겹)는
+ * 번짐이 좌우 28 · 아래 40 이라 Figma 보다 짙었고 `--sheet-content-shadow-inset-*`(4/10)도 넘었다.
+ */
 .haru-icon-button--glass {
+  /*
+   * 글리프 색 = `--icon-button-fg` (ink-600 #5E7370) — `D4-62`, 4b Spec §16.5. **glass 만** 바꾼다:
+   * plain 은 Figma 근거 노드가 없어 `--color-fg-primary` 를 유지한다 (범위 보고 대상).
+   */
+  color: var(--icon-button-fg);
   background-color: var(--color-surface-glass);
-  box-shadow: var(--shadow-rest);
+  box-shadow: var(--shadow-bubble);
   backdrop-filter: blur(var(--material-blur-md));
 }
 

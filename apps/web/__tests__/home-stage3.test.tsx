@@ -445,7 +445,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
     expect(banner.textContent).toBe('Go online to start a session');
     expect(banner.closest('.haru-alert__body')?.children).toHaveLength(1);
     expect(document.querySelector('.haru-activity-deck__slot')).toBeNull();
-    // 세션 시작은 여전히 비활성이다 (`D-3`).
+    // 오프라인 캐시 카드에서는 세션 시작이 비활성이다 (`D4-33` — 사유는 배너가 대신한다).
     expect(
       within(frontFace(0))
         .getByRole('button', { name: activityDeckCopy.card.startSession.label })
@@ -812,8 +812,8 @@ describe('`★ Save` (AC-3-84 · AC-3-85 · AC-3-86 — API_CONTRACTS §3.7)', (
   });
 });
 
-describe('`Start Session` 은 Stage 3 에서 비활성이다 (D-3 · AC-3-15)', () => {
-  it('렌더되지만 `aria-disabled` 이고 포커스를 받을 수 있다', async () => {
+describe('`Start Session` 은 Stage 4 `S4-F1` 에서 활성이다 (`D-3` 해제 · AC-4-38)', () => {
+  it('`aria-disabled` 가 없고, 누르면 Reading Context 시트가 열린다 (`D4-35`)', async () => {
     await renderHome();
     await waitForTrack();
 
@@ -821,10 +821,12 @@ describe('`Start Session` 은 Stage 3 에서 비활성이다 (D-3 · AC-3-15)', 
       name: activityDeckCopy.card.startSession.label,
     });
 
-    expect(cta.getAttribute('aria-disabled')).toBe('true');
+    expect(cta.getAttribute('aria-disabled')).toBeNull();
     expect(cta).toHaveProperty('disabled', false);
-    cta.focus();
-    expect(document.activeElement).toBe(cta);
+    fireEvent.click(cta);
+    expect(
+      await screen.findByRole('dialog', { name: activityDeckCopy.readingContext.title }),
+    ).toBeTruthy();
   });
 
   it('ActionBar 가 `Save` + `Start Session` 두 개뿐이다 (Figma `86:373`)', async () => {

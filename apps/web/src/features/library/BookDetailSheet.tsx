@@ -9,7 +9,7 @@
  * ├ 책     BookCover(md 58×82) + 저자 · 역량 라벨
  * ├ Prompt PromptPill(tinted) × promptSet.questions (+ followUps)
  * ├ (증정) 신청 CTA | 접수 안내                 ownership 에 따라 (§2.9)
- * └ ActionBar  ★ Save + Start Session(비활성)
+ * └ ActionBar  ★ Save + Start Session(Stage 4 `S4-F1` — 활성, `D-3` 해제)
  * ```
  *
  * ── ⚠️ `ActivityOptionCard` 를 **재사용하지 못했다** (보고 대상, 2라운드-2 그대로) ──
@@ -231,7 +231,7 @@ export function BookDetailSheet({ open, book, onClose }: BookDetailSheetProps) {
                   save.toggle({ bookId, saved: !saved });
                 }}
               />
-              <StartSessionAction id="book-sheet" />
+              <StartSessionAction id="book-sheet" book={book} />
             </div>
           </div>
         )

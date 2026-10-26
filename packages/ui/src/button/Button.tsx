@@ -3,8 +3,12 @@ import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react';
 import { Spinner } from '../feedback/Spinner';
 import { cx } from '../lib/cx';
 
-/** Design Spec §4.4 — Figma `17:20` (Glass / Accent). */
-export type ButtonVariant = 'accent' | 'glass';
+/**
+ * Design Spec §4.4 — Figma `17:20` (Glass / Accent).
+ * `neutral` = Figma `Accent/Secondary` (`285:1228`) — 불투명 중성 회색 면 + 흰 라벨
+ * (Stage 4 Design Spec §2.3.4, `D4-16` · 가값 `P-25`). radius·padding·그림자·disabled 는 공통 선언이다.
+ */
+export type ButtonVariant = 'accent' | 'glass' | 'neutral';
 
 /** Design Spec §4.4 — 45 / 56 (`--button-height-md` / `-lg`). */
 export type ButtonSize = 'md' | 'lg';

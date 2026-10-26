@@ -1,0 +1,128 @@
+/*
+ * RecordControl — Stage 4 Design Spec §2.6 (Figma `163:1590` · `163:1589` Record · `163:1588` Pause)
+ *
+ * 실측 `[get_design_context(300:1309) · (163:1588) 에셋 원문]`
+ *   바깥 링 150  stroke 2 #85BFB6 · opacity .35 · fill 없음
+ *   가운데 링 122 @ (14,14)  같은 stroke · opacity .6
+ *   코어 108 @ (21,21)  fill #85BFB6 + drop `0 12 28 ink16%` 1겹 + inset `0 2 white55%`
+ *   글리프 40 @ (55,48) Record / (55,55) Pause — 라벨이 있으면 7 위로 (`--record-icon-offset-labeled`)
+ *   라벨 `Tap to recording` @ y88 · Medium 10 → 11 흡수 · white
+ *
+ * `R-SHADOW-1`: 이 컴포넌트는 `overflow` 를 선언하지 않는다 — 코어 그림자(좌우 28 · 위 16 · 아래 40)를
+ * 자를 상자가 없다.
+ */
+
+.haru-record {
+  position: relative;
+  display: block;
+  flex: none;
+  box-sizing: border-box;
+  inline-size: var(--record-size);
+  block-size: var(--record-size);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-fg-on-accent);
+  cursor: pointer;
+}
+
+.haru-record[aria-disabled='true'] {
+  cursor: default;
+}
+
+.haru-record__ring,
+.haru-record__core,
+.haru-record__glyph {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  box-sizing: border-box;
+  border-radius: 50%;
+}
+
+.haru-record__ring {
+  /* accepted deviation: D-01 — 링·코어는 teal (`--color-action-primary-bg`) */
+  border: var(--record-stroke) solid var(--color-action-primary-bg);
+}
+
+.haru-record__ring--outer {
+  inline-size: var(--record-size);
+  block-size: var(--record-size);
+  opacity: var(--record-ring-opacity-outer);
+}
+
+.haru-record__ring--mid {
+  inline-size: var(--record-ring-mid-size);
+  block-size: var(--record-ring-mid-size);
+  opacity: var(--record-ring-opacity-inner);
+}
+
+.haru-record__core {
+  inline-size: var(--record-core-size);
+  block-size: var(--record-core-size);
+  background-color: var(--color-action-primary-bg);
+  box-shadow: var(--shadow-record-core);
+}
+
+.haru-record__glyph {
+  display: flex;
+  inline-size: var(--record-icon-size);
+  block-size: var(--record-icon-size);
+  border-radius: 0;
+}
+
+.haru-record__glyph .haru-icon {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.haru-record--captioned .haru-record__glyph {
+  inset-block-start: calc(50% + var(--record-icon-offset-labeled));
+}
+
+/* 라벨 top = 글리프 bottom (Figma y48 + 40 = 88) — 위치를 리터럴로 두지 않고 글리프에서 계산한다. */
+.haru-record__caption {
+  position: absolute;
+  inset-block-start: calc(50% + var(--record-icon-size) / 2 + var(--record-icon-offset-labeled));
+  inset-inline: 0;
+  font-family: var(--font-sans);
+  font-size: var(--record-label-size);
+  line-height: normal;
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  text-align: center;
+  /* accepted deviation: D-01 (white label on teal = 2.07:1) — 크기는 11 로 흡수 (Spec §5.4-②) */
+  color: var(--color-fg-on-accent);
+  pointer-events: none;
+}
+
+/* ===== ready pulse — Spec §6.2 (`D4-3` CSS 모션) ===========================
+ * 바깥 링 **하나만** 움직인다. `0%` = Figma 선언값(.35 · scale 1) — Playwright `animations: 'disabled'`
+ * 가 무한 애니메이션을 초기 상태로 되돌려 찍으므로 baseline 이 Figma 와 같다 (`R-BASELINE-1` ②).
+ * 0.83Hz < 3회/초 (WCAG 2.3.1).
+ */
+@keyframes haru-record-pulse {
+  0%,
+  100% {
+    opacity: var(--record-ring-opacity-outer);
+    scale: 1;
+  }
+
+  50% {
+    opacity: var(--record-pulse-opacity);
+    scale: var(--record-pulse-scale);
+  }
+}
+
+.haru-record--idle .haru-record__ring--outer {
+  animation: haru-record-pulse var(--motion-duration-pulse) var(--motion-ease-standard) infinite;
+}
+
+/* reduce → **정지**, 정지값 = Figma 선언값 (Spec §6.6 — 중간 상태를 남기지 않는다) */
+@media (prefers-reduced-motion: reduce) {
+  .haru-record--idle .haru-record__ring--outer {
+    animation: none;
+  }
+}

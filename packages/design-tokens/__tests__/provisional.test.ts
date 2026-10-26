@@ -101,7 +101,24 @@ const EXPECTED: Record<string, { file: string; tokens: string[] }[]> = {
   'P-16': [
     {
       file: 'src/semantic/space.css',
-      tokens: ['--size-medallion-sm', '--size-medallion-md', '--size-medallion-lg'],
+      tokens: [
+        '--size-medallion-sm',
+        '--size-medallion-md',
+        '--size-medallion-lg',
+        /* Stage 4 `T-11` — 세션 아바타 174 (메달리온 치수 계열이라 같은 가값에 든다) */
+        '--size-medallion-session',
+      ],
+    },
+  ],
+  /*
+   * Stage 4 신설 — `D4-16` (`docs/decisions/stage-4-approvals.md` §5). 세션 `Discard` 흰 라벨 on
+   * `#aeaeb2` = 2.211:1. **`D-01` 범위 확장이 아니다** (D-01 은 teal 면 한정). Primitive
+   * `--haru-gray-2` 가 아니라 **Semantic 2종**에 붙는다 — 교체 단위가 "버튼 면·라벨 짝" 이다.
+   */
+  'P-25': [
+    {
+      file: 'src/semantic/color.css',
+      tokens: ['--color-action-neutral-bg', '--color-action-neutral-fg'],
     },
   ],
 };
@@ -171,16 +188,16 @@ const actualPairs = declarations
   .map((d) => `${d.provisional} ${d.file} ${d.name}`)
   .sort();
 
-const REMAINING = ['P-01', 'P-02', 'P-04', 'P-16', 'P-23', 'P-24'];
+const REMAINING = ['P-01', 'P-02', 'P-04', 'P-16', 'P-23', 'P-24', 'P-25'];
 
 describe('provisional 주석 ↔ 남은 가값 목록 (AC-1-12 · approvals §9)', () => {
-  it('항목이 6건이다 (P-01 · P-02 · P-04 · P-16 · P-23 · P-24)', () => {
+  it('항목이 7건이다 (P-01 · P-02 · P-04 · P-16 · P-23 · P-24 · P-25)', () => {
     const items = [...new Set(declarations.map((d) => d.provisional).filter(Boolean))].sort();
     expect(items).toEqual(REMAINING);
-    expect(items).toHaveLength(6);
+    expect(items).toHaveLength(7);
   });
 
-  it('EXPECTED 표 자체가 남은 6 항목만 담는다 (표를 늘려 검사를 우회하지 못한다)', () => {
+  it('EXPECTED 표 자체가 남은 7 항목만 담는다 (표를 늘려 검사를 우회하지 못한다)', () => {
     expect(Object.keys(EXPECTED).sort()).toEqual(REMAINING);
     for (const item of [...CONFIRMED_2026_09_22, ...CONFIRMED_2026_10_06]) {
       expect(EXPECTED[item]).toBeUndefined();

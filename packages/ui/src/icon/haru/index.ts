@@ -1,7 +1,10 @@
 import type { ComponentType } from 'react';
 
 import { FlipToBack } from './FlipToBack';
+import { RecordMic } from './RecordMic';
+import { RecordPause } from './RecordPause';
 import { SaveStar } from './SaveStar';
+import { SessionClose } from './SessionClose';
 import { SessionHistory } from './SessionHistory';
 import { TabCenterHome } from './TabCenterHome';
 
@@ -17,12 +20,23 @@ import { TabCenterHome } from './TabCenterHome';
  * Visual Gap 3차 결정(2026-10-06, approvals §13.2 `A-23`-icon)에서 **1건 추가** — 역시 Lucide
  * 에 같은 채움 글리프가 없다.
  *  - `session-history` — Home 헤더 칩의 13×13 `history` 글리프 (`50:161`)
+ *
+ * Stage 4 `S4-F1`(세션 ready)에서 **2건 추가** — Record Control 의 40×40 글리프 (Stage 4 Design Spec
+ * §2.6.3). Lucide 의 같은 이름 글리프는 외곽선·둥근 끝이라 Figma 채움 도형과 다르다.
+ *  - `record-mic`   — `Record` 변형 마이크 (`139:2838`)
+ *  - `record-pause` — `Pause` 변형 막대 2개, radius 0 (`140:2866`)
+ *
+ * Stage 4b `S4-F1R`(Visual Gap `VG-F1-01`)에서 **1건 추가** — Lucide `x` 와 기하가 다르다.
+ *  - `session-close` — 세션 닫기 X 15×15 (`29:77` = `300:1319`, 4b Spec §16.4)
  */
 export const HARU_ICONS = {
   'haru:tab-center-home': TabCenterHome,
   'haru:flip-to-back': FlipToBack,
   'haru:save-star': SaveStar,
   'haru:session-history': SessionHistory,
+  'haru:record-mic': RecordMic,
+  'haru:record-pause': RecordPause,
+  'haru:session-close': SessionClose,
 } satisfies Record<`haru:${string}`, ComponentType>;
 
 export type HaruIconName = keyof typeof HARU_ICONS;

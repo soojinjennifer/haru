@@ -79,6 +79,7 @@ const SUMMARY = {
     },
   ],
   bubble: { text: 'Ready when you are', templateId: 'ready-greeting-01' },
+  reminderBubble: { text: 'Still here when you are ready', templateId: 'ready-reminder-01' },
 } as const;
 
 describe('CreateSessionRequest — 책 필수 (AC-4-09)', () => {
@@ -297,6 +298,22 @@ describe('SessionSummary · SessionBubbleCopy (D4-20 · D4-21 · D4-22)', () => 
   it('bubble 필드는 생략할 수 없다 (null 로 명시)', () => {
     const { bubble: _omitted, ...withoutBubble } = SUMMARY;
     expect(SessionSummarySchema.safeParse(withoutBubble).success).toBe(false);
+  });
+
+  it('reminderBubble 은 null · text null · 빈 문자열 · 문자열을 모두 받는다 (D4-59)', () => {
+    for (const reminderBubble of [null, { text: null }, { text: '' }, { text: 'Hello' }]) {
+      expect(SessionSummarySchema.safeParse({ ...SUMMARY, reminderBubble }).success).toBe(true);
+    }
+  });
+
+  it('reminderBubble.text 에 길이 상한을 두지 않는다 (D4-21 적용)', () => {
+    const reminderBubble = { text: 'A'.repeat(500) };
+    expect(SessionSummarySchema.safeParse({ ...SUMMARY, reminderBubble }).success).toBe(true);
+  });
+
+  it('reminderBubble 필드는 생략할 수 없다 (null 로 명시, D4-59)', () => {
+    const { reminderBubble: _omitted, ...withoutReminder } = SUMMARY;
+    expect(SessionSummarySchema.safeParse(withoutReminder).success).toBe(false);
   });
 
   it('recordedSeconds 는 0 ~ 1800 이다', () => {

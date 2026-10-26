@@ -58,6 +58,12 @@ import type { ConsentGate } from './consent-gate';
 import type { PermissionService } from './permission-service';
 import type { RecordingSink, SessionServerState, SessionTransitionPort } from './ports';
 
+/**
+ * ready 리마인드 시점 — **세션 진입 후 5분, 1회** (`D4-46`, 2026-10-25 — `N-D1` 해소).
+ * `readyReminderAfterSeconds` 는 필수 옵션으로 남는다(테스트가 경계를 고른다). 조립 지점이 이 값을 넘긴다.
+ */
+export const READY_REMINDER_AFTER_SECONDS = 300;
+
 /* ===== 공개 타입 ========================================================== */
 
 /**

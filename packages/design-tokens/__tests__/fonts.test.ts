@@ -148,7 +148,10 @@ describe('빌드 산출물 — CSS Variable export (AC-1-11)', () => {
     // Library 2라운드-5(사용자 결정 2026-10-09 ①)에서 1종 추가 → 152
     // (`--sheet-content-shadow-inset-block-start-cover` — 같은 그림자 **위쪽** 번짐 8 실측.
     //  offset-y +6 때문에 위/아래가 비대칭이라 좌우 토큰과 값을 공유할 수 없다).
-    expect(manifest.counts['component']).toBe(152);
+    // Stage 4 `S4-F1`(세션 ready)에서 31종 추가 → 183 (RecordControl 11 · 세션 버블 8 ·
+    // 세션 pill 밀도 4 · 하단 바 3 · 세로 배치 5 — Stage 4 Design Spec §5.2 · 4b Spec `T-21`).
+    // Stage 4b `S4-F1R` 에서 2종 추가 → 185 (`--icon-button-fg` T-29 · `--icon-button-icon-size-close` T-30).
+    expect(manifest.counts['component']).toBe(185);
     // 2026-09-22 가값 승인 (stage-1-approvals §9) 후 남은 항목 = P-01 · P-02 · P-04 · P-05 · P-16.
     // Stage 3 에서 P-23(--color-prompt-tag-fg) 신설 (stage-3-approvals §9.2 ⑫).
     // Library 1라운드: **P-05 해제**(scrim 이 Figma 실측값이 되었다 — `L-NEW-09`) ·
@@ -160,9 +163,12 @@ describe('빌드 산출물 — CSS Variable export (AC-1-11)', () => {
       'P-16',
       'P-23',
       'P-24',
+      'P-25',
     ]);
     // 42 − 1 — `--color-scrim` 의 주석이 사라졌다. `--color-fg-tertiary` 는 P-01 → P-24 로
     // **소속만** 바뀌어 총 개수에 영향이 없다.
-    expect(manifest.counts['provisional']).toBe(41);
+    // Stage 4 `S4-F1` +3 → 44: `P-25` 신설 2(`--color-action-neutral-bg`·`-fg`, `D4-16`) +
+    // `P-16` 1(`--size-medallion-session` 174, `T-11`).
+    expect(manifest.counts['provisional']).toBe(44);
   });
 });

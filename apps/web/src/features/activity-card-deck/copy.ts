@@ -61,13 +61,37 @@ export const activityDeckCopy = {
     saved: 'Saved',
     saveFailed: "We couldn't save that book. Try again.",
     /**
-     * 주 CTA. **Stage 3 에서는 비활성**이다 (`CONFIRMED (D-3)`) — 실제 세션 시작은 Stage 4.
+     * 주 CTA — Stage 4 `S4-F1` 에서 **활성**이다 (`D-3` 해제, AC-4-38). 누르면 Reading Context
+     * 시트(`D4-35`) → `POST …/selection` → `POST /v1/sessions` → `/session/:id`.
      *
-     * `reason` 은 **의도적으로 비어 있다**: D-3 이 "설명 슬롯이 비면 설명 없이 `aria-disabled`
-     * 만 적용한다" 로 확정했고, "곧 나옵니다" 류는 사용자 노출 문구에 개발 단계를 드러내므로
-     * 기각되었다 (D-3 대안 ③). 운영 문구가 정해지면 **이 값만** 채운다.
+     * `reason` 은 **의도적으로 비어 있다**: 오프라인 캐시 상태의 비활성 사유는 버튼 옆 문구가 아니라
+     * **배너 제목**이 대신한다 (`D4-33`, `aria-describedby` → `cachedTitle` — `D4-39`).
      */
     startSession: { label: 'Start Session', reason: null as string | null },
+    /** 세션 시작(`POST …/selection` 또는 `POST /v1/sessions`) 실패 — 시트에 남는다. ⚠️ 문구 승인 대상. */
+    startFailed: "We couldn't start the session. Please try again.",
+  },
+
+  /**
+   * Reading Context 선택 시트 — Stage 3 Design Spec §2.4 (`C13-15` 명세, 4b `S4-F1` 에서 구현 — `D4-35`).
+   * 6값 라벨 = **`CONFIRMED (stage-3-approvals §8.5 ⑨)`**. 제목 = Spec `RECOMMENDED`.
+   * `timeLabel` · `timePlaceholder` · `back` 은 ⚠️ 명세에 문구가 없어 development-agent 초안이다.
+   */
+  readingContext: {
+    title: 'When will you read?',
+    legend: 'When will you read?',
+    options: {
+      now: 'Now',
+      bedtime: 'Bedtime',
+      after_pickup: 'After pickup',
+      weekend_morning: 'Weekend morning',
+      in_the_car: 'In the car',
+      custom_time: 'Pick a time…',
+    },
+    timeLabel: 'Time',
+    timePlaceholder: 'Choose a time',
+    back: 'Back',
+    confirm: 'Continue',
   },
 
   states: {

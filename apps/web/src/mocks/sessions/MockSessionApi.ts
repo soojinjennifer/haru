@@ -80,6 +80,7 @@ import {
   resolveSessionBook,
 } from '../fixtures/sessions';
 import type { RequestLog } from '../request-log';
+import { resolveReadySessionShape } from './sessionFixtureScenarios';
 import { beginScenarioCall, type ScenarioGroupDefinition, type ScenarioStore } from '../scenarios';
 
 import {
@@ -349,12 +350,17 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
         const book = resolveSessionBook(clock, body.bookId, body.childBookId);
         if (book === undefined) return fail('RESOURCE_NOT_FOUND', 'Unknown book.');
 
+        // 표시 데이터 모양(인사 · Prompt 개수)은 API 동작과 별개의 scenario 축이다 (`session` · `session-greeting`).
+        const shape = resolveReadySessionShape(store);
         const summary = createReadySessionFixture({
           id: idFactory.next(),
           mode: body.mode,
           book,
           readingContext: body.readingContext,
           readyAt: body.readyAt,
+          bubble: shape.bubble,
+          reminderBubble: shape.reminderBubble,
+          promptCount: shape.promptCount,
         });
 
         state.sessions.set(summary.id, {

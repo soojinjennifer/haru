@@ -5,7 +5,8 @@
  * bounds 가 같아 **ring 이 없다** — ring / ring-offset 은 Stage 2 에서 값을 정하지 않는다
  * (`NEEDS DECISION` §13.1 ⑨).
  *
- * 크기: `lg` 232(`/auth/welcome`) · `md` 188(`/auth/log-in`) · `sm` 136(`가값 P-16`, 사용처 없음).
+ * 크기: `lg` 232(`/auth/welcome`) · `md` 188(`/auth/log-in`) · `sm` 136(`가값 P-16`, 사용처 없음) ·
+ * `session` 174(Stage 4 세션 화면 `28:74`/`300:1312`, Spec `T-11` — 같은 가값 `P-16`).
  * 소개 화면의 200 은 `md` 로 흡수한다 (허용 차이 `AD-S2-3`).
  *
  * **장식이다** — `aria-hidden`. 의미가 필요하면 주변 텍스트가 전달한다.
@@ -15,7 +16,7 @@ import { CHARACTER_ASSETS, type CharacterAssetName } from '../../shared/assets/c
 
 import { CharacterPicture } from './CharacterPicture';
 
-export type CharacterMedallionSize = 'sm' | 'md' | 'lg';
+export type CharacterMedallionSize = 'sm' | 'md' | 'lg' | 'session';
 
 export interface CharacterMedallionProps {
   asset: CharacterAssetName;

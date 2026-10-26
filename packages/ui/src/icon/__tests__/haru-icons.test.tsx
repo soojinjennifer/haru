@@ -11,6 +11,9 @@ const SVG_FILES: Record<keyof typeof HARU_ICONS, string> = {
   'haru:flip-to-back': '../haru/flip-to-back.svg',
   'haru:save-star': '../haru/save-star.svg',
   'haru:session-history': '../haru/session-history.svg',
+  'haru:record-mic': '../haru/record-mic.svg',
+  'haru:record-pause': '../haru/record-pause.svg',
+  'haru:session-close': '../haru/session-close.svg',
 };
 
 /**
@@ -25,6 +28,9 @@ const COLOR_SOURCES: Record<keyof typeof HARU_ICONS, readonly string[]> = {
   'haru:flip-to-back': ['currentColor'],
   'haru:save-star': ['currentColor'],
   'haru:session-history': ['currentColor'],
+  'haru:record-mic': ['currentColor'],
+  'haru:record-pause': ['currentColor'],
+  'haru:session-close': ['currentColor'],
 };
 
 function readSvg(relative: string): string {
@@ -36,13 +42,18 @@ function pathData(markup: string): string[] {
 }
 
 describe('HARU 전용 SVG (Design Spec §8.2 · §8.3)', () => {
-  it('export 대상은 Stage 1 의 1건 + Stage 3 Home 재구현 2건 + Visual Gap 3차 1건이다', () => {
+  it('export 대상은 Stage 1 의 1건 + Stage 3 Home 재구현 2건 + Visual Gap 3차 1건 + Stage 4 2건 + Stage 4b 1건이다', () => {
     expect(Object.keys(HARU_ICONS)).toEqual([
       'haru:tab-center-home',
       'haru:flip-to-back',
       'haru:save-star',
       // `A-23`-icon (approvals §13.2) — Lucide `star` 임의 변경을 Figma `50:161` 로 되돌렸다.
       'haru:session-history',
+      // Stage 4 `S4-F1` — Record Control 글리프 (Lucide 외곽선과 도형이 다르다).
+      'haru:record-mic',
+      'haru:record-pause',
+      // Stage 4b `S4-F1R` — 세션 닫기 X (`VG-F1-01`, Lucide `x` 와 기하가 다르다).
+      'haru:session-close',
     ]);
   });
 

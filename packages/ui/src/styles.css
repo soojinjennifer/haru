@@ -41,6 +41,7 @@
 @import './feedback/InlineAlert.css';
 @import './feedback/Toast.css';
 @import './bubble/SpeechBubble.css';
+@import './record/RecordControl.css';
 @import './sheet/Scrim.css';
 @import './sheet/Sheet.css';
 @import './dialog/Dialog.css';

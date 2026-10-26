@@ -31,11 +31,13 @@ import {
   OnboardingStartPage,
   OnboardingStepPage,
 } from '../pages/onboarding';
+import { StorytimeSessionPage } from '../pages/session';
 import { SettingsPage, SettingsTopBar } from '../pages/settings';
 import { ROUTES } from '../shared/config/routes';
 
 import { RouteGuard } from './guards/RouteGuard';
 import { AppTabBar } from './layouts/AppTabBar';
+import { FullscreenLayout } from './layouts/FullscreenLayout';
 import { StackLayout } from './layouts/StackLayout';
 import { TabLayout } from './layouts/TabLayout';
 
@@ -302,6 +304,20 @@ export function AppRoutes() {
         `L-OPEN-13`)로 승인된 design-agent 명세다 (Library Design Spec §7.2 · §7.3).
         `/settings` 와 같은 `StackLayout` + `centered` TopBar 규격을 쓴다.
       */}
+      {/*
+        Stage 4 세션 화면 — **Fullscreen**(스크롤 없음 · 탭바 없음 · TopBar 없음 `D4-51`).
+        닫기는 화면이 직접 그린다 (Figma `300:1318`).
+      */}
+      <Route element={<FullscreenLayout />}>
+        <Route
+          path={ROUTES.session}
+          element={
+            <RouteGuard>
+              <StorytimeSessionPage />
+            </RouteGuard>
+          }
+        />
+      </Route>
       <Route element={<StackLayout topBar={<AddOwnBookTopBar />} />}>
         <Route
           path={ROUTES.libraryAdd}

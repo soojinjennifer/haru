@@ -15,6 +15,10 @@
  * 모른다. 배지 색도 같은 이유로 Tier-3 토큰(`--prompt-phase-tag-*`)을 **여기 CSS 에서** 입힌다.
  *
  * `tone`: `outline` = 카드 미리보기(2줄 말줄임) · `tinted` = 시트(말줄임 없음).
+ *
+ * `density` (Stage 4 Design Spec §4 1-d · `T-14`): `card`(기본 — 42/9/13/gap 10) · `session` =
+ * 세션 ready 버블 `139:2803` 의 pill(38/8/12/gap 8, 면 `#dbeee7` + 1px 테두리). **`tone` 과 직교한다** —
+ * `tone` 은 말줄임·면, `density` 는 치수다. 카드 밀도로 흡수하면 5개 누적으로 Record Control 을 침범한다.
  */
 import { Tag, Text } from '@haru/ui';
 import type { Prompt } from '@haru/contracts';
@@ -23,18 +27,27 @@ import { promptPhaseCopy } from '../../shared/copy/prompt-copy';
 
 export type PromptPillTone = 'outline' | 'tinted';
 
+export type PromptPillDensity = 'card' | 'session';
+
 export interface PromptPillProps {
   prompt: Prompt;
   tone?: PromptPillTone;
+  density?: PromptPillDensity;
 }
 
-export function PromptPill({ prompt, tone = 'outline' }: PromptPillProps) {
+export function PromptPill({ prompt, tone = 'outline', density = 'card' }: PromptPillProps) {
   const phase = prompt.phase ?? null;
   const pageRef = prompt.pageRef ?? null;
   const hasBadge = phase !== null || (pageRef !== null && pageRef.length > 0);
 
   return (
-    <div className={`haru-prompt-pill haru-prompt-pill--${tone}`}>
+    <div
+      className={
+        density === 'card'
+          ? `haru-prompt-pill haru-prompt-pill--${tone}`
+          : `haru-prompt-pill haru-prompt-pill--${tone} haru-prompt-pill--${density}`
+      }
+    >
       {hasBadge ? (
         <span className="haru-prompt-pill__badges">
           {phase === null ? null : <Tag label={promptPhaseCopy[phase]} size="xs" />}

@@ -6,7 +6,8 @@
  * ```
  *
  * **세션을 만들지 않는다.** 이 호출은 선택지와 읽기 상황을 확정하고 Prompt 세트를 돌려받을
- * 뿐이며, `POST /v1/sessions` 는 Stage 4 다 (`CONFIRMED (D-3)` · AC-3-15).
+ * 뿐이다. 세션 생성(`POST /v1/sessions`)은 `entities/session` 의 `useCreateSession` 이며, Stage 4
+ * `S4-F1` 의 덱이 **이 호출이 성공한 뒤에** 그것을 부른다 (`select(vars, onSelected)` — AC-3-24 · AC-4-38).
  *
  * `Idempotency-Key` 대상이 아니다 (Plan §7.2 IK 열 `—`).
  */
@@ -26,7 +27,11 @@ export interface SelectActivityOptionVariables {
 }
 
 export interface SelectActivityOptionMutation {
-  select: (variables: SelectActivityOptionVariables) => void;
+  /** `onSelected` — 이 호출 하나에만 붙는 성공 콜백 (예: 이어서 세션을 만든다). */
+  select: (
+    variables: SelectActivityOptionVariables,
+    onSelected?: (selection: ActivityCardSelection) => void,
+  ) => void;
   selection: ActivityCardSelection | undefined;
   isPending: boolean;
   isError: boolean;
@@ -49,8 +54,8 @@ export function useSelectActivityOption(
   const error: unknown = mutation.error;
 
   return {
-    select: (variables) => {
-      mutation.mutate(variables);
+    select: (variables, onSelected) => {
+      mutation.mutate(variables, onSelected === undefined ? undefined : { onSuccess: onSelected });
     },
     selection: mutation.data,
     isPending: mutation.isPending,

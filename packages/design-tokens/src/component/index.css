@@ -29,6 +29,10 @@
   --icon-button-size: 38px; /* Figma `78:157` 38×38 */
   --icon-button-icon-size: var(--size-icon-md); /* Figma 18 · 19 → 20 흡수 */
   --icon-button-hit-size: var(--size-touch-min); /* 접근성 확장 (§9.3) */
+  /* glass 글리프 색 — Figma `29:77` X · `77:150` back stroke #5E7370 (`D4-62`, 4b Spec §5.3 T-29) */
+  --icon-button-fg: var(--color-action-secondary-fg);
+  /* 닫기 X 글리프 박스 — Figma `29:77` 15×15 (VG-F1-01, 4b Spec §5.3 T-30). --size-icon-* 밖 */
+  --icon-button-icon-size-close: 15px;
 
   /* ===== TopBar — Figma `139:2734` ======================================= */
   --topbar-height: 40px; /* Figma `78:286` h40 */
@@ -268,6 +272,59 @@
   /* ===== SectionHeader (Library Design Spec §3.1 · §9.2) ================== */
   /* `LT-13` — 시각 39×14 인 "See all" 의 hit area 만 44 로 넓힌다 (`IconButton::before` 선례). */
   --section-header-action-hit: var(--size-touch-min);
+
+  /* ===== Stage 4 — Storytime Session `ready` (Figma `300:1309` = `28:51` + 닫기) =====
+   * 근거: Stage 4 Design Spec §2.2 · §2.6 · §5.2 (`T-6`·`T-8`·`T-9`·`T-10`·`T-12`·`T-14`) +
+   * 4b Spec §5.2 `T-21`. 숫자 리터럴은 기존 스케일에 없는 Figma 실측값이다 (Stage 0 #10). */
+
+  /* RecordControl — `163:1590` (링 2겹 stroke + 코어 108 + 글리프 40) */
+  --record-size: 150px;
+  --record-ring-mid-size: 122px;
+  --record-core-size: 108px;
+  --record-icon-size: 40px;
+  --record-stroke: 2px;
+  --record-ring-opacity-outer: 0.35; /* `T-6` — Figma 정지 표현 = pulse `0%` 키프레임 */
+  --record-ring-opacity-inner: 0.6;
+  /* 라벨 `Tap to recording` Medium 10 → 11 흡수 (Spec §5.4-② · 11px 미만 금지 Stage 0 #10-②) */
+  --record-label-size: var(--text-caption-2);
+  /* 라벨이 있으면 글리프가 세로 가운데(55)에서 **7 위**(48)로 올라간다 — Figma `139:2838` vs `140:2866` */
+  --record-icon-offset-labeled: -7px;
+  /* ready pulse (Spec §6.2) — 바깥 링만, `0%` = Figma 선언값(.35 · 1) */
+  --record-pulse-opacity: 0.12;
+  --record-pulse-scale: 1.04;
+
+  /* ready 버블 `139:2803` (Spec §2.2.1) — 높이 토큰 없음(내용 가변 §2.2.3) */
+  --bubble-session-width: 329px;
+  --bubble-session-pad-block-end: 13px; /* 위 14 / 아래 13 — pill y 좌표 5개 역산 (§2.2.2) */
+  /* 제목 16/22 — line-height 22 는 headline 단계와 같다 (callout 21 을 쓰면 본체가 268 이 된다) */
+  --bubble-session-title-line: var(--text-headline--line-height);
+  /* 세션 tail `88:842` — skew 없는 정45° 정사각형 16 (16×√2 = 22.627, `T-8`) */
+  --bubble-tail-session-size: 22.627px;
+  --bubble-tail-session-shape: 16px;
+  --bubble-tail-session-rotate: -45deg;
+  --bubble-tail-session-skew: 0deg;
+  /* `get_design_context(300:1309)`: tail 컨테이너 22.627 + `mb -12` → 본체 위로 22.627 − 12 */
+  --bubble-tail-session-overhang: 10.627px;
+
+  /* PromptPill 세션 밀도 (`T-14`) — 38 / 8 / 12 / gap 8. 카드 밀도(42/9/13/10)를 쓰면 Record 침범 */
+  --prompt-pill-session-height-min: 38px;
+  --prompt-pill-session-pad-block: var(--space-2);
+  --prompt-pill-session-pad-inline: var(--space-3);
+  --prompt-pill-session-tag-gap: var(--space-2);
+
+  /* 하단 바 `285:1445` (`T-12`) — 135 + 9 + 135 = 279 */
+  --session-action-bar-gap: 9px;
+  --session-action-button-width: 135px;
+  --session-action-bar-width: 279px;
+
+  /* 세로 배치 (`T-21` + Spec §2.2.0) — 위 묶음은 위에, Record·바는 아래에 앵커 */
+  --session-top-row-offset: var(--space-2-5); /* 상태바 56 → 닫기 y66 */
+  --session-medallion-offset: 76px; /* 상태바 56 → ring top 132 */
+  --session-medallion-ring-size: calc(
+    var(--size-medallion-session) + 2 * var(--size-medallion-ring-offset)
+  ); /* 190 */
+  --session-bubble-offset: 5px; /* ring bottom 322 → tail 꼭짓점 327 */
+  --session-bottom-gap: var(--space-4-5); /* Record → 바 18 · 바 → 프레임 아래 18 */
 
   /* ===== Sheet / Dialog / Toast / Skeleton (Figma 없음 → 명세, §13.1) ==== */
   --sheet-radius-top: var(--radius-card);
