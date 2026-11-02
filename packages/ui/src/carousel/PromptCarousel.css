@@ -1,0 +1,115 @@
+/*
+ * PromptCarousel — Stage 4 Design Spec §3.2 · §4 #2 (Figma `88:960` 안 `88:708` pill + `88:897` dots)
+ *
+ * | Figma | 값 | 구현 |
+ * |---|---|---|
+ * | pill `88:708` | 폭 = 본문 100% (`D4-71`, Figma 310 / 본문 313) × 40 · `#dbeee7` · 1px `#5e73702e` · radius 100 · px12 py8 · 슬롯 45 (위 2.24 / 아래 2.76) | `--prompt-carousel-bar-*` · `--color-surface-tinted` · `--color-border-subtle` (inset 테두리 — `V-1`) |
+ * | 화살표 `86:286` | 24×24 · 활성 `#b0cfc0` · 첫/끝 `#f2f2f7` | `haru:carousel-*` + `--color-carousel-arrow*` · 터치 44 `::before` |
+ * | 세로 gap | 10 | `--prompt-carousel-gap` |
+ * | dots `88:897` | 활성 20×7 + 점 7, gap 6, 가운데 | `PageIndicator` 그대로 (개수 = 페이지 수) |
+ *
+ * `R-SHADOW-1` — 이 파일의 **새 `overflow`** 는 `__viewport` 의 `overflow-x: clip` 하나다 (가로 트랙, 회피 불가).
+ *   - 트랙 안 요소의 drop shadow = **0겹** (pill 라벨은 텍스트, 상세 노트는 테두리만) → 그림자 inset 불필요.
+ *   - 트랙 안에 포커스 대상이 없다 (화살표는 트랙 **밖** bar 에 있다) → 포커스 링 자리도 불필요.
+ *   - `clip` 은 `hidden` 과 달리 다른 축을 스크롤 컨테이너로 만들지 않는다 → **세로는 `visible`** 그대로
+ *     (e2e `session-prompts.spec.ts` 가 computed `overflow-y: visible` 과 세로·가로 경계를 확인한다).
+ */
+
+.haru-prompt-carousel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--prompt-carousel-gap);
+  min-inline-size: 0;
+  border-radius: var(--radius-field);
+  touch-action: pan-y;
+}
+
+/* 프로그램 포커스(시트 초기 포커스)용 링 — 시트 본문 `overflow-y: auto` 에 잘리지 않게 **안쪽**으로 그린다. */
+.haru-prompt-carousel:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+.haru-prompt-carousel__bar {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  inline-size: 100%; /* 노트와 같은 폭 (`D4-71`) — Figma 의 오른쪽 3 여백은 두지 않는다 */
+  block-size: var(--prompt-carousel-bar-height);
+  margin-block: var(--prompt-carousel-bar-margin-block-start)
+    var(--prompt-carousel-bar-margin-block-end);
+  padding-block: var(--prompt-pill-session-pad-block);
+  padding-inline: var(--prompt-pill-session-pad-inline);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-tinted);
+  /* 테두리는 inset — 레이아웃 1px 를 차지하지 않는다 (Stage 3 `V-1`·`V-2` 와 같은 방식) */
+  box-shadow: inset 0 0 0 1px var(--color-border-subtle);
+}
+
+.haru-prompt-carousel__arrow {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--prompt-carousel-arrow-size);
+  block-size: var(--prompt-carousel-arrow-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-carousel-arrow);
+  cursor: pointer;
+}
+
+/* 터치 44 (AC-4-97) — 레이아웃은 24 그대로 두고 hit 만 넓힌다 */
+.haru-prompt-carousel__arrow::before {
+  position: absolute;
+  inset: calc((var(--prompt-carousel-arrow-size) - var(--prompt-carousel-arrow-hit)) / 2);
+  content: '';
+}
+
+.haru-prompt-carousel__arrow[aria-disabled='true'] {
+  color: var(--color-carousel-arrow-disabled);
+  cursor: default;
+}
+
+.haru-prompt-carousel__viewport {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow-x: clip;
+}
+
+.haru-prompt-carousel__track {
+  display: flex;
+  translate: calc(var(--prompt-carousel-index, 0) * -100%) 0;
+  transition: translate var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.haru-prompt-carousel__slide {
+  display: flex;
+  flex: 0 0 100%;
+  flex-direction: column;
+  justify-content: center;
+  min-inline-size: 0;
+}
+
+/* 상세는 세로로 늘인다 — 페이지마다 높이가 달라도 상세 상자(노트)가 같은 높이로 맞춰진다 */
+.haru-prompt-carousel__track--detail .haru-prompt-carousel__slide {
+  justify-content: stretch;
+}
+
+.haru-prompt-carousel__track--detail .haru-prompt-carousel__slide > * {
+  flex: 1 1 auto;
+}
+
+.haru-prompt-carousel__indicator {
+  display: flex;
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .haru-prompt-carousel__track {
+    transition: none;
+  }
+}

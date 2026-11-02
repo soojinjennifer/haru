@@ -234,6 +234,19 @@
    * `★ Save` 별은 Figma 값 유지다 — 위 `--color-icon-save-star` 를 건드리지 않는다.
    */
   --color-icon-session-history: var(--haru-palette-yellow-700);
+
+  /* ===== Stage 4b `S4-G2` — Prompt Drawer `88:960` ===========================
+   * 면 `color/white/-86%` → `--haru-white-a85` 흡수 (Δ0.01, Stage 4 Spec §5.2 `T-1`).
+   * Sheet 기본 `--color-surface-strong`(0.90)과 다른 값이다 — 재사용하면 Δ0.04.
+   */
+  --color-surface-drawer: var(--haru-white-a85);
+  /*
+   * 캐러셀 화살표 글리프 (`86:324` · `88:708` SVG 원문 fill). 활성 `#b0cfc0`(palette mint) ·
+   * 비활성(첫/끝) `#f2f2f7`. `--color-icon-flip` 과 값이 같아도 의미가 달라 재사용하지 않는다.
+   * 비활성 대비는 WCAG 1.4.3/1.4.11 예외(비활성 컨트롤) — `aria-disabled` 가 상태를 전달한다.
+   */
+  --color-carousel-arrow: var(--haru-palette-mint);
+  --color-carousel-arrow-disabled: var(--haru-gray-6);
 }
 
 :root {
@@ -243,5 +256,25 @@
     var(--color-bg-app-start) 0%,
     var(--color-bg-app-mid) 46%,
     var(--color-bg-app-end) 100%
+  );
+  /*
+   * 책 표지 자리 그라디언트 — Stage 4 Design Spec §5.2 `T-5` (4b Spec §2.2 책 칩 `296:1203`).
+   * Figma `linear-gradient(131.19deg, #85BFB6 0%, #B0CFC0 70.92%)` — 각도·정지점 포함.
+   * `coverUrl` 이 없을 때만 쓴다 (AC-4-126). 기존 `.haru-book-cover--placeholder`(평면 + 이니셜)는
+   * 16×22 에 이니셜이 들어가지 않아 쓰지 않는다.
+   */
+  --gradient-book-cover-placeholder: linear-gradient(
+    131.19deg,
+    var(--haru-palette-teal) 0%,
+    var(--haru-palette-mint) 70.92%
+  );
+  /*
+   * 출석 스티커 타일 — Stage 4 Design Spec §5.2 `T-4` (Figma `29:80`, `get_design_context(29:62)` 선언값).
+   * `linear-gradient(140.26769705991268deg, #d0cca1 0%, #eed2bd 70.922%)` — 각도·정지점 포함.
+   */
+  --gradient-sticker-badge: linear-gradient(
+    140.26769705991268deg,
+    var(--haru-palette-yellow) 0%,
+    var(--haru-palette-orange) 70.922%
   );
 }

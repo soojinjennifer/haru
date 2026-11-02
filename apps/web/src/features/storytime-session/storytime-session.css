@@ -1,28 +1,59 @@
 /*
- * features/storytime-session — 세션 화면 ready (Figma `300:1309`, Stage 4 Design Spec §2.2.0 · §2.3,
- * 4b Spec §2.1 · §2.4). Web y = Figma y − 56 (상태바는 OS 영역 — safe-area 가 맡는다).
+ * features/storytime-session — 세션 화면 ready · recording · paused (Figma `300:1309` · `298:1262` ·
+ * `298:1340`, Stage 4 Design Spec §2.2.0 · §2.3, 4b Spec §2.1~§2.4). Web y = Figma y − 56 (상태바는 OS
+ * 영역 — safe-area 가 맡는다).
  *
  * | Figma y | 요소 | 구현 |
  * |---|---|---|
  * | 66  | 닫기 38 @ x331 | 상단 줄 padding-top `--session-top-row-offset`(10) · 우 gutter 24 |
  * | 132 | 메달리온 링 190 / 아바타 174 | 상태바 아래 `--session-medallion-offset`(76) |
- * | 327 | 버블 tail 꼭짓점 | ring bottom + `--session-bubble-offset`(5) + overhang 10.627 → 본체 337.627 |
+ * | 66  | Prompts 칩 117×36 @ x24 (recording·paused) | 상단 줄 왼쪽 · 닫기는 `margin-inline-start: auto` |
+ * | 327 | 버블 tail 꼭짓점 (ready) | ring bottom + `--session-bubble-offset`(5) + overhang 10.627 → 본체 337.627 |
+ * | 337 | 책 칩 40 (recording·paused) | ring bottom + `--session-book-chip-offset`(15) · 가운데 (`AD-S4-13`) |
+ * | 400 | 상태 블록 111 | 책 칩 bottom + `--session-status-block-offset`(23) |
  * | 621 | Record Control 150 | **아래에 앵커** — 바 위 18 |
  * | 789 | 하단 바 279×45 | 프레임 아래 18 (+ safe-area 는 `AppColumn` 이 더한다) |
  *
  * 위 묶음과 아래 묶음 사이는 **유연 간격**이다 (버블 높이가 내용 가변 — §2.2.3). 393×852 브라우저
  * 뷰포트는 Figma 콘텐츠 796 보다 56 길어 그 차이가 유연 간격에 들어간다.
  *
- * `R-SHADOW-1`: 이 화면은 `overflow` 를 새로 선언하지 않는다. 클립 선은 `AppShell scroll="none"` 의
- * 뷰포트(= 화면 가장자리)뿐이다 — 바 그림자 아래 번짐(산술 40)은 화면 밖으로 나가 보이지 않는다
- * (§2.3.7 · `e2e/shadow.spec.ts` 세션 케이스가 양축을 잰다).
+ * `R-SHADOW-1`: 이 화면 자체는 `overflow` 를 새로 선언하지 않는다 (ready pill 목록의 짧은 세로 예외는
+ * `entities/session/session.css`). 클립 선은 `AppShell` 뷰포트(= 화면 가장자리)뿐이다 — 바 그림자 아래 번짐(산술 40)은
+ * 화면 밖으로 나가 보이지 않는다 (§2.3.7 · `e2e/shadow.spec.ts` 세션 케이스가 양축을 잰다).
+ * `D4-82`: 그 뷰포트가 `overflow-y: auto` 가 됐다 — 627 이하의 Submit · Discard · Record 에 닿는 **유일한 경로**라서다.
+ * 뷰포트는 앱 컬럼 바깥이라 가로 클립 선은 화면 끝이고, 스크롤은 `.haru-session` 하한(아래)이 만든다.
  */
 
+/*
+ * `D4-79` — 압축 판단 기준(높이 컨테이너). `size` 컨테이너라 내용이 높이에 기여하지 않고, 높이는 flex 체인이
+ * 준 **safe-area 를 뺀 콘텐츠 높이**다 (`100dvh` − `AppColumn` padding). 그래서 이 쿼리는 `@media (height)` 와
+ * 달리 홈 화면 추가·Capacitor 의 inset 을 반영한다.
+ * 자기 자신은 자기 쿼리의 대상이 아니다 — 변수 override 와 레이아웃은 안쪽 `__body` 가 받는다.
+ * ⚠️ `container-type` 은 구형 WebKit 에서 layout containment 도 건다(fixed 자손의 기준이 바뀐다). 이 화면의
+ * fixed 자손(Dialog · Sheet · Toast)은 전부 portal 이라 영향이 없다.
+ * `D4-83`: 최소 지원 iOS 는 16 이다 — 컨테이너 쿼리를 지원하므로 `@media` 대체 규칙을 두지 않는다.
+ */
 .haru-session {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-block-size: 0;
+  container: haru-session / size;
+}
+
+/*
+ * `D4-82` — 628 = 압축이 끝난 내용 최소 높이 (상단 76 + 링 152 + stage 하한 205 + Record 150 + 바 45, 아래
+ * slack 식과 같은 항). **하한을 박스에 둔다**: 내용이 넘치게 두면 `size` 컨테이너의 내용은 조상 높이에 기여하지
+ * 않아 `AppColumn` 아래 safe-area 가 스크롤에 안 들어가고(바가 홈 인디케이터 밑에 멈춘다), layout containment 를
+ * 거는 WebKit 에서는 넘침이 스크롤 범위에서 빠질 수 있다. 하한이면 그 아래 높이도 쿼리가 628 로 판단하므로
+ * 기하가 628 과 같고, 628 이상은 flex 가 준 높이 그대로라 스크롤이 생기지 않는다.
+ * 대기·오류 화면은 내용이 가운데 한 덩이뿐이라 제외한다.
+ */
+.haru-session:not(.haru-session--pending, .haru-session--error) {
+  min-block-size: calc(
+    var(--session-medallion-offset) + var(--session-medallion-ring-size-compact) +
+      var(--session-stage-min-block-size) + var(--record-size) + var(--button-height-md)
+  );
 }
 
 .haru-session--pending,
@@ -31,11 +62,35 @@
   justify-content: center;
 }
 
+/* 조회 실패 — `ErrorState` 카드 + 아래 `Back to Home` (`D4-99`, Figma 없음 — Visual Gap H1 §8.2). 덩어리째 가운데다. */
+.haru-session__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-inline-size: 100%;
+}
+
+.haru-session__body {
+  /* Prompts 팝업(`features/session-prompts`, `S4-G1`)의 앵커 — 팝업은 DOM 상 칩 바로 다음(상단 줄 안)에
+     있지만 위치는 이 화면 기준(ring bottom + 6)이다. */
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-block-size: 0;
+}
+
 .haru-session__top-row {
   display: flex;
   flex: none;
-  justify-content: flex-end;
+  align-items: flex-start;
   padding-block-start: var(--session-top-row-offset);
+}
+
+/* 닫기는 항상 오른쪽 끝 — ready 에는 칩이 없고 recording·paused 에는 왼쪽에 칩이 있다 (같은 노드 유지). */
+.haru-session__top-row > :last-child {
+  margin-inline-start: auto;
 }
 
 /*
@@ -43,7 +98,8 @@
  * Icon 의 16/20/24 밖이라 사용 지점이 T-30 박스를 준다. IconButton 아이콘 칸(20)은 그대로 두고
  * 가운데에 놓인다.
  */
-.haru-session__top-row .haru-icon {
+.haru-session__top-row .haru-icon-button .haru-icon,
+.haru-session-complete__close .haru-icon-button .haru-icon {
   inline-size: var(--icon-button-icon-size-close);
   block-size: var(--icon-button-icon-size-close);
 }
@@ -75,6 +131,33 @@
   position: relative;
 }
 
+/*
+ * recording 경청 — **메달리온 링 단독** breathing (Stage 4 Spec §6.3 `PF-07`, 4b Spec §6: recording 의
+ * 무한 모션은 이것 하나 — 상태 dot · Record 링은 정지). `0%` = Figma 선언값(scale 1) — Playwright
+ * `animations: 'disabled'` 가 초기 상태로 찍는다 (`R-BASELINE-1` ②). paused 는 모션 없음.
+ */
+@keyframes haru-session-breathing {
+  0%,
+  100% {
+    scale: 1;
+  }
+
+  50% {
+    scale: var(--session-breathing-scale);
+  }
+}
+
+.haru-session--recording .haru-session__medallion-ring {
+  animation: haru-session-breathing var(--motion-duration-pulse) var(--motion-ease-standard)
+    infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .haru-session--recording .haru-session__medallion-ring {
+    animation: none;
+  }
+}
+
 .haru-session__stage {
   display: flex;
   flex: 1;
@@ -84,6 +167,25 @@
   padding-block-start: calc(var(--session-bubble-offset) + var(--bubble-tail-session-overhang));
 }
 
+/* recording · paused — 책 칩 자리 + 상태 블록 (4b Spec §2.1). 레이아웃 애니메이션 없음 (§6). */
+.haru-session__stage--active {
+  align-items: center;
+  padding-block-start: var(--session-book-chip-offset);
+}
+
+/* `book: null` 이어도 40 을 비워 둔다 — 상태 블록이 y400 에서 움직이지 않는다 */
+.haru-session__book-slot {
+  display: flex;
+  flex: none;
+  justify-content: center;
+  inline-size: 100%;
+  block-size: var(--session-book-chip-height);
+}
+
+.haru-session__stage--active .haru-session-status {
+  margin-block-start: var(--session-status-block-offset);
+}
+
 .haru-session__controls {
   display: flex;
   flex: none;
@@ -91,6 +193,12 @@
   align-items: center;
   gap: var(--session-bottom-gap);
   padding-block-end: var(--session-bottom-gap);
+}
+
+/* `D4-82` — 포커스 이동으로 스크롤될 때 포커스 링(2 + 간격 2)까지 뷰포트 안에 들어오게 한다. */
+.haru-session__controls .haru-record,
+.haru-session__controls .haru-button {
+  scroll-margin-block: calc(var(--focus-ring-width) + var(--focus-ring-offset));
 }
 
 /*
@@ -108,4 +216,180 @@
   flex: 1 1 var(--session-action-button-width);
   min-inline-size: 0;
   max-inline-size: var(--session-action-button-width);
+}
+
+/* 아래 규칙들은 같은 특이도의 기본 규칙(`__stage` · `__controls`)을 덮어야 하므로 파일 끝에 둔다. */
+/*
+ * 짧은 세로 압축 (`S4-K1`, `D4-58` CP-7 · `D4-78`~`D4-81` · 4b Spec §8.2 · AC-4-99). Figma 는 852 뿐이다
+ * (`AD-S4-18` · `AD-S4-21` · `AD-S4-22`). 높이 = 콘텐츠 높이(`D4-79`).
+ *
+ * | 콘텐츠 높이 | 압축 | 유연 간격 |
+ * |---|---|---|
+ * | ≥ 796 | 없음 (Figma 그대로) | ≥ 110 |
+ * | 702 ~ 795 | ① 유연 간격만 흡수 | 16 ~ 109 |
+ * | 664 ~ 701 | ② 메달리온 sm 136 / 링 152 (−38) | 16 ~ 53 |
+ * | 646 ~ 663 | 바 아래 여백 18 → 0 (`AD-S4-21`) | 16 |
+ * | 628 ~ 645 | Record ↔ 바 간격 18 → 0 — 바가 위로 올라온다 (`D4-81`, `AD-S4-22`) | 16 |
+ * | < 628 | 628 기하 그대로 + 세로 스크롤 (`D4-82`, `AD-S4-23`) — 첫 화면에 바가 안 보일 수 있다 | 16 |
+ *
+ * 702 = 위 묶음 455 + 유연 간격 16 + 아래 묶음 231. 쿼리에는 토큰을 못 쓴다 — 리터럴이며 근거는 이 식이다.
+ * ③ pill 목록 내부 스크롤: 팝업 = `features/session-prompts`, ready = `entities/session` (`D4-78`, `< 796`).
+ * 메달리온 크기 토큰은 :root 에서 계산되므로 링 크기도 여기서 함께 바꾼다 (자손 CSS · 팝업 앵커가 따라온다).
+ * 유연 간격 하한 16 은 recording·paused 의 stage 아래 padding 이다 — 없으면 648 까지 0 으로 붙는다.
+ * stage 하한(205)은 ready 도 같다 — ready ↔ recording 전환에서 Record 가 움직이지 않는다.
+ */
+@container haru-session (height < 702px) {
+  .haru-session__body {
+    --size-medallion-session: var(--size-medallion-sm);
+    --session-medallion-ring-size: var(--session-medallion-ring-size-compact);
+  }
+
+  .haru-session__stage {
+    min-block-size: var(--session-stage-min-block-size);
+  }
+
+  .haru-session__stage--active {
+    padding-block-end: var(--space-4);
+  }
+}
+
+/* ready 버블 아래 간격 = Figma 14.4 (`606.6 → 621`). 넘치는 pill 은 목록 안에서 스크롤된다 (`D4-78`). */
+@container haru-session (height < 796px) {
+  .haru-session__stage:not(.haru-session__stage--active) {
+    padding-block-end: var(--session-bubble-bottom-gap);
+  }
+}
+
+/*
+ * 664 미만 — 아래 묶음의 남는 높이(slack = 콘텐츠 높이 − Record top 433 − Record 150 − 바 45)를 나눈다.
+ * 아래 여백이 먼저 0 이 되고(646) 그다음 Record ↔ 바 간격이 0 이 된다(628).
+ * 628 미만은 `.haru-session` 하한 때문에 100cqb = 628 이라 slack 은 0 이다 — 바가 Record 를 덮지 않는다 (`D4-82`).
+ */
+@container haru-session (height < 664px) {
+  .haru-session__controls {
+    --session-controls-slack: calc(
+      100cqb - var(--session-medallion-offset) - var(--session-medallion-ring-size) -
+        var(--session-stage-min-block-size) - var(--record-size) - var(--button-height-md)
+    );
+
+    gap: clamp(0px, var(--session-controls-slack), var(--session-bottom-gap));
+    padding-block-end: clamp(
+      0px,
+      calc(var(--session-controls-slack) - var(--session-bottom-gap)),
+      var(--session-bottom-gap)
+    );
+  }
+}
+
+/*
+ * 완료 화면 (Figma `29:62` y 0~468, Stage 4 Spec §2.7). Web y = Figma y − 56.
+ *
+ * | Figma y | 요소 | 구현 |
+ * |---|---|---|
+ * | 66  | 닫기 38 @ x331 | 절대 배치 — `--session-top-row-offset`(10) · 우 gutter 24 |
+ * | 76  | 제목 `29:75` | 상단 + `--session-complete-title-offset`(19) · 줄 20 (중심 85 유지) |
+ * | 100 | 스티커 257×64 | 제목 bottom + 5 · 자리 고정 |
+ * | 172 | 링 150 / 아바타 136 (여백 7) | 스티커 bottom + 8 |
+ * | 324 | 버블 tail 꼭짓점 | ring bottom + 2 + overhang 10.627 → 본체 334.627 |
+ *
+ * ⚠ y 468 은 `88:929` **선언** 높이(130)의 끝이다. 렌더 끝은 본체 아래(Figma 렌더 약 432)다.
+ *
+ * 높이를 내용이 만든다 (`flex: none`) — 짧은 세로에서 `AppShell` 뷰포트가 스크롤로 내용에 닿는다 (`D4-82`).
+ * `R-SHADOW-1`: 새 `overflow` 없음. 클립 선은 화면 가장자리뿐이다.
+ */
+.haru-session-complete {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  padding-block-start: var(--session-complete-title-offset);
+}
+
+/*
+ * 닫기 줄 — 자기 높이(10 + 38 = 48)가 곧 **Toast inset 띠**다 (`D4-89`). `useToastTopBarInset` 이 이 박스를 잰다.
+ * 그래서 offset 을 `top` 이 아니라 안쪽 padding 으로 둔다 (닫기 y 10 은 그대로).
+ */
+.haru-session-complete__close {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  padding-block-start: var(--session-top-row-offset);
+}
+
+.haru-session-complete__sticker-slot {
+  block-size: var(--attendance-sticker-height);
+  max-inline-size: 100%;
+  margin-block-start: var(--session-complete-title-gap);
+}
+
+.haru-session-complete__medallion {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: var(--session-complete-ring-size);
+  block-size: var(--session-complete-ring-size);
+  margin-block-start: var(--session-complete-ring-gap);
+}
+
+.haru-session-complete__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-color: var(--color-surface-medallion-ring);
+  box-shadow: var(--shadow-bubble);
+}
+
+.haru-session-complete__medallion .haru-character-medallion {
+  position: relative;
+}
+
+.haru-session-complete__bubble {
+  inline-size: 100%;
+  padding-block-start: calc(
+    var(--session-complete-bubble-offset) + var(--bubble-tail-session-overhang)
+  );
+}
+
+/*
+ * 축하 C-1~C-3 (Spec §6.4) — 전부 1회. 끝 상태 = Figma 렌더. `prefers-reduced-motion` 이면 `animation` 자체가
+ * 없어 최종 상태를 바로 보인다 (§6.6, `R-BASELINE-1`). 순서는 Spec 제안이며 디자이너 Q12 미결.
+ *
+ * C-3 는 `data-entrance` 로 갈린다 (`D4-100`, `useStickerEntrance`) — `held` = Toast 가 떠 있어 아직 숨김, `play` =
+ * Toast 퇴장 뒤 재생, `static` = 재진입 즉시 표시. 숨김은 모션이 아니라 표시 시점이므로 media 밖에 둔다 — reduced
+ * motion 도 Toast 퇴장 뒤 연출 없이 나타난다 (`D4-106`). `visibility` 라 칩의 자리는 그대로이고 슬롯 높이도 고정이다 —
+ * 레이아웃 점프 0.
+ */
+@keyframes haru-session-complete-ring {
+  50% {
+    scale: var(--session-complete-ring-pop-scale);
+  }
+}
+
+@keyframes haru-session-complete-enter {
+  from {
+    opacity: 0;
+    translate: 0 var(--session-complete-enter-shift);
+    scale: var(--session-complete-enter-scale);
+  }
+}
+
+.haru-session-complete__sticker-slot[data-entrance='held'] .haru-attendance-sticker {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .haru-session-complete__ring {
+    animation: haru-session-complete-ring var(--motion-duration-slow) var(--motion-ease-spring) both;
+  }
+
+  .haru-session-complete__bubble {
+    animation: haru-session-complete-enter var(--motion-duration-base) var(--motion-ease-spring)
+      var(--session-complete-bubble-delay) both;
+  }
+
+  .haru-session-complete__sticker-slot[data-entrance='play'] .haru-attendance-sticker {
+    animation: haru-session-complete-enter var(--motion-duration-base) var(--motion-ease-spring)
+      var(--session-complete-sticker-delay) both;
+  }
 }

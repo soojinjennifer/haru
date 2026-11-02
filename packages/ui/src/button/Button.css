@@ -44,6 +44,47 @@
   block-size: var(--button-height-lg);
 }
 
+/*
+ * `sm` — 세션 Prompts 칩 `298:1314` (4b Spec §2.2 · §4 #2 · `T-16`).
+ * 라벨 = `--text-subheadline` 15 · semibold · line-height 20. Figma 는 line-height 에 `font-size/11` 을
+ * 바인딩했으나(텍스트 박스 63×11) 높이 36 은 아이콘 18 + 9×2 로 정해진다 → 높이 고정 + 가운데 정렬
+ * (Visual Gap 에서 차이가 나면 `AD-S4-17` 후보, Spec §2.2 ⚠).
+ * 글자색은 variant 뒤에서 덮는다 (아래 `glass` + `sm`).
+ */
+.haru-button--sm {
+  block-size: var(--button-height-sm);
+  padding-inline: var(--button-padding-inline-start-sm) var(--button-padding-inline-end-sm);
+  font-size: var(--button-label-size-sm);
+  line-height: var(--text-subheadline--line-height);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--text-subheadline--letter-spacing);
+  box-shadow: var(--button-shadow-sm);
+}
+
+/* 터치 타깃 — 시각 36 은 그대로, hit 만 세로 44 (IconButton `::before` 선례 §9.3). */
+.haru-button--sm::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block: calc((var(--button-height-sm) - var(--button-hit-size-sm)) / 2);
+  border-radius: var(--button-radius);
+}
+
+.haru-button--sm .haru-button__content {
+  gap: var(--button-gap-sm);
+}
+
+.haru-button--sm .haru-button__icon,
+.haru-button--sm .haru-button__icon .haru-icon {
+  inline-size: var(--button-icon-size-sm);
+  block-size: var(--button-icon-size-sm);
+}
+
+/* Lucide 글리프의 렌더 stroke 를 Figma 1.5 로 (24 기준 2 — 토큰 주석). */
+.haru-button--sm .haru-button__icon svg {
+  stroke-width: var(--button-icon-stroke-sm);
+}
+
 .haru-button--full {
   display: flex;
   inline-size: 100%;
@@ -69,6 +110,11 @@
 .haru-button--neutral {
   background-color: var(--color-action-neutral-bg);
   color: var(--color-action-neutral-fg);
+}
+
+/* Prompts 칩 라벨·아이콘 = `text-primary` `#4A5F5C` (`298:1314` `[ctx]`) — glass 기본(ink-600)이 아니다. */
+.haru-button--glass.haru-button--sm {
+  color: var(--color-fg-primary);
 }
 
 /* backdrop-filter 미지원 · 투명도 축소 환경에서는 불투명 fill 로 대체한다 (§4.3-③). */
@@ -119,6 +165,12 @@
   opacity: var(--opacity-disabled);
   cursor: default;
   box-shadow: var(--shadow-glass-rest);
+}
+
+/* `sm` 비활성은 자기 그림자(1겹)를 유지한다 — 비활성 표현은 opacity 하나다 (`D4-18`). */
+.haru-button--sm:disabled,
+.haru-button--sm[aria-disabled='true']:not(:disabled) {
+  box-shadow: var(--button-shadow-sm);
 }
 
 /* ===== loading — 라벨 폭 유지 + 중앙 인디케이터 (§4.4) ==================== */

@@ -146,3 +146,52 @@ describe('Button neutral variant (D4-16 · D4-18)', () => {
     expect(css).not.toMatch(/\.haru-button--neutral[^{]*(disabled|aria-disabled)/);
   });
 });
+
+describe('Button size="sm" (4b Spec §4 #2 · T-16 — Prompts 칩 `298:1314`)', () => {
+  it('renders the sm class with a decorative leading icon and keeps native aria-* (disclosure)', () => {
+    render(
+      <Button
+        variant="glass"
+        size="sm"
+        leadingIcon={<span data-testid="glyph" />}
+        aria-expanded={false}
+        aria-controls="popup"
+      >
+        Prompts
+      </Button>,
+    );
+    const button = screen.getByRole('button', { name: 'Prompts' });
+    expect(button.classList.contains('haru-button--sm')).toBe(true);
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(button.getAttribute('aria-controls')).toBe('popup');
+    expect(button.getAttribute('aria-pressed')).toBeNull();
+    expect(screen.getByTestId('glyph').parentElement?.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('CSS: 36 높이 · pad 14/16 · gap 6 · 아이콘 18 · 1겹 그림자 · hit 44 · glass 라벨 = fg-primary — 토큰만', async () => {
+    const { readFileSync } = await import('node:fs');
+    const path = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const css = readFileSync(
+      path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'Button.css'),
+      'utf8',
+    );
+    const block = /\.haru-button--sm \{([^}]*)\}/.exec(css)?.[1] ?? '';
+    expect(block).toContain('block-size: var(--button-height-sm);');
+    expect(block).toContain(
+      'padding-inline: var(--button-padding-inline-start-sm) var(--button-padding-inline-end-sm);',
+    );
+    expect(block).toContain('box-shadow: var(--button-shadow-sm);');
+    expect(css).toMatch(
+      /\.haru-button--sm::before \{[^}]*inset-block: calc\(\(var\(--button-height-sm\) - var\(--button-hit-size-sm\)\) \/ 2\);/,
+    );
+    expect(css).toMatch(
+      /\.haru-button--sm \.haru-button__content \{\s*gap: var\(--button-gap-sm\);/,
+    );
+    expect(css).toMatch(
+      /\.haru-button--glass\.haru-button--sm \{\s*color: var\(--color-fg-primary\);/,
+    );
+    const body = css.replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(body).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+  });
+});

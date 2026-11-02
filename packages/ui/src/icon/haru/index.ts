@@ -1,11 +1,15 @@
 import type { ComponentType } from 'react';
 
+import { CarouselNext } from './CarouselNext';
+import { CarouselPrevious } from './CarouselPrevious';
 import { FlipToBack } from './FlipToBack';
 import { RecordMic } from './RecordMic';
+import { RecordMicOff } from './RecordMicOff';
 import { RecordPause } from './RecordPause';
 import { SaveStar } from './SaveStar';
 import { SessionClose } from './SessionClose';
 import { SessionHistory } from './SessionHistory';
+import { StickerThumb } from './StickerThumb';
 import { TabCenterHome } from './TabCenterHome';
 
 /**
@@ -28,6 +32,16 @@ import { TabCenterHome } from './TabCenterHome';
  *
  * Stage 4b `S4-F1R`(Visual Gap `VG-F1-01`)에서 **1건 추가** — Lucide `x` 와 기하가 다르다.
  *  - `session-close` — 세션 닫기 X 15×15 (`29:77` = `300:1319`, 4b Spec §16.4)
+ *
+ * Stage 4b `S4-F2` 후속(Visual Gap `VG-F2-01`)에서 **1건 추가** — path 는 Lucide `mic-off` 와 같으나
+ * stroke 가 24 기준 2(Figma) ↔ HARU Lucide 규격 1.5 로 달라 Figma export 로 교체했다.
+ *  - `record-mic-off` — `PermissionDenied` 변형 마이크 끔 40×40 (`298:1254`)
+ *
+ * Stage 4b `S4-G2`(Prompt Drawer `88:960`)에서 **2건 추가** — 채움 chevron 이라 Lucide 외곽선과 도형이 다르다.
+ *  - `carousel-previous` · `carousel-next` — 캐러셀 좌우 화살표 24×24 (`88:708` · `86:324`)
+ *
+ * Stage 4b `S4-H1`(완료 화면 `29:62`)에서 **1건 추가** — Figma 는 채움, Lucide `thumbs-up` 은 외곽선이다.
+ *  - `sticker-thumb` — 출석 스티커 타일 엄지 20×20 (`90:602`)
  */
 export const HARU_ICONS = {
   'haru:tab-center-home': TabCenterHome,
@@ -35,8 +49,12 @@ export const HARU_ICONS = {
   'haru:save-star': SaveStar,
   'haru:session-history': SessionHistory,
   'haru:record-mic': RecordMic,
+  'haru:record-mic-off': RecordMicOff,
   'haru:record-pause': RecordPause,
   'haru:session-close': SessionClose,
+  'haru:carousel-previous': CarouselPrevious,
+  'haru:carousel-next': CarouselNext,
+  'haru:sticker-thumb': StickerThumb,
 } satisfies Record<`haru:${string}`, ComponentType>;
 
 export type HaruIconName = keyof typeof HARU_ICONS;

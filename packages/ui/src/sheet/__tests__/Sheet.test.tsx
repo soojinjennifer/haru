@@ -206,6 +206,21 @@ describe('Sheet — 면 색(`surface`) · 표지 그림자 자리(`contentShadow
     expect(document.querySelector('.haru-sheet--inset-card')).not.toBeNull();
   });
 
+  it('`variant="floating"` + `surface="drawer"` — Prompt Drawer `88:960` (Stage 4b `S4-G2`): 핸들 있음 · 두 class', () => {
+    render(
+      <Sheet open onClose={() => {}} title="Prompts" variant="floating" surface="drawer">
+        <p>body</p>
+      </Sheet>,
+    );
+
+    const sheet = screen.getByRole('dialog', { name: 'Prompts' });
+    expect(sheet.classList.contains('haru-sheet--floating')).toBe(true);
+    expect(sheet.classList.contains('haru-sheet--surface-drawer')).toBe(true);
+    /* `inset-card` 와 달리 핸들이 있다 (`88:669`) */
+    expect(sheet.querySelector('.haru-sheet__grabber')).not.toBeNull();
+    expect(sheet.getAttribute('aria-modal')).toBe('true');
+  });
+
   it('`contentShadowInset="cover"` 는 **표지 전용** class 만 붙인다 (버블용과 섞이지 않는다)', () => {
     const { unmount } = render(
       <Sheet

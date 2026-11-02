@@ -24,6 +24,20 @@
   --button-gap: var(--space-2); /* icon + label */
   --button-radius: var(--radius-pill);
   --button-label-size: var(--text-headline); /* Figma `17:5` 17/590 */
+  /* `size="sm"` — 세션 Prompts 칩 `298:1314` (4b Spec §2.2 · §4 #2 · `T-16`). 117×36 ·
+   * pad 14 / 16 · gap 6 · 아이콘 18(--size-icon-* 16/20/24 밖) · 라벨 subheadline · 그림자 1겹 */
+  --button-height-sm: 36px;
+  --button-padding-inline-start-sm: var(--space-3-5);
+  --button-padding-inline-end-sm: var(--space-4);
+  --button-gap-sm: var(--space-1-5);
+  --button-icon-size-sm: 18px;
+  --button-label-size-sm: var(--text-subheadline);
+  --button-shadow-sm: var(--shadow-bubble);
+  /* 칩 아이콘 `298:1315` = Lucide `message-square-text` · 렌더 stroke 1.5 @18 = 24 기준 **2**
+   * (4b Spec §0.1 `[svg]`). HARU 기본 1.5(24 기준)로 그리면 1.125 가 된다 — sm 에서만 덮는다. */
+  --button-icon-stroke-sm: 2;
+  /* 시각 36 → hit 44 (`::before` 세로 확장, IconButton 선례 §9.3) */
+  --button-hit-size-sm: var(--size-touch-min);
 
   /* ===== IconButton — Figma `78:158` ===================================== */
   --icon-button-size: 38px; /* Figma `78:157` 38×38 */
@@ -325,6 +339,113 @@
   ); /* 190 */
   --session-bubble-offset: 5px; /* ring bottom 322 → tail 꼭짓점 327 */
   --session-bottom-gap: var(--space-4-5); /* Record → 바 18 · 바 → 프레임 아래 18 */
+  /* `S4-K1` 짧은 세로 압축 ② (`D4-58` CP-7 · 4b Spec §8.2) — 메달리온 sm 136 + 링 오프셋 8×2 (완료 화면 선례) */
+  --session-medallion-ring-size-compact: calc(
+    var(--size-medallion-sm) + 2 * var(--size-medallion-ring-offset)
+  ); /* 152 */
+  /* `D4-78` ready 버블 → Record 간격 = Figma 621 − 606.6 (`139:2803`). 압축 구간에서만 쓴다 — ≥796 은 내용 높이 그대로 */
+  --session-bubble-bottom-gap: 14.4px;
+  /* 완료 화면 `29:62` y 0~468 (`S4-H1`, Stage 4 Spec §2.7). Web y = Figma y − 56 */
+  --session-complete-title-offset: 19px; /* 제목 줄 75~95 (Figma 76~94 와 중심 85 동일, 15/20 흡수 §2.7) */
+  --session-complete-title-gap: 5px; /* 제목 줄 bottom 95 → 스티커 100 */
+  --session-complete-ring-gap: var(--space-2); /* 스티커 bottom 164 → ring 172 */
+  --session-complete-ring-size: 150px; /* `29:86` — 136 + 7×2 = Figma. `AD-S4-8` 은 철회됐다 (`D4-92`) */
+  --session-complete-bubble-offset: 2px; /* ring bottom 322 → tail 꼭짓점 324 */
+  --bubble-complete-width: 297px; /* `88:929` */
+  --bubble-complete-subtext-line: 19px; /* `I88:929;88:760` Regular 13/19 — footnote line 은 18 이다 (`D4-87`) */
+  /* 축하 모션 C-1~C-3 (Spec §6.4) */
+  --session-complete-ring-pop-scale: 1.06;
+  --session-complete-enter-scale: 0.96;
+  --session-complete-enter-shift: var(--space-2);
+  --session-complete-bubble-delay: 120ms;
+  --session-complete-sticker-delay: 0ms; /* Toast 퇴장 직후 재생 — Spec §6.4 240 변경 (`D4-105`) */
+  /* 출석 스티커 `29:79` — 10 + 44 + 12 + 171 + 20 = 257 · 10 + 44 + 10 = 64 */
+  --attendance-sticker-width: 257px;
+  --attendance-sticker-height: 64px;
+  --attendance-sticker-pad-start: var(--space-2-5);
+  --attendance-sticker-pad-end: var(--space-5);
+  --attendance-sticker-gap: var(--space-3);
+  --attendance-sticker-tile-size: 44px;
+  --attendance-sticker-icon-inset: 11px; /* `90:602` @ (11,11) — Figma 는 가운데(12)가 아니다 */
+  --attendance-sticker-text-gap: 2px;
+  /* `29:84` Semibold 14 · leading normal → 노드 높이 17 (`D4-90` — Spec §5.4-① 15/20 흡수 철회) */
+  --attendance-sticker-title-size: 14px;
+  --attendance-sticker-title-line: 17px;
+
+  /* `D4-81` <702 stage 하한 = 책 칩 15 + 40 + 상태 23 + 111 + 유연 간격 16. Record 를 ready·recording 공통 위치에 고정한다 */
+  --session-stage-min-block-size: 205px;
+
+  /* ===== Stage 4b `S4-F2` — recording `298:1262` · paused `298:1340` ===========
+   * 근거: 4b Design Spec §2.2 · §2.3 · §2.5 · §5.2 (`T-15`~`T-18` · `T-20` · `T-21`, `D4-58` 승인). */
+
+  /* `T-21` — 위 묶음 오프셋: ring bottom 322 → 책 칩 337 (15) → 상태 블록 400 (23) */
+  --session-book-chip-offset: 15px;
+  --session-status-block-offset: 23px;
+  --session-status-block-gap: var(--space-2-5); /* pill ↔ 시간 ↔ 보조 줄 10 */
+  /* recording 경청 — 메달리온 링 breathing `scale 1 → 1.03` (Stage 4 Spec §6.3 `PF-07`, 4b §6) */
+  --session-breathing-scale: 1.03;
+
+  /* `T-15` — 경과 시간 `298:1324` SF Pro Bold 48 / 41 (스케일 최대 34 밖) */
+  --session-timer-size: 48px;
+  --session-timer-line: 41px;
+
+  /* `T-17` — 상태 pill `298:1321` (hug · 높이 = 6 + 20 + 6 = 32) · dot 8 (채움 / stroke 1.5) */
+  --session-state-pill-pad-inline: var(--space-3-5);
+  --session-state-pill-pad-block: var(--space-1-5);
+  --session-state-pill-gap: var(--space-2);
+  --session-state-dot-size: 8px;
+  --session-state-dot-stroke: 1.5px;
+
+  /* `T-18` — 책 칩 `296:1203` (hug · 40 = 9 + 22 + 9 · 좌우 15 · gap 8) · 표지 16×22 radius 3 */
+  --session-book-chip-height: 40px;
+  --session-book-chip-pad-inline: 15px;
+  --session-book-chip-gap: var(--space-2);
+  --session-book-cover-width: 16px;
+  --session-book-cover-height: 22px;
+  --session-book-cover-radius: 3px;
+
+  /* `T-20` — RecordControl 변형 (`298:1236` Disabled · `298:1245` PermissionDenied) */
+  --record-tone-denied: var(--color-action-neutral-bg); /* 링·코어 #AEAEB2 = gray-2 (P-25) */
+  --record-core-shadow-disabled: none; /* Disabled 코어 SVG 에 filter 없음 (4b Spec F-7) */
+
+  /* ===== Stage 4b `S4-G1` — Prompts 팝업 `296:1257` (`T-19`, `D4-58` CP-1 · CP-2) ===========
+   * 329 × (73 + 44n) · 면·그림자·radius·폭은 ready 버블과 같다(`--bubble-session-width` · `--shadow-bubble`).
+   * 다른 것: 위·아래 padding 14 (ready 는 아래 13) · tail 없음 · ring bottom + 6 앵커 · `See all` 14/17. */
+  --prompt-popup-pad-block: var(--space-3-5); /* Figma `py-14` (위·아래 같다) */
+  --prompt-popup-offset-top: var(--space-1-5); /* ring bottom 322 → 팝업 top 328 */
+  /* `See all prompts` `300:1308` SF Pro Semibold 14 / normal(17) — 스케일 밖 리터럴 (`S4B-Q3` ⓐ) */
+  --prompt-popup-link-size: 14px;
+  --prompt-popup-link-line: 17px;
+
+  /* ===== Stage 4b `S4-G2` — Prompt Drawer `88:960` (Stage 4 Spec §3.2 · §5.2 `T-1` · `T-10`) =====
+   * 폭 = 컬럼 100% (`AD-S4-7`, `D4-49`) — Figma 353 은 gutter 20 전제. 좌·우·아래 = gutter.
+   * Figma 는 미배치 컴포넌트라 아래 여백 근거가 없다 → `L-NEW-03`(inset-card) 처럼 좌우와 같은 값 + safe-area.
+   * padding pt 10 / px 20 · 세로 gap 10 · 핸들 40×4 (슬롯 8) · radius 30 → card 28 흡수.
+   * 아래 padding 은 **렌더 기준 11** (`D4-70`, `VG-G2-02`) — 선언 pb 18 + 고정 높이 331.765 면 내용이 7 넘쳐
+   * dots 아래가 11 로 그려진다. 높이 329 @393 (Figma 331.765 와 Δ−2.765 = `--text-*` 흡수분).
+   * Spec `T-10` 명칭 정정 (`D4-73`): `--prompt-drawer-width` 는 inset 파생이라 없고, 캐러셀 토큰은 Shared UI
+   * `PromptCarousel` 소속이라 `--prompt-carousel-*` 다. `--prompt-drawer-pill-width` 는 `D4-71` 로 **없다**(pill = 본문 100%). */
+  --sheet-floating-inset: var(--layout-gutter); /* 24 */
+  --sheet-floating-inset-block-end: calc(var(--layout-gutter) + var(--layout-safe-bottom));
+  --sheet-floating-pad-block-start: var(--space-2-5); /* 10 */
+  --sheet-floating-pad-block-end: 11px; /* 렌더 기준 — 스케일 밖 리터럴 (`D4-70`) */
+  --sheet-floating-pad-inline: var(--space-5); /* 20 */
+  --sheet-floating-gap: var(--space-2-5); /* 10 */
+  --sheet-floating-grabber-width: 40px; /* `88:669` 40×4 (bottom 시트 36 과 다르다 — §12.4-⑤) */
+  --sheet-floating-grabber-margin: var(--space-0-5); /* 슬롯 `88:668` 8 = 2 + 4 + 2 */
+  /* 캐러셀 pill `88:708` 높이 40 · 폭 = 본문 100% (`D4-71`) (슬롯 `88:674` 45 · 위 2.24 / 아래 2.76 → 2 / 3) */
+  --prompt-carousel-bar-height: 40px;
+  --prompt-carousel-bar-margin-block-start: var(--space-0-5); /* 2 */
+  --prompt-carousel-bar-margin-block-end: 3px;
+  --prompt-carousel-gap: var(--space-2-5); /* 세로 gap 10 */
+  --prompt-carousel-arrow-size: var(--size-icon-lg); /* 24 */
+  --prompt-carousel-arrow-hit: var(--size-touch-min); /* 44 (AC-4-97) */
+  /* 코칭 노트 `88:681` 313×158 · 1px 테두리 · radius 16 · 면 없음 · px15 / pt12 / pb13.19 · 12/15.6 (`D4-73`) */
+  --prompt-drawer-note-min-height: 158px;
+  --prompt-drawer-note-pad-inline: 15px;
+  --prompt-drawer-note-pad-block-start: var(--space-3); /* 12 */
+  --prompt-drawer-note-pad-block-end: 13px; /* 13.19 */
+  --prompt-drawer-note-line: 15.6px;
 
   /* ===== Sheet / Dialog / Toast / Skeleton (Figma 없음 → 명세, §13.1) ==== */
   --sheet-radius-top: var(--radius-card);

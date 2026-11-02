@@ -1,0 +1,191 @@
+/*
+ * features/session-prompts — 세션 Prompts 팝업 (Figma `296:1257` in `296:1210`, 4b Spec §3.1 · §6 · §9).
+ * Web y = Figma y − 56.
+ *
+ * | Figma | 값 | 구현 |
+ * |---|---|---|
+ * | 위치 | x34 · y328 = ring bottom 322 + 6 | `.haru-session__body` 기준 76 + 190 + `--prompt-popup-offset-top` · 가운데 (`AD-S4-12`) |
+ * | 크기 | 329 × 293 (n=5) | `min(--bubble-session-width, 100%)` · 높이는 내용 = 73 + 44n (pill 38 고정) |
+ * | 면·그림자·radius | white 90% · drop 1 + inset 2 · 22 | `SpeechBubble` 그대로 (`--color-surface-strong` · `--shadow-bubble`) |
+ * | padding | 16 / 14 / 14 | `--bubble-padding-x` · `--prompt-popup-pad-block` |
+ * | 제목 `296:1258` | Semibold 16/22 · 가운데 | `Text callout semibold` + `--bubble-session-title-line` |
+ * | pill `296:1259~63` | 297×38 · pitch 44 | `PromptPill density="session"` + **`block-size` 38 고정** (`D4-58` CP-2 — 2줄도 38) |
+ * | `See all prompts` `300:1308` | Semibold 14/17 · `#7d9291` · 밑줄 · 가운데 | `TextLink tone="subtle"` + `--prompt-popup-link-*` |
+ *
+ * 층위: 책 칩·상태 블록 **위**(`--z-sticky`). 393×796 에서 바닥 = Record Control top(565)과 맞닿는다
+ * (세로 예산 0 — Spec §3.1). 팝업 그림자가 Record 바깥 링을 덮는 것은 Figma 렌더 그대로다 (§9.3).
+ *
+ * `R-SHADOW-1`: 팝업 자신은 `overflow` 를 선언하지 않는다 (Figma 의 `overflow-clip` 은 자식 그림자 0겹이라 시각
+ * 차이 없음 — 안 쓰는 것이 1순위. 짧은 세로의 pill 목록만 예외 — 아래 `S4-K1`). 팝업 그림자(`0 6 4` 1겹) 번짐은 좌우 4 · 아래 10 — 클립하는 조상 없음.
+ * `See all` 포커스 링(4)은 아래 padding 14 안에 들어간다.
+ */
+
+.haru-session-prompts {
+  position: absolute;
+  inset-block-start: calc(
+    var(--session-medallion-offset) + var(--session-medallion-ring-size) +
+      var(--prompt-popup-offset-top)
+  );
+  inset-inline: 0;
+  z-index: var(--z-sticky);
+  inline-size: min(var(--bubble-session-width), 100%);
+  margin-inline: auto;
+  transform-origin: top center;
+  /* 열기 180 · 닫기 100 (Spec §6). `display` 를 이산 전환해 닫는 동안에도 그린다. */
+  transition:
+    opacity var(--motion-duration-fast) var(--motion-ease-standard),
+    scale var(--motion-duration-fast) var(--motion-ease-standard),
+    display var(--motion-duration-fast) allow-discrete;
+}
+
+@starting-style {
+  .haru-session-prompts {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+.haru-session-prompts[hidden] {
+  display: none;
+  opacity: 0;
+  scale: 0.96;
+  transition-duration: var(--motion-duration-instant);
+}
+
+/* reduce — 즉시 표시/제거, 중간 상태 없음 (Spec §6 · `R-BASELINE-1` ①) */
+@media (prefers-reduced-motion: reduce) {
+  .haru-session-prompts {
+    transition: none;
+  }
+}
+
+.haru-session-prompts .haru-bubble {
+  inline-size: 100%;
+  padding-block: var(--prompt-popup-pad-block);
+}
+
+/* 제목 16/22 — ready 버블과 같은 줄 높이 (callout 21 이면 1px 짧다) */
+.haru-session-prompts .haru-bubble__content > .haru-text {
+  line-height: var(--bubble-session-title-line);
+}
+
+.haru-session-prompts__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  /* 제목은 가운데지만 pill 본문은 시작 정렬 (`139:2763`) — 버블의 `text-align: center` 상속을 끊는다 */
+  text-align: start;
+}
+
+/*
+ * `D4-58` CP-2 — 팝업 pill 은 **38 고정**. 2줄(12 × 2 = 24)이어도 박스는 38 이고 글리프가 padding 8 안으로
+ * 1px 씩 들어간다(Figma 렌더 그대로). ready 버블 pill(2줄이면 40)과 의도적으로 다르다 — 세로 예산 0.
+ */
+.haru-session-prompts .haru-prompt-pill {
+  block-size: var(--prompt-pill-session-height-min);
+}
+
+.haru-session-prompts__see-all {
+  display: flex;
+  justify-content: center;
+}
+
+.haru-session-prompts__see-all .haru-text-link {
+  font-size: var(--prompt-popup-link-size);
+  line-height: var(--prompt-popup-link-line);
+  font-weight: var(--font-weight-semibold);
+  /*
+   * Figma `decoration-from-font` · `text-underline-position: from-font` — 두께도 폰트 값(`VG-G1-03`).
+   * 키워드라 토큰 불필요 (Figma 선언 그대로).
+   */
+  text-decoration-thickness: from-font;
+  text-underline-position: from-font;
+}
+
+/*
+ * 짧은 세로 압축 ③ (`S4-K1`, `D4-58` CP-7 · 4b Spec §8.2 · §9.3). 팝업 높이 상한 = Record top − 팝업 top.
+ * 바닥이 Record 를 넘지 않게 pill 목록만 줄고 스크롤된다 — 제목·`See all` 은 항상 보인다. 최소 pill 1개.
+ * 796 이상은 예산 ≥ 293 이라 이 규칙이 필요 없다(Figma 에 내부 스크롤이 없다) → 그래서 미디어 쿼리 안에 둔다.
+ *
+ * `R-SHADOW-1`: **이 `overflow-y: auto` 는 pill 이 넘칠 때 스크롤이 필수라서** 선언한다. 안의 pill 은 테두리뿐
+ * (drop 0겹) → 그림자 inset 0. 가로로 잘리는 것도 없다(pill 폭 = 목록 폭 — `e2e/shadow.spec.ts` 양축 프로브).
+ * 넘칠 때만 포커스를 받으며(`tabIndex`, Popover), 링 2 + 간격 2 = 4 를 목록 **안쪽**에 그린다 (⑤ · Spec §9.3).
+ * `overscroll-behavior` 는 기본값이다 — `contain` 이면 627 이하에서 목록 위 터치가 뷰포트로 이어지지 않아 갇힌다 (`D4-82`).
+ */
+@container haru-session (height < 796px) {
+  .haru-session-prompts {
+    display: flex;
+    flex-direction: column;
+    /*
+     * Record top − 팝업 top. Record top = ring bottom + max(100% − ring bottom − 아래 묶음 231, stage 하한).
+     * 앵커 `__body` 는 콘텐츠 높이라 safe-area 무관. 664 미만은 stage 하한이 Record 를 고정한다 (아래 묶음이 줄어든다).
+     */
+    max-block-size: calc(
+      max(
+          100% - var(--session-medallion-offset) - var(--session-medallion-ring-size) -
+            var(--record-size) - 2 * var(--session-bottom-gap) - var(--button-height-md),
+          var(--session-stage-min-block-size)
+        ) -
+        var(--prompt-popup-offset-top)
+    );
+  }
+
+  .haru-session-prompts .haru-bubble {
+    min-block-size: 0;
+  }
+
+  .haru-session-prompts .haru-bubble__content {
+    min-block-size: 0;
+  }
+
+  .haru-session-prompts .haru-bubble__content > .haru-text,
+  .haru-session-prompts__see-all {
+    flex: none;
+  }
+
+  .haru-session-prompts__list {
+    flex: 0 1 auto;
+    min-block-size: var(--prompt-pill-session-height-min);
+    overflow-y: auto;
+  }
+
+  .haru-session-prompts__list:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus-ring);
+    outline-offset: calc(-1 * (var(--focus-ring-width) + var(--focus-ring-offset)));
+  }
+}
+
+/* ===== Prompt Drawer `88:960` (`S4-G2`, Stage 4 Spec §3.2) ==================================
+ * 시트 자체(폭 · 면 · 핸들 · padding · 제목 Bold)는 `Sheet variant="floating" surface="drawer"` 가 그린다.
+ * 여기는 본문만: 부제 → 캐러셀(pill · 노트 · dots) 세로 gap 10.
+ *
+ * | Figma | 값 | 구현 |
+ * |---|---|---|
+ * | 부제 `88:673` | Regular 13 / 18.85 · `#7d9291` · 시작 정렬(hug) | `Text footnote secondary` (13/18) |
+ * | 코칭 노트 `88:681` | 313×158 · 1px `#5e73702e` · radius 16 · 면 없음 · px15 / pt12 / pb13.19 · Regular 12/15.6 `#5e7370` | `--prompt-drawer-note-*` · `--radius-field` · inset 테두리 |
+ *
+ * `R-SHADOW-1`: 본문은 Sheet 의 기존 `overflow-y: auto` 안이다. 안의 요소(pill · 노트 · dots) drop shadow 0겹 →
+ * 그림자 inset 불필요. 캐러셀 화살표 포커스 링(4)은 pill 안쪽(px12)에 들어간다.
+ */
+.haru-prompt-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--prompt-carousel-gap);
+}
+
+.haru-prompt-drawer__note {
+  box-sizing: border-box;
+  min-block-size: var(--prompt-drawer-note-min-height);
+  padding-block: var(--prompt-drawer-note-pad-block-start) var(--prompt-drawer-note-pad-block-end);
+  padding-inline: var(--prompt-drawer-note-pad-inline);
+  border-radius: var(--radius-field);
+  box-shadow: inset 0 0 0 1px var(--color-border-subtle);
+}
+
+.haru-prompt-drawer__note .haru-text {
+  line-height: var(--prompt-drawer-note-line);
+  color: var(--color-action-secondary-fg);
+}

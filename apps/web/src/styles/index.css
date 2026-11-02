@@ -31,6 +31,7 @@
 @import '../features/activity-card-deck/activity-card-deck.css';
 @import '../features/library/library.css';
 @import '../features/storytime-session/storytime-session.css';
+@import '../features/session-prompts/session-prompts.css';
 
 /*
  * 앱 셸 기본값. 값은 전부 semantic token 이며 리터럴 수치를 쓰지 않는다.

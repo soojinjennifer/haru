@@ -16,8 +16,12 @@ import { Scrim } from './Scrim';
  * `inset-card` 는 Library Design Spec §3.7–§3.9 (`L-OPEN-04`) 의 **떠 있는 카드**다:
  * 좌·우·아래 14 inset(`L-NEW-03`) · radius 28 **네 모서리** · grabber 없음 · padding 18.
  * `bottom` · `full` 의 외형은 바뀌지 않는다.
+ *
+ * `floating` 은 Stage 4b `S4-G2` Prompt Drawer `88:960` 의 **핸들 있는 떠 있는 카드**다: 폭 = 컬럼 100%
+ * (좌·우·아래 gutter 24 — `AD-S4-7`) · radius 28 **네 모서리** · 핸들 40×4 · padding 10 / 20 / 18 ·
+ * 세로 gap 10 · 제목 Bold. 다른 variant 의 외형은 바뀌지 않는다.
  */
-export type SheetVariant = 'bottom' | 'full' | 'inset-card';
+export type SheetVariant = 'bottom' | 'full' | 'inset-card' | 'floating';
 
 /**
  * 시트 **면 색**. 지정하지 않으면 `--color-surface-strong` 이다 (기존 외형 그대로).
@@ -26,8 +30,11 @@ export type SheetVariant = 'bottom' | 'full' | 'inset-card';
  * (= semantic `--color-surface-spring`) 이다. **면 전체**가 바뀌어야 하는 경우에만 쓴다 —
  * 카드 뒷면처럼 헤더·본문·ActionBar 자리가 **한 장의 뒷면**이어야 할 때다. 가운데만 칠하면
  * 헤더·하단이 뒤집히지 않아 "가운데만 초록" 이 된다 (사용자 지시 2026-10-09 ①).
+ *
+ * `drawer` 는 Prompt Drawer `88:960` 의 면 `color/white/-86%` + blur 12 (Stage 4 Spec §5.2 `T-1` —
+ * `--color-surface-drawer`). 기본 0.90 과 Δ0.04 라 재사용하지 않는다.
  */
-export type SheetSurface = 'spring';
+export type SheetSurface = 'spring' | 'drawer';
 
 export interface SheetProps {
   open: boolean;

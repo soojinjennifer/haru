@@ -4,6 +4,8 @@
  */
 export { StorytimeSessionScreen } from './ui/StorytimeSessionScreen';
 export type { StorytimeSessionScreenProps } from './ui/StorytimeSessionScreen';
+export { SessionCompleteScreen } from './ui/SessionCompleteScreen';
+export type { SessionCompleteScreenProps } from './ui/SessionCompleteScreen';
 export { SessionActionBar } from './ui/SessionActionBar';
 export type { SessionActionBarProps, SessionActionBarState } from './ui/SessionActionBar';
 export { storytimeSessionCopy } from './copy';

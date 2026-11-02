@@ -10,7 +10,7 @@ import { AppShellTopBar } from './AppShellTopBar';
 export interface FullscreenLayoutProps {
   /** TopBar 슬롯 — 없거나 `variant=pill` (§2.3). */
   topBar?: ReactNode;
-  /** 화면 하단 고정 영역 (세션 컨트롤 등). 스크롤되지 않는다. */
+  /** 화면 하단 영역. 내용 다음에 놓이며 내용이 넘치면 함께 스크롤된다. */
   footer?: ReactNode;
   children?: ReactNode;
 }
@@ -18,15 +18,17 @@ export interface FullscreenLayoutProps {
 /**
  * FullscreenLayout — Design Spec §2.3.
  *
- * 스크롤 없이 고정 배치하는 몰입 화면용 (Stage 4 `/session/:id`).
- * 콘텐츠가 넘치면 스크롤 대신 잘린다 — 각 화면이 내부에서 높이를 배분한다.
+ * 한 화면에 고정 배치하는 몰입 화면용 (Stage 4 `/session/:id`). 각 화면이 내부에서 높이를 배분한다.
  *
- * 잘라내는 지점(`overflow: hidden`)은 앱 컬럼 **바깥**의 AppShell 뷰포트다. 컬럼 안쪽에서
- * 자르면 카드 그림자가 컬럼 폭에 맞춰 직사각형으로 잘린다 (AppShell 주석 참조).
+ * 화면이 내용 하한보다 짧을 때만 세로로 스크롤된다 (`D4-82`, `AD-S4-23`) — 잘리면 Submit · Discard 에
+ * 닿을 수 없다. 하한은 각 화면이 정한다(`.haru-session`). 그보다 긴 높이는 넘치는 내용이 없어 스크롤이 없다.
+ *
+ * 스크롤 지점은 앱 컬럼 **바깥**의 AppShell 뷰포트다 (`R-SHADOW-1`). 컬럼 안쪽에 두면 카드 그림자가
+ * 컬럼 폭에 맞춰 직사각형으로 잘린다 (AppShell 주석 참조).
  */
 export function FullscreenLayout({ topBar, footer, children }: FullscreenLayoutProps) {
   return (
-    <AppShell scroll="none">
+    <AppShell scroll="auto">
       {topBar === undefined ? null : <AppShellTopBar>{topBar}</AppShellTopBar>}
       <main className="flex min-h-0 flex-1 flex-col" aria-label={appCopy.landmarks.mainContent}>
         <RouteErrorBoundary>{children ?? <Outlet />}</RouteErrorBoundary>

@@ -16,8 +16,7 @@
  * - 컴포넌트는 **구독만** 한다 (`rules/frontend.md` §4). 상태 전이·타이머·저장은 컨트롤러가 소유한다.
  * - 클라이언트 전용 상태라 `packages/contracts` 에 두지 않는다 (Plan §5.2-6).
  *
- * Stage 4b `S4-F1` 은 **ready 에 필요한 것만** 노출한다 (`start`). 일시정지·재개·제출·폐기는
- * `S4-F2` 가 이 interface 에 추가한다.
+ * Stage 4b `S4-F1` 은 ready 의 `start` 를, `S4-F2` 는 일시정지·재개·제출·폐기를 노출한다.
  */
 import {
   createContext,
@@ -29,7 +28,12 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
-import type { ConsentStatus, SessionMode, SessionStatus } from '@haru/contracts';
+import type {
+  ConsentStatus,
+  SessionMode,
+  SessionStatus,
+  SessionTransitionResult,
+} from '@haru/contracts';
 
 import { useMe } from '../me';
 
@@ -47,13 +51,29 @@ export interface SessionRecorderSnapshot {
 }
 
 export type SessionRecorderOutcome =
-  { readonly ok: true } | { readonly ok: false; readonly reason: string };
+  | {
+      readonly ok: true;
+      /** 서버 확정 응답. 전송이 실패했으면 `null` — 전이는 SessionOutbox 가 다시 보낸다. */
+      readonly result?: SessionTransitionResult | null;
+    }
+  | { readonly ok: false; readonly reason: string };
 
 export interface SessionRecorder {
   getSnapshot(): SessionRecorderSnapshot;
   subscribe(listener: () => void): () => void;
   /** ready → recording. 동의 → 권한 → 캡처 → 전이 요청 순서 (컨트롤러 소유). */
   start(): Promise<SessionRecorderOutcome>;
+  /** recording → paused (캡처 일시정지 + 전이 요청 1건). */
+  pause(): Promise<SessionRecorderOutcome>;
+  /** paused → recording — Record Control `paused` 변형 탭 (`D4-51`, AC-4-42). */
+  resume(): Promise<SessionRecorderOutcome>;
+  /** `Submit` — recording|paused → completed(`user_done`). 로컬 녹음을 먼저 확정한 뒤 전이한다. */
+  submit(): Promise<SessionRecorderOutcome>;
+  /**
+   * `Discard` · 닫기 확인 — → abandoned (`D4-13`). **서버 확정 응답 뒤에만** 로컬 녹음을 지운다.
+   * 전송이 실패하면 로컬을 보존하고 SessionOutbox 가 다시 보낸다 (오프라인 포함).
+   */
+  discard(): Promise<SessionRecorderOutcome>;
   /** 타이머·구독을 놓는다. 진행 중 캡처는 멈추고 로컬에 보존한다. */
   dispose(): Promise<void>;
 }

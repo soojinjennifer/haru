@@ -32,6 +32,15 @@ export const SessionBubbleCopySchema = z
     text: z.string().nullable(),
     /** 검수 템플릿 추적용 (FR-10 · `P4-BIP-11`). 화면에 표시하지 않는다. */
     templateId: z.string().min(1).optional(),
+    /**
+     * 완료 버블(Figma `88:929`) 보조 줄 — `API_CONTRACTS.md` §3.2.3 (`D4-87`).
+     *
+     * - 공유 schema 라 ready · 리마인드 응답에 key 를 강제하지 않는다 — 생략 가능 (`D4-94`).
+     *   `bubble` · `reminderBubble` 에 값이 있어도 화면은 그리지 않는다.
+     * - `null` · 빈 문자열 · key 없음 = 줄을 렌더하지 않는다. `text` 가 없으면 이 값이 있어도 버블이 없다 (`D4-95`).
+     * - 길이 상한(≤240px @ SF Pro Regular 13, ≈36자)은 생성 측 요구다 (`D4-98`, `P4B-BIP-02`) — `.max()` 없음.
+     */
+    subtext: z.string().nullable().optional(),
   })
   .nullable();
 
@@ -94,11 +103,15 @@ export type SessionSummary = z.infer<typeof SessionSummarySchema>;
  *
  * - `recording` — 서버가 본 업로드 상태 (§3.9). 녹음이 없는 세션(대화 전용 등)은 `null`.
  * - `sticker` — 재진입 시 스티커 중복 표시 방지용 (FR-19, `C4-OPEN-6`). 미지급이면 `null`.
+ * - `completionBubble` — 재진입 시 완료 버블 (`D4-88`, §3.2.3). 완료 계열(`completed` · `analyzing` ·
+ *   `analyzed` · `failed`) = 전이 때 고른 값 그대로(또는 `null`), 그 밖의 상태 = `null`.
+ *   key 는 필수다 — `sticker` 와 같다. 오프라인 제출은 전이 응답이 없어 이 필드로 해결되지 않는다.
  * - `reflection` 은 Stage 5 에서 추가한다 (`C4-OPEN-6`).
  */
 export const SessionDetailSchema = SessionSummarySchema.extend({
   recording: RecordingStatusSchema.nullable(),
   sticker: StickerAwardSchema.nullable(),
+  completionBubble: SessionBubbleCopySchema,
 });
 
 export type SessionDetail = z.infer<typeof SessionDetailSchema>;

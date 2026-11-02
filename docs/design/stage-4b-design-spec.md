@@ -4,6 +4,8 @@ Status: **APPROVED (2026-10-26, user)** — 사용자 발화 *"권장안대로 �
 Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296:1127` "Recording"** — `298:1262` · `298:1340` · `296:1210`(+`296:1257`) · `298:1261` · **`300:1309`** (확인 2026-10-26) + 기존 `28:51` · `29:62` · `88:960` (재확인 2026-10-26, 변경 없음) · Plan `docs/plans/stage-4b-plan.md` (DRAFT 2026-10-26) · `docs/decisions/stage-4-approvals.md` **`D4-1`~`D4-57`** · 상위 Spec `docs/design/stage-4-design-spec.md` (APPROVED 2026-10-13)
 
 개정 이력: 2026-10-27 design-agent — `docs/design/stage-4b-visual-gap-f1.md` Spec 정정(VG-F1-01·03·04·07) + 사용자 결정 `D4-62`·`D4-63`·`D4-64` 반영 (§16 · §0.1 · §2.4 · §3.4 · §4 · §5.3 · §9 · §13). 결정 반영 개정이므로 Status 유지.
+개정 이력: 2026-10-29 design-agent — `docs/design/stage-4b-visual-gap-f2.md`(`S4-F2`) 반영: 토큰 T-31~T-33 등재(§5.3) · `D4-66` aria-live 낭독 철회(§9.1) · `D4-67`/`AD-S4-19` tabular-nums 유지(§2.2 · §9.1) · `D4-65` 확인 다이얼로그 문구 승인(§3.4 · §11.2) · `P-26`·`P-27` 등재 참조(§9.2). 결정 반영 개정이므로 Status 유지.
+개정 이력: 2026-11-02 design-agent — `S4-H1` 마무리: 상위 Spec 정정 §17 신설(`D4-74`·`D4-86`·`D4-87`·`D4-90`·`D4-100`·`D4-101`·`D4-103`~`D4-106`) · 압축 확정 §8.2 · §7.2(`D4-78`·`D4-79`·`D4-81`~`D4-85`) · 토큰 T-34~T-43 등재(§5.3) · §1 · §4 · §9.1 · §11.2 · §12 · §13 갱신. 결정 반영 개정이므로 Status 유지.
 
 ---
 
@@ -51,7 +53,7 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 | S3 | **paused** | **`298:1340`** | 동 | 동 | 전수 (§2.3) |
 | S4 | **Prompt 팝업 열림** (recording · paused) | **`296:1210`** / 팝업 **`296:1257`** | 동 (비모달 레이어) | 동 | 전수 (§3.1). recording 위는 C-13 명세 (§10) |
 | S5 | **Prompt Drawer** | **`88:960`** | 동 (`Sheet` overlay) | 동 | 상위 Spec §3.2 **유효**(`D4-52` 로 존속). 진입점만 개정 (§3.2) |
-| S6 | 완료 | `29:62` y 0~468 | `/session/:sessionId/complete` | `SessionCompletePage` | **변경 없음** — 상위 Spec §2.7 |
+| S6 | 완료 | `29:62` y 0~468 | `/session/:sessionId/complete` | `SessionCompletePage` | 상위 Spec §2.7 유효 + **§17 정정** (`D4-90` · `D4-100` · `D4-103` 등) |
 | S7 | 확인 다이얼로그 (Discard · 닫기) | Figma 없음 (`AD-S4-4`) | 동 | — | 닫기 사용처 추가 (§3.4) |
 | S8 | 예외 안내 (`S4-H2`) | Figma 없음 (#22) | 세션·완료 | — | 배치 개정 (§7) |
 
@@ -96,7 +98,7 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 | 메달리온 | `298:1264`/`1265` | `28:51` 과 동일 | 상위 Spec |
 | **책 칩** | `296:1203` | hug 233×40 · radius 100 · white 74% · `--shadow-bubble` 구성 · pad **좌우 15 / 상하 9** · gap **8** · 표지 16×22 radius 3 `linear-gradient(131.19deg, #85BFB6 0%, #B0CFC0 70.92%)` · 제목 **SF Pro Semibold 13 / normal** `text-primary` | 면 `--color-surface-glass` · `--shadow-bubble` · 제목 `--text-footnote`(13/18) + semibold · 표지 = 상위 Spec **`T-5`** (`--haru-palette-teal`→`--haru-palette-mint`, **각도·정지점 포함**) · 치수 **`T-18`** |
 | **상태 pill** | `298:1321` | hug 116×32 · radius 100 · white 74% · **그림자 없음** · pad 14/6 · gap 8 · dot 8 **채운 원 `#85BFB6`** `[svg]` · `Recording` **iOS 26/Subheadline Regular 15/20** `text-primary` | `--color-surface-glass` · dot `--color-action-primary-bg` · `--text-subheadline` · `--color-fg-primary` · **`T-17`** |
-| **경과 시간** | `298:1324` | **SF Pro Bold 48 / 41** · `text-primary` · `03:24` | ⚠️ 스케일 밖 → **신규 `T-15`** · `--color-fg-primary` · `tabular-nums` |
+| **경과 시간** | `298:1324` | **SF Pro Bold 48 / 41** · `text-primary` · `03:24` | ⚠️ 스케일 밖 → **신규 `T-15`** · `--color-fg-primary` · `tabular-nums` (유지 — `D4-67`, 숫자 폭 Figma 128 ↔ 구현 134 는 허용 차이 `AD-S4-19`) |
 | **보조 줄** | `298:1325` | `Up to 30:00` · **iOS 26/Footnote 13/18** · `text-secondary` | `--text-footnote` · `--color-fg-secondary` |
 | 블록 gap | `298:1320` | flex col · gap **10** · 가운데 | `--space-2-5` |
 | Record Control | `298:1267` | **`Pause`** 변형 `163:1588` (상위 Spec §2.6 그대로) | 상위 Spec `T-3`·`T-6`·`T-9` |
@@ -188,6 +190,7 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 - 상위 Spec **§3.2 그대로 유효** (면 `T-1` · `--shadow-glass-rest` · 핸들 · 제목·부제 · 캐러셀 · 코칭 노트 · dots · 무음·무진동 · **녹음 계속**). `88:960` 재확인 — 자식 구성·크기 **무변경** `[meta]`. `AD-S4-7`(폭 컬럼 100%, `D4-49` 등록)도 **유효**.
 - **진입점 변경**: 상위 Spec §3.3(TopBar trailing IconButton) **폐기** → **팝업의 `See all prompts`** 가 유일한 진입점.
 - 초기 페이지 = **1번째 Prompt**. (팝업에서 특정 pill 을 눌러 그 페이지로 가는 동작은 Figma 에 없다 — pill 은 탭 대상이 아님 → 만들지 않는다.)
+- **구현 형태 = `Sheet variant="floating"` + `surface="drawer"`** (`D4-74`) — 상위 §3.2 명세 1 의 `variant="bottom"` 을 대체한다. §17.2.
 - 모달성: Drawer 는 기존 `Sheet` 의 **모달**(scrim · focus trap · `Esc`)을 유지한다 — `D4-54` 의 "비모달"은 **팝업에만** 적용된다. 열려 있어도 녹음은 계속(상위 §3.2-5).
 - 닫히면 포커스는 **Prompts 칩**으로 복귀(팝업은 이미 닫혔으므로).
 - AC-4-54(코칭 노트)는 **Drawer 에 남는다** — Plan §14.2 폐기 후보 **해제**.
@@ -204,7 +207,7 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 | 상태 | 탭 결과 | 다이얼로그 | 전이 |
 |---|---|---|---|
 | `ready` | 즉시 홈 `/` | **없음** (`D4-57`) | `ready → abandoned` (caregiver) |
-| `recording` · `paused` | 확인 다이얼로그 | **`Discard` 와 같은 `ConfirmDialog`**(상위 §2.5.3 — 문구 4건 동일, `D4-56`) | 확인 → `→ abandoned` → 서버 확정 후 로컬 삭제 → `/` · 취소 → 요청 0 · 상태·녹음 유지 · 포커스 닫기 버튼 복귀 |
+| `recording` · `paused` | 확인 다이얼로그 | **`Discard` 와 같은 `ConfirmDialog`**(상위 §2.5.3 — 문구 4건 동일, `D4-56`. 문구 4건 **승인 `D4-65`** (2026-10-29): `Discard this recording?` · `This recording will be removed from this device and won't be saved.` · `Discard` · `Keep recording`) | 확인 → `→ abandoned` → 서버 확정 후 로컬 삭제 → `/` · 취소 → 요청 0 · 상태·녹음 유지 · 포커스 닫기 버튼 복귀 |
 | 전이 요청 중 | 닫기 `loading`(Spinner) · 재탭 무시 | — | 이중 요청 0 |
 
 - 컴포넌트 신규 0 — `IconButton glass` + `ConfirmDialog`. 글리프 = HARU SVG `close`(§16.4, recording·paused `298:1311` 과 Discard/Complete 화면 닫기에도 동일 적용).
@@ -229,6 +232,8 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 | 9 | **`IconButton`** | Shared UI (기존) | **글리프 색만 변경** — `--color-fg-primary` → `--icon-button-fg`(= `--color-action-secondary-fg`, ink-600 `#5e7370`). **앱 전체**(`D4-62`) — §16.5 | `29:77` · `77:150` |
 | 10 | **`Sheet`** | Shared UI (기존) | **`leading?: ReactNode` 슬롯 추가**(헤더 왼쪽, `D4-64`). 주지 않으면 렌더 0 — 기존 시트 외형 불변 — §16.7 | Figma 없음 (Stage 3 §2.4 명세 화면) |
 | 11 | `RadioGroup` | Shared UI (기존) | **`legendVisuallyHidden?: boolean` (opt-in)** — 이번 Reading Context 시트에서만 켠다(`D4-63`) — §16.6 | — |
+| 12 | **`Sheet`** | Shared UI (기존) | **`variant="floating"` + `surface="drawer"` 추가** (`D4-74`) — §17.2 | `88:960` |
+| 13 | **Toast 훅** | Shared UI (기존) | **공개 훅 `useToastPresent` 추가**(`D4-104`) · `useToastTopBarInset` 을 `useLayoutEffect` 로 변경(`D4-101`) — §17.1 · §17.4 | Figma 없음 |
 | — | `ConfirmDialog` · `PageIndicator` · `PromptPill`(세션 밀도) · `InlineAlert` · `Toast` · `SessionActionBar` | 재사용 | 변경 없음 | — |
 
 **통합 판단**
@@ -236,7 +241,7 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 - 상태 pill ≠ `Tag`/`Chip`: 비인터랙티브 상태 표시 + dot 2형태 — `SessionStatusBlock` 안에 둔다(재사용처 1곳, Shared 승격 안 함).
 - 책 칩 ≠ 기존 `BookCover`: placeholder 가 평면 tinted + 이니셜 `[직독: entities/book/book.css:124]` 이고 16×22 에 이니셜이 들어가지 않는다 → 표지 슬롯만 `T-5` 그라디언트.
 
-**신규 Shared UI 컴포넌트 0 · Shared UI 확장 5**(RecordControl 상태 · Button sm · TextLink subtle · Sheet `leading` · RadioGroup `legendVisuallyHidden` — 뒤 2건 2026-10-27 `D4-63`·`D4-64`) **· 색 변경 1**(IconButton 글리프, `D4-62`) **· 되살림 1**(PromptCarousel) **· Domain 신규 2 · Feature 신규 1.**
+**신규 Shared UI 컴포넌트 0 · Shared UI 확장 5**(RecordControl 상태 · Button sm · TextLink subtle · Sheet `leading` · RadioGroup `legendVisuallyHidden` — 뒤 2건 2026-10-27 `D4-63`·`D4-64`) **· 색 변경 1**(IconButton 글리프, `D4-62`) **· 2026-11-02 추가 확장 2**(Sheet `floating`/`drawer` `D4-74` · Toast 공개 훅 `D4-104`) **· 되살림 1**(PromptCarousel) **· Domain 신규 2 · Feature 신규 1.**
 
 ---
 
@@ -275,9 +280,24 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 | T-28 | `--bubble-session-title-line` | T3 | `var(--text-headline--line-height)` (22) | Figma `88:840` 16/**22** (§16.1) | ⚠️ headline line 값과 결합 — 선택: 리터럴 `22px` |
 | **T-29** | **`--icon-button-fg`** | **Component (신규, `D4-62`)** | `var(--color-action-secondary-fg)` (= `--haru-ink-600` `#5e7370`) | Figma `29:77`·`77:150` 글리프 stroke `#5E7370` `[svg]` | §16.5. `packages/design-tokens/src/component/index.css` 의 `--icon-button-*` 옆 |
 | **T-30** | `--icon-button-icon-size-close` | T3 (신규, VG-F1-01) | 15px | Figma `29:77` 글리프 박스 15×15 `[svg]` — `--size-icon-*`(16/20/24) 밖 | §16.4 |
+| T-31 | `--button-icon-stroke-sm` | T3 (구현 추가, VG-F2-07) | `2` (viewBox 24 기준) | Figma `298:1315` 렌더 1.5px @18 `[svg]` — HARU 기본 1.5 로 그리면 1.125px | `S4-F2` §2-⑤ 정당 |
+| T-32 | `--button-hit-size-sm` | T3 (구현 추가, VG-F2-07) | `var(--size-touch-min)` (44) | §3.3 세로 hit slop 44 — `--icon-button-hit-size` 와 같은 선례의 별칭 | `S4-F2` §2-⑤ 정당 |
+| T-33 | `--session-breathing-scale` | T3 (구현 추가, VG-F2-07) | `1.03` | 상위 Spec §6.3 keyframes `scale 1.03` — `--record-pulse-scale`(1.04)과 값이 달라 재사용 불가 | `S4-F2` §2-⑤ 정당 |
+| T-34 | `--session-complete-*` 배치·모션 9종 · `--bubble-complete-width` | T3 (구현 추가) | 값 = `DESIGN_TOKEN_MAP` §8 | 상위 §2.7 · §6.4 의 Figma 값에 이름만 붙였다 | 2026-11-02 번호 부여 |
+| T-35 | `--attendance-sticker-*` 치수 8종 | T3 (구현 추가) | 값 = `DESIGN_TOKEN_MAP` §8 | 상위 §2.7.1 | 2026-11-02 번호 부여 |
+| T-36 | `--attendance-sticker-title-size` · `-title-line` | T3 (`D4-90`) | `14px` · `17px` | Figma `29:84` Semibold 14 / normal(17) — §17.3 | 흡수 철회 |
+| T-37 | `--bubble-complete-subtext-line` | T3 (`D4-87`) | `19px` | Figma `I88:929;88:760` Regular 13/19 — footnote line 18 과 다르다. §17.3 | |
+| T-38 | `--session-complete-sticker-delay` | T3 (`D4-105`) | `0ms` | 상위 §6.4 C-3 240 변경 — §17.4 | 사용처 `play` 규칙 1곳 |
+| T-39 | `--session-medallion-ring-size-compact` · `--session-bubble-bottom-gap` · `--session-stage-min-block-size` | T3 (`S4-K1`) | 152 파생 · `14.4px` · `205px` | §8.2 | |
+| T-40 | `--sheet-floating-*` 8종 | T3 (`S4-G2`) | 값 = `DESIGN_TOKEN_MAP` §8 | `D4-69` · `D4-70` · `D4-74` | |
+| T-41 | `--prompt-carousel-*` 6종 | T3 (`S4-G2`) | 값 = `DESIGN_TOKEN_MAP` §8 | `D4-71` · `D4-73` | 상위 T-10 명칭 정정 |
+| T-42 | `--prompt-drawer-note-*` 4종 (min-height 제외) | T3 (`S4-G2`) | 값 = `DESIGN_TOKEN_MAP` §8 | `D4-73` | |
+| T-43 | `--haru-gray-6` · `--color-carousel-arrow` · `--color-carousel-arrow-disabled` | Primitive 1 · Semantic 2 (`S4-G2`) | `#f2f2f7` · palette mint · gray-6 | `D4-73` · `D4-76` | 신규 HEX 1 — Figma `86:324` SVG 원문 |
 
 이미 Spec 안이던 것(등재 불요): `--record-icon-offset-labeled`(상위 §2.6.1) · `--record-pulse-opacity`/`-scale`(상위 §6.2).
 **정정 합계: 신규 Semantic 1(T-22) · Component 1(T-29) · Tier-3 7(T-23~T-28 · T-30) · Primitive 0 · 신규 HEX 0.**
+**2026-10-29 추가(`S4-F2` VG-F2-07): Tier-3 3(T-31~T-33) — 신규 HEX 0 · 사용자 승인 필요 새 값 0. 누계 Tier-3 10.**
+**2026-11-02 등재(T-34~T-43): 코드에 이미 있는 토큰에 번호만 붙였다. 새 값 0.** 토큰별 값 전수는 `docs/DESIGN_TOKEN_MAP.md` §8 (Stage 4 · 4b 신규 122개).
 
 ---
 
@@ -329,7 +349,7 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 
 - Figma 의 **유연 간격 110**(393×852) 안에 `InlineAlert placement="inline"` **1개**만 둔다. 우선순위: 30분 근접 > Web 백그라운드 경고. 
 - **Figma 요소를 하나도 움직이지 않는다**(`AD-S4-11` 같은 밀림을 만들지 않는다). Figma 에 없는 UI → **`AD-S4-14` 후보**.
-- 세로 압축(§8.2)으로 간격이 슬롯 높이보다 작아지면 `Toast` 로 대체한다.
+- 세로 압축(§8.2)으로 간격이 슬롯 높이보다 작아지면 `Toast` 로 대체한다. 판단 기준은 `@media` 가 아니라 **콘텐츠 높이 컨테이너**(`D4-79`), 유연 간격은 702 미만에서 16 이다(`S4-K1`, §8.2 표).
 - ⚠️ 상위 §7 ④ 의 "오프라인 배너 = TopBar 직하" 는 **TopBar 미사용(`D4-51`)으로 근거를 잃었다** → 위 표의 Toast 로 대체(사용자 승인 대상).
 
 ### 7.3 마이크 거부 안내 (C13-4B-4)
@@ -355,13 +375,29 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 | 하단 바 | 279 | 272 (`AD-S4-10`) | 279 | 상위 §8 |
 | Drawer | 345 (`AD-S4-7`) | 272 | 432 | 상위 §8 |
 
-### 8.2 세로 — ⚠️ **사용자 결정 필요 (`S4B-Q5`)**
+### 8.2 세로 — ✅ **결정 완료** (`S4B-Q5` → `D4-58` CP-7 · `D4-78`·`D4-79`·`D4-81`~`D4-85`, `S4-K1`)
 
 `[계산]` Figma 콘텐츠는 상태바 아래 **796px**(56~852)를 쓴다. 위 묶음 = 상단 줄~상태 블록 bottom **455**(56 기준), 아래 묶음 = Record top~프레임 bottom **231**, 유연 간격 **110**.
 - 유연 간격을 0 까지 줄여도 **최소 686** 필요. 팝업은 **796 미만이면 예산이 줄어** Record Control 을 덮는다(팝업 top 은 위 묶음에 고정).
 - iOS Safari 의 `dvh`(툴바 표시 시)는 393 폭 기기에서도 796 보다 작을 수 있다 → **실기기 웹에서 압축이 발생하는 것이 기본 경우**다. 상위 Spec §8 도 "작은 세로 미결" 로 남겼다.
 - **권고(명세 가능 범위)**: ① 유연 간격을 최소 `--space-4`(16)까지 흡수 ② 그래도 부족하면 메달리온을 기존 토큰 `--size-medallion-sm`(136, 링 152)으로 축소(완료 화면 선례) ③ 팝업은 `max-block-size = Record top − 팝업 top`, 넘치면 **pill 목록만 내부 스크롤**(See all 은 항상 보임) ④ 그래도 부족한 높이(예: 375×548)는 **디자이너 판단 필요**.
 - ①~③ 은 Figma 에 없는 배치 → 결정 시 허용 차이 등록 대상(`AD-S4-18` 후보).
+
+위 권고는 작성 당시 기록이다. **구현 기준은 아래 확정 표다** (`stage-4b-visual-gap-k1.md` · `storytime-session.css` 대조 2026-11-02).
+
+**판단 기준 (`D4-79`)**: `@container haru-session (height)` — 높이는 **safe-area 를 뺀 콘텐츠 높이**다. **`D4-83`**: 최소 지원 iOS 16 이상이라 `@media` 대체 규칙을 두지 않는다.
+
+| 콘텐츠 높이 | 동작 | 근거 | 허용 차이 |
+|---|---|---|---|
+| ≥ 796 | Figma 그대로 | — | — |
+| < 796 | **pill 목록 내부 스크롤** — 팝업 + **ready 버블**. ready 버블 아래 간격 14.4 (`--session-bubble-bottom-gap`) | `D4-58` CP-7 ③ · `D4-78` · 임계 유지 `D4-85`(790~795 소량 스크롤 수용) | `AD-S4-18` |
+| 702 ~ 795 | 유연 간격이 흡수 | `D4-58` CP-7 ① | `AD-S4-18` |
+| < 702 | 메달리온 136 · 링 152 · stage 하한 205 · 유연 간격 하한 16 | `D4-58` CP-7 ② · `D4-81` | `AD-S4-18` |
+| 646 ~ 663 | 아래 여백 축소 (660 에서 14) | `D4-80` | `AD-S4-21` |
+| 628 ~ 645 | 바 bottom = 콘텐츠 높이(아래 여백 0), Record ↔ 바 간격 = 높이 − 628 (645→17, 628→0) | `D4-81` · `D4-84` | `AD-S4-22` |
+| ≤ 627 | **628 기하 그대로 + 세션 세로 스크롤**로 Submit · Discard 도달. 첫 화면에 바가 안 보일 수 있다 (320×568 범위 60) | `D4-82` · `D4-93` | `AD-S4-23` |
+
+**④ 디자이너 요청은 채택하지 않았다** — `D4-81`·`D4-82` 사용자 지시로 대체됐다.
 
 ---
 
@@ -374,14 +410,14 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 | **팝업 (비모달, `D4-54`)** | **disclosure 패턴**: 칩 `aria-expanded` + `aria-controls`. 팝업 = `<section role="region" aria-labelledby={제목 id}>` (dialog 아님 — 포커스 트랩·`aria-modal` 없음). **DOM 순서상 칩 바로 다음**에 둔다 → `Tab` 이 칩 → `See all prompts` → 닫기 → … 순. 열 때 **포커스는 칩에 머문다**. `Escape`(문서 수준 — 단 열린 Dialog/Sheet 가 있으면 그쪽이 우선) → 닫고 포커스 칩. 바깥 탭으로 닫힐 때는 포커스를 옮기지 않는다(탭한 대상이 받는다). Prompt 목록 = `<ul>` · pill 은 포커스 없음(상위 §9) |
 | 팝업 열림 알림 | `aria-live` 쓰지 않는다 — `aria-expanded` 변화를 스크린리더가 읽는다 |
 | `See all prompts` | `<button>` (이동이 아니라 동작) · `aria-haspopup="dialog"` · 이름 = 보이는 문구 · 터치 44 (`::before` hit slop, 팝업 안에 들어간다 §4 #5) |
-| 상태 pill | 보이는 텍스트 `Recording`/`Paused` · dot `aria-hidden` · pill 자체에 live 없음 — 전환 알림은 상위 §9 의 단일 `aria-live="polite"` 영역(*"Recording started." / "Paused." / "Recording resumed."*) |
-| 경과 시간 | `role="timer"` + `aria-live="off"` (상위 §7.1 유지) · `tabular-nums` |
+| 상태 pill | 보이는 텍스트 `Recording`/`Paused` · dot `aria-hidden` · pill 자체에 live 없음 — ~~전환 알림은 상위 §9 의 단일 `aria-live="polite"` 영역(*"Recording started." / "Paused." / "Recording resumed."*)~~ **철회 (`D4-66`, 2026-10-29)**: 상태 전환 낭독을 넣지 않는다 — Record Control 접근성 이름 변화로만 전달 |
+| 경과 시간 | `role="timer"` + `aria-live="off"` (상위 §7.1 유지) · `tabular-nums` (`D4-67` 유지 · 허용 차이 `AD-S4-19`: 128 ↔ 134) |
 | Record Control 접근성 이름 | `idle` **Start recording** · `recording` **Pause recording** · `paused` **Resume recording** · `disabled` 이름은 `idle` 과 같고 `aria-disabled` + `aria-describedby`(사유 — 예: 동의 필요) · `permission-denied` **Microphone is off** + `aria-haspopup="dialog"`(안내 시트) |
 | 닫기 | `Close session` · 38 → hit 44 (IconButton 기존) · 글리프 HARU SVG `aria-hidden`(§16.4) |
 | Reading Context 시트 legend (`D4-63`) | 보이는 legend 숨김 — **`<legend>` 요소는 유지**하고 `.haru-visually-hidden` 으로 숨긴다(`display:none` 금지 — 그룹 접근성 이름 유지). 시트 `<h2>` 와 같은 문장이 시각적으로 두 번 나오지 않게 하는 것만 목적 — §16.6 |
 | 시간 목록 `Back` (`D4-64`) | 헤더 **왼쪽** leading 슬롯 · 이름 `Back`(copy 기존 값) · 터치 44 · DOM 순서 = Back → (제목) → trailing → 본문 — §16.7 |
 | 책 칩 | 비인터랙티브 텍스트 · 표지 `alt=""` · 말줄임 시 전체 제목을 `title` 이 아니라 **시각 숨김 텍스트 없이 그대로 DOM 에 둔다**(말줄임은 CSS) |
-| reduced-motion | §6 표 — 팝업 즉시 · breathing/pulse 정지(Figma 선언값) |
+| reduced-motion | §6 표 — 팝업 즉시 · breathing/pulse 정지(Figma 선언값). 완료 화면 스티커 = Toast 퇴장 후 연출 없이 표시 (`D4-106`, §17.5) |
 
 ### 9.2 대비 `[계산 — WCAG 상대휘도, 앱 배경 그라디언트 #dbeee7→#d3e3de(52%)→#c7c9d7 의 해당 y 보간]`
 
@@ -392,8 +428,8 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 | `See all prompts` `#7d9291` on 팝업 면 (y≈598) | **3.18** | ⚠️ 4.5 미달 — `P-01` 계열(보조 문구) |
 | 칩 라벨 · 책 칩 제목 · pill `Recording` `#4a5f5c` on white 74% | 6.0~6.5 | ✅ |
 | recording 시간 `#4a5f5c` 48 Bold on 배경 (y442~483) | 5.03~5.13 | ✅ |
-| ⚠️ **paused 시간 `#7d9291` 48 Bold on 배경** | **2.42~2.47** | ⛔ 큰 글씨 기준 3:1 **미달** — **가값 후보** (번호는 plan-agent) |
-| ⚠️ **보조 줄 `#7d9291` 13 on 배경** (y≈500) | **2.39~2.40** | ⛔ `P-01` 등재 범위(2.91~3.13)보다 **낮다** — 가값 후보 |
+| ⚠️ **paused 시간 `#7d9291` 48 Bold on 배경** | **2.42~2.47** | ⛔ 큰 글씨 기준 3:1 **미달** — 가값 **`P-26`** (`docs/decisions/stage-4-approvals.md` §5 등재 2026-10-29, 디자이너 대기) |
+| ⚠️ **보조 줄 `#7d9291` 13 on 배경** (y≈500) | **2.39~2.40** | ⛔ `P-01` 등재 범위(2.91~3.13)보다 **낮다** — 가값 **`P-27`** (`docs/decisions/stage-4-approvals.md` §5 등재 2026-10-29, 디자이너 대기) |
 | paused dot stroke `#7d9291` on white 74% | 3.06 | ✅ 비텍스트 3:1 (텍스트 병행이라 필수 아님) |
 | recording dot `#85bfb6` on white 74% | 1.93 | 장식 — 텍스트 병행으로 1.4.11 비대상 |
 | `Mic is off` · mic-off 흰색 on `#aeaeb2` | **2.211** | ⚠️ `P-25` 와 같은 값 — **`P-25` 적용 범위 확장 여부 결정 필요**(`S4B-Q6`) |
@@ -453,11 +489,11 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 | **`S4B-Q2`** | 팝업 pill 높이 (예산 0) — ⓐ 고정 38 ⓑ 40 + 내부 스크롤 ⓒ 바깥 링 겹침 | **ⓐ** (Figma 선언 그대로, ready 버블 규칙과는 다르게 둔다) | ⛔ `S4-G` |
 | **`S4B-Q3`** | `See all` 타이포 14/17 — ⓐ Tier-3 리터럴(예산 유지) ⓑ `--text-subheadline` 15/20 흡수(팝업 296, 링 3px 겹침) ⓒ `--text-footnote` 13/18(294, 1px) | **ⓐ** | ⚠️ `S4-G` |
 | **`S4B-Q4`** | `prompts: []` 일 때 칩 — ⓐ 비활성 + 사유 ⓑ 숨김 ⓒ 정상(빈 팝업) | **ⓐ** (Figma 요소를 빼지 않는다) | 비차단 |
-| **`S4B-Q5`** | 짧은 세로 화면 압축 순서 (§8.2 ①~④) | ①②③ 채택 + ④ 디자이너 | ⚠️ AC-4-99·`S4-K` (393×852 baseline 은 비차단) |
+| ~~**`S4B-Q5`**~~ | 짧은 세로 화면 압축 순서 (§8.2 ①~④) | ①②③ 채택 + ④ 디자이너 | ✅ **결정 완료** — §8.2 확정 표 (④ 는 `D4-81`·`D4-82` 로 대체) |
 | **`S4B-Q6`** | PermissionDenied `#aeaeb2` 위 흰 글리프·라벨 2.211 — `P-25` 범위 확장 vs 신규 가값 | `P-25` 범위 확장(같은 값·같은 토큰) | 비차단 |
 | **`S4B-Q7`** | paused 시간(2.42~2.47)·보조 줄(2.39~2.47) 대비 — 신규 가값 등재 | 가값 등재 + 디자이너 대기 (Figma 그대로) | 비차단 |
 | **`S4B-Q8`** | 세션 화면 안내 배치 — 공지 슬롯 `InlineAlert` + 오프라인 `Toast` (§7.2), 마이크 거부 안내 시트 (§7.3) | 채택 | ⚠️ `S4-H2` |
-| **`S4B-Q9`** | 문구 승인 — `Close session` · `Resume recording` · `Microphone is off` · `No prompts for this session` · 안내 시트 3건 · Toast 2건 | 채택 | ⚠️ 해당 단위 |
+| **`S4B-Q9`** | 문구 승인 — `Close session` · `Resume recording` · `Microphone is off` · `No prompts for this session` · 안내 시트 3건 · Toast 2건 · (추가) 확인 다이얼로그 4건 → **승인 `D4-65`** (2026-10-29, §3.4) | 채택 | ⚠️ 해당 단위 |
 | `N4B-11` (Plan) | 가로 +2 (팝업 · 책 칩 recording) | 둘 다 가운데 + `AD-S4-12`·`13` 등록 (책 칩 82 는 paused·팝업 80 과 달라 **오타 판정도 가능**) | 비차단 |
 | `N4B-17` (Plan) | `AD-S4-7` 처리 | **유지** — Drawer 존속(`D4-52`)으로 대상이 그대로 있다. "대상 소멸" 아님 | 해소 권고 |
 | `N4B-13`·`15` (Plan) | 변형 사용처 · `D4-44` 문구 정정 | Plan 권고 그대로 (§7.1 반영) | Plan 소관 |
@@ -474,7 +510,8 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 | **`AD-S4-15`** | 닫기(recording·paused) 확인 다이얼로그 | 없음 | `ConfirmDialog` (`AD-S4-4` 사용처 확장) | `D4-56` |
 | **`AD-S4-16`** | 마이크 거부 안내 시트 | 없음 | §7.3 | 기존 in-page 안이 버블과 충돌 |
 | **`AD-S4-17`** | Prompts 칩 라벨 line-height (Figma 바인딩 11) | 11 | 20 + 고정 높이 36 | **Visual Gap 에서 차이가 날 때만** |
-| **`AD-S4-18`** | 짧은 세로 압축 | 852 만 | §8.2 ①~③ | `S4B-Q5` 결정 시 |
+| **`AD-S4-18`** | 짧은 세로 압축 | 852 만 | §8.2 표 | ✅ **등록 (2026-11-01, user)** — `D4-58`·`D4-78`·`D4-80` |
+| **`AD-S4-21`~`23`** | 646 미만 하단 배치 · 627 이하 스크롤 | 852 만 | §8.2 표 | ✅ **등록 (2026-11-01, user)** — `D4-80`·`D4-81`·`D4-82`·`D4-84` |
 | (조건부) | `See all` 타이포 흡수 | 14/17 | `S4B-Q3` ⓑ/ⓒ 선택 시 | |
 | (조건부) | 팝업 pill 2줄 40 / 링 겹침 | 38 | `S4B-Q2` ⓑ/ⓒ 선택 시 | |
 
@@ -496,7 +533,13 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 | §2.2.2 tail overhang ⚠️ {0, 2.63} 미확정 · §12.4-① | **정정·종결** → **10.627 확정** — §16.2 (VG-F1-04) |
 | §12.4-⑥ 닫기 X 글리프 "16 흡수" 미결 | **종결** → HARU 전용 SVG 15×15 — §16.4 (VG-F1-01) |
 | §2.2.0 메달리온 링 Primitive `--haru-white-a50` 직접 지정 | **정정** → Semantic `--color-surface-medallion-ring` (T-22) |
-| **유지** | §2.2 ready 전부(위 정정 제외) · §2.3 바 · §2.5 Discard/Submit · §2.7 완료 · **§3.2 Drawer** · §4 #2 `PromptCarousel` · §5 `T-1`~`T-14` · §6.1~6.6 · §10 · §11 |
+| §2.5.1 구현 지시 (`topBar` prop 으로 inset 등록) | **대체** → §17.1 (`D4-103`) |
+| §3.2 · §1 표 · §4 `Sheet variant="bottom"` (Drawer) | **정정** → `floating` + `drawer` — §17.2 (`D4-74`) |
+| §5.4-① 스티커 제목 15/20 흡수 · §5.4 말미 13/19 → footnote 흡수 | **철회** → §17.3 (`D4-90` · `D4-87`) |
+| §6.4 C-3 delay 240 · 재생 조건 | **변경** → §17.4 (`D4-100` · `D4-105`) |
+| §6.6 축하 C-3 "즉시 표시" | **정정** → §17.5 (`D4-106`) |
+| §12.4 ② ⑫ ⑭ ⑯ | **해소** → §17.6 (`D4-86` · `D4-87`) |
+| **유지** | §2.2 ready 전부(위 정정 제외) · §2.3 바 · §2.5 Discard/Submit(위 정정 제외) · §2.7 완료(위 정정 제외) · **§3.2 Drawer**(위 정정 제외) · §4 #2 `PromptCarousel` · §5 `T-1`~`T-14` · §6.1~6.6(위 정정 제외) · §10 · §11 |
 
 ---
 
@@ -601,3 +644,60 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 | 포커스 링 | IconButton 기존 링 — 헤더 왼쪽 끝에서 잘리지 않는지 Visual Gap 에서 확인 |
 | RTL | 범위 밖 (영어 1차). `leading` 은 논리 방향(inline-start)으로 둔다 |
 | 분류 | Shared UI 확장 (도메인 지식 없음) — 다른 시트의 back 도 같은 슬롯을 쓴다. 기존 `BookDetailSheet` 등 trailing back 사용처의 이동은 **이번 결정 범위 밖**(보고 대상) |
+
+---
+
+## 17. 상위 Spec 정정 — `S4-H1` 마무리 (2026-11-02)
+
+상위 Spec(`stage-4-design-spec.md`)은 4a QA 판정 근거라 고치지 않는다(§0). 아래 절 번호는 **상위 Spec 번호**이며 이 절이 우선한다.
+
+근거: `docs/decisions/stage-4-approvals.md` · `docs/design/stage-4b-visual-gap-h1.md` §4 · §9~§11 · `docs/design/stage-4b-visual-gap-g2.md` VG-G2-07.
+
+### 17.1 상위 §2.5.1 Toast inset — `D4-103` (`D4-89` · `D4-101` 반영)
+
+| 항목 | 이전 | 정정 |
+|---|---|---|
+| 구현 지시 | 완료 화면 TopBar 를 `FullscreenLayout` `topBar` prop 으로 넘긴다 | **feature 가 `useToastTopBarInset` 으로 닫기 줄을 직접 등록한다.** `topBar` 슬롯 안 철회 |
+| 사유 | — | 슬롯은 layout 소유라 로딩·오류에도 렌더되어 `h1` 이 2개가 된다 · `sticky` · 띠 48 > 스티커 y44 (`visual-gap-h1` §9.5) |
+| 결과 위치 | — | Toast y64 (닫기 줄 박스 48 + 16) — 393×852 · 320×568 동일 |
+| 등록 시점 | `useEffect` | **`useLayoutEffect`** (`D4-101`) · CPU 6× 잔여 1프레임 수용 (`D4-107`) |
+
+### 17.2 상위 §3.2 명세 1 Drawer 형태 — `D4-74`
+
+- **`Sheet variant="bottom"` + surface 분기 → `variant="floating"` + `surface="drawer"`.** `bottom` 은 전폭 · 위 모서리 radius · padding 24 라 `AD-S4-7` 폭 · 네 모서리 · 핸들 40 · 패딩을 담을 수 없다 (VG-G2-07).
+- 값: 토큰 T-40 · 아래 여백 `D4-69` · 높이 329 @393 `D4-70` · pill 폭 본문 100% `D4-71`.
+
+### 17.3 상위 §5.4 타이포 — `D4-90` · `D4-87`
+
+- **① 스티커 제목 15/20 흡수 철회 → Figma 14 / 17** (`29:84` Semibold 14 / normal). 토큰 T-36. 상위 §2.7.1 제목 행도 같이 대체한다.
+- **완료 버블 보조 줄 13/19** — 상위 §5.4 말미 *"13/19 → `--text-footnote`(13/18)"* 는 이 줄에 적용하지 않는다. line-height 는 `--bubble-complete-subtext-line`(19, T-37)이다.
+- 스티커 부제 줄 16 은 유지한다 (`D4-102`).
+
+### 17.4 상위 §6.4 C-3 — `D4-100` · `D4-105`
+
+| 항목 | 이전 | 정정 |
+|---|---|---|
+| C-3 delay | 240ms | **0ms** — `--session-complete-sticker-delay` (T-38) |
+| `Submit` 경로 | C-1·C-2·C-3 동시 시작 | **C-3 만 Toast 퇴장 뒤 재생**. Toast 동안 칩은 `visibility: hidden` · 슬롯 64 유지 (`held` → `play`) |
+| 재진입 · Toast 없는 경로 | — | **C-3 없이 즉시 표시** (`static`). C-1·C-2 는 기존대로 재생 |
+| 퇴장 신호 | — | `useToastPresent` (`D4-104`) — 퇴장 애니메이션 끝까지 `true`. **`duration: 0` Toast 호출 0건이 전제**다 |
+| C-1 · C-2 | 0ms · 120ms | **변경 없음** |
+
+- 상위 §6.4 의 순서 근거("C-3 를 C-1·C-2 뒤에")는 이제 Toast 퇴장이 시점을 정한다. Q12(순서) 디자이너 답변은 **미결 유지**다.
+
+### 17.5 상위 §6.6 reduced motion — `D4-106`
+
+- 축하 C-1~C-3 = `animation: none` · 중간 상태 없음 **유지**.
+- **정정**: `Submit` 경로의 스티커는 reduced motion 에서도 **Toast 퇴장 후 연출 없이 표시**한다. "즉시 표시" 는 모션을 건너뛰라는 뜻이며 표시 시점을 뜻하지 않는다. 재진입은 즉시 표시.
+- 실측: `visual-gap-h1` §11 (겹침 0, 첫 표시 프레임 opacity 1).
+
+### 17.6 상위 §12.4 해소 표기
+
+| # | 항목 | 처리 | 근거 |
+|---|---|---|---|
+| ② | 완료 버블 `min` 단위 | ✅ **해소** — 보조 줄은 **응답 필드 `subtext`** 다. 문구는 Frontend 가 만들지 않고, 없으면 줄이 없다 | `D4-87` · `D4-94` · `D4-98` |
+| ⑫ | 완료 화면 닫기 목적지 | ✅ **해소** — **홈으로 replace 이동** | `D4-86` |
+| ⑭ | `88:929` 주 문구 weight | ✅ **해소** — Figma 선언 Bold · 구현 700 일치. 결정 불필요 | `visual-gap-h1` §4 미결 표기 정리 |
+| ⑯ | 스티커 아이콘 정체 | ✅ **해소** — `90:602` 에셋 path 사용, HARU 전용 SVG 로 처리. 타일 픽셀 0% | `visual-gap-h1` §4 · §9.2 |
+
+⚠️ ②: `D4-87` 은 표시 경로를 정했을 뿐 **Stage 3 `D-6` 의 `Min` 미채택과 같은 계열인지**는 판단하지 않았다. 그 판단은 생성 문구 쪽 사안으로 남는다.

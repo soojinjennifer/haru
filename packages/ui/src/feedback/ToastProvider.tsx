@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -42,6 +43,9 @@ interface ToastViewportRegistry {
 
 const ToastViewportContext = createContext<ToastViewportRegistry | null>(null);
 
+/** 값이 바뀔 때만 구독자가 다시 그려지도록 `ToastContext` 와 분리한다. Provider 밖 = Toast 없음. */
+const ToastPresenceContext = createContext(false);
+
 /**
  * "이 화면 상단에는 TopBar 가 있고, 높이는 이만큼이다" 를 ToastProvider 에 **런타임으로**
  * 알린다 (사용자 결정 2026-10-10 — Toast 상단 이동).
@@ -66,12 +70,16 @@ const ToastViewportContext = createContext<ToastViewportRegistry | null>(null);
  * 순간에는 **큰 쪽**을 쓴다 — 과보정은 Toast 가 조금 아래에 뜨는 것으로 끝나지만, 과소보정은
  * 곧바로 TopBar 가림(= 클릭 불능)이다.
  *
+ * ── 왜 `useLayoutEffect` 인가 (`D4-101`) ──
+ * 페인트 전에 재서 보정 없는 위치가 화면에 나오는 프레임을 줄인다. 앱에 SSR 이 없어(`createRoot` 만) 경고 대상도 없다.
+ * Toast 가 이 훅의 화면보다 **먼저 커밋되면** 그 사이 프레임은 남는다 — 측정은 `stage-4b-handoff.md` `S4-H1F`.
+ *
  * @param ref TopBar 슬롯 요소. `null` 이면(= TopBar 없음) 등록하지 않는다.
  */
 export function useToastTopBarInset(ref: RefObject<HTMLElement | null>): void {
   const registry = useContext(ToastViewportContext);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = ref.current;
     if (registry === null || element === null) return undefined;
 
@@ -80,6 +88,14 @@ export function useToastTopBarInset(ref: RefObject<HTMLElement | null>): void {
       registry.release(element);
     };
   }, [registry, ref]);
+}
+
+/**
+ * Toast 가 화면에 있는 동안 `true` — **퇴장 애니메이션이 끝날 때까지** 포함한다 (`onDismiss` 는 퇴장 시작 시점이다).
+ * 자동 해제 · 사용자 닫기 · 교체 전부 이 값 하나로 끝이 보인다 (교체된 Toast 의 `onDismiss` 는 불리지 않는다).
+ */
+export function useToastPresent(): boolean {
+  return useContext(ToastPresenceContext);
 }
 
 interface QueuedToast extends ToastOptions {
@@ -212,6 +228,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
     [],
   );
 
+  const present = mounted && toast !== null;
   const withTopBar = topBar.count > 0;
   /*
     실측값은 **디자인 값이 아니라 레이아웃 측정 결과**이므로 토큰으로 표현할 수 없다
@@ -226,7 +243,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
   return (
     <ToastContext.Provider value={controller}>
       <ToastViewportContext.Provider value={registry}>
-        {children}
+        <ToastPresenceContext.Provider value={present}>{children}</ToastPresenceContext.Provider>
         {mounted && toast && typeof document !== 'undefined'
           ? createPortal(
               <div

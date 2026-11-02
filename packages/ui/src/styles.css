@@ -35,6 +35,7 @@
 @import './chip/Chip.css';
 @import './progress/ProgressBar.css';
 @import './progress/PageIndicator.css';
+@import './carousel/PromptCarousel.css';
 @import './feedback/Spinner.css';
 @import './feedback/Skeleton.css';
 @import './feedback/State.css';

@@ -73,6 +73,11 @@ export const ROUTES = {
    * 경로를 만들 때는 `sessionPath(id)` 를 쓴다 (문자열을 흩어 조립하지 않는다).
    */
   session: '/session/:sessionId',
+  /**
+   * 완료 화면 (Figma `29:62` y 0~468, Stage 4 Design Spec §2.5.1 · §2.7) — `Submit` 뒤 이동한다.
+   * 경로는 `FIGMA_SCREEN_MAP.md` RECOMMENDED 값 그대로. 화면 본체는 `S4-H1` 이 채운다.
+   */
+  sessionComplete: '/session/:sessionId/complete',
 
   notFound: '*',
 } as const;
@@ -99,4 +104,9 @@ export function onboardingStepPath(slug: OnboardingStepSlug): string {
 /** `/session/:sessionId` 의 실제 경로. */
 export function sessionPath(sessionId: string): string {
   return ROUTES.session.replace(':sessionId', encodeURIComponent(sessionId));
+}
+
+/** `/session/:sessionId/complete` 의 실제 경로. */
+export function sessionCompletePath(sessionId: string): string {
+  return ROUTES.sessionComplete.replace(':sessionId', encodeURIComponent(sessionId));
 }

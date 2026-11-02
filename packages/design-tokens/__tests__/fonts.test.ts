@@ -151,7 +151,12 @@ describe('빌드 산출물 — CSS Variable export (AC-1-11)', () => {
     // Stage 4 `S4-F1`(세션 ready)에서 31종 추가 → 183 (RecordControl 11 · 세션 버블 8 ·
     // 세션 pill 밀도 4 · 하단 바 3 · 세로 배치 5 — Stage 4 Design Spec §5.2 · 4b Spec `T-21`).
     // Stage 4b `S4-F1R` 에서 2종 추가 → 185 (`--icon-button-fg` T-29 · `--icon-button-icon-size-close` T-30).
-    expect(manifest.counts['component']).toBe(185);
+    // Stage 4b `S4-F2` 에서 28종 추가 → 213 (4b Spec §5.2 `T-15`~`T-18` · `T-20` · `T-21` + Button sm 2 · breathing 1).
+    // Stage 4b `S4-G1` 에서 4종 추가 → 217 (4b Spec §5.2 `T-19` — 팝업 padding · 앵커 · `See all` 14/17).
+    // Stage 4b `S4-G2` 에서 19종 추가 → 236 (Drawer `88:960` — Sheet floating 8 · 캐러셀 6 · 코칭 노트 5, `D4-71` 로 pill 폭 삭제).
+    // Stage 4b `S4-K1` 에서 1종 추가 → 237 (짧은 세로 — 메달리온 링 compact, `D4-58` CP-7).
+    // `S4-K1` 후속에서 2종 추가 → 239 (ready 버블 아래 14.4 · stage 하한 205, `D4-78` · `D4-81`). `S4-H1` 19종 → 258. `S4-H1R` 3종 → 261 (보조 줄 19 · 스티커 제목 14/17).
+    expect(manifest.counts['component']).toBe(261);
     // 2026-09-22 가값 승인 (stage-1-approvals §9) 후 남은 항목 = P-01 · P-02 · P-04 · P-05 · P-16.
     // Stage 3 에서 P-23(--color-prompt-tag-fg) 신설 (stage-3-approvals §9.2 ⑫).
     // Library 1라운드: **P-05 해제**(scrim 이 Figma 실측값이 되었다 — `L-NEW-09`) ·

@@ -23,10 +23,11 @@ describe('Tier 1 — Primitive (Design Spec §3.1)', () => {
    *      + **`--haru-gray-2`** (Stage 4 `D4-16` · 가값 `P-25` — Semantic 쪽이 주석을 갖는다).
    * 마지막 1종은 칩 아이콘 대비 교정(사용자 결정 2026-10-10 ②)에서 추가됐다 — Figma palette
    * 밖의 값이므로 허용 차이 등록 대상이고, 그래서 **개수가 늘면 눈에 걸리도록** 여기서 센다.
+   * 35 = + **`--haru-gray-6`** (Stage 4b `S4-G2` — Drawer 캐러셀 화살표 비활성 fill `#f2f2f7`, `86:324`).
    */
-  it('palette 색 34개 + status 8개 — 30 + white a82 · a85 + yellow-700 + gray-2', () => {
+  it('palette 색 35개 + status 8개 — 30 + white a82 · a85 + yellow-700 + gray-2 · gray-6', () => {
     const colors = primitives.filter((d) => d.file === 'src/primitive/color.css');
-    expect(colors.filter((d) => !d.name.startsWith('--haru-status-'))).toHaveLength(34);
+    expect(colors.filter((d) => !d.name.startsWith('--haru-status-'))).toHaveLength(35);
     expect(colors.filter((d) => d.name.startsWith('--haru-status-'))).toHaveLength(8);
   });
 
@@ -55,9 +56,10 @@ describe('Tier 1 — Primitive (Design Spec §3.1)', () => {
 });
 
 describe('Tier 2 — Semantic (Design Spec §3.2)', () => {
-  it('semantic color 가 76개다 — 67 + Home 재구현 5 + 칩 아이콘 1 + 세션 neutral 2 + 메달리온 링 1 (--gradient-app 제외)', () => {
+  it('semantic color 가 79개다 — 67 + Home 재구현 5 + 칩 아이콘 1 + 세션 neutral 2 + 메달리온 링 1 + Drawer 3 (--gradient-app 제외)', () => {
     const colors = semantics.filter((d) => d.name.startsWith('--color-'));
-    expect(colors).toHaveLength(76);
+    // Stage 4b `S4-G2`: `--color-surface-drawer`(`T-1`) · `--color-carousel-arrow` · `-disabled` (`86:324`)
+    expect(colors).toHaveLength(79);
   });
 
   /*
@@ -247,10 +249,50 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
    *
    * Stage 4b `S4-F1R` 에서 **2종 추가** → 185 (4b Spec §5.3).
    *  `--icon-button-fg` (T-29, `D4-62` glass 글리프 색) · `--icon-button-icon-size-close` (T-30, `VG-F1-01`).
+   *
+   * Stage 4b `S4-F2`(recording · paused)에서 **28종 추가** → 213 (4b Spec §5.2 `T-15`~`T-18` · `T-20` · `T-21`).
+   *  Button sm 9(`T-16` 7 + 아이콘 stroke · hit) · 세로 배치 3(`T-21`) + breathing 1(Stage 4 Spec §6.3) ·
+   *  경과 시간 2(`T-15`) · 상태 pill 5(`T-17`) · 책 칩 6(`T-18`) · RecordControl 변형 2(`T-20`).
+   *
+   * Stage 4b `S4-G1`(Prompts 팝업 `296:1257`)에서 **4종 추가** → 217 (4b Spec §5.2 `T-19`, `D4-58` CP-1).
+   *  padding 위·아래 14 · ring 아래 6 · `See all` 14 / 17.
+   *
+   * Stage 4b `S4-G2`(Prompt Drawer `88:960`)에서 **19종 추가** → 236 (Stage 4 Spec §3.2 · `T-10`).
+   *  Sheet `floating` 8(inset 2 · padding 3 · gap · 핸들 2) · 캐러셀 6(pill 3 · gap · 화살표 2) · 코칭 노트 5.
+   *  `--prompt-carousel-bar-width` 는 `D4-71` 로 삭제했다 (pill = 본문 100%).
+   *
+   * Stage 4b `S4-K1`(짧은 세로 압축, `D4-58` CP-7)에서 **1종 추가** → 237.
+   *  메달리온 링 compact 152.
+   * `S4-K1` 후속(`D4-78` · `D4-81`)에서 **2종 추가** → 239. ready 버블 아래 14.4 · stage 하한 205.
+   *
+   * Stage 4b `S4-H1`(완료 화면 `29:62`)에서 **19종 추가** → 258 (Stage 4 Spec §2.7 · §6.4).
+   *  배치 5 · 버블 폭 · 모션 5 · 출석 스티커 8.
    */
-  it('Tier 3 토큰 185개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset + Library 1라운드 + 표지 그림자 자리 + 세션 ready + S4-F1R)', () => {
+  it('Tier 3 토큰 261개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset + Library 1라운드 + 표지 그림자 자리 + 세션 ready + S4-F1R + S4-F2 + S4-G1 + S4-G2 + S4-K1 + S4-H1 + S4-H1R)', () => {
     expect(components.map((d) => d.name).sort()).toEqual(
       [
+        '--session-complete-title-offset',
+        '--session-complete-title-gap',
+        '--session-complete-ring-gap',
+        '--session-complete-ring-size',
+        '--session-complete-bubble-offset',
+        '--bubble-complete-width',
+        '--bubble-complete-subtext-line',
+        '--session-complete-ring-pop-scale',
+        '--session-complete-enter-scale',
+        '--session-complete-enter-shift',
+        '--session-complete-bubble-delay',
+        '--session-complete-sticker-delay',
+        '--attendance-sticker-width',
+        '--attendance-sticker-height',
+        '--attendance-sticker-pad-start',
+        '--attendance-sticker-pad-end',
+        '--attendance-sticker-gap',
+        '--attendance-sticker-tile-size',
+        '--attendance-sticker-icon-inset',
+        '--attendance-sticker-text-gap',
+        '--attendance-sticker-title-size',
+        '--attendance-sticker-title-line',
         '--button-height-md',
         '--button-height-lg',
         '--button-padding-x',
@@ -258,6 +300,15 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
         '--button-gap',
         '--button-radius',
         '--button-label-size',
+        '--button-height-sm',
+        '--button-padding-inline-start-sm',
+        '--button-padding-inline-end-sm',
+        '--button-gap-sm',
+        '--button-icon-size-sm',
+        '--button-label-size-sm',
+        '--button-shadow-sm',
+        '--button-icon-stroke-sm',
+        '--button-hit-size-sm',
         '--icon-button-size',
         '--icon-button-icon-size',
         '--icon-button-hit-size',
@@ -434,8 +485,53 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
         '--session-top-row-offset',
         '--session-medallion-offset',
         '--session-medallion-ring-size',
+        '--session-medallion-ring-size-compact',
+        '--session-bubble-bottom-gap',
+        '--session-stage-min-block-size',
         '--session-bubble-offset',
         '--session-bottom-gap',
+        '--session-book-chip-offset',
+        '--session-status-block-offset',
+        '--session-status-block-gap',
+        '--session-breathing-scale',
+        '--session-timer-size',
+        '--session-timer-line',
+        '--session-state-pill-pad-inline',
+        '--session-state-pill-pad-block',
+        '--session-state-pill-gap',
+        '--session-state-dot-size',
+        '--session-state-dot-stroke',
+        '--session-book-chip-height',
+        '--session-book-chip-pad-inline',
+        '--session-book-chip-gap',
+        '--session-book-cover-width',
+        '--session-book-cover-height',
+        '--session-book-cover-radius',
+        '--record-tone-denied',
+        '--record-core-shadow-disabled',
+        '--prompt-popup-pad-block',
+        '--prompt-popup-offset-top',
+        '--prompt-popup-link-size',
+        '--prompt-popup-link-line',
+        '--sheet-floating-inset',
+        '--sheet-floating-inset-block-end',
+        '--sheet-floating-pad-block-start',
+        '--sheet-floating-pad-block-end',
+        '--sheet-floating-pad-inline',
+        '--sheet-floating-gap',
+        '--sheet-floating-grabber-width',
+        '--sheet-floating-grabber-margin',
+        '--prompt-carousel-bar-height',
+        '--prompt-carousel-bar-margin-block-start',
+        '--prompt-carousel-bar-margin-block-end',
+        '--prompt-carousel-gap',
+        '--prompt-carousel-arrow-size',
+        '--prompt-carousel-arrow-hit',
+        '--prompt-drawer-note-min-height',
+        '--prompt-drawer-note-pad-inline',
+        '--prompt-drawer-note-pad-block-start',
+        '--prompt-drawer-note-pad-block-end',
+        '--prompt-drawer-note-line',
       ].sort(),
     );
   });

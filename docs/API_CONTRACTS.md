@@ -1,6 +1,6 @@
 # HARU API Contracts
 
-Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (**Rev 8: Stage 4 승인 결정 `D4-1`~`D4-22` 반영, 2026-10-13 plan-agent** · 최신 **Rev 8.7**: `S4-F1R` 구현 반영, 2026-10-27 development-agent)
+Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (**Rev 8: Stage 4 승인 결정 `D4-1`~`D4-22` 반영, 2026-10-13 plan-agent** · 최신 **Rev 8.9**: `D4-87`·`D4-88` 설계 변경, 2026-11-01 plan-agent · **APPROVED (2026-11-02, user, `D4-97`)**)
 
 > **Rev 8 (2026-10-13, plan-agent — Stage 4 Plan 승인 후 적용)** — `docs/plans/stage-4-plan.md` §7.5 의 **18 지점**을 반영했다 (목록 20건 중 무효 2건 제외).
 > 적용 지점: §2.2(enum 수 정정 `P4-FIX-3` + Stage 4 신규 2종) · **§3.1 전이표 2행 추가(12 → 14 — `D4-13`)** · §3.2(`SessionSummary.bubble` 렌더 지점·null 거동·길이 요구 — `D4-20`·`D4-21`·`D4-22` / `SessionTransitionRequest.to='abandoned'` 세 경로 주석 / `StickerAward` / `readingContext`) · §3.3(`partNo`·`mimeType` = `S4-A` spike 확정 대기) · **§3.9 `RecordingStatus` 신설** · §4 Stage 3·4 표(이월 표기 · 네이티브 후속 단계 주석) · §5.1.1(`RecorderAdapter`·`recordingApi`·`UploadTransport`) · **§5.4 신규 scenario key 2건** · **§6 `G-08`·`G-09` Resolved**.
@@ -15,7 +15,10 @@ Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (**Rev 8: Stage 4 승�
 > **Rev 8.4 (2026-10-15, development-agent — Stage 4a `S4-J` 이월 구현 반영)** — 설계 변경 없음 · contracts 변경 0. 반영 지점: §5.1.1 Platform Port 표의 **`PushPermissionPort` 구현**(`shared/platform/push-permission/` — interface `getStatus`·`request`·`getToken` + `platform`, 상태 `prompt`·`granted`·`denied`·`unsupported`, Web 토큰 = 자리표시 값 `web-permission-only:v1` — 실제 구독 토큰은 `BACKEND_INTEGRATION_PENDING`) · §5.4 **`push-permission-denied` = 플랫폼 포트 그룹 `push`**(`?scenario=push:push-permission-denied`, Mock = `mocks/platform/MockPushPermissionPort.ts`) · §5.4 **`offline-cached-card` = `activity-cards` 그룹 구현**(API 는 `offline` 과 같은 `NetworkError`, 기기 캐시 seed 는 브라우저 조립 지점 — `mocks/activities/activityCardCacheSeed.ts`). 상세 `docs/qa/stage-4a-handoff.md` `S4-J`.
 > **Rev 8.5 (2026-10-26, development-agent — Stage 4b `S4-F1` 구현 반영)** — 설계 변경 없음 · **contracts 변경 0**. 반영 지점: §5.4 **`session`**(Prompt 개수 — 4b Plan §12 제안 key 구현) · **`session-greeting`**(인사 변형 — 신규 그룹, plan-agent 등재 판단 대상) 그룹 · e2e 요청 로그 노출(dev 전용). 상세 `docs/qa/stage-4b-handoff.md` `S4-F1`.
 > **Rev 8.6 (2026-10-27, plan-agent — 사용자 결정 `D4-59` 반영, 설계 변경)** — **contract 필드 1건 추가**: `SessionSummary.reminderBubble: SessionBubbleCopy | null` (ready 5분 리마인드 버블 제목 줄 문구 — `D4-46`·`D4-59`). 반영 지점: §3.2 스케치 · **§3.2.2 신설**(렌더 지점·null 거동·길이 요구·Mock 예시·Handoff) · §5.4 `session-greeting` 그룹 key 1건 등재 제안(`reminder-missing`). Error code 0 · enum 0. 실제 `packages/contracts`·Mock 반영은 development-agent (`stage-4b-plan.md` §13.1 `S4-F1R`).
+> **Rev 8.8 (2026-10-29, development-agent — Stage 4b `S4-F2` 구현 반영)** — 설계 변경 없음 · **contracts 변경 0** · error code 0. 반영 지점: §5.4 `session` 그룹 key 3건 구현(`book-missing` · `book-no-cover` · `book-long-title` — 4b Plan §12 제안 key 그대로). recording·paused 화면은 기존 전이(`ready→recording` · `recording⇄paused` · `→completed(user_done)` · `recording|paused→abandoned`)만 쓴다. 상세 `docs/qa/stage-4b-handoff.md` `S4-F2`.
 > **Rev 8.7 (2026-10-27, development-agent — Stage 4b `S4-F1R` 구현 반영)** — 설계 변경 없음. Rev 8.6 설계대로 `packages/contracts/src/sessions/session.ts` `SessionSummarySchema.reminderBubble: SessionBubbleCopySchema` (required · nullable · `.max` 없음) 구현 + 단위 테스트(`src/__tests__/sessions.test.ts`). Mock: `MOCK_READY_REMINDER_BUBBLE`(`Ready when you are!`) · §5.4 `session-greeting:reminder-missing` 구현. 상세 `docs/qa/stage-4b-handoff.md` `S4-F1R`.
+> **Rev 8.9 (2026-11-01, plan-agent — 사용자 결정 `D4-87`·`D4-88` 반영, 설계 변경 · APPROVED (2026-11-02, user) — `D4-97`, 미결 `N4B-19`·`N4B-20`·`N4B-22` 는 `D4-94`·`D4-95`·`D4-98` 로 해소)** — **contract 필드 2건 추가**: `SessionBubbleCopy.subtext`(`.nullable().optional()`) · `SessionDetail.completionBubble`(required + nullable). 반영 지점: §3.2 스케치 · **§3.2.3 신설** · §4 Stage 4 `GET /v1/sessions/:sessionId` 행 · §5.4 `session-completion` 그룹 등재. Error code 0 · enum 0 · 전이표 0 · endpoint 0. 실제 `packages/contracts`·Mock 반영은 development-agent (`stage-4b-plan.md` §13.2 `S4-H1R`).
+> **Rev 8.10 (2026-11-02, development-agent — Stage 4b `S4-H1R` 구현 반영)** — 설계 변경 없음. Rev 8.9 설계대로 `packages/contracts/src/sessions/session.ts` `SessionBubbleCopySchema.subtext`(`.nullable().optional()`) · `SessionDetailSchema.completionBubble`(required · nullable) 구현 + 단위 테스트. Mock: `MOCK_COMPLETION_BUBBLE.subtext` · `MOCK_COMPLETION_BUBBLE_NO_SUBTEXT` · `toDetail` 완료 계열 한정 · §5.4 `session-completion` 3 key(`mocks/sessions/sessionFixtureScenarios.ts`). 상세 `docs/qa/stage-4b-handoff.md` `S4-H1R`.
 Reflects: `docs/decisions/stage-0-approvals.md` #7 · #8 · #13 · #14 · #15 · #16 · #17 · #19 · #27 · C-1~C-10 · C-12 · C-13 · C-15 · C-16 · C-18 (Rev 5) · #33 · C-19 (Rev 6)
 Decision log: `docs/decisions/stage-0-approvals.md` + **`docs/decisions/stage-3-approvals.md` (Stage 3 — §3 · §6 · §6.1 · §7 · §7.1 · §8 · §8.1~§8.6)** — 이 문서와 다르면 결정 기록이 우선한다. 라벨: `CONFIRMED (사용자 결정 YYYY-MM-DD, #id)` · `RECOMMENDED` · `NEEDS DECISION (법무, L-xx)`.
 Based on: PRD v1.4, `docs/ARCHITECTURE.md` (DRAFT 2026-09-14), `docs/DATA_MODEL.md` (DRAFT 2026-09-14), design-agent `docs/FIGMA_SCREEN_MAP.md` · `docs/COMPONENT_MAP.md` (DRAFT 2026-09-14) — Rev 2: Figma 대비 gap §6 추가
@@ -256,7 +259,7 @@ export const READY_ABANDON_SECONDS = 10 * 60;  // §13
 > | `SessionTransitionRequest.to` | `ClientSessionTransitionTargetSchema = SessionStatusSchema.extract([...4값])` — **새 enum 값이 아니라 `SessionStatus` 부분집합**이다 |
 > | `occurredAt` | **필수** (`OccurredAtSchema`) — 스케치와 같다 |
 > | `CreateSessionRequest.customTime` | `TimeOfDaySchema.optional()` + **`createCustomTimeRefine()` 재사용**. 팩토리의 입력 타입을 `ReadingContext \| null` 로 넓혔다 (판정 로직 불변) |
-> | `SessionDetail` | `SessionSummary` + `recording: RecordingStatus \| null` + `sticker: StickerAward \| null`. `reflection` 없음 (Stage 5) |
+> | `SessionDetail` | `SessionSummary` + `recording: RecordingStatus \| null` + `sticker: StickerAward \| null` + `completionBubble: SessionBubbleCopy`(Rev 8.9, 구현 Rev 8.10 — §3.2.3). `reflection` 없음 (Stage 5) |
 > | `SessionTransitionResult` | `{ session, completionBubble?: SessionBubbleCopy, stickerAward?: StickerAward \| null }` |
 > | `ListSessions` | `CursorPageRequestSchema.extend({ status?: SessionStatus })` · `paginated(SessionSummarySchema)` |
 >
@@ -279,6 +282,7 @@ export const READY_ABANDON_SECONDS = 10 * 60;  // §13
 >   // 길이 상한(≤240px @ SF Pro Semibold 16, ≈28자)은 생성 측 요구이며 schema 제약이 아니다 (D4-21).
 >   text: z.string().nullable(),
 >   templateId: z.string().optional(),   // 검수 템플릿 추적 (FR-10 · P4-BIP-11) — 화면 미표시
+>   subtext: z.string().nullable().optional(),  // ⭐ Rev 8.9 (D4-87): 완료 버블 보조 줄 — §3.2.3. key 생략 가능 (D4-94)
 > }).nullable();
 > ```
 >
@@ -357,6 +361,58 @@ export const SessionTransitionRequestSchema = z.object({
 | **표시 조건** | `status === 'ready'` 인 동안만 의미가 있다. recording 이후 응답에서도 값은 올 수 있으나 화면은 쓰지 않는다 | RECOMMENDED |
 | **Mock 예시 문구** | **`Ready when you are!`** (19자 — 아이 이름 없음, 진단·판정·비교 표현 없음, 영어). ⛔ Figma placeholder(`Try this prompt !`)를 넣지 않는다 | RECOMMENDED (예시 — 제품 문구는 Backend 검수 템플릿) |
 | **Handoff** | `P4-BIP-11` 에 **리마인드 템플릿 1종 추가**: 검수 템플릿 생성 + 안전 슬롯 + 금지어 검증 + fallback(Backend 책임) + 위 길이·이름 위치 요구. 세션 생성 응답(`POST /v1/sessions`)과 세션 조회 응답 모두에 채운다 → `ANALYSIS_PIPELINE_REQUIREMENTS` · `BACKEND_HANDOFF` (Stage 8) | BACKEND_INTEGRATION_PENDING |
+
+#### 3.2.3 ⭐ 완료 버블 — `subtext` · `SessionDetail.completionBubble` (Rev 8.9: `D4-87`·`D4-88`, 2026-11-01 · APPROVED 2026-11-02, `D4-94`·`D4-95`·`D4-97`·`D4-98`)
+
+> 근거: 사용자 결정 **`D4-87`·`D4-88`·`D4-94`·`D4-95`·`D4-98`** (`docs/decisions/stage-4-approvals.md` §1), `docs/design/stage-4b-visual-gap-h1.md` 결정 2·3 (`VG-H1-03`·`VG-H1-05`). 계기: Figma `88:929` 보조 줄을 담을 필드가 없었고(최우선 규칙 3), 재진입 시 버블 출처가 없었다 (AC-4-58). **구현 완료 (Rev 8.10, `S4-H1R`).**
+
+```ts
+// packages/contracts/src/sessions/session.ts  (Rev 8.10 구현과 같다)
+export const SessionBubbleCopySchema = z.object({
+  text: z.string().nullable(),
+  templateId: z.string().min(1).optional(),
+  subtext: z.string().nullable().optional(),   // 완료 버블 보조 줄만 사용
+}).nullable();
+
+export const SessionDetailSchema = SessionSummarySchema.extend({
+  recording: RecordingStatusSchema.nullable(),
+  sticker: StickerAwardSchema.nullable(),
+  completionBubble: SessionBubbleCopySchema,   // required + nullable (sticker 선례, C4-OPEN-6)
+});
+```
+
+| 항목 | 내용 | 라벨 |
+|---|---|---|
+| **`subtext` 렌더 지점** | 완료 버블(`88:929`) 주 문구 아래 1곳. Figma 예시 `14 min together · sticker earned`. `bubble`·`reminderBubble` 에 값이 있어도 ready 화면은 그리지 않는다 | CONFIRMED (`D4-87`) · 렌더 한정 = RECOMMENDED |
+| **`subtext` null / 빈 문자열 / key 없음** | 보조 줄을 렌더하지 않는다. 빈 줄·대체 문구 0 (`D4-22` 와 같은 처리) | CONFIRMED (`D4-87`) |
+| **`subtext` key 필수 여부** | `.nullable().optional()` — 공유 schema 라 ready·리마인드 응답에 key 를 강제하지 않는다. key 생략 가능 | CONFIRMED (`D4-94`, `N4B-19` 해소) |
+| **`text` 없음 + `subtext` 있음** | 버블 미렌더 — 현행 "주 문구 없으면 버블 없음" 유지 | CONFIRMED (`D4-95`, `N4B-20` 해소) |
+| **길이** | 보조 줄은 **줄바꿈 표시(clamp·말줄임 없음)**. 생성 측 상한 **≤ 240px @ SF Pro Regular 13 (≈ 36자)** — 기준은 픽셀이고 글자 수는 환산 가이드다. 넘기면 320 폭에서 2줄이 될 뿐 깨지지 않는다. schema `.max()` 없음 (§3.2 "왜 길이를 schema 제약으로 넣지 않는가") | CONFIRMED (`D4-98`, `N4B-22` 해소) |
+| **Frontend 책임** | 문구 생성·가공·보간 0. ⛔ `recordedSeconds` 로 `14 min` 을 조립하지 않는다 (`rules/architecture.md` §8) | CONFIRMED (`D4-87`) |
+| **`SessionDetail.completionBubble` 값** | 완료 계열(`completed`·`analyzing`·`analyzed`·`failed`) = 전이 때 고른 문구 그대로, 또는 `null`. 그 밖의 상태(`ready`·`recording`·`paused`·`abandoned`) = `null` | CONFIRMED (필드, `D4-88`) · 상태별 값 = RECOMMENDED |
+| **전이 응답과의 관계** | `SessionTransitionResult.completionBubble?` 는 **변경 없음**. 같은 세션에서 전이 응답과 Detail 의 `text`·`subtext`·`templateId` 가 같아야 한다. Frontend 우선순위 = 전이 응답 → Detail | RECOMMENDED |
+| **오프라인 제출** | 응답이 없으므로(`result: null`) 버블·스티커 없음 — 현행 수용. 이 필드로 해결하지 않는다 | CONFIRMED (`D4-88`) |
+| **`SessionSummary`·목록** | 변경 없음 — 재진입 표시는 `GET /v1/sessions/:sessionId` 만 쓴다 | RECOMMENDED |
+
+**하위 호환**: `subtext` 는 추가 필드로 기존 응답·fixture 가 그대로 parse 된다 (`D4-94`). `SessionDetail.completionBubble` 은 **required 라 key 누락 응답을 거부한다** — 모든 Detail 응답이 key 를 가져야 한다. 운영 Backend 가 없어 외부 호환 영향은 0 이고, 영향은 Mock·테스트 fixture 뿐이다. `HttpSessionApi` 는 schema 로 parse 하므로 코드 변경 대상이 아니다.
+
+**Mock 요구사항**:
+
+| 항목 | 요구 |
+|---|---|
+| fixture | `MOCK_COMPLETION_BUBBLE.subtext = '14 min together · sticker earned'` (Figma 문자열, `D4-87` 채택 권고안). 고정 문자열이며 세션의 `recordedSeconds` 를 반영하지 않는다 — Frontend 조립이 아니라 Mock 값이다 |
+| 상태 | Mock Detail 은 완료 계열에서만 값을 낸다. 내부 레코드가 생성 시점부터 값을 들고 있어도 비완료 세션에는 `null` |
+| 일관성 | `subtext` 가 `sticker earned` 를 말하면 그 세션 `sticker` 는 non-null 이어야 한다. `sticker: null` 인 지난 세션 seed 는 `subtext: null` |
+| 멱등 | 같은 Idempotency-Key replay · 재조회 모두 같은 값 (AC-4-60) |
+| scenario | §5.4 `session-completion` 그룹 — 값은 전이 응답과 Detail 이 공유 |
+
+**Backend Handoff (구현 아님 · BACKEND_INTEGRATION_PENDING)** — 응답 값 생성·보존은 Backend 요구사항이다:
+
+| ID | 요구 | Handoff 문서 |
+|---|---|---|
+| **`P4B-BIP-02`** | `subtext` 생성: 검수 템플릿 + 안전 슬롯 + 금지어 검증 + fallback (`P4-BIP-11` 확장). 사실과 일치할 것 — 대화 전용·스티커 미지급 세션이 `sticker earned` 를 말하지 않는다. `streak`·`Day N`·집계·비교 표현 금지 (`D-6`, PRD §7.4). **길이 상한 ≤ 240px @ SF Pro Regular 13 (≈ 36자, `D4-98`)**. 쓸 문구가 없으면 `null` | `ANALYSIS_PIPELINE_REQUIREMENTS` · `BACKEND_HANDOFF` |
+| **`P4B-BIP-03`** | 완료 버블 보존: `completed` 전이에서 고른 값을 세션 단위로 보존해 `SessionDetail` 에 같은 값으로 반환. 주 문구에 아이 이름이 들어갈 수 있으므로 소유권 확인·RLS·전체 삭제 대상 | `DATA_REQUIREMENTS` · `BACKEND_HANDOFF` |
+
 
 **`StickerAward` (Rev 8: `D4-2`·`D4-10`)** — `POST /v1/sessions/:sessionId/transitions` 응답의 `stickerAward?` (§4 Stage 4).
 
@@ -916,7 +972,7 @@ Home 상단 설정 아이콘(`26:44`) → 설정 목록. Stage 2는 `/` Home ske
 | Method | Path | Request | Response | Key errors | PRD |
 |---|---|---|---|---|---|
 | POST | `/v1/sessions` (IK) | `CreateSession` (§3.2) | `CreateSession` | ONBOARDING_INCOMPLETE, SESSION_ALREADY_ACTIVE | FR-09, FR-10 (시작 버블) |
-| GET | `/v1/sessions/:sessionId` | — | `SessionDetail` (summary + recording upload status + reflection? + sticker?) | RESOURCE_NOT_FOUND | FR-09 |
+| GET | `/v1/sessions/:sessionId` | — | `SessionDetail` (summary + recording upload status + reflection? + sticker? + ⭐ completionBubble — Rev 8.9, §3.2.3) | RESOURCE_NOT_FOUND | FR-09 |
 | POST | `/v1/sessions/:sessionId/transitions` (IK, CG when to=recording) | `SessionTransition` (§3.2) | `SessionTransitionResult` (session, completionBubble?, stickerAward?) | SESSION_INVALID_TRANSITION, CONSENT_REQUIRED, SESSION_MAX_DURATION_EXCEEDED | FR-09, FR-10 (종료 버블), FR-19, §13 |
 | POST | `/v1/sessions/:sessionId/recordings` (IK, CG) | `RecordingUploadInit` (§3.3) | `RecordingUploadInit` | CONSENT_REQUIRED, RECORDING_NOT_ALLOWED_FOR_MODE, SESSION_INVALID_TRANSITION | FR-14, NFR 오프라인 |
 | POST | `/v1/recordings/:recordingId/upload-tokens` (IK, CG) | `RefreshUploadTokens` (partNos) | `RecordingUploadInit` | RECORDING_DELETED | NFR 오프라인 (토큰 만료) |
@@ -1203,7 +1259,7 @@ apps/web/src/
 >
 > | 항목 | 구현 |
 > |---|---|
-> | **`session`** 그룹 (표시 데이터 모양 — 4b Plan §12 제안 key) | `success`(Prompt 5) · `prompts-1` · `prompts-3` · `prompts-7` · `prompts-empty`. `POST /v1/sessions` 가 만드는 ready 세션의 `prompts` 개수만 바꾼다 — API 동작은 `sessions` 그룹이 따로 정한다. 책 칩 변형(`book-missing` · `book-no-cover` · `book-long-title`)은 `S4-F2` 가 이 그룹에 더한다. 파일 `apps/web/src/mocks/sessions/sessionFixtureScenarios.ts` |
+> | **`session`** 그룹 (표시 데이터 모양 — 4b Plan §12 제안 key) | `success`(Prompt 5) · `prompts-1` · `prompts-3` · `prompts-7` · `prompts-empty`. `POST /v1/sessions` 가 만드는 ready 세션의 `prompts` 개수만 바꾼다 — API 동작은 `sessions` 그룹이 따로 정한다. 책 칩 변형 ✅ **구현 (Rev 8.8, `S4-F2`)**: `book-missing`(`book: null`) · `book-no-cover`(`coverUrl` 없음 — `MOCK_SESSION_BOOK_NO_COVER`) · `book-long-title`(40자 이상 — `MOCK_SESSION_BOOK_LONG_TITLE`). 요청한 책 대신 고정 fixture 를 쓰며 Prompt 는 5개다. 파일 `apps/web/src/mocks/sessions/sessionFixtureScenarios.ts` · fixture `mocks/fixtures/sessions.ts` |
 > | **`session-greeting`** 그룹 (신규 — Plan §12 에 없음, 등재 판단은 plan-agent) | `success` · `greeting-missing`(`bubble: null`) · `greeting-empty`(`text: ''`) · `greeting-tight`(320 에서만 1줄 초과) · `greeting-long`(393 에서도 초과). **인사 × Prompt 개수 조합**(AC-4-122 의 2 × 5)을 URL 하나로 만들려고 `session` 과 **다른 축**으로 뒀다 — 예: `?scenario=session-greeting:greeting-missing,session:prompts-7`. 긴 인사 2종은 **제약 위반 입력**(clamp 회귀용, `D4-21`)이며 아이 이름을 담지 않는다 |
 > | ready 버블 | `SessionSummary.bubble.text` = 제목 줄(1줄 clamp) · `prompts` 앞 5개 = pill (`D4-14`·`D4-20`~`D4-22`). `prompts: []` 는 parse 통과(`.min` 없음) — 화면은 버블을 그리지 않는다 |
 > | e2e 증거 경로 | dev 서버에서만 `window.__HARU_MOCK_REQUEST_LOG__` = Mock 요청 로그 (`createBrowserMockApiClients`, `import.meta.env.DEV` 가드 — Mock 데모 빌드에 남지 않는다) |
@@ -1217,7 +1273,17 @@ apps/web/src/
 >
 > 인사 null + 리마인드 null 조합은 별도 key 를 두지 않는다 — 두 필드 거동이 독립이므로 `greeting-missing` · `reminder-missing` 각각으로 판정한다.
 >
-> ✅ **구현 반영 (Rev 8.7, Stage 4b `S4-F1R`, 2026-10-27)** — 위 등재 그대로.
+> ⭐ **등재 (Rev 8.9, plan-agent, 2026-11-01 — `D4-87`·`D4-88`)** — 신규 그룹 **`session-completion`** (완료 버블 표시 모양). `session-greeting` 과 같은 이유로 API 동작 축과 분리한다. ✅ 구현 `S4-H1R` (Rev 8.10) — 값은 세션 생성 시 레코드에 담겨 전이 응답과 Detail 이 공유한다.
+>
+> | key | 내용 | 목적 |
+> |---|---|---|
+> | `success` | `completionBubble` = 주 문구 + `subtext` (`MOCK_COMPLETION_BUBBLE`) | 보조 줄 렌더 · 재진입 |
+> | **`subtext-missing`** | `subtext: null` | 줄 미렌더 (AC-4-139 ②) |
+> | **`bubble-missing`** | `completionBubble: null` | 버블 미렌더, 전이 응답·Detail 동일 |
+>
+> `subtext: ''`·key 없음은 schema·컴포넌트 단위 테스트로 판정한다 — key 를 늘리지 않는다.
+>
+> ✅ **구현 반영 (Rev 8.7, Stage 4b `S4-F1R`, 2026-10-27)** — 위 `reminder-missing` 등재 그대로.
 >
 > | 항목 | 구현 |
 > |---|---|

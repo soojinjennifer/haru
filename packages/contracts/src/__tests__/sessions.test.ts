@@ -392,12 +392,50 @@ describe('SessionTransitionResult · SessionDetail', () => {
         expiresAt: '2027-01-12T09:20:00Z',
       },
       sticker: STICKER,
+      completionBubble: { text: 'What a lovely read.', subtext: '14 min together' },
     };
     expect(SessionDetailSchema.safeParse(detail).success).toBe(true);
     expect(
-      SessionDetailSchema.safeParse({ ...SUMMARY, recording: null, sticker: null }).success,
+      SessionDetailSchema.safeParse({
+        ...SUMMARY,
+        recording: null,
+        sticker: null,
+        completionBubble: null,
+      }).success,
     ).toBe(true);
     expect(Object.keys(SessionDetailSchema.shape)).not.toContain('reflection');
+  });
+
+  it('`completionBubble` 은 필수 key 다 (`D4-88`) — 누락 거부 · `null` 통과', () => {
+    const base = { ...SUMMARY, recording: null, sticker: null };
+    expect(SessionDetailSchema.safeParse(base).success).toBe(false);
+    expect(SessionDetailSchema.safeParse({ ...base, completionBubble: null }).success).toBe(true);
+  });
+});
+
+describe('SessionBubbleCopy.subtext (`D4-87` · `D4-94` · `D4-98`)', () => {
+  it.each([
+    ['문자열', { text: 'Done', subtext: '14 min together · sticker earned' }],
+    ['null', { text: 'Done', subtext: null }],
+    ['빈 문자열', { text: 'Done', subtext: '' }],
+    ['key 없음', { text: 'Done' }],
+    ['`.max` 없음', { text: 'Done', subtext: 'x'.repeat(500) }],
+  ])('%s → parse 통과', (_name, copy) => {
+    expect(SessionBubbleCopySchema.safeParse(copy).success).toBe(true);
+  });
+
+  it('문자열이 아니면 거부한다', () => {
+    expect(SessionBubbleCopySchema.safeParse({ text: 'Done', subtext: 14 }).success).toBe(false);
+  });
+
+  it('ready · 리마인드 응답은 `subtext` key 없이 그대로 parse 된다 (회귀)', () => {
+    expect(
+      SessionSummarySchema.safeParse({
+        ...SUMMARY,
+        bubble: { text: 'Hi' },
+        reminderBubble: { text: 'Ready when you are!' },
+      }).success,
+    ).toBe(true);
   });
 });
 

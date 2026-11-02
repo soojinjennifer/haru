@@ -3,7 +3,7 @@
  * 높이 식(`h = 21 + 22 + 6 + 6n + Σpill` / `21 + 6n + Σpill`)은 레이아웃이 필요해 e2e 가 잰다.
  */
 import { render } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SessionSummarySchema } from '@haru/contracts';
 
 import {
@@ -78,6 +78,45 @@ describe('SessionReadyBubble — 제목 2 × n 5 = 10 케이스 (AC-4-122)', () 
       />,
     );
     expect(container.textContent).not.toMatch(/Try this prompt/);
+  });
+});
+
+describe('SessionReadyBubble — 짧은 세로 목록 (`D4-78`)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  function renderBubble(bubble: typeof MOCK_READY_BUBBLE) {
+    const { container } = render(
+      <SessionReadyBubble
+        bubble={bubble}
+        reminderBubble={null}
+        reminderActive={false}
+        prompts={createSessionPromptsFixture(5)}
+      />,
+    );
+    return container;
+  }
+
+  it('넘치지 않으면 Tab 정지점이 아니다', () => {
+    const list = renderBubble(MOCK_READY_BUBBLE).querySelector('ul');
+    expect(list?.hasAttribute('tabindex')).toBe(false);
+    expect(list?.hasAttribute('aria-labelledby')).toBe(false);
+  });
+
+  it('넘치면 Tab 정지점 + 제목으로 이름 · 제목이 없으면 이름 참조도 없다', () => {
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(222);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(120);
+    const withTitle = renderBubble(MOCK_READY_BUBBLE);
+    const list = withTitle.querySelector('ul');
+    expect(list?.getAttribute('tabindex')).toBe('0');
+    expect(list?.getAttribute('aria-labelledby')).toBe(
+      withTitle.querySelector('.haru-bubble__content > .haru-text')?.id,
+    );
+
+    const untitled = renderBubble(null).querySelector('ul');
+    expect(untitled?.getAttribute('tabindex')).toBe('0');
+    expect(untitled?.hasAttribute('aria-labelledby')).toBe(false);
   });
 });
 

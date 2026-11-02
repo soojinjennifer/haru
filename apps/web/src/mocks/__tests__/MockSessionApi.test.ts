@@ -13,7 +13,12 @@ import { describe, expect, it } from 'vitest';
 import { isNetworkError } from '../../shared/api/helpers';
 import { MOCK_ACTIVE_SESSION_ID } from '../fixtures/home';
 import { MOCK_CHILD_ID } from '../fixtures/me';
-import { MOCK_COMPLETION_BUBBLE, MOCK_READY_BUBBLE } from '../fixtures/sessions';
+import {
+  MOCK_COMPLETION_BUBBLE,
+  MOCK_COMPLETION_BUBBLE_NO_SUBTEXT,
+  MOCK_HISTORY_RECORDING_IDS,
+  MOCK_READY_BUBBLE,
+} from '../fixtures/sessions';
 import { SESSION_SCENARIO_KEYS, sessionScenarioGroup } from '../sessions/MockSessionApi';
 
 import { bundle, completedSession, ik, sessionBody, to } from './stage4-support';
@@ -123,6 +128,57 @@ describe('MockSessionApi — success: 전 메서드 응답이 contracts parse �
     expect(
       await codeOf(b.clients.sessions.create({ body: sessionBody({ bookId: unknown }) }, ik('x'))),
     ).toBe('RESOURCE_NOT_FOUND');
+  });
+});
+
+describe('MockSessionApi — 완료 버블 (`session-completion`, §3.2.3 · AC-4-139)', () => {
+  it('Figma 문자열을 쓴다 (`88:929`)', () => {
+    expect(MOCK_COMPLETION_BUBBLE.subtext).toBe('14 min together · sticker earned');
+  });
+
+  it('비완료 세션 Detail 은 `null` — 레코드가 값을 들고 있어도 내보내지 않는다', async () => {
+    const b = bundle();
+    const { session } = await b.clients.sessions.create({ body: sessionBody() }, ik('c'));
+    const ready = await b.clients.sessions.getDetail({ sessionId: session.id });
+    expect(ready.status).toBe('ready');
+    expect(ready.completionBubble).toBeNull();
+
+    await b.clients.sessions.transition({ sessionId: session.id, body: to('recording') }, ik('r'));
+    const recording = await b.clients.sessions.getDetail({ sessionId: session.id });
+    expect(recording.completionBubble).toBeNull();
+
+    await b.clients.sessions.transition({ sessionId: session.id, body: to('abandoned') }, ik('a'));
+    const abandoned = await b.clients.sessions.getDetail({ sessionId: session.id });
+    expect(abandoned.completionBubble).toBeNull();
+  });
+
+  it.each([
+    ['session-completion:success', MOCK_COMPLETION_BUBBLE],
+    ['session-completion:subtext-missing', MOCK_COMPLETION_BUBBLE_NO_SUBTEXT],
+    ['session-completion:bubble-missing', null],
+  ])('`%s` → 전이 응답 = Detail · replay 도 같다', async (scenario, expected) => {
+    const b = bundle(scenario);
+    const { session } = await b.clients.sessions.create({ body: sessionBody() }, ik('c'));
+    await b.clients.sessions.transition({ sessionId: session.id, body: to('recording') }, ik('r'));
+    const body = to('completed');
+    const done = await b.clients.sessions.transition({ sessionId: session.id, body }, ik('d'));
+    const replay = await b.clients.sessions.transition({ sessionId: session.id, body }, ik('d'));
+    const detail = await b.clients.sessions.getDetail({ sessionId: session.id });
+
+    expect(done.completionBubble).toStrictEqual(expected);
+    expect(replay.completionBubble).toStrictEqual(expected);
+    expect(detail.completionBubble).toStrictEqual(expected);
+  });
+
+  it('지난 세션 seed 는 `sticker: null` 이므로 `subtext` 도 `null` 이다 — 응답이 스스로 모순되지 않는다', async () => {
+    const b = bundle();
+    const { items } = await b.clients.sessions.list({ childId: MOCK_CHILD_ID, query: {} });
+    expect(items.length).toBeGreaterThanOrEqual(MOCK_HISTORY_RECORDING_IDS.length);
+    for (const item of items) {
+      const detail = await b.clients.sessions.getDetail({ sessionId: item.id });
+      expect(detail.sticker).toBeNull();
+      expect(detail.completionBubble?.subtext ?? null).toBeNull();
+    }
   });
 });
 

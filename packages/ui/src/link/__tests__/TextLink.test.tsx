@@ -56,4 +56,31 @@ describe('TextLink (Stage 2 Design Spec §4.6)', () => {
 
     expect(css).toContain('text-decoration: underline;');
   });
+
+  it('`subtle` (4b Spec §4 #5): 보조 색 · 터치 44 는 `::before` 로 — 레이아웃 높이를 늘리지 않는다', () => {
+    render(
+      <TextLink tone="subtle" onPress={() => {}} hasPopup="dialog">
+        See all prompts
+      </TextLink>,
+    );
+    const button = screen.getByRole('button', { name: 'See all prompts' });
+    expect(button.classList.contains('haru-text-link--subtle')).toBe(true);
+    expect(button.getAttribute('aria-haspopup')).toBe('dialog');
+
+    const css = readFileSync(
+      path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'TextLink.css'),
+      'utf8',
+    );
+    const subtle = /\.haru-text-link--subtle \{([^}]*)\}/.exec(css)?.[1] ?? '';
+    expect(subtle).toContain('color: var(--color-fg-secondary);');
+    expect(subtle).not.toMatch(/padding|min-block-size/);
+    expect(css).toMatch(
+      /\.haru-text-link--subtle::before \{[^}]*inset-block: calc\(\(100% - var\(--size-touch-min\)\) \/ 2\);/,
+    );
+  });
+
+  it('hasPopup 이 없으면 aria-haspopup 을 달지 않는다', () => {
+    render(<TextLink onPress={() => {}}>Plain</TextLink>);
+    expect(screen.getByRole('button', { name: 'Plain' }).hasAttribute('aria-haspopup')).toBe(false);
+  });
 });

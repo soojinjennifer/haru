@@ -31,7 +31,7 @@ import {
   OnboardingStartPage,
   OnboardingStepPage,
 } from '../pages/onboarding';
-import { StorytimeSessionPage } from '../pages/session';
+import { SessionCompletePage, StorytimeSessionPage } from '../pages/session';
 import { SettingsPage, SettingsTopBar } from '../pages/settings';
 import { ROUTES } from '../shared/config/routes';
 
@@ -305,7 +305,7 @@ export function AppRoutes() {
         `/settings` 와 같은 `StackLayout` + `centered` TopBar 규격을 쓴다.
       */}
       {/*
-        Stage 4 세션 화면 — **Fullscreen**(스크롤 없음 · 탭바 없음 · TopBar 없음 `D4-51`).
+        Stage 4 세션 화면 — **Fullscreen**(627 이하만 세로 스크롤 `D4-82` · 탭바 없음 · TopBar 없음 `D4-51`).
         닫기는 화면이 직접 그린다 (Figma `300:1318`).
       */}
       <Route element={<FullscreenLayout />}>
@@ -314,6 +314,15 @@ export function AppRoutes() {
           element={
             <RouteGuard>
               <StorytimeSessionPage />
+            </RouteGuard>
+          }
+        />
+        {/* 완료 화면 `29:62` y 0~468 (`S4-H1`) */}
+        <Route
+          path={ROUTES.sessionComplete}
+          element={
+            <RouteGuard>
+              <SessionCompletePage />
             </RouteGuard>
           }
         />

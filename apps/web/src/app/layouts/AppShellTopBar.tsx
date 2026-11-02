@@ -22,6 +22,9 @@ export interface AppShellTopBarProps {
  * (`.haru-home-top-bar` + 10)이 있어서, 실제로 가릴 수 있는 띠는 래퍼 높이다
  * (2026-10-10 실측: `/auth/log-in` 40 · `/` 48).
  *
+ * 예외: 완료 화면(`/session/:id/complete`)은 슬롯 없이 feature 가 닫기 줄을 직접 등록한다 (`D4-89`,
+ * `SessionCompleteScreen` 의 `CompleteCloseBar` 주석).
+ *
  * ⚠ `/onboarding/:step` 은 TopBar 를 feature 가 `main` 안에서 렌더하므로 이 슬롯을 쓰지 않는다
  * — 그 화면에 Toast 를 띄우는 코드가 생기면 보정이 걸리지 않는다 (`stage-3-handoff.md` 기록).
  */

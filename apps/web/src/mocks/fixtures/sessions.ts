@@ -42,11 +42,25 @@ export const MOCK_READY_REMINDER_BUBBLE: SessionBubbleCopy = {
   templateId: 'mock-ready-reminder',
 };
 
-/** 종료 버블 (`88:929`, FR-10). `completed` 전이 응답에만 실린다. */
-export const MOCK_COMPLETION_BUBBLE: SessionBubbleCopy = {
-  text: 'What a cozy read that was.',
+/**
+ * 완료 버블 (`88:929` override 문자열 그대로, FR-10 · `D4-87`). `subtext` 는 고정 Mock 값이다 — 세션의
+ * `recordedSeconds` 를 반영하지 않는다 (`API_CONTRACTS.md` §3.2.3).
+ * `completed` 전이 응답과 완료 계열 `SessionDetail` 이 같은 값을 낸다.
+ */
+export const MOCK_COMPLETION_BUBBLE = {
+  text: 'Storytime success! Emma did wonderfully.',
   templateId: 'mock-completion',
-};
+  subtext: '14 min together · sticker earned',
+} as const satisfies SessionBubbleCopy;
+
+/**
+ * 보조 줄 없는 완료 버블 — `session-completion:subtext-missing` · 스티커 없는 지난 세션 seed.
+ * `subtext` 가 `sticker earned` 를 말하면서 `sticker: null` 이면 응답이 스스로 모순된다 (§3.2.3).
+ */
+export const MOCK_COMPLETION_BUBBLE_NO_SUBTEXT = {
+  ...MOCK_COMPLETION_BUBBLE,
+  subtext: null,
+} as const satisfies SessionBubbleCopy;
 
 /** 스티커 칩 문구 — 부제는 확정 문구다 (`D4-10`, `AD-S4-1`). 연속 일수는 담지 않는다 (`D4-2`). */
 export const MOCK_STICKER_TITLE = 'Attendance sticker';
@@ -117,6 +131,22 @@ const EXTRA_SESSION_PROMPTS: readonly Prompt[] = [
 ];
 
 /** 세션 Prompt 개수 변형 — `session:prompts-*` (Plan §12). */
+/**
+ * 책 칩 변형 fixture (`session:book-*`, 4b Plan §12 · AC-4-126). 가상의 책이다 — 실제 아동·서지 데이터 아님.
+ * 긴 제목은 40자 이상 — 393 · 320 컬럼 모두에서 1줄 말줄임이 일어난다.
+ */
+export const MOCK_SESSION_BOOK_NO_COVER: BookSummary = {
+  id: '0b0c5e55-0000-4000-8000-00000000c0e1',
+  title: 'The Quiet Garden',
+  author: 'Mina Park',
+};
+
+export const MOCK_SESSION_BOOK_LONG_TITLE: BookSummary = {
+  id: '0b0c5e55-0000-4000-8000-00000000c0e2',
+  title: 'The Very Long Adventure of the Little Cloud Who Wanted to See the Sea',
+  author: 'Mina Park',
+};
+
 export type SessionPromptCount = 0 | 1 | 3 | 5 | 7;
 
 /** 세션 Prompt — ready 버블 pill 과 Drawer 가 **같은 출처**를 쓴다 (`D4-14`). */

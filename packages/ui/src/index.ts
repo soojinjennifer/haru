@@ -114,11 +114,20 @@ export type {
 export { Toast } from './feedback/Toast';
 export type { ToastAction, ToastProps, ToastState, ToastTone } from './feedback/Toast';
 
-export { ToastProvider, useToast, useToastTopBarInset } from './feedback/ToastProvider';
+export {
+  ToastProvider,
+  useToast,
+  useToastPresent,
+  useToastTopBarInset,
+} from './feedback/ToastProvider';
 export type { ToastController, ToastOptions, ToastProviderProps } from './feedback/ToastProvider';
 
 export { PageIndicator } from './progress/PageIndicator';
 export type { PageIndicatorProps } from './progress/PageIndicator';
+
+/* Stage 4b `S4-G2` — Prompt Drawer 캐러셀 (Stage 4 Design Spec §4 #2, `88:960`) */
+export { PromptCarousel } from './carousel/PromptCarousel';
+export type { PromptCarouselPage, PromptCarouselProps } from './carousel/PromptCarousel';
 
 export { SpeechBubble } from './bubble/SpeechBubble';
 export { RecordControl } from './record/RecordControl';

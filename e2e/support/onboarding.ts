@@ -111,9 +111,11 @@ export async function signUpAndConsent(page: Page, extraScenario = ''): Promise<
  * 기기에 아이 정보 draft 를 심는다 — 가입 화면에서 받아 둔 상태의 재현 (`R-01`).
  * 앱이 뜨기 전에 넣어야 `About your child` 의 첫 렌더가 **표시 전용 모드**가 된다.
  */
-export async function seedChildDraft(page: Page, firstName = 'Yuna'): Promise<void> {
-  const birthYear = new Date().getUTCFullYear() - 6;
-
+export async function seedChildDraft(
+  page: Page,
+  firstName = 'Yuna',
+  birthYear = new Date().getUTCFullYear() - 6,
+): Promise<void> {
   await page.addInitScript(
     ([name, year]: [string, number]) => {
       globalThis.localStorage.setItem(

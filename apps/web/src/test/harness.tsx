@@ -21,6 +21,7 @@ import {
   createMockRecordingPlatform,
   type MockApiClientsBundle,
 } from '../mocks';
+import type { MockRecordingStorage } from '../mocks/platform/MockRecordingStorage';
 import { createScenarioSource, createScenarioStore } from '../mocks/scenarios';
 import { createImmediateTimer } from '../shared/api/helpers';
 import { createSystemClock, type Clock } from '../shared/lib/clock';
@@ -47,6 +48,11 @@ export interface Harness {
    * 실제 앱의 `mock` 모드와 같은 묶음이다 (scenario `recorder:*` 가 같은 store 를 읽는다).
    */
   sessionRecorder: SessionRecorderEnvironmentHandle;
+  /**
+   * Mock 녹음 저장소 (Stage 4b `S4-F2`) — 로컬 청크·outbox **2시점 측정**(AC-4-113 · AC-4-129)에 쓴다.
+   * 세션 화면이 녹음 조립을 처음 열기 전에는 `null` 이다.
+   */
+  recordingStorage: () => MockRecordingStorage | null;
   wrapper: (props: { children: ReactNode }) => ReactNode;
 }
 
@@ -71,6 +77,7 @@ export function createHarness(options: HarnessOptions = {}): Harness {
   const queryClient = createQueryClient();
   const clock: Clock = options.recorderTime ?? createSystemClock();
   const scheduler: Scheduler = options.recorderTime ?? createSystemScheduler();
+  let recordingStorage: MockRecordingStorage | null = null;
   const sessionRecorder = createSessionRecorderEnvironment({
     clients: bundle.clients,
     clock,
@@ -79,6 +86,7 @@ export function createHarness(options: HarnessOptions = {}): Harness {
     wipeDevice: wipeWebRecordingStorage,
     platform: () => {
       const mock = createMockRecordingPlatform({ store: bundle.store, clock, scheduler });
+      recordingStorage = mock.storage;
       return {
         createRecorder: mock.createRecorder,
         storage: mock.storage,
@@ -91,6 +99,7 @@ export function createHarness(options: HarnessOptions = {}): Harness {
     bundle,
     queryClient,
     sessionRecorder,
+    recordingStorage: () => recordingStorage,
     wrapper: ({ children }) => (
       <MemoryRouter initialEntries={[...(options.initialEntries ?? ['/'])]}>
         <AppProviders

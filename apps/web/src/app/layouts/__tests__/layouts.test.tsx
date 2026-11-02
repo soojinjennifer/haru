@@ -59,16 +59,17 @@ describe('Layout 3종 (Design Spec §2.3)', () => {
     expect(screen.getByRole('navigation', { name: 'tabs' })).toBeDefined();
   });
 
-  it('FullscreenLayout 은 스크롤 없이 콘텐츠와 하단 영역을 렌더한다', () => {
+  it('FullscreenLayout 은 콘텐츠와 하단 영역을 렌더하고 스크롤은 뷰포트가 맡는다 (D4-82)', () => {
     const { container } = renderInRouter(
       <FullscreenLayout footer={<p>controls</p>}>
         <p>content</p>
       </FullscreenLayout>,
     );
 
-    // 잘라내는 지점은 main 이 아니라 앱 컬럼 바깥의 AppShell 뷰포트다 (그림자 클리핑 방지).
+    // 스크롤 지점은 main 이 아니라 앱 컬럼 바깥의 AppShell 뷰포트다 (그림자 클리핑 방지).
     const viewport = container.querySelector('[data-app-shell-viewport]');
-    expect(viewport?.className).toContain('overflow-hidden');
+    expect(viewport?.className).toContain('overflow-y-auto');
+    expect(viewport?.className).toContain('overscroll-contain');
     expect(container.querySelector('main')?.className).not.toContain('overflow');
     expect(screen.getByText('controls')).toBeDefined();
   });
@@ -287,7 +288,7 @@ describe('클리핑 박스는 앱 컬럼 바깥에만 있다 (카드 그림자 �
           <p>content</p>
         </FullscreenLayout>
       ),
-      expectedOverflow: 'overflow-hidden',
+      expectedOverflow: 'overflow-y-auto',
     },
   ] as const;
 

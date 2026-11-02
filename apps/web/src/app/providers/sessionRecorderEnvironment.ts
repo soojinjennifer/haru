@@ -137,6 +137,10 @@ export function createSessionRecorderEnvironment(
         getSnapshot: () => controller.getSnapshot(),
         subscribe: (listener) => controller.subscribe(listener),
         start: () => controller.start(),
+        pause: () => controller.pause(),
+        resume: () => controller.resume(),
+        submit: () => controller.submit(),
+        discard: () => controller.discard(),
         async dispose() {
           await controller.dispose();
           recorder.dispose();

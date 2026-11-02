@@ -73,6 +73,14 @@
     0 4px 10px color-mix(in srgb, var(--haru-ink-600) 10%, transparent),
     inset 0 1.5px 0 var(--haru-white-a50);
 
+  /*
+   * 출석 스티커 타일 — Stage 4 Design Spec §5.2 `T-7` (Figma `29:80`, `get_design_context(29:62)`).
+   * `--shadow-icon-chip` 과 기하는 같고 알파가 다르다 (ink 25% · white 60%).
+   */
+  --shadow-sticker-badge:
+    0 4px 10px color-mix(in srgb, var(--haru-ink-600) 25%, transparent),
+    inset 0 1.5px 0 color-mix(in srgb, var(--haru-white) 60%, transparent);
+
   /* 위 4종에 포함되어 있으나 비-glass 표면 단독 사용을 위해 별도 유지 */
   --shadow-highlight:
     inset 0 1.5px 0 var(--haru-white-a90),

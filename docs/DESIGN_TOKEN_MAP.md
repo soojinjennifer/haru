@@ -3,6 +3,7 @@
 Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (Rev: #33 · C-19 반영)
 Based on: Figma `YWWu3AFEJpRxvw0T5klq0k` `get_variable_defs` on `17:129` (Colors), `17:298` (Typography), `17:367` (HARU Components), screen frames `26:21`, `28:51`, `29:62`, `30:74`, `31:102`, `179:1724`, `179:1770` + `get_design_context` raw 값 (2026-09-14); `docs/decisions/stage-0-approvals.md` (기존 문서보다 우선); Scope: **Frontend-only — CONFIRMED (사용자, 2026-09-14)**, `.claude/rules/frontend.md` §6. 로컬 `_ds` CSS 는 **참조 금지** (CONFIRMED (사용자 결정 2026-09-14, #10)) — §6.4 는 차이 기록으로만 남긴다
 Author: design-agent (2026-09-14)
+개정 (2026-11-02, design-agent · Stage 4b `S4-H1` 마무리): §8 신설 — Stage 4 · 4b 토큰 122개 등재. **기존 토큰의 값은 바꾸지 않았고, 값은 코드에서 그대로 옮겼다.**
 개정 (2026-09-27, design-agent · Stage 2 QA 문서 항목 `S2-TOKEN-1`·`QA-2-005`): §3.3 에 화면 raw 27·30 흡수 행 추가, §5.1 에 raw 29·38 행과 spacing 스케일 2단계 제안(`--space-7` 28 · `--space-10` 40) 추가. **기존 토큰의 값은 바꾸지 않았다.**
 
 라벨: `CONFIRMED (사용자 결정 2026-09-14, #id)` = 사용자 결정 · `CONFIRMED` = Figma 값으로 확정 · `가값 (P-xx)` = 승인 로그 §4 가값 — 토큰 정의에 `provisional` 주석, Stage 1 구현 후 항목별 유지/수정 승인 · `D-xx` = 승인 로그 §3 수용 예외 · `RECOMMENDED` = design-agent 제안 (사용자 미결정 세부) · `NEEDS DECISION` = 미결정
@@ -464,3 +465,139 @@ design-agent 는 Figma 를 수정하지 않는다. 아래 표는 디자이너 �
 | T-10 | Tailwind v4 CSS-first `@theme` 만 사용 (§1.1) | 채택, v3 형태 폐기 | CONFIRMED (사용자 결정 2026-09-14, #29) |
 | T-11 | font stack · Inter self-host · SF Pro 미포함 (§3.2) | 채택 | CONFIRMED (사용자 결정 2026-09-14, #11) |
 | T-12 | Dark mode 토큰 | 만들지 않음 | CONFIRMED (사용자 결정 2026-09-14, #20) |
+
+## 8. Stage 4 · 4b 세션 토큰 등재 (2026-11-02, 코드 대조)
+
+⚠️ **번호 체계가 둘이다.** §7 의 `T-1`~`T-13` 은 **이 문서의 승인 체크리스트 번호**이고, 아래 `T-n` 은 **Stage 4 Design Spec 의 토큰 요청 번호**(`stage-4-design-spec.md` §5.2 `T-1`~`T-14` · `stage-4b-design-spec.md` §5.2·§5.3 `T-15`~)다. 서로 다른 항목이다.
+
+- **범위**: 커밋 `267ed12`(Stage 4a 종료) 이후 `packages/design-tokens/src` 에 추가된 정의 **122개 전부**. 비교 시점 2026-11-02 작업 트리(미커밋 포함).
+- **값 출처**: CSS 정의를 스크립트로 추출했다. 손으로 옮기지 않았고, 주석은 뺐다. Spec 표기와 다른 이름은 코드를 따른다.
+- **`T-34`~`T-43`**: Spec 에 번호가 없던 토큰에 이번에 **번호만** 붙였다. 새 값이 아니다.
+- **새로 정한 값 0**. 사용 규칙·값 변경은 Spec · `docs/decisions/stage-4-approvals.md` 가 출처다.
+- 번호가 없는 항목: `T-2` = 신규 토큰 0건(`T-3` 안에서 합성). Spec `T-10` 의 `--prompt-drawer-width` · `--prompt-drawer-pill-width` 는 **코드에 없다** (`D4-73` · `D4-71`).
+- Tier 표기: Primitive = `primitive/color.css` · Semantic = `semantic/*.css` · Component = `component/index.css`(Tier-3).
+
+| Spec 번호 | 토큰 | Tier | 값 (코드) | 근거 |
+|---|---|---|---|---|
+| T-1 | `--color-surface-drawer` | Semantic | `var(--haru-white-a85)` | 상위 §5.2 |
+| T-3 | `--shadow-record-core` | Semantic | `0 12px 28px color-mix(in srgb, var(--haru-ink-600) 16%, transparent), inset 0 2px 0 color-mix(in srgb, var(--haru-white) 55%, transparent)` | 상위 §5.2 |
+| T-4 | `--gradient-sticker-badge` | Semantic | `linear-gradient( 140.26769705991268deg, var(--haru-palette-yellow) 0%, var(--haru-palette-orange) 70.922% )` | 상위 §5.2 |
+| T-5 | `--gradient-book-cover-placeholder` | Semantic | `linear-gradient( 131.19deg, var(--haru-palette-teal) 0%, var(--haru-palette-mint) 70.92% )` | 상위 §5.2 · 4b §2.2 |
+| T-6 | `--record-ring-opacity-outer` | Component | `0.35` | 상위 §5.2 |
+| T-6 | `--record-ring-opacity-inner` | Component | `0.6` | 상위 §5.2 |
+| T-7 | `--shadow-sticker-badge` | Semantic | `0 4px 10px color-mix(in srgb, var(--haru-ink-600) 25%, transparent), inset 0 1.5px 0 color-mix(in srgb, var(--haru-white) 60%, transparent)` | 상위 §5.2 |
+| T-8 | `--bubble-tail-session-size` | Component | `22.627px` | 상위 §5.2 · 4b §16.2 (overhang 확정) |
+| T-8 | `--bubble-tail-session-shape` | Component | `16px` | 상위 §5.2 · 4b §16.2 (overhang 확정) |
+| T-8 | `--bubble-tail-session-rotate` | Component | `-45deg` | 상위 §5.2 · 4b §16.2 (overhang 확정) |
+| T-8 | `--bubble-tail-session-skew` | Component | `0deg` | 상위 §5.2 · 4b §16.2 (overhang 확정) |
+| T-8 | `--bubble-tail-session-overhang` | Component | `10.627px` | 상위 §5.2 · 4b §16.2 (overhang 확정) |
+| T-9 | `--record-size` | Component | `150px` | 상위 §5.2 |
+| T-9 | `--record-ring-mid-size` | Component | `122px` | 상위 §5.2 |
+| T-9 | `--record-core-size` | Component | `108px` | 상위 §5.2 |
+| T-9 | `--record-icon-size` | Component | `40px` | 상위 §5.2 |
+| T-9 | `--record-stroke` | Component | `2px` | 상위 §5.2 |
+| T-9 | `--record-label-size` | Component | `var(--text-caption-2)` | 상위 §5.2 |
+| T-9 부속 | `--record-icon-offset-labeled` | Component | `-7px` | 상위 §2.6.1 · §6.2 |
+| T-9 부속 | `--record-pulse-opacity` | Component | `0.12` | 상위 §2.6.1 · §6.2 |
+| T-9 부속 | `--record-pulse-scale` | Component | `1.04` | 상위 §2.6.1 · §6.2 |
+| T-10 | `--bubble-session-width` | Component | `329px` | 상위 §5.2, 명칭 정정 `D4-73` |
+| T-10 | `--prompt-drawer-note-min-height` | Component | `158px` | 상위 §5.2, 명칭 정정 `D4-73` |
+| T-11 | `--size-medallion-session` | Semantic | `174px` | 상위 §5.2 |
+| T-12 | `--session-action-bar-gap` | Component | `9px` | 상위 §5.2 |
+| T-12 | `--session-action-button-width` | Component | `135px` | 상위 §5.2 |
+| T-12 | `--session-action-bar-width` | Component | `279px` | 상위 §5.2 |
+| T-13 | `--haru-gray-2` | Primitive | `#aeaeb2` | 상위 §5.2 · `D4-16` · 가값 `P-25` |
+| T-13 | `--color-action-neutral-bg` | Semantic | `var(--haru-gray-2)` | 상위 §5.2 · `D4-16` · 가값 `P-25` |
+| T-13 | `--color-action-neutral-fg` | Semantic | `var(--haru-white)` | 상위 §5.2 · `D4-16` · 가값 `P-25` |
+| T-14 | `--prompt-pill-session-height-min` | Component | `38px` | 상위 §5.2 |
+| T-14 | `--prompt-pill-session-pad-block` | Component | `var(--space-2)` | 상위 §5.2 |
+| T-14 | `--prompt-pill-session-pad-inline` | Component | `var(--space-3)` | 상위 §5.2 |
+| T-14 | `--prompt-pill-session-tag-gap` | Component | `var(--space-2)` | 상위 §5.2 |
+| T-15 | `--session-timer-size` | Component | `48px` | 4b §5.2 |
+| T-15 | `--session-timer-line` | Component | `41px` | 4b §5.2 |
+| T-16 | `--button-height-sm` | Component | `36px` | 4b §5.2 |
+| T-16 | `--button-padding-inline-start-sm` | Component | `var(--space-3-5)` | 4b §5.2 |
+| T-16 | `--button-padding-inline-end-sm` | Component | `var(--space-4)` | 4b §5.2 |
+| T-16 | `--button-gap-sm` | Component | `var(--space-1-5)` | 4b §5.2 |
+| T-16 | `--button-icon-size-sm` | Component | `18px` | 4b §5.2 |
+| T-16 | `--button-label-size-sm` | Component | `var(--text-subheadline)` | 4b §5.2 |
+| T-16 | `--button-shadow-sm` | Component | `var(--shadow-bubble)` | 4b §5.2 |
+| T-17 | `--session-state-pill-pad-inline` | Component | `var(--space-3-5)` | 4b §5.2 |
+| T-17 | `--session-state-pill-pad-block` | Component | `var(--space-1-5)` | 4b §5.2 |
+| T-17 | `--session-state-pill-gap` | Component | `var(--space-2)` | 4b §5.2 |
+| T-17 | `--session-state-dot-size` | Component | `8px` | 4b §5.2 |
+| T-17 | `--session-state-dot-stroke` | Component | `1.5px` | 4b §5.2 |
+| T-18 | `--session-book-chip-height` | Component | `40px` | 4b §5.2 |
+| T-18 | `--session-book-chip-pad-inline` | Component | `15px` | 4b §5.2 |
+| T-18 | `--session-book-chip-gap` | Component | `var(--space-2)` | 4b §5.2 |
+| T-18 | `--session-book-cover-width` | Component | `16px` | 4b §5.2 |
+| T-18 | `--session-book-cover-height` | Component | `22px` | 4b §5.2 |
+| T-18 | `--session-book-cover-radius` | Component | `3px` | 4b §5.2 |
+| T-19 | `--prompt-popup-pad-block` | Component | `var(--space-3-5)` | 4b §5.2 · `D4-58` CP-1 |
+| T-19 | `--prompt-popup-offset-top` | Component | `var(--space-1-5)` | 4b §5.2 · `D4-58` CP-1 |
+| T-19 | `--prompt-popup-link-size` | Component | `14px` | 4b §5.2 · `D4-58` CP-1 |
+| T-19 | `--prompt-popup-link-line` | Component | `17px` | 4b §5.2 · `D4-58` CP-1 |
+| T-20 | `--record-tone-denied` | Component | `var(--color-action-neutral-bg)` | 4b §5.2 |
+| T-20 | `--record-core-shadow-disabled` | Component | `none` | 4b §5.2 |
+| T-21 | `--session-top-row-offset` | Component | `var(--space-2-5)` | 4b §5.2 |
+| T-21 | `--session-book-chip-offset` | Component | `15px` | 4b §5.2 |
+| T-21 | `--session-status-block-offset` | Component | `23px` | 4b §5.2 |
+| T-21 | `--session-status-block-gap` | Component | `var(--space-2-5)` | 4b §5.2 |
+| T-22 | `--color-surface-medallion-ring` | Semantic | `var(--haru-white-a50)` | 4b §5.3 |
+| T-23 | `--session-medallion-offset` | Component | `76px` | 4b §5.3 |
+| T-24 | `--session-medallion-ring-size` | Component | `calc( var(--size-medallion-session) + 2 * var(--size-medallion-ring-offset) )` | 4b §5.3 |
+| T-25 | `--session-bubble-offset` | Component | `5px` | 4b §5.3 |
+| T-26 | `--session-bottom-gap` | Component | `var(--space-4-5)` | 4b §5.3 |
+| T-27 | `--bubble-session-pad-block-end` | Component | `13px` | 4b §5.3 |
+| T-28 | `--bubble-session-title-line` | Component | `var(--text-headline--line-height)` | 4b §5.3 |
+| T-29 | `--icon-button-fg` | Component | `var(--color-action-secondary-fg)` | 4b §5.3 · `D4-62` |
+| T-30 | `--icon-button-icon-size-close` | Component | `15px` | 4b §5.3 |
+| T-31 | `--button-icon-stroke-sm` | Component | `2` | 4b §5.3 |
+| T-32 | `--button-hit-size-sm` | Component | `var(--size-touch-min)` | 4b §5.3 |
+| T-33 | `--session-breathing-scale` | Component | `1.03` | 4b §5.3 |
+| T-34 | `--session-complete-title-offset` | Component | `19px` | 4b §5.3 · 상위 §2.7 · §6.4 |
+| T-34 | `--session-complete-title-gap` | Component | `5px` | 4b §5.3 · 상위 §2.7 · §6.4 |
+| T-34 | `--session-complete-ring-gap` | Component | `var(--space-2)` | 4b §5.3 · 상위 §2.7 · §6.4 |
+| T-34 | `--session-complete-ring-size` | Component | `150px` | 4b §5.3 · 상위 §2.7 · §6.4 |
+| T-34 | `--session-complete-bubble-offset` | Component | `2px` | 4b §5.3 · 상위 §2.7 · §6.4 |
+| T-34 | `--bubble-complete-width` | Component | `297px` | 4b §5.3 · 상위 §2.7 · §6.4 |
+| T-34 | `--session-complete-ring-pop-scale` | Component | `1.06` | 4b §5.3 · 상위 §2.7 · §6.4 |
+| T-34 | `--session-complete-enter-scale` | Component | `0.96` | 4b §5.3 · 상위 §2.7 · §6.4 |
+| T-34 | `--session-complete-enter-shift` | Component | `var(--space-2)` | 4b §5.3 · 상위 §2.7 · §6.4 |
+| T-34 | `--session-complete-bubble-delay` | Component | `120ms` | 4b §5.3 · 상위 §2.7 · §6.4 |
+| T-35 | `--attendance-sticker-width` | Component | `257px` | 4b §5.3 · 상위 §2.7.1 |
+| T-35 | `--attendance-sticker-height` | Component | `64px` | 4b §5.3 · 상위 §2.7.1 |
+| T-35 | `--attendance-sticker-pad-start` | Component | `var(--space-2-5)` | 4b §5.3 · 상위 §2.7.1 |
+| T-35 | `--attendance-sticker-pad-end` | Component | `var(--space-5)` | 4b §5.3 · 상위 §2.7.1 |
+| T-35 | `--attendance-sticker-gap` | Component | `var(--space-3)` | 4b §5.3 · 상위 §2.7.1 |
+| T-35 | `--attendance-sticker-tile-size` | Component | `44px` | 4b §5.3 · 상위 §2.7.1 |
+| T-35 | `--attendance-sticker-icon-inset` | Component | `11px` | 4b §5.3 · 상위 §2.7.1 |
+| T-35 | `--attendance-sticker-text-gap` | Component | `2px` | 4b §5.3 · 상위 §2.7.1 |
+| T-36 | `--attendance-sticker-title-size` | Component | `14px` | 4b §5.3 · `D4-90` |
+| T-36 | `--attendance-sticker-title-line` | Component | `17px` | 4b §5.3 · `D4-90` |
+| T-37 | `--bubble-complete-subtext-line` | Component | `19px` | 4b §5.3 · `D4-87` |
+| T-38 | `--session-complete-sticker-delay` | Component | `0ms` | 4b §5.3 · `D4-105` |
+| T-39 | `--session-medallion-ring-size-compact` | Component | `calc( var(--size-medallion-sm) + 2 * var(--size-medallion-ring-offset) )` | 4b §5.3 · §8.2 · `D4-58`·`D4-78`·`D4-81` |
+| T-39 | `--session-bubble-bottom-gap` | Component | `14.4px` | 4b §5.3 · §8.2 · `D4-58`·`D4-78`·`D4-81` |
+| T-39 | `--session-stage-min-block-size` | Component | `205px` | 4b §5.3 · §8.2 · `D4-58`·`D4-78`·`D4-81` |
+| T-40 | `--sheet-floating-inset` | Component | `var(--layout-gutter)` | 4b §5.3 · `D4-69`·`D4-70`·`D4-74` |
+| T-40 | `--sheet-floating-inset-block-end` | Component | `calc(var(--layout-gutter) + var(--layout-safe-bottom))` | 4b §5.3 · `D4-69`·`D4-70`·`D4-74` |
+| T-40 | `--sheet-floating-pad-block-start` | Component | `var(--space-2-5)` | 4b §5.3 · `D4-69`·`D4-70`·`D4-74` |
+| T-40 | `--sheet-floating-pad-block-end` | Component | `11px` | 4b §5.3 · `D4-69`·`D4-70`·`D4-74` |
+| T-40 | `--sheet-floating-pad-inline` | Component | `var(--space-5)` | 4b §5.3 · `D4-69`·`D4-70`·`D4-74` |
+| T-40 | `--sheet-floating-gap` | Component | `var(--space-2-5)` | 4b §5.3 · `D4-69`·`D4-70`·`D4-74` |
+| T-40 | `--sheet-floating-grabber-width` | Component | `40px` | 4b §5.3 · `D4-69`·`D4-70`·`D4-74` |
+| T-40 | `--sheet-floating-grabber-margin` | Component | `var(--space-0-5)` | 4b §5.3 · `D4-69`·`D4-70`·`D4-74` |
+| T-41 | `--prompt-carousel-bar-height` | Component | `40px` | 4b §5.3 · `D4-71`·`D4-73` |
+| T-41 | `--prompt-carousel-bar-margin-block-start` | Component | `var(--space-0-5)` | 4b §5.3 · `D4-71`·`D4-73` |
+| T-41 | `--prompt-carousel-bar-margin-block-end` | Component | `3px` | 4b §5.3 · `D4-71`·`D4-73` |
+| T-41 | `--prompt-carousel-gap` | Component | `var(--space-2-5)` | 4b §5.3 · `D4-71`·`D4-73` |
+| T-41 | `--prompt-carousel-arrow-size` | Component | `var(--size-icon-lg)` | 4b §5.3 · `D4-71`·`D4-73` |
+| T-41 | `--prompt-carousel-arrow-hit` | Component | `var(--size-touch-min)` | 4b §5.3 · `D4-71`·`D4-73` |
+| T-42 | `--prompt-drawer-note-pad-inline` | Component | `15px` | 4b §5.3 · `D4-73` |
+| T-42 | `--prompt-drawer-note-pad-block-start` | Component | `var(--space-3)` | 4b §5.3 · `D4-73` |
+| T-42 | `--prompt-drawer-note-pad-block-end` | Component | `13px` | 4b §5.3 · `D4-73` |
+| T-42 | `--prompt-drawer-note-line` | Component | `15.6px` | 4b §5.3 · `D4-73` |
+| T-43 | `--haru-gray-6` | Primitive | `#f2f2f7` | 4b §5.3 · `D4-73`·`D4-76` |
+| T-43 | `--color-carousel-arrow` | Semantic | `var(--haru-palette-mint)` | 4b §5.3 · `D4-73`·`D4-76` |
+| T-43 | `--color-carousel-arrow-disabled` | Semantic | `var(--haru-gray-6)` | 4b §5.3 · `D4-73`·`D4-76` |

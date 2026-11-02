@@ -378,13 +378,16 @@ export {
 export type { SessionScenarioKey } from './sessions/MockSessionApi';
 export {
   resolveReadySessionShape,
+  SESSION_COMPLETION_SCENARIO_KEYS,
   SESSION_FIXTURE_SCENARIO_KEYS,
   SESSION_GREETING_SCENARIO_KEYS,
+  sessionCompletionScenarioGroup,
   sessionFixtureScenarioGroup,
   sessionGreetingScenarioGroup,
 } from './sessions/sessionFixtureScenarios';
 export type {
   ReadySessionShape,
+  SessionCompletionScenarioKey,
   SessionFixtureScenarioKey,
   SessionGreetingScenarioKey,
 } from './sessions/sessionFixtureScenarios';
@@ -436,6 +439,7 @@ export {
   createSessionHistoryFixture,
   createStickerAwardFixture,
   MOCK_COMPLETION_BUBBLE,
+  MOCK_COMPLETION_BUBBLE_NO_SUBTEXT,
   MOCK_HISTORY_SESSION_IDS,
   MOCK_READY_BUBBLE,
   MOCK_READY_REMINDER_BUBBLE,

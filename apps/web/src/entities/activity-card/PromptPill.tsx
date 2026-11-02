@@ -14,7 +14,10 @@
  * (`phase`)을 라벨로 바꾸는 매핑은 이 도메인 컴포넌트가 소유한다 — `packages/ui` 는 도메인을
  * 모른다. 배지 색도 같은 이유로 Tier-3 토큰(`--prompt-phase-tag-*`)을 **여기 CSS 에서** 입힌다.
  *
- * `tone`: `outline` = 카드 미리보기(2줄 말줄임) · `tinted` = 시트(말줄임 없음).
+ * `tone`: `outline` = 카드 미리보기(2줄 말줄임) · `tinted` = 시트(말줄임 없음) · `bare` = **면·테두리·padding
+ * 없음**(2줄 말줄임) — 면을 다른 컨테이너가 그릴 때다. Stage 4b `S4-G2` Prompt Drawer 캐러셀의 pill
+ * (`88:708`)은 화살표가 **pill 안**에 고정되어 `PromptCarousel` 이 면을 그리고, 이 컴포넌트는 그 안의
+ * 배지 + 문구만 그린다(배지 규칙 `D-8` 을 복제하지 않기 위해).
  *
  * `density` (Stage 4 Design Spec §4 1-d · `T-14`): `card`(기본 — 42/9/13/gap 10) · `session` =
  * 세션 ready 버블 `139:2803` 의 pill(38/8/12/gap 8, 면 `#dbeee7` + 1px 테두리). **`tone` 과 직교한다** —
@@ -25,7 +28,7 @@ import type { Prompt } from '@haru/contracts';
 
 import { promptPhaseCopy } from '../../shared/copy/prompt-copy';
 
-export type PromptPillTone = 'outline' | 'tinted';
+export type PromptPillTone = 'outline' | 'tinted' | 'bare';
 
 export type PromptPillDensity = 'card' | 'session';
 
@@ -54,7 +57,7 @@ export function PromptPill({ prompt, tone = 'outline', density = 'card' }: Promp
           {pageRef === null || pageRef.length === 0 ? null : <Tag label={pageRef} size="xs" />}
         </span>
       ) : null}
-      <Text variant="footnote" truncate={tone === 'outline' ? 2 : 'none'}>
+      <Text variant="footnote" truncate={tone === 'tinted' ? 'none' : 2}>
         {prompt.text}
       </Text>
     </div>

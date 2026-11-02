@@ -29,6 +29,23 @@
   font-weight: var(--font-weight-semibold);
 }
 
+/*
+ * 보조 링크 (Stage 4b Spec §4 #5 · §9.1, `300:1308`) — 보조 색 + 밑줄(1.4.1 — 색 단독 구분 아님).
+ * 크기·굵기는 사용 지점이 준다. 레이아웃 높이는 글자 높이 그대로 두고 터치 44 를 `::before` 로 넓힌다
+ * (`IconButton`·`Button sm` 과 같은 방식). `top`/`bottom` % 는 이 박스 높이 기준이다.
+ */
+.haru-text-link--subtle {
+  position: relative;
+  color: var(--color-fg-secondary);
+}
+
+.haru-text-link--subtle::before {
+  position: absolute;
+  inset-block: calc((100% - var(--size-touch-min)) / 2);
+  inset-inline: 0;
+  content: '';
+}
+
 .haru-text-link__icon {
   display: inline-flex;
   align-items: center;

@@ -1,6 +1,6 @@
 # Stage 4b Plan — Session Screens (재검토: 사용자 Figma 수정 `D4-50` 반영)
 
-Status: **APPROVED (2026-10-26, user)** — 사용자 발화 *"권장안대로 해줘"* (승인 체크포인트 응답: Plan·Design Spec 승인 + Plan §19 차단 CP-1~7 · 비차단 NB-1~11 전 항목 권장안 채택, `D4-58`). 작성: 2026-10-26 plan-agent — 개정 1
+Status: **APPROVED (2026-10-26, user)** — 사용자 발화 *"권장안대로 해줘"* (승인 체크포인트 응답: Plan·Design Spec 승인 + Plan §19 차단 CP-1~7 · 비차단 NB-1~11 전 항목 권장안 채택, `D4-58`). 작성: 2026-10-26 plan-agent — 최신 **개정 1.3** (2026-11-02, Status 유지)
 Based on: PRD v1.5 개정 2 (`docs/source/HARU_PRD_v1.5.md` §7.5 · FR-09~11) · Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296:1127` "Recording"** (`298:1262` · `298:1340` · `296:1210`/`296:1257` · `298:1261` · **`300:1309`** · `300:1308`) + 기존 `28:51` · `29:62` · `88:960` · `163:1590` · 상위 Plan `docs/plans/stage-4-plan.md` 개정 3.1 (APPROVED 2026-10-13) · `docs/decisions/stage-4-approvals.md` **`D4-1`~`D4-57`** · Design Spec `docs/design/stage-4b-design-spec.md` (DRAFT 2026-10-26) · 상위 Spec `docs/design/stage-4-design-spec.md` · `packages/contracts/src/sessions/session.ts` · `rules/session-transitions.ts`
 
 ### 개정 이력
@@ -10,6 +10,8 @@ Based on: PRD v1.5 개정 2 (`docs/source/HARU_PRD_v1.5.md` §7.5 · FR-09~11) �
 | 초판 | 2026-10-26 | `D4-50` 충돌 지점 20건 · `N4B-01`~`17` |
 | **개정 1** | 2026-10-26 | 사용자 결정 **`D4-51`~`D4-57`** 반영 · Design Spec **PM-1~PM-16** 반영 · `S4-G` → **`S4-G1`(팝업) / `S4-G2`(Drawer)** 분할 · AC-4-56 팝업/Drawer 분리 · ready 닫기 AC 신규 · AC-4-54 존치 · NEEDS DECISION 을 남은 것만 재정리 + **§19 승인 체크포인트 결정 목록** 신설 |
 | **개정 1.1** | 2026-10-27 | 사용자 결정 **`D4-59`** 반영 — ready 리마인드 문구 = 서버 필드 `SessionSummary.reminderBubble` (`API_CONTRACTS.md` Rev 8.6 §3.2.2) · §10·§11·§12 delta · AC-4-46 화면 부분 수정(§14.1) · **`S4-F1R`** 후속 단위 등록(§13.1). Status 는 APPROVED 유지 |
+| **개정 1.2** | 2026-11-01 | 사용자 결정 **`D4-87`·`D4-88`·`D4-91`** 반영 (`docs/design/stage-4b-visual-gap-h1.md` 결정 2·3·6) — **`S4-H1` 의 "변경 없음" 정정: contract 필드 2건** (`API_CONTRACTS.md` Rev 8.9 §3.2.3) · §6·§10·§11·§12·§13·§15·§16 delta · **`S4-H1R`** 후속 단위(§13.2) · AC-4-58 수정 · **AC-4-139·140 신규** · §17.5 미결 4건. Status 는 APPROVED 유지 — 필드 결정은 사용자 승인됐고, §17.5 는 미승인이다 |
+| **개정 1.3** | 2026-11-02 | 사용자 결정 **`D4-94`~`D4-99`** 반영 (`D4-97` = 개정 1.2 · API Contract Rev 8.9 승인, Rev 8.9 APPROVED) — **`N4B-19`~`23` 전부 해소**(§17.5) · **`S4-H1R` 착수 차단 0** · §13.2 지시 확정 · AC-4-139 보강(⑦⑧) · **AC-4-141~144 신규**(`D4-86`·`D4-89`·`D4-90`·`D4-96`/`D4-99`) · 4b 합계 66 → **70** · §6·§11·§15·§18 delta. Status 는 APPROVED 유지 |
 
 ---
 
@@ -149,9 +151,10 @@ Based on: PRD v1.5 개정 2 (`docs/source/HARU_PRD_v1.5.md` §7.5 · FR-09~11) �
 | 요구사항 | 4b Frontend 범위 |
 |---|---|
 | **FR-09** 세션 화면 | ready **+ 닫기**(`300:1309`) · recording(`298:1262`) · paused(`298:1340`) · Record Control 5변형 · 바 · 상태 블록 · 책 칩 · 닫기(`D4-56`·`D4-57`) · 30분 자동 종료 |
-| **FR-10** 버블 2회 | ready 버블(`139:2803`) · 완료 버블 · 5분 리마인드(`D4-46`) · 팝업과의 구분(`N4B-10`) |
+| **FR-10** 버블 2회 | ready 버블(`139:2803`) · 완료 버블(**보조 줄 `D4-87` · 재진입 `D4-88`**, 개정 1.2) · 5분 리마인드(`D4-46`) · 팝업과의 구분(`N4B-10`) |
 | **FR-11** 경청 + Prompt 모아보기 | 메달리온 경청 모션(CSS) · **Prompts 칩 → 팝업 `296:1257`** · **`See all prompts` → Drawer `88:960`**(캐러셀 + 코칭 노트) |
-| **FR-19** 출석 스티커 | 완료 화면 `29:62` y 0~468 (변경 없음) |
+| **FR-19** 출석 스티커 | 완료 화면 `29:62` y 0~468 (스티커 범위 변경 없음. 화면의 버블·재진입·직접 진입은 개정 1.2 §13.2. 닫기 · Toast · 스티커 제목은 개정 1.3 §13.2) |
+| **Figma 없는 UI** (`D4-96`·`D4-99`, 사용자 직접 승인, C-13) | 세션 조회 실패 화면 홈 버튼 — `/session/:id` · `/session/:id/complete` 양쪽. 형태 = Visual Gap §8.2 (개정 1.3) |
 | **FR-25** 반응형 | 세션·팝업·Drawer·완료 320/393/600/1024 + 짧은 세로(`S4B-Q5`) |
 | PRD §13 | 마이크 거부(PermissionDenied 변형 + 안내 시트) · 자동 종료 · 크래시 복구 · 인터럽션 · Web 백그라운드 경고 · 오프라인/48h/14일 |
 | 이월 | AC-4-86(`D4-35`) · AC-4-110(`D4-42`) · AC-4-104(`D4-43`) · AC-4-123·124(`D4-33`/`D4-39`) |
@@ -192,6 +195,10 @@ Based on: PRD v1.5 개정 2 (`docs/source/HARU_PRD_v1.5.md` §7.5 · FR-09~11) �
 ## 10. Data Requirement Delta (Handoff 용)
 
 **신규 테이블 0건 · 응답 필드 1건** (개정 1.1, `D4-59`): `SessionSummary.reminderBubble` — 저장 대상이 아니라 **검수 템플릿 생성값**(`P4-BIP-11` 확장). 아동 데이터 신규 수집 0.
+**응답 필드 2건 추가** (개정 1.2, `D4-87`·`D4-88`) — 신규 테이블 0건, 컬럼 설계는 Backend 소관:
+- `completionBubble.subtext` — 저장 필드가 아니라 **검수 템플릿 생성값** (`P4B-BIP-02`).
+- `SessionDetail.completionBubble` — **새 보존 요구.** 서버는 `completed` 전이 때 고른 문구를 세션 단위로 보존하고 같은 값을 재조회에 돌려준다 (`P4B-BIP-03`). 주 문구에 아이 이름이 들어갈 수 있으므로(`P4-BIP-11` 안전 슬롯) **자녀 연결 데이터**로 취급한다 — 소유권 확인·RLS·전체 삭제 대상. 렌더된 문구 저장인지 템플릿 id + 슬롯 재구성인지는 Backend 선택이나, **재조회 값이 전이 응답과 같아야 한다.**
+- `docs/DATA_MODEL.md` 는 이번 개정에서 고치지 않았다 — 지시 범위 밖. Stage 8 `DATA_REQUIREMENTS` 초안 작성 시 위 두 BIP 를 반영한다.
 - `SessionSummary.book` 은 Activity Card · 서재 · `childBookId` 세 경로 모두에서 채워져야 한다 (`P4B-BIP-01`).
 - 표지 `coverUrl` 은 공개 표지 이미지(아동 데이터 아님).
 
@@ -206,6 +213,10 @@ Based on: PRD v1.5 개정 2 (`docs/source/HARU_PRD_v1.5.md` §7.5 · FR-09~11) �
 | 경과 시간 | **0건** — `recordedSeconds` |
 | Error code | **0건** |
 | ⭐ **ready 리마인드 문구** (개정 1.1, `D4-59`) | **1건** — `SessionSummary.reminderBubble: SessionBubbleCopy \| null` (`bubble` 옆, required + nullable). 길이 = `D4-21` 적용 · null = 시각 변화 0 · 상세 `API_CONTRACTS.md` §3.2.2 | 
+| ⭐ **완료 버블 보조 줄** (개정 1.2, `D4-87`) | **1건** — `SessionBubbleCopySchema` 에 `subtext` 추가. `.nullable().optional()`(`D4-94`). `.max` 없음. 렌더 지점 = 완료 버블(`88:929`)만. `text` 없으면 버블 미렌더(`D4-95`) · 줄바꿈 + 생성 측 상한(`D4-98`). 상세 `API_CONTRACTS.md` §3.2.3 |
+| ⭐ **완료 버블 재진입** (개정 1.2, `D4-88`) | **1건** — `SessionDetail.completionBubble: SessionBubbleCopy` (required + nullable, `sticker` 선례 `C4-OPEN-6`). `SessionTransitionResult.completionBubble?` 는 그대로 둔다 |
+| 직접 진입 (`D4-91`) | **0건** — `SessionDetail.status` 기존 필드 |
+| 닫기·Toast·스티커 제목·오류 화면 홈 버튼 (개정 1.3) | **0건** — 화면·copy 만 변경 (`D4-86`·`D4-89`·`D4-90`·`D4-99`). 조회 실패는 기존 error envelope |
 
 ## 12. Mock Scenarios (4b 추가분 — PM-16: Spec 추가 제안 없음)
 
@@ -217,6 +228,7 @@ Based on: PRD v1.5 개정 2 (`docs/source/HARU_PRD_v1.5.md` §7.5 · FR-09~11) �
 | `session:prompts-1` / `-5` / `-7` | n = 1 · 5 · 7 | 팝업 높이 `73+44n`(n≤5) · **n=7 팝업 5개 + Drawer 7페이지** · Record Control 침범 0 |
 | `session:prompts-empty` | `prompts: []` | 칩 비활성 (`S4B-Q4`) |
 | ⭐ `session-greeting:success` / **`session-greeting:reminder-missing`** (개정 1.1) | `reminderBubble.text = 'Ready when you are!'` / `reminderBubble: null` | 5분 시점 제목 줄 교체 / 시각 변화 0 (AC-4-46 화면). `session-greeting` 그룹 등재 = `API_CONTRACTS.md` §5.4 Rev 8.6 |
+| ⭐ `session-completion:success` / **`subtext-missing`** / **`bubble-missing`** (개정 1.2, 신규 그룹) | 보조 줄 포함 완료 버블 / `subtext: null` / `completionBubble: null` — **전이 응답과 `SessionDetail` 이 같은 값** | 보조 줄 렌더 · 줄 없음(본체 bottom 406) · 버블 없음. 그룹 등재 = `API_CONTRACTS.md` §5.4 Rev 8.9 |
 | 기존 재사용 | `consent-missing`(→ `disabled`) · 지연(전이 처리 중 → `disabled`) · `mic-permission-denied`(→ `permission-denied`) · `auto-timeout` · `web-background-warning` · `offline` · 업로드 성공/실패 · 크래시 복구 | 변형·안내 연결 검증 |
 
 시나리오 key 등재(`API_CONTRACTS.md` §5.4)는 승인 후 plan-agent.
@@ -229,11 +241,11 @@ Based on: PRD v1.5 개정 2 (`docs/source/HARU_PRD_v1.5.md` §7.5 · FR-09~11) �
 | **`S4-F2`** recording · paused | 상태 블록 · 책 칩 · Prompts 칩 **자리**(시각·`disabled` 아님 — 동작은 `G1`) · 닫기(`D4-56` 다이얼로그) · **RecordControl 5변형 컴포넌트** · `Discard`/`Submit` · AC-4-43 화면 부분 | 41 · 42 · 50 · 51 · 112~116 · 125~129 · **138** (15) | `S4-F1` | `CP-4`(C-13 일괄 중 C13-4B-5·6) |
 | **`S4-G1`** Prompts 팝업 | 칩 disclosure + 팝업 `296:1257`(5 컷오프 · 제목 `D4-55` · `See all` 렌더) · 비모달 동작 · 정리 · 빈 목록 | 52 · 130 · 131 · 132 · 133 · **135** (6) | `S4-F2` | `CP-1` · `CP-2` · `CP-3` · `CP-4`(C13-4B-1·2·10) |
 | **`S4-G2`** Prompt Drawer | `See all` → `Sheet` + `PromptCarousel` + 코칭 노트 + dots/화살표(상위 Spec §3.2 그대로) · 포커스 복귀 = 칩 | 53 · 54 · 55 · 56 · **137** (5) | `S4-G1` | `CP-1` · `CP-4`(C13-4B-7) |
-| **`S4-H1`** 완료 화면 | 변경 없음 | 57~61 · 104 · 107 (7) | `S4-F2` | 없음 |
+| **`S4-H1`** 완료 화면 | 화면 본체 + **후속 `S4-H1R`**(§13.2, 개정 1.2 — ~~변경 없음~~ 정정) | 57~61 · 104 · 107 · **139 · 140 · 141 · 142 · 143 · 144** (13) | `S4-F2` | 없음 (`N4B-19`~`23` 해소, 개정 1.3) |
 | **`S4-H2`** 예외·안내 UI | 마이크 거부(PermissionDenied 연결 + 안내 시트) · 대화 전용(`D4-44`) · 공지 슬롯 · 오프라인 Toast · 업로드/48h/14일/크래시 · Web 백그라운드 경고 · 자동 종료 안내 | 63 · 64 · 65 · 68 · 69 · 70 · 134 (7) | `S4-F2` | `CP-5` · `CP-6` · `CP-4`(C13-4B-4·8) · AC-4-108 수치 |
 | **`S4-K`** 회귀·시각 | Figma 대조(`300:1309` · `298:1262` · `298:1340` · `296:1210` · 변형 3) · 짧은 세로 · 양축 프로브 · reduced-motion · 전체 스위트 **단독 실행** | 95~103 (9) (+109 회귀) | 전 단위 | `CP-7` |
 
-**합계 64** = 15 + 15 + 6 + 5 + 7 + 7 + 9 ✓ (§14.4 와 일치).
+**합계 70** = 15 + 15 + 6 + 5 + **13** + 7 + 9 ✓ (§14.4 와 일치, 개정 1.3).
 
 **순서·의존**:
 
@@ -260,9 +272,25 @@ S4-F1 → S4-F2 ─┬→ S4-G1 → S4-G2 ─┐
 4. **테스트**: 주입 clock 으로 ① 5분 전 = 인사 ② 5분 후 = 리마인드 문구(1회, 렌더 횟수) ③ `reminder-missing` = 5분 전후 DOM 동일 ④ 10분 `abandoned` 회귀 ⑤ 리마인드 리터럴 grep — `mocks/` 밖 0건.
 5. **시각**: 리마인드 상태 baseline 1장(393) 추가(`R-BASELINE-1` — 정착 후 촬영) · Playwright 단독 실행 · design-agent Visual Gap 대상 등록.
 
+### 13.2 ⭐ `S4-H1` 후속 — `S4-H1R` 완료 화면 결정 반영 (개정 1.2 `D4-87`·`D4-88`·`D4-91` · 개정 1.3 `D4-86`·`D4-89`·`D4-90`·`D4-94`~`D4-99`)
+
+`S4-H1` 구현은 끝났고 Visual Gap 결정이 Contract 와 화면을 바꾼다. 이 단위는 그 delta 만 다룬다. 착수 차단 결정 0 (개정 1.3). `D4-92`(링)는 코드 변경이 없어 AC 를 만들지 않는다. AC = 139~144 (개정 1.3).
+
+**development-agent 구현 지시 (10줄)**
+1. **contracts**: `sessions/session.ts` — `SessionBubbleCopySchema` 에 `subtext: z.string().nullable().optional()`(`D4-94`) · `SessionDetailSchema` 에 `completionBubble: SessionBubbleCopySchema`(required). `.max` 없음. 단위 테스트: `subtext` 문자열·`null`·`''`·key 없음 통과 · `SessionDetail` key 누락 거부 · `null` 통과. 기존 `bubble`·`reminderBubble` parse 회귀.
+2. **Mock**: `toDetail` 이 완료 계열(`completed`·`analyzing`·`analyzed`·`failed`)에서만 값을 내고 나머지는 `null`. ⚠️ 현재 `MockSessionRecord.completionBubble` 은 ready 세션 생성 시점부터 채워져 있어 그대로 내보내면 ready 세션 Detail 에 버블이 실린다 `[직독: MockSessionApi.ts:371]`. `MOCK_COMPLETION_BUBBLE.subtext` = Figma 문자열 `14 min together · sticker earned`. ⚠️ 지난 세션 seed 는 `sticker: null` 이다 `[직독: :152]` — 그 세션은 `subtext: null` 이어야 응답이 스스로 모순되지 않는다. `session-completion` 그룹 구현, 값은 전이 응답과 Detail 이 공유.
+3. **재진입**: `useSessionCompletion` — 전이 응답이 있으면 그것, 없으면 `detail.completionBubble`. 오프라인 제출(`result: null`)은 조회하지 않는 현행 유지 (`D4-88` 수용).
+4. **화면**: `SessionCompleteBubble` 에 보조 줄 — 응답 값만 표시, Frontend 조립·문구 상수 0 (`recordedSeconds` 로 조립 금지, `rules/architecture.md` §8). 13/19 · `--color-fg-secondary` · 가운데 정렬 · gap 6 · **줄바꿈, clamp 없음**(`D4-98`). 구현 함정 = Visual Gap §7.6 (`SpeechBubble` `hint` 슬롯 금지 · `session.css:33` line-height 22 강제). `text` 가 비면 `subtext` 가 있어도 버블 미렌더(`D4-95`). ready·리마인드 버블은 `subtext` 를 그리지 않는다.
+5. **직접 진입**: Detail 경로에서 `status` 가 `ready`·`abandoned` 이면 홈 `replace` (`StorytimeSessionScreen` 선례). 전이 응답이 기억된 경로는 판정하지 않는다. `recording`·`paused` 는 `S4-H2`.
+6. **닫기** (`D4-86`): 완료 화면 닫기 → 홈 `replace`. 전이 요청 0.
+7. **Toast** (`D4-89`): `SessionCompletePage` 가 TopBar 를 `FullscreenLayout` `topBar` prop 으로 넘겨 inset 을 등록한다(Spec §2.5.1 구현 지시). Toast 가 스티커 위로 내려오므로 구현 후 **재측정**한다 — 값은 아직 미측정이다.
+8. **스티커 제목** (`D4-90`): 14 Semibold 복귀 + Tier-3 토큰(`--attendance-sticker-title-size` · line-height), 신규 Primitive 0.
+9. **오류 화면 홈 버튼** (`D4-96`·`D4-99`): `ErrorState` 카드 아래 형제 · gap `--space-3` · `Button` `glass` `md` · `fullWidth` 없음 · 문구 `Back to Home`(`features/storytime-session/copy.ts`) · 홈 `replace` · `Try again` 유지 · 자동 포커스 없음. `/session/:id` · `/session/:id/complete` 조회 실패 전체에 표시, feature 내부 조립 1개로 공유. `packages/ui` 변경 0. 명세 = Visual Gap §8.2.
+10. **테스트·시각**: 아래 §15 · `s4-session-complete` baseline 재생성은 `R-BASELINE-1` 절차(diff 원인 분해) · Playwright 단독 · design-agent Visual Gap 재확인(본체 bottom 431 · 줄 높이 19 · Toast 재측정 · 스티커 제목 14 · 오류 화면 명세 일치).
+
 ## 14. Acceptance Criteria 변경 (번호 체계 유지 — 상위 Plan §11 기준 delta)
 
-### 14.1 수정 (12건 — 개정 1.1 AC-4-46 추가)
+### 14.1 수정 (13건 — 개정 1.1 AC-4-46 · 개정 1.2 AC-4-58 추가)
 
 | AC | 수정 내용 | 근거 |
 |---|---|---|
@@ -278,12 +306,13 @@ S4-F1 → S4-F2 ─┬→ S4-G1 → S4-G2 ─┐
 | **AC-4-120** | `D4-22` 리터럴 금지 grep(③) 범위 = **ready 버블 제목 줄**. 팝업 제목 copy 키 1건은 위반이 아니다 | **`D4-55`** |
 | **AC-4-121** | 동(⑥) — 범위 = ready 버블 제목 줄. ready 버블에 `Try this prompt!` 가 **나타나지 않는다**는 단정은 유지 | **`D4-55`** |
 | ⭐ **AC-4-46** (개정 1.1) | **화면 부분 확정**: 5분 리마인드(`D4-46`, 1회) = ready 버블 **제목 줄만** `SessionSummary.reminderBubble.text` 로 교체, pill 불변, 1줄 clamp(`D4-21` 동일 상한). **`reminderBubble` 이 null/빈 문자열이면 시각 변화 0** (DOM 5분 전후 동일). Frontend 문구 상수 0. 증거: 주입 clock + 렌더 횟수 + `session-greeting:reminder-missing` + grep. 판정 단위 **`S4-F1R`**. PENDING: 문구 생성·검수(`P4-BIP-11` 확장) | **`D4-59`** · `D4-46` |
+| ⭐ **AC-4-58** (개정 1.2) | 완료 화면 주 문구 = 응답 값. 출처 **두 경로**: ① `Submit` 경로 = 전이 응답 `completionBubble.text` ② **재진입 = `SessionDetail.completionBubble.text`**. 두 경로가 같은 세션에서 **같은 문구**다. `null`/빈 문자열이면 버블 미렌더, fallback 0. 오프라인 제출(`result: null`)은 버블·스티커 없음이 수용 상태. ⚠️ 레이어 이름을 기대값으로 쓰지 않는다(원문 유지). 증거: 텍스트 비교(Mock 응답 ↔ DOM) + **빈 QueryClient 재마운트 테스트** — Mock 은 새로고침 시 인증이 사라져 새로고침 e2e 로는 재현되지 않는다(Visual Gap §2.4). PENDING: 서버 보존(`P4B-BIP-03`) | **`D4-88`** · FR-10 |
 
 **존치 (변경 없음)**: **AC-4-54** (Drawer 코칭 노트 = `Prompt.coachingNote`) — `D4-52` 귀결 (`N4B-06` 해소, **PM-2**). 초판 §14.2 의 "폐기 후보" 표기는 **철회**한다.
 
 ### 14.2 폐기 — 없음
 
-### 14.3 신규 (AC-4-125 ~ 138)
+### 14.3 신규 (AC-4-125 ~ 144)
 
 | ID | 요구사항 | 증거 | 단위 | PENDING? |
 |---|---|---|---|---|
@@ -301,24 +330,30 @@ S4-F1 → S4-F2 ─┬→ S4-G1 → S4-G2 ─┐
 | **AC-4-136** 🆕 | **ready 닫기** (`D4-57`, `300:1309`, **PM-8**): ① 닫기 38×38 @(331,66) — `29:76` 동형 ② 탭 → **확인 다이얼로그 없이** `ready → abandoned` 1건 → `/` ③ 로컬 녹음 0 (녹음 전) ④ 요청 실패 시 화면 유지 + 오류 안내(이동 0) ⑤ ready 에 Prompts 칩·책 칩 0 | 요청 로그 + DOM + Playwright 비교 | `S4-F1` | — |
 | **AC-4-137** 🆕 | **`See all prompts` → Drawer** (`D4-52`): ① 탭 → 팝업 닫힘 → Drawer 열림(순차, 같은 프레임) ② Drawer = **전체 n개**(n=7 → 7페이지) · 초기 페이지 = `N4B-18` 결정(권장 1번째) ③ Drawer 닫힘 → 포커스 Prompts 칩 ④ `See all` = `<button aria-haspopup="dialog">` · 팝업 안 터치 44 | e2e + n=7 fixture + 포커스 추적 | `S4-G2` | — |
 | **AC-4-138** 🆕 | **RecordControl 5변형 시각·이름** — `idle`·`recording`·`paused`·`disabled`·`permission-denied` 가 `163:1590`·`298:1227`/`1236`/`1245` 선언과 일치(`disabled` = opacity .5 + **코어 그림자 0**, `permission-denied` = gray-2 링·코어 + `mic-off`) · 접근성 이름 = Spec §9.1 (`S4B-Q9` 문구) · 변형 선택 순수 함수 unit test | Playwright 비교 5변형 + unit | `S4-F2` | — |
+| **AC-4-139** 🆕 | **완료 버블 보조 줄** (`D4-87`, Figma `88:929`): ① `subtext` 응답 값이 주 문구 아래 그대로 표시 ② `null`/빈 문자열/key 없음 → **줄 미렌더**, 빈 줄·대체 문구 0, 본체 bottom 406 ③ 값 있음 → 본체 bottom **431**(Visual Gap 측정 기준) · y 468 아래 요소 0(AC-4-104 회귀) ④ Frontend 조립 0 — `recordedSeconds` 참조 0 · 문구 상수 0 (`mocks/` 밖 grep) ⑤ ready·리마인드 버블에 `subtext` 미표시 ⑥ `streak`·`Day N` 0 (AC-4-59 grep 범위에 포함) ⑦ (개정 1.3, `D4-95`) `text` 가 null/빈 문자열이고 `subtext` 만 있으면 **버블 미렌더** ⑧ (개정 1.3, `D4-98`) 13/19 · 줄바꿈, clamp·말줄임 0 — 긴 문구가 320 에서 2줄(본체 bottom Web 394.63) · 가로 넘침 0 | fixture 3종(`session-completion`) + 단위 테스트(⑦) + 기하 + grep + Playwright 비교 | `S4-H1` (`S4-H1R`) | ✅ 문구 생성 (`P4B-BIP-02`) |
+| **AC-4-140** 🆕 | **`/complete` 직접 진입** (`D4-91`): ① Detail `status` = `ready`·`abandoned` → 홈 `replace`, 완료 화면 렌더 0, 전이 요청 0 ② 뒤로가기로 `/complete` 복귀 안 함 ③ 완료 계열 4상태는 완료 화면 유지 ④ 전이 응답이 기억된 경로(오프라인 `result: null` 포함)는 판정 대상 아님 — `Submit` 직후 튕김 0 ⑤ `recording`·`paused` 는 **`S4-H2` 에서 판정** — 그 전까지 현행(완료 화면) 유지가 FAIL 사유가 아니다 | Mock 상태별 진입 + 요청 로그 + history 길이 | `S4-H1` (`S4-H1R`), ⑤ 는 `S4-H2` | — |
+| **AC-4-141** 🆕 | **완료 화면 닫기** (`D4-86`, Spec §12.4-⑫ 해소): ① 탭 → 홈 `replace` ② 뒤로가기로 완료 화면 복귀 안 함 ③ 세션 전이 요청 0 | e2e + 요청 로그 + history 길이 | `S4-H1` (`S4-H1R`) | — |
+| **AC-4-142** 🆕 | **완료 화면 Toast inset** (`D4-89`, `VG-H1-02`): ① Toast 가 `topBar` inset 아래에 뜬다 — 제목·닫기와 겹침 0, 닫기 중심 `elementFromPoint` = 닫기 ② 재측정 수치를 인계에 기록(스티커와의 겹침·C-3 pop-in) ③ 재측정에서 나온 겹침은 사용자 판단 전 허용 차이로 처리하지 않는다 | 기하 측정 + `elementFromPoint` + design-agent 재측정 | `S4-H1` (`S4-H1R`) | — |
+| **AC-4-143** 🆕 | **스티커 제목** (`D4-90`, `VG-H1-01`, `29:84`): ① computed font-size 14 · Semibold · line-height `normal` 선언 대응 ② 값 출처 = Tier-3 토큰, 신규 Primitive 0 ③ 텍스트 스택이 타일 44 안에 유지 | computed + 토큰 grep + 기하 + Playwright 비교 | `S4-H1` (`S4-H1R`) | — |
+| **AC-4-144** 🆕 | **세션 조회 실패 화면 홈 버튼** (`D4-96`·`D4-99`, Figma 없음 — 명세 Visual Gap §8.2): ① `/session/:id` · `/session/:id/complete` 양쪽, 없는 세션 + 조회 오류 전체에 표시 ② `ErrorState` 카드 아래 형제 · gap 12 · `Button` `glass` md · hug · 문구 `Back to Home`(copy 모듈 1건) ③ 탭 → 홈 `replace`, 뒤로가기로 오류 화면 복귀 안 함 ④ `Try again` 유지 · 동작 불변 ⑤ 버튼이 `role="alert"` 밖 · 자동 포커스 0 · 높이 ≥ 44 ⑥ 320×420 스크롤 0 ⑦ `packages/ui` 변경 0 | 경로 2 × 오류 2 e2e + 기하 3뷰포트 + DOM + history 길이. 시각 대조 = 명세 대조(Figma 없음) | `S4-H1` (`S4-H1R`) | — |
 
 ### 14.4 4b AC 재집계
 
 | 구분 | 수 |
 |---|---|
 | 상위 Plan §16.5.3 4b 목록 | **50** |
-| 수정 | **12** (42 · 52 · 53 · 55 · 56 · 63 · 95 · 97 · 99 · 120 · 121 · **46** 개정 1.1) — 수 변동 없음 |
+| 수정 | **13** (42 · 52 · 53 · 55 · 56 · 63 · 95 · 97 · 99 · 120 · 121 · **46** 개정 1.1 · **58** 개정 1.2) — 수 변동 없음 |
 | 존치 | AC-4-54 (초판 폐기 후보 철회) |
 | 폐기 | **0** |
-| 신규 | **14** (125~138 — 초판 10 + 135·136·137·138) |
-| **4b 합계** | **64** · Stage 4 전체 In Scope 113 → **127** |
+| 신규 | **20** (125~144 — 초판 10 + 135·136·137·138 + 개정 1.2 139·140 + 개정 1.3 141·142·143·144) |
+| **4b 합계** | **70** · Stage 4 전체 In Scope 113 → **133** |
 
 ## 15. Test Strategy (추가분)
 
 - unit: 경과 시간 `mm:ss` 포맷·고정(주입 clock) · **상태 → RecordControl 변형 순수 함수** · 팝업 열림 상태가 전이를 만들지 않음 · 팝업 개수 컷오프(n ≤ 5).
-- contract: 신규 0 — `book: null`·`prompts: []` parse 통과 확인.
-- mock scenario: §12 신규 6종 결정성.
-- e2e: 칩 → 팝업 → `Escape`/바깥 탭/칩 재탭 닫힘 · 바깥 탭 대상 동작 보존(`Pause`) · 팝업 열린 채 Pause/Submit · **`See all` → Drawer → 닫기 → 포커스 칩** · recording·paused 닫기 → 다이얼로그 확인/취소 · **ready 닫기 → 즉시 홈**.
+- contract: `book: null`·`prompts: []` parse 통과 확인 · **개정 1.2: `subtext` · `SessionDetail.completionBubble` (§13.2-1)**. `stage-4-surface.test.ts` 표면 영향 확인.
+- mock scenario: §12 신규 6종 결정성 · **개정 1.2: `session-completion` 3 key, 전이 응답 = Detail 값 일치, 비완료 세션 Detail `completionBubble: null`**.
+- e2e: 칩 → 팝업 → `Escape`/바깥 탭/칩 재탭 닫힘 · 바깥 탭 대상 동작 보존(`Pause`) · 팝업 열린 채 Pause/Submit · **`See all` → Drawer → 닫기 → 포커스 칩** · recording·paused 닫기 → 다이얼로그 확인/취소 · **ready 닫기 → 즉시 홈** · **개정 1.3: 완료 화면 닫기 → 홈 replace · 오류 화면 `Back to Home`(경로 2 × 오류 2) · Toast 표시 중 닫기 탭 가능**.
 - 시각: ready+닫기 · recording · paused · 팝업(n=5) · Drawer · RecordControl 변형 3 baseline. **`R-BASELINE-1`** — 팝업 전환 완료 후 `settle()`, dev 패널 숨김, 주입 clock(`03:24`).
 - manual device: iOS Safari 에서 팝업·Drawer 열린 채 녹음 지속 1회 · 툴바 표시 상태 짧은 세로 1회.
 
@@ -339,6 +374,8 @@ S4-F1 → S4-F2 ─┬→ S4-G1 → S4-G2 ─┐
 | **R4B-11** 🆕 | 바깥 탭 판정이 이벤트를 삼켜 `Pause`·`Submit` 이 한 번 더 눌러야 동작 | `pointerdown` 캡처에서 닫기만, `preventDefault` 금지 (Spec §15-4) · AC-4-135 ⑥ |
 | **R4B-12** 🆕 | iOS Safari `dvh` 에서 짧은 세로가 **기본 경우** — 393×852 baseline 만 통과하고 실기기에서 겹침 | `S4B-Q5` · AC-4-99 ② · manual device 1회 |
 | **R4B-13** 🆕 | paused 시간·보조 줄 대비 2.39~2.47 (Figma 그대로) | `S4B-Q7` 가값 등재 — FAIL 사유 아님(`rules/qa.md` §2) |
+| **R4B-14** 🆕 (개정 1.2) | `subtext` 를 공유 schema 에 두어 ready·리마인드 응답에도 실릴 수 있다 | 렌더 지점을 완료 버블로 한정 · AC-4-139 ⑤ |
+| **R4B-15** 🆕 (개정 1.2) | 오프라인 제출 뒤 새로고침하면 기억된 전이 응답이 사라지고 서버는 아직 이전 상태다 → 대화 전용 ready 제출은 `D4-91` 로 홈, `recording`·`paused` 는 `S4-H2` 판단 대기. 축하 화면을 놓치지만 전이는 SessionOutbox 가 보존 | `S4-H2` 에서 `D4-91` recording·paused 처리와 함께 재확인 |
 
 ## 17. Open Decisions
 
@@ -405,12 +442,29 @@ S4-F1 → S4-F2 ─┬→ S4-G1 → S4-G2 ─┐
 | **16** | §7.5 "세션 준비" 행 *"상단에 오늘의 책 카드"* | ready 에 책 표시 없음 · recording/paused 중앙 책 칩 | `N4B-09` |
 | **17** | §7.5 *"캐릭터 버블은 시작·종료 2가지"* · Prompt 확인 방식 | "Prompts 칩 → 중앙 목록 팝업(양육자 호출) → `See all` → Drawer" 명시 | `N4B-10` |
 
+### 17.5 개정 1.2 결정 귀결과 남은 미결
+
+**전부 해소 (개정 1.3, 2026-11-02)** — 아래 표 5건 모두 사용자 결정으로 닫혔다. 남은 `S4-H1R` 착수 차단 0.
+
+**CONFIRMED 귀결**: `D4-87` · `D4-88` · `D4-91`. `D4-88` 은 오프라인 제출의 버블·스티커 부재를 현행 수용한다. Mock 문자열 = Figma 문자열은 `D4-87` 이 채택한 권고안(Visual Gap 결정 2)에 포함된다.
+
+| ID | 항목 | 결과 | 라벨 | 반영 |
+|---|---|---|---|---|
+| **`N4B-19`** | `subtext` key 필수 여부 — `D4-87` 은 "nullable" 만 정했다 | ✅ **`D4-94`** — `.nullable().optional()`, key 생략 가능 | CONFIRMED | §11 · §13.2-1 · `API_CONTRACTS.md` §3.2.3 |
+| **`N4B-20`** | `text` 가 비고 `subtext` 만 있을 때 | ✅ **`D4-95`** — 버블 미렌더 | CONFIRMED | AC-4-139 ⑦ · §3.2.3 |
+| **`N4B-21`** | 조회 실패 화면에 나갈 경로가 없다 (Visual Gap §2.4·§8.1) | ✅ **`D4-96`·`D4-99`** — 홈 버튼 추가, `Figma 없는 UI` 사용자 직접 승인 | CONFIRMED | §13.2-9 · AC-4-144 |
+| **`N4B-22`** | 보조 줄 줄바꿈 · 320 폭 · 생성 측 길이 상한 | ✅ **`D4-98`** — 줄바꿈(clamp 없음) · 상한 ≤240px @ SF Pro Regular 13 (≈36자) · schema `.max()` 없음 | CONFIRMED | AC-4-139 ⑧ · §3.2.3 길이 행 · `P4B-BIP-02` |
+| **`N4B-23`** | `D4-86` · `D4-89` · `D4-90` 에 AC 가 없다 (`D4-92` 는 코드 변경 없음) | ✅ **`D4-97`** — AC 신설 | CONFIRMED | AC-4-141·142·143 |
+
+**Handoff 등록**: `P4B-BIP-02` 완료 버블 보조 줄 생성 · `P4B-BIP-03` 완료 버블 보존·재조회 (`API_CONTRACTS.md` §3.2.3).
+
 ## 18. Handoff to design-agent
 
 개정 1 시점 design-agent 산출물(`stage-4b-design-spec.md`)이 §18.2 질문 1~8 에 **전부 답했다**(Spec §11.1). 남은 design-agent 작업:
 
 1. 체크포인트 결정 후 Spec 반영 — `S4B-Q1`~`Q9` · `N4B-18` · AD 등록 결과 · 가값 `P-26`·`P-27`.
 2. `S4B-Q5` ④(짧은 세로 극단) — 디자이너 요청 여부가 정해지면 요청서 개정.
+2-1. (개정 1.2) ~~`N4B-22` 측정~~ ✅ Visual Gap §7, `D4-98` (개정 1.3). 남은 것: 보조 줄 13/19 의 토큰(`--bubble-complete-subtext-line`) · Spec §12.4-②·⑫ 해소 표기 · §5.4-① 흡수 철회 표기(`D4-90`). Visual Gap §7·§8 Status 는 결정 기록 기준으로 갱신한다.
 3. 각 단위 구현 후 **Visual Gap 검토**(최우선 규칙 5) — 대상 노드 `300:1309` · `298:1262` · `298:1340` · `296:1210` · `298:1227`/`1236`/`1245` · `88:960`. `AD-S4-17` 은 이때 판정.
 
 ---

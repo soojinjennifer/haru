@@ -34,6 +34,28 @@
   line-height: var(--bubble-session-title-line);
 }
 
+/* 완료 버블 `88:929` — 297 · 위아래 14 · 주 문구 Bold 16/22 (폭·면·tail 외에는 ready 와 같다) */
+.haru-session-bubble--complete .haru-bubble {
+  inline-size: min(var(--bubble-complete-width), 100%);
+  padding-block-end: var(--bubble-padding-block-start);
+}
+
+/*
+ * 완료 버블 보조 줄 `I88:929;88:760` — Regular 13/19 · secondary · 가운데 · 위 gap 6(`.haru-bubble__content`).
+ * `Text` 가 아닌 이유: 위 `.haru-bubble__content > .haru-text` 가 line-height 를 22 로 강제한다 (→ 19 가 먹지 않는다).
+ * `SpeechBubble` `hint` 슬롯도 아니다 — 12 · `nowrap` · content 바깥이라 Figma 와 다르다 (Visual Gap H1 §7.6).
+ * 줄바꿈은 Figma `word-break: break-word` 대응 · clamp 없음 (`D4-98`) — 공백 없는 문구도 가로로 넘치지 않는다.
+ * provisional: P-01 — `--color-fg-secondary` 13px 대비 (Figma 그대로)
+ */
+.haru-session-bubble__subtext {
+  margin: 0;
+  font-size: var(--text-footnote);
+  line-height: var(--bubble-complete-subtext-line);
+  font-weight: var(--text-footnote--font-weight);
+  color: var(--color-fg-secondary);
+  overflow-wrap: break-word;
+}
+
 .haru-session-bubble__prompts {
   display: flex;
   flex-direction: column;
@@ -44,4 +66,229 @@
   /* 제목은 가운데(`align="center"`)지만 pill 본문은 Figma `139:2763` 처럼 **시작 정렬**이다 —
      버블의 `text-align: center` 상속을 끊는다. */
   text-align: start;
+}
+
+/*
+ * 짧은 세로 — ready pill 목록 내부 스크롤 (`D4-78` · `CP-7` ③ 확장 · `AD-S4-18`). 쿼리 컨테이너 = `.haru-session`
+ * (콘텐츠 높이, `D4-79`). 버블이 stage 안에 갇히고 제목은 고정, 목록만 줄어든다. 최소 pill 1개.
+ * 796 이상은 내용 높이 그대로다 (Figma 에 내부 스크롤이 없다).
+ *
+ * `R-SHADOW-1`: **이 `overflow-y: auto` 는 넘치는 Prompt 에 닿을 유일한 경로라서** 선언한다 (대화 전용 ready 포함).
+ * 안의 pill 은 테두리뿐(drop 0겹) → 그림자 inset 0. 버블 그림자·tail 은 바깥 `.haru-bubble` 이 그리므로 잘리지
+ * 않고, pill 폭 = 목록 폭이라 가로로 잘리는 것도 없다 (`e2e/shadow.spec.ts` 양축 프로브).
+ * 넘칠 때만 포커스를 받으며(`tabIndex`), 링 2 + 간격 2 = 4 를 목록 **안쪽**에 그린다 (⑤).
+ * `overscroll-behavior` 는 기본값이다 — `contain` 이면 627 이하에서 목록 위 터치가 뷰포트로 이어지지 않아 갇힌다 (`D4-82`).
+ */
+@container haru-session (height < 796px) {
+  .haru-session-bubble {
+    flex: 0 1 auto;
+    min-block-size: 0;
+  }
+
+  .haru-session-bubble .haru-bubble__content {
+    min-block-size: 0;
+  }
+
+  .haru-session-bubble .haru-bubble__content > .haru-text {
+    flex: none;
+  }
+
+  .haru-session-bubble__prompts {
+    flex: 0 1 auto;
+    min-block-size: var(--prompt-pill-session-height-min);
+    overflow-y: auto;
+  }
+
+  .haru-session-bubble__prompts:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus-ring);
+    outline-offset: calc(-1 * (var(--focus-ring-width) + var(--focus-ring-offset)));
+  }
+}
+
+/*
+ * entities/session — recording · paused 상태 블록 (Figma `298:1320` / `298:1398`, 4b Spec §2.2 · §2.3)
+ *
+ * 실측 `[4b Spec §2.2 — get_design_context(298:1262) · svg]`
+ *   블록   flex col · gap 10 · 가운데 · 32 + 10 + 41 + 10 + 18 = 111
+ *   pill   hug 116×32(recording) / 96×32(paused) · radius 100 · white 74% · **그림자 없음** · pad 14/6 · gap 8
+ *   dot    8 · recording 채운 원 #85BFB6 / paused 빈 원 stroke 1.5 #7D9291
+ *   시간   SF Pro Bold 48 / 41 · recording #4a5f5c / paused #7d9291 · `tabular-nums`
+ *   보조   Footnote 13/18 · #7d9291
+ *
+ * 대비: paused 시간 2.42~2.47 · 보조 줄 2.39~2.40 은 Figma 그대로 — 가값 `P-26`·`P-27`
+ * (`S4B-Q7`, `D4-58` NB-7). `R-SHADOW-1`: 그림자 0겹 · overflow 선언 없음.
+ */
+.haru-session-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--session-status-block-gap);
+}
+
+.haru-session-status__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--session-state-pill-gap);
+  padding: var(--session-state-pill-pad-block) var(--session-state-pill-pad-inline);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-glass);
+}
+
+.haru-session-status__dot {
+  flex: none;
+  box-sizing: border-box;
+  inline-size: var(--session-state-dot-size);
+  block-size: var(--session-state-dot-size);
+  border-radius: 50%;
+  background-color: var(--color-action-primary-bg);
+}
+
+/*
+ * paused = 빈 원 (`298:1400` stroke 1.5 · 내부 투명) — 텍스트와 함께 상태를 구분한다 (AC-4-128).
+ * `border` 는 Chromium 이 장치 픽셀로 내려 1x 에서 **1px** 이 된다 → 번짐 0 의 inset 링으로 1.5 를 그린다
+ * (그림자가 아니라 획이다 — 박스 밖으로 나가지 않아 `R-SHADOW-1` 비대상).
+ */
+.haru-session-status--paused .haru-session-status__dot {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 var(--session-state-dot-stroke) var(--color-fg-secondary);
+}
+
+.haru-session-status__label {
+  font-size: var(--text-subheadline);
+  line-height: var(--text-subheadline--line-height);
+  font-weight: var(--text-subheadline--font-weight);
+  color: var(--color-fg-primary);
+}
+
+.haru-session-status__time {
+  font-size: var(--session-timer-size);
+  line-height: var(--session-timer-line);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-fg-primary);
+}
+
+/* provisional: P-26 — paused 시간 #7d9291 on 배경 2.42~2.47 (Figma 그대로, `S4B-Q7`) */
+.haru-session-status--paused .haru-session-status__time {
+  color: var(--color-fg-secondary);
+}
+
+/* provisional: P-27 — 보조 줄 #7d9291 13px on 배경 2.39~2.40 (Figma 그대로, `S4B-Q7`) */
+.haru-session-status__hint {
+  font-size: var(--text-footnote);
+  line-height: var(--text-footnote--line-height);
+  font-weight: var(--text-footnote--font-weight);
+  color: var(--color-fg-secondary);
+}
+
+/*
+ * 책 칩 (Figma `296:1203`, 4b Spec §2.2 · §4 #7)
+ *   hug × 40 · radius 100 · white 74% · `--shadow-bubble`(drop 1겹 + inset 2겹) · pad 좌우 15 · gap 8
+ *   표지 16×22 radius 3 — 이미지 또는 `T-5` 그라디언트 · 제목 Semibold 13 · primary · 1줄 말줄임
+ * 폭은 내용에 맞추고 컬럼을 넘지 않는다 (`max-inline-size: 100%`, Spec §8.1).
+ * `R-SHADOW-1`: drop `0 6 4` 번짐 좌우 4 · 아래 10 — overflow 조상은 AppShell 뿐 (Spec §9.3).
+ */
+.haru-session-book-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--session-book-chip-gap);
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  block-size: var(--session-book-chip-height);
+  padding-inline: var(--session-book-chip-pad-inline);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-glass);
+  box-shadow: var(--shadow-bubble);
+}
+
+.haru-session-book-chip__cover {
+  display: block;
+  flex: none;
+  inline-size: var(--session-book-cover-width);
+  block-size: var(--session-book-cover-height);
+  border-radius: var(--session-book-cover-radius);
+  object-fit: cover;
+}
+
+.haru-session-book-chip__cover--placeholder {
+  background-image: var(--gradient-book-cover-placeholder);
+}
+
+/*
+ * `overflow: hidden` — 1줄 말줄임(`text-overflow`)에 필요하다. 안에는 **글자만** 있다(그림자 0겹) →
+ * `R-SHADOW-1` inset 불필요. 칩 자신의 그림자는 이 박스 밖(칩 요소)에 있다.
+ */
+.haru-session-book-chip__title {
+  min-inline-size: 0;
+  overflow: hidden;
+  font-size: var(--text-footnote);
+  line-height: var(--text-footnote--line-height);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-fg-primary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/*
+ * 출석 스티커 칩 (Figma `29:79`, Stage 4 Spec §2.7.1)
+ *   257×64 · radius 100 · white 74% · `--shadow-bubble`(drop 1겹 + inset 2겹) · pad 10/20 · gap 12
+ *   타일 44 radius 22 · T-4 · T-7 / 아이콘 20 @ (11,11) / 제목 Semibold 14 · 줄 17(`D4-90`) / 부제 12 secondary
+ * provisional: P-01 — 부제 `--color-fg-secondary` · P-02 — 흰 글리프 on gold (Spec §9)
+ * `R-SHADOW-1`: 칩·타일 그림자는 overflow 박스 밖이다. 아래 `overflow: hidden` 은 글자만 담는다.
+ */
+.haru-attendance-sticker {
+  display: flex;
+  align-items: center;
+  gap: var(--attendance-sticker-gap);
+  box-sizing: border-box;
+  inline-size: var(--attendance-sticker-width);
+  block-size: var(--attendance-sticker-height);
+  padding-inline: var(--attendance-sticker-pad-start) var(--attendance-sticker-pad-end);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-glass);
+  box-shadow: var(--shadow-bubble);
+}
+
+.haru-attendance-sticker__tile {
+  position: relative;
+  flex: none;
+  inline-size: var(--attendance-sticker-tile-size);
+  block-size: var(--attendance-sticker-tile-size);
+  border-radius: var(--radius-surface);
+  background-image: var(--gradient-sticker-badge);
+  box-shadow: var(--shadow-sticker-badge);
+  color: var(--color-fg-on-accent);
+}
+
+.haru-attendance-sticker__tile .haru-icon {
+  position: absolute;
+  inset-block-start: var(--attendance-sticker-icon-inset);
+  inset-inline-start: var(--attendance-sticker-icon-inset);
+}
+
+.haru-attendance-sticker__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--attendance-sticker-text-gap);
+  min-inline-size: 0;
+}
+
+.haru-attendance-sticker__title,
+.haru-attendance-sticker__message {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.haru-attendance-sticker__title {
+  font-size: var(--attendance-sticker-title-size);
+  line-height: var(--attendance-sticker-title-line);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-fg-primary);
+}
+
+.haru-attendance-sticker__message {
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  color: var(--color-fg-secondary);
 }

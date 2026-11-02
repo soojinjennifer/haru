@@ -17,12 +17,16 @@
  * - **5분 리마인드**(`D4-46`·`D4-59`): `reminderActive` 가 켜지면 **제목 줄 글자만** `reminderBubble.text`
  *   로 바꾼다 — 같은 노드 · 같은 1줄 clamp · pill 불변. 리마인드가 `null`/빈 값이면 **아무것도 바꾸지
  *   않는다**(인사 그대로, 인사도 없으면 제목 줄 없음 그대로). 대체 문구 0 (`API_CONTRACTS.md` §3.2.2).
+ * - 짧은 세로(콘텐츠 < 796)에서 목록이 넘치면 그때만 Tab 정지점이 된다 (`D4-78`, 팝업과 같은 규칙 — Spec §9.3).
  * - 높이를 선언하지 않는다 — `h = 21 + 22 + 6 + 6n + Σpill` (제목 있음) / `21 + 6n + Σpill` (없음).
  */
 import { SpeechBubble, Text } from '@haru/ui';
 import type { Prompt, SessionBubbleCopy } from '@haru/contracts';
+import { useId } from 'react';
 
 import { PromptPill } from '../activity-card';
+
+import { useListOverflows } from './useListOverflows';
 
 /** 버블에 렌더하는 Prompt 수 상한 — **렌더 컷오프**이며 contracts cap 이 아니다 (`D-21`). */
 export const SESSION_BUBBLE_PROMPT_CUTOFF = 5;
@@ -51,6 +55,8 @@ export function SessionReadyBubble({
   const greeting = reminder ?? copyText(bubble);
   const hasGreeting = greeting !== null;
   const visible = prompts.slice(0, SESSION_BUBBLE_PROMPT_CUTOFF);
+  const titleId = useId();
+  const { listRef, overflows } = useListOverflows(visible.length > 0);
 
   if (visible.length === 0) return null;
 
@@ -58,12 +64,19 @@ export function SessionReadyBubble({
     <div className="haru-session-bubble">
       <SpeechBubble tail="top-center" align="center">
         {hasGreeting ? (
-          <Text variant="callout" weight="semibold" tone="primary" truncate={1}>
+          <Text id={titleId} variant="callout" weight="semibold" tone="primary" truncate={1}>
             {greeting}
           </Text>
         ) : null}
         {visible.length === 0 ? null : (
-          <ul className="haru-session-bubble__prompts">
+          /* 넘칠 때만 키보드로 스크롤할 수 있어야 한다 — 비상호작용 요소의 tabIndex 는 그 때문이다. */
+          <ul
+            ref={listRef}
+            className="haru-session-bubble__prompts"
+            {...(overflows
+              ? { tabIndex: 0, ...(hasGreeting ? { 'aria-labelledby': titleId } : {}) }
+              : {})}
+          >
             {visible.map((prompt) => (
               <li key={prompt.id}>
                 <PromptPill prompt={prompt} density="session" />

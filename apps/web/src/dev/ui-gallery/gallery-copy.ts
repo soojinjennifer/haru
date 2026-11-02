@@ -147,6 +147,18 @@ export const galleryCopy = {
       'The same chip renders in the Home header and the Library header — it carries its own size, padding and icon.',
   },
 
+  /** Stage 4b `S4-F2` — RecordControl 5변형 · Button sm (Prompts 칩). 접근성 이름 = 4b Spec §9.1. */
+  stage4Session: {
+    recordStart: 'Start recording',
+    recordPause: 'Pause recording',
+    recordResume: 'Resume recording',
+    micOff: 'Microphone is off',
+    captionRecord: 'Tap to recording',
+    captionResume: 'Tap to resume',
+    captionMicOff: 'Mic is off',
+    prompts: 'Prompts',
+  },
+
   a11y: {
     focusTourTitle: 'Focus order',
     touchTargetTitle: 'Touch targets',

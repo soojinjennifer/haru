@@ -2,7 +2,7 @@ import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 
-import { ToastProvider, useToast } from '../ToastProvider';
+import { ToastProvider, useToast, useToastPresent } from '../ToastProvider';
 
 function Trigger({ message, tone }: { message: string; tone?: 'neutral' | 'error' }) {
   const toast = useToast();
@@ -16,6 +16,10 @@ function Trigger({ message, tone }: { message: string; tone?: 'neutral' | 'error
       show {message}
     </button>
   );
+}
+
+function PresenceProbe() {
+  return <output data-testid="present">{String(useToastPresent())}</output>;
 }
 
 describe('ToastProvider', () => {
@@ -41,6 +45,28 @@ describe('ToastProvider', () => {
     fireEvent.click(screen.getByRole('button', { name: 'show Copied' }));
     expect(screen.queryByText('Saved')).toBeNull();
     expect(screen.getAllByText('Copied')).toHaveLength(1);
+  });
+
+  it('reports presence until the exit animation has finished (`D4-100`)', () => {
+    render(
+      <ToastProvider>
+        <Trigger message="Saved" />
+        <PresenceProbe />
+      </ToastProvider>,
+    );
+    const present = () => screen.getByTestId('present').textContent;
+
+    expect(present()).toBe('false');
+    fireEvent.click(screen.getByRole('button', { name: 'show Saved' }));
+    expect(present()).toBe('true');
+    act(() => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(present()).toBe('true');
+    act(() => {
+      vi.advanceTimersByTime(180);
+    });
+    expect(present()).toBe('false');
   });
 
   it('announces politely and does not move focus', () => {

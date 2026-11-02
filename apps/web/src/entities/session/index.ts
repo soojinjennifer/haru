@@ -6,6 +6,7 @@ export type { UseSessionDetailResult } from './useSessionDetail';
 export { useCreateSession } from './useCreateSession';
 export type { CreateSessionMutation, StartSessionInput } from './useCreateSession';
 export { useCloseReadySession } from './useCloseReadySession';
+export { useListOverflows } from './useListOverflows';
 export type { CloseReadySessionMutation } from './useCloseReadySession';
 export {
   SessionRecorderProvider,
@@ -23,3 +24,21 @@ export type {
 } from './sessionRecorder';
 export { SESSION_BUBBLE_PROMPT_CUTOFF, SessionReadyBubble } from './SessionReadyBubble';
 export type { SessionReadyBubbleProps } from './SessionReadyBubble';
+export { formatSessionClock } from './sessionClock';
+export { selectRecordControlState } from './recordControlState';
+export type { RecordControlStateInput, SessionRecordControlState } from './recordControlState';
+export { SessionStatusBlock } from './SessionStatusBlock';
+export type { SessionStatusBlockProps, SessionStatusBlockState } from './SessionStatusBlock';
+export { SessionBookChip } from './SessionBookChip';
+export type { SessionBookChipProps } from './SessionBookChip';
+export type { SessionPromptsPopoverContext } from './sessionPromptsSlot';
+export { AttendanceStickerChip } from './AttendanceStickerChip';
+export type { AttendanceStickerChipProps } from './AttendanceStickerChip';
+export { SessionCompleteBubble } from './SessionCompleteBubble';
+export type { SessionCompleteBubbleProps } from './SessionCompleteBubble';
+export {
+  selectCompletionBubble,
+  useRememberSessionCompletion,
+  useSessionCompletion,
+} from './useSessionCompletion';
+export type { SessionCompletionBubble, UseSessionCompletionResult } from './useSessionCompletion';

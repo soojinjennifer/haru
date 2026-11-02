@@ -13,6 +13,7 @@ import {
   ListChecks,
   Mail,
   MessageCircle,
+  MessageSquareText,
   OctagonAlert,
   Pencil,
   RotateCcw,
@@ -39,6 +40,10 @@ import {
  * Stage 2 재구성 추가: `pencil`(`About your child` 섹션 헤더의 편집 전환 — 재구성 Design Spec §4.3).
  * Stage 3 추가: `message-circle`(대체 카드 `conversation_only` 식별 — §2.6).
  * `rotate-ccw`(`reread_book`)는 Stage 1 에 이미 있다.
+ * Stage 4b `S4-F2` 추가: `message-square-text`(세션 Prompts 칩 `298:1315` — 4b Spec §0.1 `[svg]` 로
+ * Lucide 와 같은 path 확인). 같은 단위에서 넣었던 `mic-off`(RecordControl `permission-denied`
+ * `298:1254`)는 `S4-F2` 후속(Visual Gap `VG-F2-01`, 2026-10-29)에서 **제거**했다 — Figma 원본 stroke 가
+ * 24 기준 2 라 HARU 규격 1.5 와 달라 HARU 전용 `haru:record-mic-off` 로 교체했다(사용처 0건).
  *
  * Stage 3 Visual Gap 3차(2026-10-06, approvals §13.2 `A-23`-icon)에서 **`star` 를 제거**했다.
  * `WeekSummaryChip` 이 유일한 사용처였고, 교체본은 HARU 전용 `haru:session-history`
@@ -79,6 +84,7 @@ export const LUCIDE_ICONS = {
   'list-checks': ListChecks,
   mail: Mail,
   'message-circle': MessageCircle,
+  'message-square-text': MessageSquareText,
   'octagon-alert': OctagonAlert,
   pencil: Pencil,
   'rotate-ccw': RotateCcw,

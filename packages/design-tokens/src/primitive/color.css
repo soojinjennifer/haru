@@ -71,6 +71,11 @@
    * HARU palette 밖의 값이므로 Semantic 쪽이 가값 `P-25` 주석을 갖는다.
    */
   --haru-gray-2: #aeaeb2;
+  /*
+   * iOS systemGray6. Prompt Drawer 캐러셀 화살표 **비활성**(첫/끝 페이지) 글리프 fill
+   * (`86:324` `color/arrow_first` · `cppr/arrow_last` SVG 원문 `fill="#F2F2F7"`, Stage 4b `S4-G2`).
+   */
+  --haru-gray-6: #f2f2f7;
 
   /* --- Neutral surfaces ---------------------------------------------------- */
   --haru-mist-50: #edf3f1;

@@ -978,9 +978,124 @@ test('시트 표지에 Figma `85:536` 의 `--shadow-cover` + radius 10 이 **있
 });
 
 /*
+ * ── Stage 4b `S4-K1` — 짧은 세로의 팝업 pill 목록 (`R-SHADOW-1` ⑥ — 세로·가로 **양축** 프로브) ──
+ *
+ * `.haru-session-prompts__list { overflow-y: auto }` 는 Stage 4b 의 신규 overflow 박스다(`height < 796`).
+ * 안의 pill 은 drop 0겹이라 그림자 inset 이 없다 — 대신 잘리면 안 되는 것은 ① 팝업 자신의 그림자 ②
+ * pill 테두리다. ① 같은 지점을 `box-shadow: none` 으로 다시 그려 비교한다(세로·가로). ② 가로 축: pill 폭 =
+ * 목록 폭이고 가로 스크롤이 없어야 한다 — 선언이 아니라 scroll 크기와 테두리 픽셀로 잰다.
+ */
+test.describe('세션 팝업 pill 목록 — 새 overflow 박스가 자르지 않는다 (S4-K1)', () => {
+  for (const viewport of [
+    { width: 393, height: 700 },
+    { width: 320, height: 664 },
+  ] as const) {
+    test(`${viewport.width}×${viewport.height} — 양축 프로브`, async ({ page }) => {
+      await hideDevPanel(page);
+      await page.setViewportSize(viewport);
+      await startSession(page);
+      await page.getByRole('button', { name: 'Start recording' }).click();
+      await page.getByRole('button', { name: 'Prompts', exact: true }).click();
+      await settle(page);
+
+      const POPUP = '.haru-session-prompts .haru-bubble';
+      const rect = await page.locator(POPUP).boundingBox();
+      if (rect === null) throw new Error('팝업 없음');
+      // `--shadow-bubble` drop `0 6 4` — 번짐 좌우 4 · 아래 10. 프로브는 그 안쪽 (바깥이 Record 링이 아닌 x 로).
+      const below = { x: Math.round(rect.x + 24), y: Math.round(rect.y + rect.height + 3) };
+      const right = {
+        x: Math.round(rect.x + rect.width + 1),
+        y: Math.round(rect.y + rect.height * 0.5),
+      };
+      const withShadow = {
+        below: await pixelAt(page, below.x, below.y),
+        right: await pixelAt(page, right.x, right.y),
+      };
+      await page.addStyleTag({ content: `${POPUP} { box-shadow: none !important; }` });
+      await settle(page);
+      expect(distance(withShadow.below, await pixelAt(page, below.x, below.y))).toBeGreaterThan(0);
+      expect(distance(withShadow.right, await pixelAt(page, right.x, right.y))).toBeGreaterThan(0);
+
+      const list = await page.locator('.haru-session-prompts__list').evaluate((node) => {
+        const box = node.getBoundingClientRect();
+        const pill = node.querySelector('.haru-prompt-pill')?.getBoundingClientRect();
+        return {
+          clientWidth: node.clientWidth,
+          scrollWidth: node.scrollWidth,
+          clientHeight: node.clientHeight,
+          scrollHeight: node.scrollHeight,
+          listRight: box.right,
+          pillRight: pill?.right ?? Number.NaN,
+          listLeft: box.left,
+          pillLeft: pill?.left ?? Number.NaN,
+        };
+      });
+      expect(list.scrollWidth).toBe(list.clientWidth); // 가로 축: 잘리는 것 없음
+      expect(list.pillRight).toBeLessThanOrEqual(list.listRight);
+      expect(list.pillLeft).toBeGreaterThanOrEqual(list.listLeft);
+      expect(list.scrollHeight).toBeGreaterThan(list.clientHeight); // 세로 축: 박스가 실제로 스크롤된다
+    });
+  }
+});
+
+/*
+ * ── `S4-K1` 후속 `D4-78` — ready pill 목록 (`R-SHADOW-1` ⑥ — 세로·가로 **양축** 프로브) ──
+ * 같은 구조: 안의 pill drop 0겹 → 그림자 inset 0. 잘리면 안 되는 것은 버블 그림자와 pill 테두리다.
+ */
+test.describe('세션 ready pill 목록 — 새 overflow 박스가 자르지 않는다 (D4-78)', () => {
+  for (const viewport of [
+    { width: 393, height: 700 },
+    { width: 320, height: 664 },
+  ] as const) {
+    test(`${viewport.width}×${viewport.height} — 양축 프로브`, async ({ page }) => {
+      await hideDevPanel(page);
+      await page.setViewportSize(viewport);
+      await startSession(page);
+      await settle(page);
+
+      const BUBBLE = '.haru-session-bubble .haru-bubble';
+      const rect = await page.locator(BUBBLE).boundingBox();
+      if (rect === null) throw new Error('버블 없음');
+      const below = { x: Math.round(rect.x + 24), y: Math.round(rect.y + rect.height + 3) };
+      const right = {
+        x: Math.round(rect.x + rect.width + 1),
+        y: Math.round(rect.y + rect.height * 0.5),
+      };
+      const withShadow = {
+        below: await pixelAt(page, below.x, below.y),
+        right: await pixelAt(page, right.x, right.y),
+      };
+      await page.addStyleTag({ content: `${BUBBLE} { box-shadow: none !important; }` });
+      await settle(page);
+      expect(distance(withShadow.below, await pixelAt(page, below.x, below.y))).toBeGreaterThan(0);
+      expect(distance(withShadow.right, await pixelAt(page, right.x, right.y))).toBeGreaterThan(0);
+
+      const list = await page.locator('.haru-session-bubble__prompts').evaluate((node) => {
+        const box = node.getBoundingClientRect();
+        const pill = node.querySelector('.haru-prompt-pill')?.getBoundingClientRect();
+        return {
+          clientWidth: node.clientWidth,
+          scrollWidth: node.scrollWidth,
+          clientHeight: node.clientHeight,
+          scrollHeight: node.scrollHeight,
+          listRight: box.right,
+          pillRight: pill?.right ?? Number.NaN,
+          listLeft: box.left,
+          pillLeft: pill?.left ?? Number.NaN,
+        };
+      });
+      expect(list.scrollWidth).toBe(list.clientWidth);
+      expect(list.pillRight).toBeLessThanOrEqual(list.listRight);
+      expect(list.pillLeft).toBeGreaterThanOrEqual(list.listLeft);
+      expect(list.scrollHeight).toBeGreaterThan(list.clientHeight);
+    });
+  }
+});
+
+/*
  * ── Stage 4 `S4-F1` — 세션 ready 화면 (`R-SHADOW-1` ⑥ — 세로·가로 **양축** 프로브) ──
  *
- * 세션 화면은 `AppShell scroll="none"` 의 뷰포트(= 화면 가장자리) 외에 `overflow` 박스가 없다
+ * 세션 화면은 `AppShell` 뷰포트(= 화면 가장자리) 외에 `overflow` 박스가 없다
  * (Stage 4 Spec §10 ① · §2.3.7). 그래서 하단 바·Record 코어·닫기·메달리온 링의 그림자는 **앱 컬럼
  * 경계에서 잘리면 안 된다**. 같은 지점을 `box-shadow: none` 으로 다시 그려 비교한다 (배경 무관).
  *
@@ -1058,6 +1173,83 @@ test.describe('세션 ready 그림자 — 컬럼 경계·세로에서 잘리지 
           ).toBeGreaterThanOrEqual(MIN_SHADOW_DELTA / 4);
         }
       }
+    });
+  }
+});
+
+/*
+ * ── `D4-82` — AppShell 뷰포트 `overflow-y: auto` (`R-SHADOW-1` ⑥ — 세로·가로 **양축** 프로브) ──
+ *
+ * 스크롤이 실제로 있는 320×568 에서, 내린 상태로 잰다. 뷰포트는 앱 컬럼 **바깥**이라 클립 선은 화면 끝뿐이어야
+ * 한다: 컬럼 경계(오른쪽)와 스크롤 축(아래) 모두 그림자가 남는다. 끝까지 내린 바의 아래 번짐은 화면 끝 뒤라
+ * 재지 않는다 — 클립 선이 화면 가장자리와 겹쳐 보이지 않는 `R-SHADOW-1` ④ 예외다.
+ * 프로브 거리 근거는 위 `S4-F1` 묶음과 같다.
+ */
+test.describe('세션 뷰포트 스크롤 — 컬럼 경계·세로에서 잘리지 않는다 (D4-82)', () => {
+  const TARGETS = [
+    { name: 'Record 코어', selector: '.haru-record__core', below: 10, right: 8, scrollTop: 60 },
+    {
+      name: '하단 바 Submit',
+      selector: '.haru-session-actions .haru-button >> nth=1',
+      below: null,
+      right: 6,
+      scrollTop: 60,
+    },
+    {
+      name: '메달리온 링',
+      selector: '.haru-session__medallion-ring',
+      below: 4,
+      right: null,
+      scrollTop: 30,
+    },
+  ] as const;
+
+  for (const target of TARGETS) {
+    test(`320×568 — ${target.name} 양축 프로브`, async ({ page }) => {
+      await hideDevPanel(page);
+      await page.setViewportSize({ width: 320, height: 568 });
+      await startSession(page);
+      await page.locator('[data-app-shell-viewport]').evaluate((node, top) => {
+        node.scrollTop = top;
+      }, target.scrollTop);
+      await settle(page);
+
+      const rect = await page.locator(target.selector).boundingBox();
+      if (rect === null) throw new Error(`${target.name} 없음`);
+      const points = [
+        target.below === null
+          ? null
+          : {
+              x: Math.round(rect.x + rect.width / 2),
+              y: Math.round(rect.y + rect.height + target.below - 1),
+            },
+        target.right === null
+          ? null
+          : {
+              x: Math.round(rect.x + rect.width + target.right - 1),
+              y: Math.round(rect.y + rect.height * 0.75),
+            },
+      ].filter((point) => point !== null);
+
+      const withShadow = [];
+      for (const point of points) withShadow.push(await pixelAt(page, point.x, point.y));
+      await page.addStyleTag({
+        content: `${target.selector.split(' >> ')[0] ?? ''} { box-shadow: none !important; }`,
+      });
+      await settle(page);
+      for (const [index, point] of points.entries()) {
+        const before = withShadow[index];
+        if (before === undefined) throw new Error('프로브 누락');
+        expect(
+          distance(before, await pixelAt(page, point.x, point.y)),
+          `${target.name} 그림자가 없다 (${String(point.x)},${String(point.y)})`,
+        ).toBeGreaterThanOrEqual(MIN_SHADOW_DELTA / 4);
+      }
+
+      const overflowX = await page
+        .locator('[data-app-shell-viewport]')
+        .evaluate((node) => node.scrollWidth - node.clientWidth);
+      expect(overflowX).toBe(0);
     });
   }
 });

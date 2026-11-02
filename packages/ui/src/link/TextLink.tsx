@@ -5,7 +5,12 @@ import { cx } from '../lib/cx';
 import { devWarn } from '../lib/devWarn';
 
 /** Design Spec §4.6 — 본문 안 링크 · 단독 줄. */
-export type TextLinkTone = 'default' | 'standalone';
+/**
+ * `subtle` (Stage 4b Spec §4 #5, `300:1308` `See all prompts`): 보조 색(`--color-fg-secondary`) + 밑줄.
+ * 글자 크기·줄 높이는 사용 지점이 준다. 터치 44 는 **레이아웃 높이를 늘리지 않고** `::before` 로
+ * 확장한다 — 세로 예산이 0 인 자리(세션 Prompts 팝업)에서 쓰기 위해서다 (`standalone` 은 padding 으로 44).
+ */
+export type TextLinkTone = 'default' | 'standalone' | 'subtle';
 
 export interface TextLinkProps {
   children: ReactNode;
@@ -29,6 +34,8 @@ export interface TextLinkProps {
   expanded?: boolean;
   /** 이 트리거가 펼치는 영역의 id (`aria-controls`). `expanded` 와 함께 준다. */
   controls?: string;
+  /** 누르면 대화상자(Sheet·Dialog)가 열리는 동작 버튼 (`aria-haspopup="dialog"`). `<button>` 경로 전용. */
+  hasPopup?: 'dialog';
 }
 
 /**
@@ -47,6 +54,7 @@ export function TextLink({
   externalHint,
   expanded,
   controls,
+  hasPopup,
 }: TextLinkProps) {
   if (external && externalHint === undefined) {
     devWarn('TextLink', 'missing-external-hint', 'external');
@@ -77,6 +85,7 @@ export function TextLink({
         className={className}
         aria-expanded={expanded}
         aria-controls={controls}
+        aria-haspopup={hasPopup}
         onClick={onPress}
       >
         {content}

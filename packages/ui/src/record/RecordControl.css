@@ -8,6 +8,13 @@
  *   글리프 40 @ (55,48) Record / (55,55) Pause — 라벨이 있으면 7 위로 (`--record-icon-offset-labeled`)
  *   라벨 `Tap to recording` @ y88 · Medium 10 → 11 흡수 · white
  *
+ * 4b 변형 `[4b Spec §2.5 — ctx · svg · var]` (`298:1261`)
+ *   Paused `298:1227`            Record 와 같은 면 · mic · 라벨 `Tap to resume`
+ *   Disabled `298:1236`          컴포넌트 opacity .5 + 코어 그림자 **없음** · mic · `Tap to recording`
+ *   PermissionDenied `298:1245`  링·코어 #AEAEB2(= gray-2) · 코어 그림자 Record 와 동일 · mic-off · `Mic is off`
+ *   라벨: Record/Disabled 는 x35 좌측, Paused/PD 는 가운데 — 구현은 전부 가운데 (`Tap to recording`
+ *   중심 Δ0.5, 4b Spec §2.5 `[계산]`).
+ *
  * `R-SHADOW-1`: 이 컴포넌트는 `overflow` 를 선언하지 않는다 — 코어 그림자(좌우 28 · 위 16 · 아래 40)를
  * 자를 상자가 없다.
  */
@@ -29,6 +36,28 @@
 
 .haru-record[aria-disabled='true'] {
   cursor: default;
+}
+
+/* ===== 4b 변형 (`298:1236` · `298:1245`) ===================================== */
+/* Disabled — 전역 비활성 표현(`D4-18`)과 같은 opacity .5 + Figma 가 코어 filter 를 뺐다 (F-7). */
+.haru-record--disabled {
+  opacity: var(--opacity-disabled);
+}
+
+.haru-record--disabled .haru-record__core {
+  box-shadow: var(--record-core-shadow-disabled);
+}
+
+/*
+ * PermissionDenied — 링 2겹·코어 = gray-2 (`--record-tone-denied`, `T-20`). 코어 그림자는 Record 와 같다.
+ * provisional: P-25 — 흰 글리프·라벨 on gray-2 = 2.211:1 (`S4B-Q6` → `P-25` 범위 확장, `D4-58` NB-6).
+ */
+.haru-record--permission-denied .haru-record__ring {
+  border-color: var(--record-tone-denied);
+}
+
+.haru-record--permission-denied .haru-record__core {
+  background-color: var(--record-tone-denied);
 }
 
 .haru-record__ring,

@@ -73,6 +73,77 @@ describe('RecordControl (Stage 4 Design Spec §2.6)', () => {
     expect(screen.getByRole('button').hasAttribute('disabled')).toBe(false);
   });
 
+  it('paused = `298:1227`: mic glyph + caption `Tap to resume` · no pulse class target', () => {
+    const { container } = render(
+      <RecordControl state="paused" label="Resume recording" caption="Tap to resume" />,
+    );
+    const button = screen.getByRole('button', { name: 'Resume recording' });
+    expect(button.classList.contains('haru-record--paused')).toBe(true);
+    expect(button.getAttribute('aria-disabled')).toBeNull();
+    expect(container.querySelector('.haru-record__caption')?.textContent).toBe('Tap to resume');
+    expect(container.querySelector('.haru-record__glyph path')?.getAttribute('d')).toMatch(
+      /^M25 10/,
+    );
+    // pulse 는 idle 에만 걸린다 — paused 는 모션 없음 (4b Spec §6)
+    expect(css).toMatch(/\.haru-record--idle \.haru-record__ring--outer \{\s*animation:/);
+    expect(css).not.toMatch(/\.haru-record--paused[^{]*\{[^}]*animation/);
+  });
+
+  it('disabled = `298:1236`: aria-disabled by itself · focusable · onToggle ignored · mic + caption', () => {
+    const onToggle = vi.fn();
+    const { container } = render(
+      <RecordControl
+        state="disabled"
+        label="Start recording"
+        caption="Tap to recording"
+        onToggle={onToggle}
+      />,
+    );
+    const button = screen.getByRole('button', { name: 'Start recording' });
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+    expect(button.hasAttribute('disabled')).toBe(false);
+    fireEvent.click(button);
+    expect(onToggle).not.toHaveBeenCalled();
+    expect(container.querySelector('.haru-record__caption')?.textContent).toBe('Tap to recording');
+  });
+
+  it('disabled CSS = opacity .5 (D4-18) + core shadow removed (F-7), nothing else', () => {
+    expect(css).toMatch(/\.haru-record--disabled \{\s*opacity: var\(--opacity-disabled\);\s*\}/);
+    expect(css).toMatch(
+      /\.haru-record--disabled \.haru-record__core \{\s*box-shadow: var\(--record-core-shadow-disabled\);\s*\}/,
+    );
+  });
+
+  it('permission-denied = `298:1245`: Figma mic-off glyph `298:1254` (stroke 3.333, VG-F2-01) + `Mic is off` · gray-2 ring/core · P-25 marker', () => {
+    const { container } = render(
+      <RecordControl state="permission-denied" label="Microphone is off" caption="Mic is off" />,
+    );
+    expect(screen.getByRole('button', { name: 'Microphone is off' })).toBeTruthy();
+    expect(container.querySelector('.haru-record__glyph svg.lucide-mic-off')).toBeNull();
+    const paths = container.querySelectorAll('.haru-record__glyph path');
+    expect(paths).toHaveLength(6);
+    expect(paths[0]?.getAttribute('d')).toBe('M3.33333 3.33333L36.6667 36.6667');
+    for (const path of paths) expect(path.getAttribute('stroke-width')).toBe('3.33333');
+    expect(container.querySelector('.haru-record__caption')?.textContent).toBe('Mic is off');
+    expect(css).toMatch(
+      /\.haru-record--permission-denied \.haru-record__ring \{\s*border-color: var\(--record-tone-denied\);/,
+    );
+    expect(css).toMatch(
+      /\.haru-record--permission-denied \.haru-record__core \{\s*background-color: var\(--record-tone-denied\);/,
+    );
+    expect(css).toMatch(/provisional: P-25/);
+  });
+
+  it('all five states keep the same <button> node across changes (AC-4-125)', () => {
+    const { rerender } = render(<RecordControl state="idle" label="a" />);
+    const node = screen.getByRole('button');
+    for (const state of ['recording', 'paused', 'disabled', 'permission-denied', 'idle'] as const) {
+      rerender(<RecordControl state={state} label={state} />);
+      expect(screen.getByRole('button')).toBe(node);
+      expect(node.classList.contains(`haru-record--${state}`)).toBe(true);
+    }
+  });
+
   it('pulse 0% keyframe = Figma declared value and stops under reduced motion (R-BASELINE-1 ②)', () => {
     expect(css).toMatch(
       /@keyframes haru-record-pulse \{\s*0%,\s*100% \{\s*opacity: var\(--record-ring-opacity-outer\);\s*scale: 1;/,

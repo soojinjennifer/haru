@@ -5,8 +5,8 @@ export interface AppShellProps {
   children: ReactNode;
   /**
    * 콘텐츠 스크롤 방식.
-   *  - `auto` — 세로 스크롤 (`TabLayout` · `StackLayout`)
-   *  - `none` — 스크롤 없이 고정 배치 (`FullscreenLayout`)
+   *  - `auto` — 세로 스크롤 (`TabLayout` · `StackLayout` · `FullscreenLayout`, `D4-82`)
+   *  - `none` — 스크롤 없이 고정 배치 (현재 사용처 없음)
    */
   scroll?: 'auto' | 'none';
   /**

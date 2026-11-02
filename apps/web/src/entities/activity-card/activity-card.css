@@ -320,6 +320,12 @@
   background-color: var(--color-surface-solid);
 }
 
+/* `bare` — 면·테두리·padding 은 바깥 컨테이너(Drawer 캐러셀 `88:708`)가 그린다 (Stage 4b `S4-G2`) */
+.haru-prompt-pill--bare {
+  min-block-size: 0;
+  padding: 0;
+}
+
 /*
  * 세션 밀도 (Stage 4 Design Spec §2.2.1 · `T-14`, Figma `139:2763`) — 38 / py 8 / px 12 / gap 8.
  * 면은 `#dbeee7`(`--color-surface-tinted`) **+** 1px `#5e73702e` 테두리를 함께 쓴다. 테두리는

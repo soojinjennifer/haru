@@ -10,8 +10,12 @@ import { cx } from '../lib/cx';
  */
 export type ButtonVariant = 'accent' | 'glass' | 'neutral';
 
-/** Design Spec §4.4 — 45 / 56 (`--button-height-md` / `-lg`). */
-export type ButtonSize = 'md' | 'lg';
+/**
+ * Design Spec §4.4 — 45 / 56 (`--button-height-md` / `-lg`).
+ * `sm` = 36 — 4b Design Spec §4 #2 (세션 Prompts 칩 `298:1314`, `T-16`): pad 14 / 16 · gap 6 · 아이콘 18 ·
+ * 라벨 subheadline semibold · 그림자 `--shadow-bubble` 1겹 · hit 44 (`::before`).
+ */
+export type ButtonSize = 'sm' | 'md' | 'lg';
 
 type NativeButtonProps = Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,

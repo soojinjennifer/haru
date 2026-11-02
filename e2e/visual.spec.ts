@@ -232,9 +232,18 @@ test.describe('Stage 2 온보딩 화면 baseline (S2-HOME-2, 영역 클립)', ()
    * | `-edit` | 미로그인 | 없음 | **편집** (`missing-prefill`) | 있음 |
    */
 
+  /**
+   * 나이 배지는 **실제 시계**로 계산된다(입력 파생, D-10) — `6yr 6mo` 가 달이 바뀌면 `6yr 7mo` 가 되어
+   * baseline 이 11월에 깨졌다. 재생성은 다음 달에 또 깨지므로 **시계와 출생 연도를 함께 고정**한다
+   * (`seedChildDraft` 기본값은 실제 연도 − 6 이라 해가 바뀌면 같은 일이 난다). 세 값이 baseline 의 `6yr 6mo` 다.
+   */
+  const AGE_BADGE_NOW = new Date('2026-10-15T12:00:00Z');
+  const AGE_BADGE_BIRTH_YEAR = 2020;
+
   /** `R-07` A + `R-08` 표시 전용 — Trial 안내 **있음**. */
   test('s2-onboarding-childinfo-trial — Figma 248:1159 (display · 안내 있음)', async ({ page }) => {
-    await seedChildDraft(page);
+    await page.clock.setFixedTime(AGE_BADGE_NOW);
+    await seedChildDraft(page, 'Yuna', AGE_BADGE_BIRTH_YEAR);
     await gotoApp(page, '/onboarding/child-info');
 
     await expect(page.getByText('Your answers stay on this device')).toBeVisible();
@@ -250,7 +259,8 @@ test.describe('Stage 2 온보딩 화면 baseline (S2-HOME-2, 영역 클립)', ()
 
   /** `R-07` B — 가입 완료 후 도달. Trial 안내 블록과 gap 이 통째로 사라진다 (§4.4). */
   test('s2-onboarding-childinfo — Figma 248:1159 (display · 안내 없음)', async ({ page }) => {
-    await seedChildDraft(page);
+    await page.clock.setFixedTime(AGE_BADGE_NOW);
+    await seedChildDraft(page, 'Yuna', AGE_BADGE_BIRTH_YEAR);
     // 아이 정보 draft 가 있으므로 동의 직후 Guard 가 이 화면으로 되돌린다 (`§11.19` 7-2).
     await signUpAndConsent(page, ',onboarding:prefilled-child-info');
 

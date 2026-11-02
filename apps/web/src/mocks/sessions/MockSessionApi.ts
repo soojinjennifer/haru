@@ -29,6 +29,8 @@
  * - `to='recording'` 은 누적 녹음이 30분에 닿았으면 `SESSION_MAX_DURATION_EXCEEDED`
  * - `completed` 첫 전이에서 스티커를 **1회** 지급한다 (재요청은 같은 지급 — FR-19)
  * - 녹음 확정(`complete`)이 이미 있으면 `completed` 직후 `analyzing` 으로 옮긴다 (actor `server`)
+ * - `SessionDetail.completionBubble` 은 **완료 계열에서만** 값을 낸다 (`API_CONTRACTS.md` §3.2.3). 레코드는
+ *   생성 시점부터 값을 들고 있지만 — 전이 응답과 같은 값을 쓰기 위해서다 — 비완료 세션에는 `null` 이다
  *
  * **`Idempotency-Key`**: `create` · `transition` 은 키를 보관·재생한다. 판정이 scenario 분기보다
  * **앞**이다 — 한 번 성공한 요청은 그 뒤 scenario 가 무엇이든 같은 응답이다 (AC-4-37).
@@ -74,7 +76,7 @@ import {
   createReadySessionFixture,
   createSessionHistoryFixture,
   createStickerAwardFixture,
-  MOCK_COMPLETION_BUBBLE,
+  MOCK_COMPLETION_BUBBLE_NO_SUBTEXT,
   MOCK_HISTORY_RECORDING_IDS,
   MOCK_RAW_AUDIO_RETENTION_MS,
   resolveSessionBook,
@@ -116,6 +118,14 @@ export const sessionScenarioGroup: ScenarioGroupDefinition<SessionScenarioKey> =
 /** 세션 화면 진입 지연 (Catalogue §5.4 "1.5–3s"). 실제 대기는 주입 timer 가 정한다. */
 export const SESSION_LOADING_DELAY_MS = 1_500;
 
+/** `SessionDetail.completionBubble` 이 값을 갖는 상태 (§3.2.3). */
+const COMPLETION_STATUSES: ReadonlySet<SessionStatus> = new Set([
+  'completed',
+  'analyzing',
+  'analyzed',
+  'failed',
+]);
+
 const CREATE_OPERATION = 'POST /v1/sessions';
 const DETAIL_OPERATION = 'GET /v1/sessions/:sessionId';
 const TRANSITION_OPERATION = 'POST /v1/sessions/:sessionId/transitions';
@@ -150,7 +160,8 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
         childId: MOCK_CHILD_ID,
         clientSessionKey: null,
         sticker: null,
-        completionBubble: MOCK_COMPLETION_BUBBLE,
+        // `sticker: null` — `subtext` 가 `sticker earned` 를 말하면 응답이 스스로 모순된다 (§3.2.3).
+        completionBubble: MOCK_COMPLETION_BUBBLE_NO_SUBTEXT,
         recordingId,
       });
       if (recordingId !== null) {
@@ -176,7 +187,7 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
       childId: MOCK_CHILD_ID,
       clientSessionKey: null,
       sticker: null,
-      completionBubble: MOCK_COMPLETION_BUBBLE,
+      completionBubble: MOCK_COMPLETION_BUBBLE_NO_SUBTEXT,
       recordingId: null,
     };
     state.sessions.set(MOCK_ACTIVE_SESSION_ID, record);
@@ -217,6 +228,9 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
                 deletedAt: recording.deletedAt,
               },
         sticker: record.sticker,
+        completionBubble: COMPLETION_STATUSES.has(record.summary.status)
+          ? record.completionBubble
+          : null,
       },
       { operation, direction: 'response' },
     );
@@ -355,7 +369,7 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
         const summary = createReadySessionFixture({
           id: idFactory.next(),
           mode: body.mode,
-          book,
+          book: shape.book === 'requested' ? book : shape.book,
           readingContext: body.readingContext,
           readyAt: body.readyAt,
           bubble: shape.bubble,
@@ -368,7 +382,7 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
           childId: body.childId,
           clientSessionKey: body.clientSessionKey,
           sticker: null,
-          completionBubble: MOCK_COMPLETION_BUBBLE,
+          completionBubble: shape.completionBubble,
           recordingId: null,
         });
 
