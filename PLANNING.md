@@ -39,7 +39,7 @@ Stage 요청은 Plan/Design Spec 승인이 아니다 (rules/workflow.md §3). **
 
 **Orchestrator 미처리 후속 작업** (`stage-3-approvals.md` §28.6):
 1. **가값 ⭐ 7건 항목별 재제시** (Stage 0 `#10-4`) — `P-01` · `P-02` · `P-04` · `P-16` · `P-23` · `P-24` **+ ⭐ `P-25`**(2026-10-13 등재, `D4-16`). `S3-PROV-2`(dev gallery 미등재) 해소로 **6건 전부에 절차가 성립한다.** 사용자 승인 필요
-2. **Stage 8 게이트**: `QA-3-003`(에셋 파이프라인) + `P3-BIP-19`(상용 그림책 표지 교체 — **법무 확인 필요**. Figma 에셋에 *The Most Magnificent Thing* · *Grumpy Monkey* · *After the Fall* · *Where the Wild Things Are* 가 들어 있다)
+2. **Stage 8 게이트**: `QA-3-003`(에셋 파이프라인) — **잔여 1건**. ✅ `P3-BIP-19`(상용 그림책 표지 교체)는 **`D-06` 으로 수용 해제** (2026-11-07, user *"이대로 수용"*). 표지 교체는 Stage 8 Deliverable 에서 제외하며, 공개 프리뷰(`C-18`) 노출 위험 처리 방식만 Stage 8 Plan 에서 선택한다 (`stage-0-approvals.md` §3 D-06 주의)
 3. **PRD 수정 대상** (`D-24` 절차 — OneDrive 원본 + 저장소 사본 동일 패스)
    - Stage 3 이월: `LN-1`(책 평점) · `LN-2`(다회차 진행) · `LN-3`(책 저장) · `LN-6`(하단 탭 3탭 서술) · `LN-7`(서재 설명). `LN-4`·`LN-5` 는 미결
    - ⭐ **Stage 4 신규 8건** (`stage-4-approvals.md` §6.2 — 번호 **8~15**): **8**·**9**·**11**·**12**·**13** = `ready` 버블의 Prompt 자동 표시(`D4-14`) · **10**·**14** = 버블 = **인사 + Prompt** 재해석(`D4-20`) · ⭐ **15** = §7.5 `:410` **예시 인사 문구가 1줄(≤240px)에 들어가지 않는다**(`D4-21`)
@@ -190,6 +190,10 @@ FR ID가 없는 화면 요구사항:
 > 각 Stage 착수 시 plan-agent가 `docs/plans/stage-N-plan.md` (AC-N-xx, plan-agent.md §5 형식)를 작성하고, design-agent Design Spec과 함께 **승인 체크포인트**에서 사용자 승인을 받는다. 아래는 범위 합의용 요약이다.
 > Exit Criteria는 Frontend에서 실행 가능한 검증만 포함한다. 서버 측 테스트(RLS, Retention Job, 실제 업로드·분석·생성)는 요구하지 않으며 `PENDING` 으로 기록하고 Handoff 문서에 반영한다.
 > 모든 데이터 화면 공통 Mock 시나리오: `success` · `loading` · `empty` · `error` · `retry` (rules/frontend §5 표시명 SUCCESS/LOADING/EMPTY/ERROR/RETRY). 아래 key는 **API_CONTRACTS §5.4 Scenario Key Catalogue** 가 유일한 기준이다.
+>
+> ⭐ **간소화 적용 (`D-SIMP-1`·`D-SIMP-2`, 사용자 결정 2026-11-07 — 정본 `docs/decisions/scope-simplification.md`)**
+> **Stage 4b 잔여 작업 단위와 Stage 5~8** 에 적용된다. ① plan-agent·design-agent 산출물에 **분량 상한**이 있다 (Stage Plan·Design Spec 800줄, 작업 단위 450줄 — `rules/workflow.md` §2-1). ② 아래 각 Stage 의 **Mock scenarios 목록은 이제 후보 집합(superset)** 이다. Stage Plan 이 *필수 5종 + 그 Stage 화면이 실제로 렌더하는 상태* 만 선택하고, 고르지 않은 항목(멱등성·전이 경합·보관 정책·집계 규칙 등 서버 동작 검증분)은 **`BACKEND_HANDOFF.md` 요구사항으로 기록**한다 (`rules/frontend.md` §5-1).
+> ⛔ 이 결정은 **8단계 구조를 바꾸지 않고**(Stage 6 유지), **Stage 7 리포트 범위를 줄이지 않으며**(PDF·하이라이트 포함), **AC 개수를 줄이지 않는다.** 줄이는 것은 문서 분량과 Mock 시나리오 수다.
 
 ### Stage 1 — Frontend Foundation + Shared UI + Router + Layout + Design Tokens + Mock Infrastructure
 - **Goal**: 이후 모든 Stage가 올라갈 monorepo·토큰·Shared UI·Router/Layout·contracts 공통부·Mock 인프라 확립.
@@ -516,18 +520,22 @@ Stage 0 산출물 **승인 완료** (#1, 2026-09-14). Stage 2 전 결정 C-1~C-1
 | | D-02 | 하단 탭 Library / Home / Progress (PRD §6.1과 다름) | §3 | §9.2, §10 #15 |
 | | D-03 | 아이 이름 성·이름 두 칸 | §3 | §4.2 최소 수집, §5 Stage 2, §6 M-28 |
 | | D-04 | 온보딩 Step 5 = Baseline v1 10문항 | §3 | §4.1 FR-03, §5 Stage 2, §6 M-03 |
+| | **D-05** ⭐ 2026-11-07 | 약관·개인정보처리방침 **본문·URL 없이 진행** (Mock 가짜 URL 유지). Frontend 범위 차단 해제, 출시 전 차단 항목으로는 유지 | §3 | §4.1 FR-02, §5 Stage 2·Stage 8 |
+| | **D-06** ⭐ 2026-11-07 | 상용 그림책 **표지 4종 임시 에셋 교체하지 않음** (`P3-BIP-19` 게이트 해제). 공개 프리뷰 노출 위험은 Stage 8 Plan 에서 선택 | §3 | §5 Stage 3·Stage 8, §8 R-10 |
 | 가값 (FAIL 사유 아님, Stage 1 후 항목별 승인) | P-01~P-03 | 보조 텍스트 색 · 비텍스트 요소 · focus ring | §4 | §5 Stage 1, §8 R-15, §10 #18 |
 | | P-04~P-09 | status 색 · scrim · z-index · motion · safe-area · 아이콘 크기 | §4 | §5 Stage 1, §10 #10, #21 |
 | | P-10 | 공통 상태 화면·컴포넌트 상태 디자인 | §4 | §5 Stage 1, §10 #22 |
 | | P-11~P-16 | 글래스·틴트 표면 텍스트 버튼 라벨 대비 · radius-surface 22/24 · gutter 24/26 · gradient stop · 버튼 높이 · medallion 크기 | §4 | §5 Stage 1, §8 R-15 (P-11) |
 | | **P-25** ⭐ 2026-10-13 | **`Discard` 버튼 면 `#aeaeb2` + 그 위 흰 라벨 대비 2.211:1** — 식별자 **`--haru-gray-2`**(Primitive) + **`--color-action-neutral-bg`** / **`--color-action-neutral-fg`**(Tier-2). ⛔ **`--color-action-secondary-*` 를 쓰지 않는다** — 그 이름은 **이미 glass Button·Chip 의 것이고 가값 `P-11` 의 짝**이다. ⛔ **`D-01` 범위 확장이 아니다** · ⛔ **ink 계열 흡수 금지** | **`stage-4-approvals.md` §5** (대장 등재 2026-10-13, user) | §5 Stage 4, §8 R-15 |
 | 법무 검토 (출시 전 미국 변호사) | L-01 | VPC 방식 | §6 | §4.1 FR-02, §5 Stage 2 |
-| | L-02 | 파일럿 참여 동의 필수/선택·문구 | §6 | §4.1 FR-02, §5 Stage 2 |
+| | L-02 | 파일럿 참여 동의 필수/선택·문구 — 본문·URL 부재는 `D-05` 로 수용, 법무 질의는 열려 있음 | §6 | §4.1 FR-02, §5 Stage 2 |
 | | L-03 | 동의 철회 미제공과 COPPA 보호자 권리 | §6 | §4.1 FR-02, §10 #32 |
 | | L-04 | 접근성 수용 예외(D-01) | §6 | §8 R-15 |
 | | L-05 | 서면 데이터 보관 정책·정보보안 프로그램 | §6 | §8 R-06, Handoff |
 | | L-06 | STT·AI·Push 벤더 아동 데이터 조건 (ZDR·DPA) | §6 | §7 #4–#6, Handoff |
 | | L-07 | 아이 성(last name) 수집 | §6 | §4.2 최소 수집, §6 M-28 |
+| 산출물 간소화 ⭐ 2026-11-07 | **D-SIMP-1** | Stage Plan·Design Spec 분량 상한 (800줄 / 작업단위 450줄). AC 개수는 줄이지 않는다 | `scope-simplification.md` §1 | §5 머리말, `rules/workflow.md` §2-1 |
+| | **D-SIMP-2** | Mock 시나리오 = 필수 5종 + 화면이 실제로 렌더하는 상태만. 서버 동작 검증분은 Handoff 요구사항으로 | `scope-simplification.md` §2 | §5 각 Stage Mock scenarios, `rules/frontend.md` §5-1 |
 | 제품 결정 (Rev 6) | #33 | Stage 2 착지 = `/` Home skeleton (워드마크·설정 아이콘 `26:44`·빈 상태 안내). Home 콘텐츠·하단 탭바는 Stage 3 — CONFIRMED | §1 #33 | §4.1, §5 Stage 2, §9.2, §10 #33 |
 | | C-19 | 동의 이력 보기 = 선택 기능 (Stage 8, 시간 여유 시 읽기 전용 목록, 미구현 시 QA FAIL 아님) — CONFIRMED | §1 C-19 | §4.1 FR-02, §5 Stage 8, §9.2, §10 #30 |
 | 미결 제품 결정 | M-32 잔여 | Reading Context 선택 없이 세션 시작 허용 여부 — NEEDS DECISION (Stage 3) | — | §5 Stage 3, §6 M-32 |

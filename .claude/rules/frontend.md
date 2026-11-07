@@ -65,6 +65,21 @@ apps/web/src/mocks/
 - Mock은 contracts 전이 표·error envelope을 그대로 따른다 (허용되지 않은 전이 → 정의된 error code).
 - Production 빌드의 Mock 포함/비활성 방식은 Stage 1 Plan에서 확정한다.
 
+### 5-1. 시나리오 한정 기준 (`D-SIMP-2`, 사용자 결정 2026-11-07)
+
+> 정본: `docs/decisions/scope-simplification.md`. 적용 범위 = **Stage 4b 잔여 작업 단위와 Stage 5~8**. 기존 Stage 의 시나리오는 삭제하지 않는다.
+
+각 Stage 가 **실제로 만드는** 시나리오는 다음으로 한정한다.
+
+1. **필수 5종** — `SUCCESS` · `LOADING` · `EMPTY` · `ERROR` · `RETRY`
+2. **그 Stage 화면이 실제로 렌더하는 상태에 1:1 대응하는 것**만 추가
+
+화면에 보이는 차이가 없고 **서버 동작을 검증하는 성격**이면 Mock 으로 만들지 않고 `docs/BACKEND_HANDOFF.md` 요구사항으로 기록한다 — 멱등성, 전이 경합·이중 요청, 보관 정책·삭제 SLA·cascade, 리포트 발행 기준 같은 집계 규칙의 서버 측 판정.
+
+- **유지**: contracts 전이표·error code 거부 테스트는 화면과 무관해도 계약 정합성의 근거이므로 그대로 작성한다.
+- `PLANNING.md` §5 의 Stage 별 시나리오 목록은 **후보 집합(superset)** 이다. Stage Plan 이 위 기준으로 **선택**하고, 선택하지 않은 항목은 **인계 문서 대상으로 명시**한다.
+- 만들지 않기로 한 시나리오는 QA 에서 `NOT VERIFIED` 가 아니라 **`BACKEND_INTEGRATION_PENDING`** 이다. 단 `rules/qa.md` §1 의 PENDING 조건 3개를 그대로 만족해야 하며, **Contract 가 요구사항을 표현하지 못하거나 Mock 이 Contract 와 다르면 여전히 `FAIL`** 이다.
+
 ## 6. Design System 사용
 
 ```

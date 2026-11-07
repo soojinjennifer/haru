@@ -15,6 +15,16 @@
 | QA Fix Loop 횟수 | Stage 4a: 1 / 3 → PASS |
 | 마지막 갱신 | **2026-10-14** — Stage 3 `PASS` 종결(5회차 `fe349cb`) 후 칩 통일 3커밋. Stage 4 Plan·Design Spec·Figma 감사·디자이너 요청서·approvals 작성, **결정 `D4-1`~`D4-22`**, PRD 개정 2(`D-24` 절차), `PLANNING.md` 34지점·`API_CONTRACTS.md` Rev 8 갱신. **Stage 4a 착수** |
 
+### ⭐ 2026-11-07 — 게이트 수용 2건 + 산출물 간소화 결정 (코드 변경 0)
+
+| 항목 | 결과 |
+|---|---|
+| `L-02` 약관·방침 본문·URL 부재 | ✅ **수용 — `D-05`** (user *"이대로 수용"*). Frontend 범위 차단 해제. 출시 전 차단 항목으로만 유지 · 법무 `L-02` 질의는 열려 있음 |
+| `P3-BIP-19` 상용 그림책 표지 교체 | ✅ **수용 — `D-06`** (user *"이대로 수용"*). Stage 8 Deliverable 에서 표지 교체 제외. ⚠️ 공개 프리뷰(`C-18`) 노출 위험 처리 방식은 Stage 8 Plan 에서 선택 (`stage-0-approvals.md` §3 주의) |
+| 산출물 간소화 | ✅ **`D-SIMP-1`**(문서 분량 상한) · **`D-SIMP-2`**(Mock 시나리오 한정) — 정본 `docs/decisions/scope-simplification.md`. 적용 = **`S4-F2`~`S4-K` + Stage 5~8**. ⛔ 8단계 구조·Stage 7 범위·AC 개수는 그대로 |
+| 잔여 Stage 8 게이트 | **`QA-3-003`** (에셋 파이프라인) 1건만 남음 |
+| ⏳ 미완 | **PRD 수정 13건 미적용** — OneDrive 원본에 접근할 수 없는 세션이라 `D-24` 절차(원본+사본 같은 패스 + diff)를 지킬 수 없다. 사용자 판단 대기 |
+
 ### 끼어든 작업 — Stage 2 재구성 (2026-10-03 ~ 10-05, 완료)
 
 Stage 3 착수 전에 사용자 지시로 **Stage 2 온보딩 설문을 재구성**했다. Stage 3 범위가 아니다.
@@ -99,7 +109,7 @@ Stage 3 착수 전에 사용자 지시로 **Stage 2 온보딩 설문을 재구�
 | `S1-G-6` | React StrictMode 이중 마운트가 `retry` scenario 1회차를 소비 | 1-G | ✅ **해소** — `consumeAttempt()` rollback + `retryOnMount: false` |
 | `S1-E-2` | 320/393/600/1024 반응형 실측 | 1-G | ✅ **해소** — 앱 컬럼 272/345/480/480, 가로 스크롤 0 |
 | `QA-1-001` | `no-console` 전면 차단 + 예외 경로 2개로 축소, `devWarn` 신설 | Fix Loop 1 | ✅ **해소** (QA 재현으로 확인) |
-| **`L-02` 약관·개인정보방침 본문** | **외부 링크로만 연결(D-4). 실제 문서 본문·URL 이 없다.** 실제 사용자가 동의 화면을 만나기 전 반드시 준비돼야 하며, Mock 은 가짜 URL 을 쓴다. 걸어둔 곳: 이 표 · Stage 8 `BACKEND_HANDOFF.md` 출시 전 차단 항목 · Mock fixture + QA 확인 항목 | **출시 전 (법무 L-02)** | **추적 중** |
+| **`L-02` 약관·개인정보방침 본문** | **외부 링크로만 연결(D-4). 실제 문서 본문·URL 이 없다.** Mock 은 가짜 URL 을 쓴다. 걸어둔 곳: 이 표 · Stage 8 `BACKEND_HANDOFF.md` 출시 전 차단 항목 · Mock fixture + QA 확인 항목 | **출시 전 (법무 L-02)** | ✅ **수용 — `D-05`** (2026-11-07, user *"이대로 수용"*). Frontend 범위 차단 해제. 출시 전 차단 항목으로만 유지 |
 | ~~`D-A`~~ | ✅ **결정 + 반영 완료** — 질문지 문서 기준 + 교체 가능 구조 (approvals §8.1). `2-ONBOARDING` 이 `OnboardingInstrument` 로 구현: 코드=contracts · 문구=feature copy · 문항은 Mock instrument 응답 · 제출에 `{code, version}` 동봉 | `2-ONBOARDING` | 해소 |
 | ~~`D-B`~~ | ✅ **결정** — 4대 역량과 **같은 목록 사용**. 비교·판정 표현 금지는 별도 유지 (approvals §8.2) | — | 해소 |
 | ~~`D-C`~~ | ✅ **결정** — 현재 기준 유지 | — | 해소 |
