@@ -40,10 +40,10 @@ Stage 요청은 Plan/Design Spec 승인이 아니다 (rules/workflow.md §3). **
 **Orchestrator 미처리 후속 작업** (`stage-3-approvals.md` §28.6):
 1. **가값 ⭐ 7건 항목별 재제시** (Stage 0 `#10-4`) — `P-01` · `P-02` · `P-04` · `P-16` · `P-23` · `P-24` **+ ⭐ `P-25`**(2026-10-13 등재, `D4-16`). `S3-PROV-2`(dev gallery 미등재) 해소로 **6건 전부에 절차가 성립한다.** 사용자 승인 필요
 2. **Stage 8 게이트**: `QA-3-003`(에셋 파이프라인) + `P3-BIP-19`(상용 그림책 표지 교체 — **법무 확인 필요**. Figma 에셋에 *The Most Magnificent Thing* · *Grumpy Monkey* · *After the Fall* · *Where the Wild Things Are* 가 들어 있다)
-3. **PRD 수정 대상** (`D-24` 절차 — OneDrive 원본 + 저장소 사본 동일 패스)
-   - Stage 3 이월: `LN-1`(책 평점) · `LN-2`(다회차 진행) · `LN-3`(책 저장) · `LN-6`(하단 탭 3탭 서술) · `LN-7`(서재 설명). `LN-4`·`LN-5` 는 미결
-   - ⭐ **Stage 4 신규 8건** (`stage-4-approvals.md` §6.2 — 번호 **8~15**): **8**·**9**·**11**·**12**·**13** = `ready` 버블의 Prompt 자동 표시(`D4-14`) · **10**·**14** = 버블 = **인사 + Prompt** 재해석(`D4-20`) · ⭐ **15** = §7.5 `:410` **예시 인사 문구가 1줄(≤240px)에 들어가지 않는다**(`D4-21`)
-   - ⛔ **지금 고치지 않는다** — 사용자 지시 시 `D-24` 절차. **이미 적용 완료**: PRD v1.5 **개정 2**(2026-10-13, `D4-12` 반영 — `Done Reading` → Record ⇄ Pause + Discard/Submit), sha1 `c1b66f3c4a007260fd76b0885b2918ad8e97e265`
+3. **PRD 수정 대상** (`D-24` 절차 — OneDrive 원본 + 저장소 사본 동일 패스) — ✅ **2026-11-07 PRD v1.5 개정 3 으로 처리** (사용자 지시 *"이전에 진행하지 못했던 PRD 수정을 진행해줘"*)
+   - 집계: **적용 25건** — Stage 3 `S3-7`~`S3-12`(6) · `RW-13` 잔여(1) · `LN-1`·`2`·`3`·`6`·`7`·`8`(6) · Stage 4 `S4-8`~`S4-19`(12). **보류 2건** — `LN-4`·`LN-5`(미결). 무효 1(`S3-4` → `S3-9`) · 수정 안 함 2(`D4-15` · `D4-152` §12.2). **2026-11-08 보완**: `D4-151` 예시 인사 `Enjoy today’s reading!` · `D-26` 증정 신청 = 앱 밖 별도 랜딩페이지(기록만) — sha1 `3452f7c1fd7e857d28ee01fcbe6c5e66e2e2830b`, 백업 `$HARU_ONEDRIVE/old/HARU_PRD_v1.5.pre-rev3b-20261108-0031.md`
+   - 백업 `$HARU_ONEDRIVE/old/HARU_PRD_v1.5.pre-rev3-20261107-1924.md` · 적용 후 sha1 `e6016ec6a7fa621ecf7f82300cf88ecae649afcd`(원본·사본 `diff` 동일) · 대조표·보류·**등재되지 않은 잔존 서술 13건**(다음 개정 후보) = `docs/decisions/prd-v1.5-rev3-2026-11-07.md`
+   - 이전 적용: v1.5(2026-10-03, 15건) · 개정 2(2026-10-13, `D4-12`, sha1 `c1b66f3c4a007260fd76b0885b2918ad8e97e265`)
 
 ## 2. 개발 범위 — Frontend-only (CONFIRMED, 사용자 지시 2026-09-14)
 

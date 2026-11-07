@@ -92,6 +92,8 @@ PRD FR-07·§8.2 의 "2~3개"는 **표시 개수**로는 유지되지만 **상�
 |---|---|---|---|---|
 | 4 | **FR-07 · §8.2** | 대화 Prompt **2~3개** | **표시 3개 + 스크롤/확장으로 그 이상 도달 가능.** 개수 상한은 서버가 정한다 | `N-2` |
 
+> 4번은 2026-10-03 v1.5 에 적용됐으나 §12.10 이 "접힘 3개 + 확장" 을 폐기해 **무효** — §12.5 9번으로 대체되어 ✅ **PRD v1.5 개정 3 적용 (2026-11-07)** — 백업 `$HARU_ONEDRIVE/old/HARU_PRD_v1.5.pre-rev3-20261107-1924.md` · 적용 후 sha1 `e6016ec6a7fa621ecf7f82300cf88ecae649afcd` · 대조표 `docs/decisions/prd-v1.5-rev3-2026-11-07.md` 에서 교체됐다 (`S3-4` → `S3-9`).
+
 ---
 
 ## 7. 구현 차단 결정 (2026-10-01, user)
@@ -268,6 +270,8 @@ plan-agent·design-agent 가 §8.6 문서 갱신을 수행하며 **고치지 않
 | 5 | **FR-07 · §8.2** | Prompt 에 단계·페이지 개념 없음 | Prompt 에 **`phase`(읽기 전/후) 와 `pageRef`(페이지 참조)** 가 있고 화면에 배지로 표시된다. `pageRef` 는 **책별 페이지 앵커 데이터**(콘텐츠 제작 범위)를 전제한다 | `D-8` · `P3-BIP-13` · `P3-BIP-14` |
 | 6 | **FR-07 · §8.2** | Prompt **2~3개** (상한으로 읽힘) | **개수 상한 없음.** 표시 3개 + 확장 도달. 생성 정책(2~3개)은 Backend 소관 | `D-21` (§6.2-4 보강) |
 | 7 | **§7.2 Step 1** | 언어 환경이 **필수** 입력 (`D-C` 2026-09-26) | **선택 사항 + 기본값 영어.** 미선택으로 전진·제출 가능하며, 제출 경계에서만 빈 값을 `['english']` 로 채운다. 사용자의 **명시적 해제는 보존**된다 | `§11.22` (2026-10-04) · `QA-2R-012` |
+
+> 5·6번은 2026-10-03 v1.5 에 적용 완료. **7번은 **PRD v1.5 개정 3 적용 (2026-11-07)** — 백업 `$HARU_ONEDRIVE/old/HARU_PRD_v1.5.pre-rev3-20261107-1924.md` · 적용 후 sha1 `e6016ec6a7fa621ecf7f82300cf88ecae649afcd` · 대조표 `docs/decisions/prd-v1.5-rev3-2026-11-07.md`** (`S3-7`).
 
 > ⚠️ **번호 정정**: §11.22 가 이 항목을 "16번" 으로 적었으나 이 표의 실제 다음 번호는 **7번**이다 (`QA-2R-012`). §7~§14 의 plan-agent 산출 8건은 `stage-2-onboarding-rework-plan.md` §15 가 소유하며 번호 체계가 다르다. **PRD 적용 시에는 이 표와 그 §15 를 합쳐 세어야 한다.**
 
@@ -547,6 +551,8 @@ design-agent 가 보고한 불일치. **의도된 차이로 확정**한다.
 
 PRD 수정 대상 누적: 기존 6 + plan-agent 8 + 검색 제거 1 = **15건**. `D-24` 절차(OneDrive 원본 + 사본 동시, v1.5)로 적용한다.
 
+> ⚠️ **2026-11-07 확인**: 15건 중 Plan §15 **13번**("§6 핵심 흐름 ②" = 현 PRD §5.1 표 ②행)은 2026-10-03 에 **반영되지 않았다**. PRD v1.5 개정 3 (2026-11-07) 에서 적용했다 (`RW-13`, `docs/decisions/prd-v1.5-rev3-2026-11-07.md`).
+
 ### 11.19 구현 중 발견 항목 (2026-10-03)
 
 development-agent 가 고치지 않고 올린 9건 중 결정이 필요했던 것.
@@ -623,6 +629,8 @@ QA 실측 (인증+동의 16장 전수):
 - 근거: 미국 1차 시장(CLAUDE.md)
 
 **PRD 영향**: §7.2 의 언어 환경이 필수에서 선택으로 바뀐다. PRD 수정 대상 **16번**으로 등재하고 `D-24` 절차로 적용한다.
+
+> "16번" = §9.3 7번 (`S3-7`). ✅ **PRD v1.5 개정 3 적용 (2026-11-07)** — 백업 `$HARU_ONEDRIVE/old/HARU_PRD_v1.5.pre-rev3-20261107-1924.md` · 적용 후 sha1 `e6016ec6a7fa621ecf7f82300cf88ecae649afcd` · 대조표 `docs/decisions/prd-v1.5-rev3-2026-11-07.md`.
 
 ### 11.23 설문 카드 좌우 이동 버튼 (2026-10-05, user)
 
@@ -717,6 +725,8 @@ Figma `get_metadata` 의 `x` 는 **transform 원점**이고 우측 요소는 `sc
 | 9 | **FR-07 · §7.4** | Prompt **2~3개** 제시 | **4~5개 전부 노출**(확장 트리거 없음) | Figma `163:2649`(4) · `86:438`(5) |
 | 10 | **§7.4** | — | **카드 뒷면**(우상단 아이콘 → flip)에 Prompt 전체 + 코칭 노트 | Figma `86:482` |
 
+> 8·9·10번 — ✅ **PRD v1.5 개정 3 적용 (2026-11-07)** — 백업 `$HARU_ONEDRIVE/old/HARU_PRD_v1.5.pre-rev3-20261107-1924.md` · 적용 후 sha1 `e6016ec6a7fa621ecf7f82300cf88ecae649afcd` · 대조표 `docs/decisions/prd-v1.5-rev3-2026-11-07.md` (`S3-8`·`S3-9`·`S3-10`).
+
 ### 12.6 미결 — 다음 라운드에서 결정
 
 `A-2`(카드↔탭바 정확값) · `A-4`(**≥600px 규칙 전무** — Figma 에 600px 프레임 없음) · `A-5`(뒷면 pill n>3) · `A-6`(16px ↔ iOS safe-area 합성) · `A-7`(**버블 보조 문구의 출처** — contract / 고정 copy) · `A-9`(**`★ Save` 의 동작·contract 가 없다**) · `A-11`(Prompt n>5) · `A-12`(320px) · `A-16`(flip 중 높이 377↔415) · `A-17`(**"부모용 코칭 문장"이 Figma 앞면에 없다** — `AC-3-10`)
@@ -802,6 +812,8 @@ Figma `get_metadata` 의 `x` 는 **transform 원점**이고 우측 요소는 `sc
 |---|---|---|---|---|
 | 11 | **§7.4 규칙** | *"라이브러리 책을 보유하지 않은 경우 증정 신청 버튼을 제공하고, 도착 전에는 **'책 없이 대화만 하기' 옵션**으로 대화 전용 세션을 지원한다"* | **Home 카드는 항상 책을 동반한다.** 책 추천은 Backend 소관이며 보유 여부와 무관하게 추천된다 | 사용자 지시 2026-10-05 |
 
+> 11번 — ✅ **PRD v1.5 개정 3 적용 (2026-11-07)** — 백업 `$HARU_ONEDRIVE/old/HARU_PRD_v1.5.pre-rev3-20261107-1924.md` · 적용 후 sha1 `e6016ec6a7fa621ecf7f82300cf88ecae649afcd` · 대조표 `docs/decisions/prd-v1.5-rev3-2026-11-07.md` (`S3-11`, §13 "추천할 책 소진" 행 포함).
+
 > §13 의 *"마이크 권한 거부 → 대화만 하기(녹음 없는 체크리스트 모드)"* 는 **그대로 유지**된다 — 이건 녹음 이야기이고 Stage 4 소관이다.
 
 #### Backend 요구사항
@@ -858,6 +870,8 @@ Prompt 2  →  코칭 노트 2
 | # | PRD 위치 | 현재 | 확정 동작 |
 |---|---|---|---|
 | 12 | **§8.2** | *"각 세트는 질문 + **부모용 코칭 문장** + Follow-up 질문으로 구성"* (세트 단위로 읽힘) | **Prompt 마다** 상세 코칭 노트가 1:1로 붙는다 |
+
+> 12번 — ✅ **PRD v1.5 개정 3 적용 (2026-11-07)** — 백업 `$HARU_ONEDRIVE/old/HARU_PRD_v1.5.pre-rev3-20261107-1924.md` · 적용 후 sha1 `e6016ec6a7fa621ecf7f82300cf88ecae649afcd` · 대조표 `docs/decisions/prd-v1.5-rev3-2026-11-07.md` (`S3-12`).
 
 ### 12.15 카드 그림자 클리핑 (2026-10-05, user)
 
@@ -1285,6 +1299,8 @@ Figma 를 택한 결과 PRD 에 없는 요구가 확정됐다. **`D-24` 절차**
 | `LN-7` | PRD §6.1:276 서재 설명에 `Favorites`·`Reading now`·평점이 없다 |
 
 `LN-4`(역량 캡션 이름) · `LN-5`(항목별 세션 시작) 는 **여전히 미결**이다.
+
+> `LN-1`·`LN-2`·`LN-3`·`LN-6`·`LN-7` — ✅ **PRD v1.5 개정 3 적용 (2026-11-07)** — 백업 `$HARU_ONEDRIVE/old/HARU_PRD_v1.5.pre-rev3-20261107-1924.md` · 적용 후 sha1 `e6016ec6a7fa621ecf7f82300cf88ecae649afcd` · 대조표 `docs/decisions/prd-v1.5-rev3-2026-11-07.md`. `LN-4`·`LN-5` 는 미결이라 **보류**.
 
 ### 19.3 신규 `BACKEND_INTEGRATION_PENDING`
 
@@ -1938,6 +1954,10 @@ Stage 3 가 `PASS` 로 닫힌 뒤(§28) 사용자가 화면을 검수하고 **6�
 유지: `/library/gift-requests` · `GiftRequestList` · `LibraryEntryActions` 진입점 · **contracts·Mock 전부**.
 
 ⚠️ **`FR-22` 가 PRD P0 에 *"초기 20권 라이브러리·증정 신청·구매 링크"* 로 적혀 있다 → PRD 수정 대상**(`D-24` 절차). `LN-8` 로 등록한다.
+
+> **`D-26` (2026-11-08, user)** — 원문 *"증정 신청은 따로 랜딩페이지에서 받는것으로 하고 prd에 기록만 한다"*. **증정 신청 접수 경로 = 앱 밖 별도 랜딩페이지.** PRD FR-22 의 "미결"을 이 결정으로 교체했다(PRD v1.5 개정 3 보완, 백업 `$HARU_ONEDRIVE/old/HARU_PRD_v1.5.pre-rev3b-20261108-0031.md`, sha1 `3452f7c1fd7e857d28ee01fcbe6c5e66e2e2830b`). **기록만** — 앱 내 링크·UI 등 새 요구사항 없음, 랜딩페이지는 HARU 앱 범위 밖. 보류 B-3 해소.
+
+> `LN-8` — ✅ **PRD v1.5 개정 3 적용 (2026-11-07)** — 백업 `$HARU_ONEDRIVE/old/HARU_PRD_v1.5.pre-rev3-20261107-1924.md` · 적용 후 sha1 `e6016ec6a7fa621ecf7f82300cf88ecae649afcd` · 대조표 `docs/decisions/prd-v1.5-rev3-2026-11-07.md`. 앱 내 신청 제거 · 조회 유지를 반영했고, **신청 접수 경로는 결정이 없어 FR-22 에 "미결"로 명기**했다 (보류 B-3).
 
 **사용처 0건이 된 것 8종** (지우지 않았다 — Backend 인터페이스라 **사용자 결정 필요**):
 `useCreateGiftRequest` hook · `CreateGiftRequestMutation` · `libraryApi.createGiftRequest` · `CreateGiftRequestRequestSchema` · **`GIFT_REQUEST_DUPLICATE`**(어떤 화면도 표시할 수 없다) · `ERROR_COPY.GIFT_REQUEST_DUPLICATE` · `library:gift-duplicate` Mock 시나리오 · `createGiftRequestFixture`
