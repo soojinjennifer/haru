@@ -11,22 +11,39 @@ export type { CloseReadySessionMutation } from './useCloseReadySession';
 export {
   SessionRecorderProvider,
   useOptionalSessionRecorderEnvironment,
+  useRecordingAppNotices,
+  useResolveSessionMode,
+  useRetentionNotice,
+  useConversationEntryNotice,
   useSessionRecorder,
 } from './sessionRecorder';
 export type {
+  RecordingAppNotice,
+  RetentionNotice,
+  SessionConnectivity,
   SessionRecorder,
+  SessionRecorderNotices,
+  UploadRetryResult,
+  UseRecordingAppNoticesResult,
+  UseRetentionNoticeResult,
   SessionRecorderEnvironment,
+  SessionRecorderNotice,
   SessionRecorderInput,
   SessionRecorderOutcome,
   SessionRecorderProviderProps,
   SessionRecorderSnapshot,
+  UseResolveSessionModeResult,
   UseSessionRecorderResult,
 } from './sessionRecorder';
 export { SESSION_BUBBLE_PROMPT_CUTOFF, SessionReadyBubble } from './SessionReadyBubble';
 export type { SessionReadyBubbleProps } from './SessionReadyBubble';
 export { formatSessionClock } from './sessionClock';
-export { selectRecordControlState } from './recordControlState';
-export type { RecordControlStateInput, SessionRecordControlState } from './recordControlState';
+export { selectRecordControlState, selectSessionRecordGate } from './recordControlState';
+export type {
+  RecordControlStateInput,
+  SessionRecordControlState,
+  SessionRecordGate,
+} from './recordControlState';
 export { SessionStatusBlock } from './SessionStatusBlock';
 export type { SessionStatusBlockProps, SessionStatusBlockState } from './SessionStatusBlock';
 export { SessionBookChip } from './SessionBookChip';

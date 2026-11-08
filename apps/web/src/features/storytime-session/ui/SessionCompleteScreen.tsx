@@ -13,7 +13,8 @@
  * Toast inset (`D4-89`): 완료 화면은 `Submit` 의 Toast 를 안고 들어온다. 닫기 줄(48)을 inset 으로 등록한다 — 등록
  * 지점이 `AppShellTopBar` 가 아닌 이유는 `CompleteCloseBar` 주석.
  *
- * 끝난 적 없는 세션의 직접 진입(`ready` · `abandoned`)은 홈으로 돌려보낸다 (`D4-91`, `StorytimeSessionScreen` 선례).
+ * 끝난 적 없는 세션의 직접 진입(`ready` · `abandoned` — `D4-91`, `recording` · `paused` — `D4-113`)은 홈으로
+ * 돌려보낸다 (`StorytimeSessionScreen` 선례).
  *
  * 스티커 입장 (`D4-100`): `useStickerEntrance`. 칩은 항상 렌더하고 CSS 가 숨기므로 슬롯·아래 요소의 좌표가 불변이다.
  */

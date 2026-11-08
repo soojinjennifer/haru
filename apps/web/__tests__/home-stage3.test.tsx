@@ -31,6 +31,7 @@ import {
 import { createFixedClock } from '../src/shared/lib/clock';
 import { tabCopy } from '../src/shared/config/tabs';
 import { capabilityCopy } from '../src/shared/copy/capability-copy';
+import { appCopy } from '../src/shared/copy/app-copy';
 import { libraryCopy } from '../src/shared/copy/library-copy';
 import { progressCopy } from '../src/shared/copy/progress-copy';
 import { createHarness, type Harness } from '../src/test/harness';
@@ -58,6 +59,18 @@ async function renderHome(options: { scenarios?: readonly string[]; path?: strin
   );
 
   return harness;
+}
+
+/**
+ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
+ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
+ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
+ * 진입 도우미(`renderHome`)에는 넣지 않는다 — `loading` 테스트가 단계 사이의 과도 프레임(Skeleton)을 잡는다.
+ */
+async function waitForGuard(): Promise<void> {
+  await waitFor(() => {
+    expect(screen.queryByRole('status', { name: appCopy.guard.loadingLabel })).toBeNull();
+  });
 }
 
 /**
@@ -90,6 +103,7 @@ function backFace(position = 0): HTMLElement {
 }
 
 async function waitForTrack(): Promise<void> {
+  await waitForGuard();
   await waitFor(() => {
     expect(
       document.querySelector('.haru-activity-track:not(.haru-activity-track--skeleton)'),
@@ -172,6 +186,7 @@ describe('BottomTabBar 마운트 (AC-3-04 · AC-3-05 · AC-3-08)', () => {
   */
   it('`/library` 에 제목 행과 서재 섹션이 함께 마운트된다', async () => {
     await renderHome({ path: ROUTES.library });
+    await waitForGuard();
 
     expect(
       await screen.findByRole('heading', { level: 2, name: libraryCopy.sectionTitles.curated }),
@@ -253,6 +268,7 @@ describe('Home 본문 (AC-3-09 · AC-3-10 · AC-3-13)', () => {
 
   it('캐릭터 버블이 서버 주 문구 + copy 보조 문구 한 줄을 보여 준다 (`A-7`)', async () => {
     await renderHome();
+    await waitForGuard();
 
     expect(
       await screen.findByText('Fifteen minutes together is plenty for tonight.'),
@@ -315,6 +331,7 @@ describe('Home 본문 (AC-3-09 · AC-3-10 · AC-3-13)', () => {
 
   it('TopBar 에 이번 주 세션 수 칩이 붙는다 (streak·분 표시 없음 — D-6)', async () => {
     await renderHome();
+    await waitForGuard();
 
     const banner = await screen.findByRole('banner');
     await waitFor(() => {
@@ -386,6 +403,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
 
   it('`empty` 에서 카드 없음 안내가 덱 자리에 inline 으로 뜬다 (`AC-3-82`)', async () => {
     await renderHome({ scenarios: ['activity-cards:empty'] });
+    await waitForGuard();
 
     expect(await screen.findByText(activityDeckCopy.states.emptyTitle)).toBeDefined();
     expect(document.querySelector('.haru-activity-track')).toBeNull();
@@ -395,6 +413,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
 
   it('`error` 에서 재시도 버튼이 있는 ErrorState 가 뜬다', async () => {
     await renderHome({ scenarios: ['activity-cards:error'] });
+    await waitForGuard();
 
     expect(await screen.findByText(activityDeckCopy.states.errorTitle)).toBeDefined();
     expect(screen.getByRole('button', { name: activityDeckCopy.states.retry })).toBeDefined();
@@ -402,6 +421,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
 
   it('`offline` 에서 오프라인 안내가 뜬다', async () => {
     await renderHome({ scenarios: ['activity-cards:offline'] });
+    await waitForGuard();
 
     expect(await screen.findByText(activityDeckCopy.states.offlineTitle)).toBeDefined();
   });
@@ -455,6 +475,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
 
   it('`offline-cached-card` 인데 캐시가 없으면 Stage 3 의 오프라인 안내 (배너 없음)', async () => {
     await renderHome({ scenarios: ['activity-cards:offline-cached-card'] });
+    await waitForGuard();
 
     expect(await screen.findByText(activityDeckCopy.states.offlineDescription)).toBeDefined();
     expect(screen.queryByText(activityDeckCopy.states.cachedTitle)).toBeNull();
@@ -467,6 +488,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
       createActivityCardFixture(createFixedClock(MOCK_EPOCH_MS)),
     );
     await renderHome({ scenarios: ['activity-cards:error'] });
+    await waitForGuard();
 
     expect(await screen.findByText(activityDeckCopy.states.errorTitle)).toBeDefined();
     expect(document.querySelector('.haru-activity-track')).toBeNull();
@@ -480,6 +502,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
       createActivityCardFixture(twoDaysAgo),
     );
     await renderHome({ scenarios: ['activity-cards:offline'] });
+    await waitForGuard();
 
     expect(await screen.findByText(activityDeckCopy.states.offlineDescription)).toBeDefined();
     expect(document.querySelector('.haru-activity-track')).toBeNull();
@@ -492,6 +515,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
   */
   it('`session-already-active` 를 **버블 문구**가 알리고 세션 생성 호출이 0건이다', async () => {
     const harness = await renderHome({ scenarios: ['home:session-already-active'] });
+    await waitForGuard();
 
     expect(
       await screen.findByText('A storytime is still open — you can pick it back up.'),

@@ -515,6 +515,7 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
         '--prompt-popup-link-line',
         '--sheet-floating-inset',
         '--sheet-floating-inset-block-end',
+        '--sheet-floating-exit-shadow-reach',
         '--sheet-floating-pad-block-start',
         '--sheet-floating-pad-block-end',
         '--sheet-floating-pad-inline',

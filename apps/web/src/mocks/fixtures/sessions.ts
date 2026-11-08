@@ -240,20 +240,78 @@ export function createReadySessionFixture(input: ReadySessionFixtureInput): Sess
 /**
  * 진행 중 세션 (`session-already-active`) — Home 의 `activeSession`(`fixtures/home.ts`)과
  * **같은 id · 같은 상태**(`recording`)다. 복귀 경로가 이 세션을 조회한다 (AC-4-35).
+ *
+ * `S4-H4` (`D4-145` CP-15 ⓐ) — 상태별 분기를 재현하려고 `status` 를 고를 수 있다:
+ * `ready`(`session-already-active-ready` — 2분 전에 준비된 녹음 세션, 그 ready 화면이 복귀 지점) ·
+ * `paused`(`session-already-active-paused` — `recording` 과 같은 분기). 기본은 `recording` 그대로다.
  */
-export function createActiveSessionFixture(clock: Clock): SessionSummary {
+export function createActiveSessionFixture(
+  clock: Clock,
+  status: 'ready' | 'recording' | 'paused' = 'recording',
+  /**
+   * 시각 기준. 기본 = Mock 서버 시계. `ready` 복귀는 기기 녹음 상태 머신이 `readyAt` 을 **기기 시계**로
+   * 재서 10분 방치를 판정하므로(`D4-45`), 브라우저 Mock(서버 시계 = 고정 epoch)에서는 요청 본문의 `readyAt`
+   * (= 기기의 지금)을 기준으로 넘긴다 — 서버 시계가 기기와 맞는 실제 서버와 같은 결과다.
+   */
+  reference: Clock = clock,
+): SessionSummary {
   const [book] = DECK_BOOKS;
+  const ready = status === 'ready';
+  const at = (deltaMs: number): string => shiftedIso(reference, deltaMs);
   return SessionSummarySchema.parse({
     id: MOCK_ACTIVE_SESSION_ID,
-    status: 'recording',
+    status,
     mode: 'recorded',
     book: book ?? null,
     readingContext: 'bedtime',
-    readyAt: shiftedIso(clock, -8 * MINUTE_MS),
-    startedAt: shiftedIso(clock, -7 * MINUTE_MS),
+    // ready 는 10분 방치(`D4-45`) 전이어야 복귀 지점이 된다 — 2분 전에 준비된 세션
+    readyAt: at((ready ? -2 : -8) * MINUTE_MS),
+    startedAt: ready ? null : at(-7 * MINUTE_MS),
     completedAt: null,
     completedReason: null,
-    recordedSeconds: 312,
+    recordedSeconds: ready ? 0 : 312,
+    analysisOutcome: null,
+    prompts: createSessionPromptsFixture(),
+    bubble: MOCK_READY_BUBBLE,
+    reminderBubble: MOCK_READY_REMINDER_BUBBLE,
+  });
+}
+
+/**
+ * 기기 seed 세션 (`S4-H3`, `D4-123`) — 브라우저 데모·e2e 가 "이 기기에 남은 녹음" 을 재현할 때 Mock 서버에 함께 넣는
+ * 세션. 고정 uuid (scenario 간에도 같다). 로컬 녹음 seed 와 같은 id 를 쓴다 (`mocks/recorder/deviceSeed.ts`).
+ */
+export const MOCK_DEVICE_SEED_SESSION_IDS = {
+  /** `recorder:crash-recovered` — 서버는 `recording`, 로컬은 끝나지 못한 part. */
+  crashed: '66666666-6666-4666-8666-000000000001',
+  /** `recordings:upload-stalled-48h` — 서버는 `completed`, 로컬은 48h 동안 확정되지 않은 업로드. */
+  stalled: '66666666-6666-4666-8666-000000000002',
+  /** `recorder:local-retention-notice` — 7일 넘은 미업로드 녹음 (서버 세션 없음 — 업로드하지 않는다). */
+  notice: '66666666-6666-4666-8666-000000000003',
+  /** `recorder:local-retention-exceeded` — 14일 넘은 미업로드 녹음 (서버 세션 없음 — 서버 요청 0, RU-16). */
+  expired: '66666666-6666-4666-8666-000000000004',
+} as const;
+
+/** 기기 seed 세션의 서버 상태 — `recording`(크래시 직전) 또는 `completed`(업로드만 남음). */
+export function createDeviceSeedSessionFixture(
+  id: string,
+  status: 'recording' | 'completed',
+  clock: Clock,
+): SessionSummary {
+  const [, , third] = DECK_BOOKS;
+  const completed = status === 'completed';
+  return SessionSummarySchema.parse({
+    id,
+    status,
+    mode: 'recorded',
+    book: third ?? null,
+    readingContext: 'bedtime',
+    readyAt: shiftedIso(clock, -2 * DAY_MS - 10 * MINUTE_MS),
+    startedAt: shiftedIso(clock, -2 * DAY_MS - 9 * MINUTE_MS),
+    completedAt: completed ? shiftedIso(clock, -2 * DAY_MS) : null,
+    completedReason: completed ? 'user_done' : null,
+    // 서버가 마지막으로 받은 녹음 시간 (크래시 직전 `recording` 도 숫자다 — `createActiveSessionFixture` 와 같다)
+    recordedSeconds: completed ? 5 : 0,
     analysisOutcome: null,
     prompts: createSessionPromptsFixture(),
     bubble: MOCK_READY_BUBBLE,

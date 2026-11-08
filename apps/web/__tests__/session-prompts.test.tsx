@@ -18,6 +18,7 @@ import { SessionPromptsPopover, sessionPromptsCopy } from '../src/features/sessi
 import { storytimeSessionCopy } from '../src/features/storytime-session';
 import { createSessionPromptsFixture } from '../src/mocks/fixtures/sessions';
 import { ROUTES } from '../src/shared/config/routes';
+import { appCopy } from '../src/shared/copy/app-copy';
 import { createHarness, type Harness } from '../src/test/harness';
 import { createManualScheduler, type ManualScheduler } from '../src/test/manual-scheduler';
 
@@ -33,6 +34,22 @@ function LocationProbe() {
 
 function pathname(): string {
   return screen.getByTestId('pathname').textContent ?? '';
+}
+
+/**
+ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
+ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
+ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
+ * 세션 화면의 상세 대기 Spinner(`.haru-session--pending`)도 이름이 `Loading` 이라 Guard 의 것만 센다.
+ */
+async function waitForGuard(): Promise<void> {
+  await waitFor(() => {
+    expect(
+      screen
+        .queryAllByRole('status', { name: appCopy.guard.loadingLabel })
+        .filter((node) => node.closest('.haru-session') === null),
+    ).toHaveLength(0);
+  });
 }
 
 function transitionTargets(harness: Harness): readonly unknown[] {
@@ -71,6 +88,7 @@ async function openReady(scenarios?: readonly string[]): Promise<Opened> {
       <AppRoutes />
     </Wrapper>,
   );
+  await waitForGuard();
   await waitFor(() => {
     expect(
       document.querySelector('.haru-activity-track:not(.haru-activity-track--skeleton)'),
@@ -87,6 +105,15 @@ async function openReady(scenarios?: readonly string[]): Promise<Opened> {
   fireEvent.click(
     within(sheet).getByRole('button', { name: activityDeckCopy.readingContext.confirm }),
   );
+  // `QA-4B-005` · `D4-150` — 확인 → 녹음 버튼을 기본 1000ms 창 하나로 기다리지 않는다(부하 시 최대 964ms 실측).
+  // 단계마다 기본 창을 따로 준다: ① 세션 생성 → `/session/<id>` 이동 ② 상세 query 대기(pending Spinner) 종료
+  // ③ 녹음 버튼. 단언은 그대로다 — 각 단계도 결국 도달해야 하며 timeout 값은 바꾸지 않는다.
+  await waitFor(() => {
+    expect(pathname()).toMatch(/^\/session\/[^/]+$/);
+  });
+  await waitFor(() => {
+    expect(document.querySelector('.haru-session:not(.haru-session--pending)')).not.toBeNull();
+  });
   await screen.findByRole('button', { name: copy.record.start });
   const sessionId = pathname().split('/').pop() ?? '';
   const readyPromptTexts = [
@@ -404,10 +431,12 @@ describe('AC-4-133 — 정리 · 빈 목록', () => {
       expect(transitionTargets(opened.harness).at(-1)).toBe('completed');
     });
     expect(popup()).toBeNull();
-    expect(chip().getAttribute('aria-expanded')).toBe('false');
-    // 다시 눌러도 열리지 않는다
-    tap(chip());
+    // `S4-H2` (AC-4-64): 자동 종료는 완료 화면으로 넘어간다 — 완료 화면에 팝업·칩 잔존 0 (AC-4-133).
+    await waitFor(() => {
+      expect(pathname()).toBe(`/session/${opened.sessionId}/complete`);
+    });
     expect(popup()).toBeNull();
+    expect(screen.queryByRole('button', { name: copy.prompts })).toBeNull();
   });
 
   it('`prompts: []` → 칩 aria-disabled + 사유 · 팝업 미렌더 · 탭 무시 (`D4-58` NB-2)', async () => {
@@ -615,10 +644,13 @@ describe('`S4-G2` — `See all prompts` → Prompt Drawer `88:960` (AC-4-137 · 
     await waitFor(() => {
       expect(drawer()).toBeNull();
     });
-    expect(document.activeElement).toBe(chip());
-    tap(chip());
+    // `S4-H2` (AC-4-64): 자동 종료는 완료 화면으로 넘어간다 — Drawer·팝업·칩 잔존 0 (AC-4-133).
+    await waitFor(() => {
+      expect(pathname()).toBe(`/session/${opened.sessionId}/complete`);
+    });
     expect(popup()).toBeNull();
     expect(drawer()).toBeNull();
+    expect(screen.queryByRole('button', { name: copy.prompts })).toBeNull();
   });
 
   it('55 (Drawer 부분) — 열기 · 페이지 이동 · 닫기 동안 vibrate · play 0회', async () => {

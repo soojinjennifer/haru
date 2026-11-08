@@ -6,7 +6,18 @@
 .haru-app-column {
   box-sizing: border-box;
   inline-size: 100%;
-  min-inline-size: var(--layout-min-width);
+  /*
+   * 최소 폭은 **담는 박스 폭을 넘지 않는다** (`S4-H4` · `QA-4B-004` · `D4-141` · 허용 차이 `AD-S4-27`).
+   *
+   * 이 컬럼은 `AppShell` 뷰포트(Tailwind `overflow-y-auto` — CSS 파일 grep 으로는 안 보인다) 안에 있다.
+   * 클래식(항상 보이는) 스크롤바 환경에서 그 박스의 안쪽 폭은 **창 폭 − 스크롤바**(Chromium 15)다.
+   * 창 320 이면 305 인데 `min-inline-size: 320px` 가 컬럼을 320 으로 고집해 **가로 15 넘침**이 났다
+   * (computed 실측: `clientWidth 305 · scrollWidth 320`). 넘치는 요소는 이 컬럼 하나뿐이었다.
+   *
+   * `min(…, 100%)` 은 오버레이 스크롤바(iOS · Android · macOS 기본)와 335 이상 폭에서 값이 그대로다.
+   * 클래식 + 320 에서만 컬럼이 305 가 된다 — 사용자 승인 `D4-146` Q3. 스크롤바는 숨기지 않는다(NB-17).
+   */
+  min-inline-size: min(var(--layout-min-width), 100%);
   max-inline-size: var(--layout-app-max-width);
   margin-inline: auto;
   padding-block-start: var(--layout-safe-top);

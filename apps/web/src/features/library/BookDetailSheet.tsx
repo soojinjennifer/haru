@@ -231,7 +231,7 @@ export function BookDetailSheet({ open, book, onClose }: BookDetailSheetProps) {
                   save.toggle({ bookId, saved: !saved });
                 }}
               />
-              <StartSessionAction id="book-sheet" book={book} />
+              <StartSessionAction id="book-sheet" book={book} open={open} />
             </div>
           </div>
         )

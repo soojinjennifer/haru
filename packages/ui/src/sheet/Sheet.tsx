@@ -120,7 +120,15 @@ export function Sheet({
 
   return createPortal(
     <div className="haru-sheet-root">
-      <Scrim level="sheet" state={state} onClick={dismissible ? onClose : undefined} />
+      {/*
+       * 닫힘 중(240ms)에도 scrim 은 탭을 **흡수**하되 `onClose` 를 다시 부르지 않는다 (Stage 4b Spec §20.4 ·
+       * `D4-138` Q1). 통과시키면 연속 탭의 두 번째가 scrim 아래(세션 화면의 Record Control · Submit)로 샌다.
+       */}
+      <Scrim
+        level="sheet"
+        state={state}
+        onClick={dismissible && state === 'open' ? onClose : undefined}
+      />
       <div
         ref={containerRef}
         className={cx(
@@ -130,7 +138,13 @@ export function Sheet({
           surface === undefined ? undefined : `haru-sheet--surface-${surface}`,
         )}
         role="dialog"
-        aria-modal="true"
+        /*
+         * 닫힘 중에는 모달이 아니다 (§20.4 · `D4-138` Q1) — 사라지는 시트가 `[aria-modal="true"]` 로 남으면
+         * 다른 레이어가 Escape 를 양보하고(`SessionPromptsPopover` `modalOpen()`), 보조기술이 트리거를 모달 밖으로 본다.
+         * `inert` 는 시트 내부 조작(화살표 · 스와이프 · Tab 진입)을 막는다. 포커스는 닫힘 시작에 이미 트리거로 돌아갔다.
+         */
+        aria-modal={state === 'open' ? 'true' : undefined}
+        inert={state === 'closing'}
         aria-labelledby={titleId}
       >
         {/* 떠 있는 카드에는 grabber 가 없다 (Figma `145:1085` · `163:2347` 실측). */}

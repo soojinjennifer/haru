@@ -19,6 +19,16 @@
  *   `POST /v1/sessions`(1회) → `/session/:id`. 오프라인 캐시 카드(`isCached`)에서는 **비활성**이고
  *   사유는 TopBar 밑 배너 제목이 대신한다 — `aria-disabled` + `aria-describedby`(`D4-33` · `D4-39`).
  *   Save 는 그 상태에서도 활성이다 (AC-4-124).
+ *
+ * ── 마이크 권한 판정 (Stage 4b `S4-H2R`, `D4-112` · `D4-119` CP-8) ──
+ *   Reading Context 확인 탭 → **권한 판정**(미정이면 OS 프롬프트) → 선택 POST → 생성(`mode` = 판정 결과).
+ *   판정 중에도 확인 버튼은 기존 `loading` 이다(4b Spec §18.2 ①). 판정 중 시트를 닫으면 늦게 온 결과로
+ *   선택·생성을 보내지 않는다(AC-4-145 ⑦). 거부·차단·장치 없음 → 화면 변화 없이 `conversation_only`.
+ *
+ * ── 시작을 막는 응답 (Stage 4b `S4-H4`, `D4-145` · `D4-146`) ──
+ *   열린 세션이 `ready` → 그 세션 화면(일반 시작과 같은 push) · `recording`/`paused` → 시트 안 기존
+ *   `SESSION_ALREADY_ACTIVE` 제목·설명 · 온보딩 미완료 → Route Guard 이동(그동안 `loading` 유지) · 어긋남 →
+ *   기존 `ONBOARDING_INCOMPLETE` 문구. 판단은 `useCreateSession`, 문구 선택은 `sessionStartBlockedCopy`.
  */
 import {
   Button,
@@ -29,9 +39,9 @@ import {
   Skeleton,
   useToast,
 } from '@haru/ui';
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import type { ActivityCardOption } from '@haru/contracts';
+import type { ActivityCardOption, SessionMode } from '@haru/contracts';
 
 import {
   ActivityOptionCard,
@@ -41,13 +51,18 @@ import {
   useTodayActivityCard,
 } from '../../../entities/activity-card';
 import { useToggleSavedBook } from '../../../entities/library';
-import { useCreateSession } from '../../../entities/session';
+import { useCreateSession, useResolveSessionMode } from '../../../entities/session';
 import { sessionPath } from '../../../shared/config/routes';
+import { sessionStartBlockedCopy } from '../../../shared/copy/error-copy';
 import { activityDeckCopy } from '../copy';
 
 import { ActivityCardTrack } from './ActivityCardTrack';
 import { ACTIVITY_CARD_OFFLINE_TITLE_ID } from './ActivityCardOfflineBanner';
-import { ReadingContextSheet, type ReadingContextChoice } from './ReadingContextSheet';
+import {
+  ReadingContextSheet,
+  type ReadingContextChoice,
+  type ReadingContextFailure,
+} from './ReadingContextSheet';
 
 export function ActivityCardDeck() {
   const copy = activityDeckCopy;
@@ -66,11 +81,23 @@ export function ActivityCardDeck() {
   /** 시트를 연 옵션 id — 다른 옵션으로 다시 열면 선택을 새로 시작한다 (닫을 때는 유지해 퇴장 모션을 살린다). */
   const [sheetKey, setSheetKey] = useState('none');
   const [choice, setChoice] = useState<ReadingContextChoice | null>(null);
+  /**
+   * 확인 탭 ~ 생성 응답(이동) 또는 실패까지 **한 번도 끊기지 않는** `loading` (`D4-125`, `VG-H2R-01`).
+   * 판정 종료와 mutation `isPending` 사이의 렌더(14ms 끊김)를 이 값이 잇는다. 실패 · 닫기 · 이동에서 끈다.
+   */
+  const [launching, setLaunching] = useState(false);
+  const stopLaunching = useCallback(() => {
+    setLaunching(false);
+  }, []);
   const createSession = useCreateSession((session) => {
+    setLaunching(false);
     setStarting(null);
     void navigate(sessionPath(session.id));
-  });
+  }, stopLaunching);
   const selectOption = useSelectActivityOption();
+  const sessionMode = useResolveSessionMode();
+  /** 확인 탭마다 1 증가 — 시트를 닫으면 함께 올라 판정 중이던 시도를 버린다 (AC-4-145 ⑦). */
+  const attempt = useRef(0);
 
   /*
     오프라인이어도 **최근 카드가 있으면 카드를 그대로 보여 준다** (`D-11`, AC-4-82). 그때 Offline Banner 는
@@ -140,8 +167,23 @@ export function ActivityCardDeck() {
   const confirmReadingContext = (picked: ReadingContextChoice) => {
     if (starting === null) return;
     const option = starting;
+    attempt.current += 1;
+    const current = attempt.current;
     setChoice(picked);
+    setLaunching(true);
     createSession.reset();
+    void sessionMode.resolve().then((mode) => {
+      // 시도 번호가 바뀌었다 = 판정 중에 시트를 닫았거나 다시 눌렀다 — 마지막 시도만 보낸다
+      if (current !== attempt.current) return;
+      submitStart(option, picked, mode);
+    });
+  };
+
+  const submitStart = (
+    option: ActivityCardOption,
+    picked: ReadingContextChoice,
+    mode: SessionMode,
+  ) => {
     selectOption.select(
       {
         cardId,
@@ -153,7 +195,7 @@ export function ActivityCardDeck() {
       },
       () => {
         createSession.create({
-          mode: 'recorded',
+          mode,
           activityCardOptionId: option.id,
           bookId: option.book.id,
           childBookId: null,
@@ -161,8 +203,18 @@ export function ActivityCardDeck() {
           customTime: picked.customTime,
         });
       },
+      stopLaunching,
     );
   };
+
+  /** 시트 안 실패 안내 — 선택 확정 실패는 일반 문구, 세션 생성 실패는 오류 종류별 (`S4-H4`). */
+  function startFailure(): ReadingContextFailure | null {
+    if (choice === null) return null;
+    if (createSession.isError) {
+      return sessionStartBlockedCopy(createSession.errorCode) ?? { title: copy.card.startFailed };
+    }
+    return selectOption.isError ? { title: copy.card.startFailed } : null;
+  }
 
   function renderOption(option: ActivityCardOption) {
     return (
@@ -254,12 +306,16 @@ export function ActivityCardDeck() {
         open={starting !== null}
         onClose={() => {
           if (selectOption.isPending || createSession.isPending) return;
+          attempt.current += 1;
+          setLaunching(false);
           setStarting(null);
           setChoice(null);
         }}
         onConfirm={confirmReadingContext}
-        submitting={selectOption.isPending || createSession.isPending}
-        failed={choice !== null && (selectOption.isError || createSession.isError)}
+        submitting={
+          launching || sessionMode.isResolving || selectOption.isPending || createSession.isPending
+        }
+        failure={startFailure()}
       />
     </div>
   );

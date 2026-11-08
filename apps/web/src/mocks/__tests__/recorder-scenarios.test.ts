@@ -21,12 +21,18 @@ describe('recorder scenario 계획', () => {
     expect(RECORDER_SCENARIO_KEYS).toStrictEqual([
       'success',
       'mic-permission-denied',
+      // S4-H2R (D4-119) — Start Session 권한 판정 경로
+      'mic-permission-blocked',
+      'mic-unavailable',
+      'mic-permission-revoked',
       'recording-interrupted',
       'web-background-warning',
       'auto-timeout',
       'crash-recovered',
       // D4-29 (2026-10-15) — Catalogue §5.4 등재
       'local-retention-exceeded',
+      // S4-H3 (D4-119 · D4-123) — 7일 보관 배너의 브라우저 재현
+      'local-retention-notice',
     ]);
     expect(INTERRUPTION_CAUSES).toStrictEqual(['visibilitychange', 'devicechange', 'track-ended']);
   });
@@ -34,7 +40,9 @@ describe('recorder scenario 계획', () => {
   it('기본은 사건 없음 · 권한 허용', () => {
     expect(plan('')).toStrictEqual({
       key: 'success',
+      initialPermission: 'prompt',
       permission: 'granted',
+      revokedOnStart: false,
       interruptions: [],
       backgroundOnce: false,
       autoTimeout: false,
@@ -54,9 +62,11 @@ describe('recorder scenario 계획', () => {
       'backgroundOnce',
       'crashRecovered',
       'eventAfterChunks',
+      'initialPermission',
       'interruptions',
       'key',
       'permission',
+      'revokedOnStart',
     ]);
   });
 
@@ -90,6 +100,21 @@ describe('recorder scenario 계획', () => {
     expect(plan('?scenario=recorder:auto-timeout').autoTimeout).toBe(true);
     expect(plan('?scenario=recorder:crash-recovered').crashRecovered).toBe(true);
   });
+
+  it.each([
+    ['mic-permission-denied', 'prompt', 'denied', false],
+    ['mic-permission-blocked', 'denied', 'denied', false],
+    ['mic-unavailable', 'unavailable', 'unavailable', false],
+    ['mic-permission-revoked', 'granted', 'granted', true],
+  ] as const)(
+    'S4-H2R 권한 — recorder:%s → 처음 %s · 요청 결과 %s · 시작 시 상실 %s',
+    (key, initial, requested, revoked) => {
+      const result = plan(`?scenario=recorder:${key}`);
+      expect(result.initialPermission).toBe(initial);
+      expect(result.permission).toBe(requested);
+      expect(result.revokedOnStart).toBe(revoked);
+    },
+  );
 
   it('결정적 — 같은 입력은 같은 계획', () => {
     const search = '?scenario=recorder.track-ended:recording-interrupted';

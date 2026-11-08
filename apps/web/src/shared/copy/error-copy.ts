@@ -150,3 +150,24 @@ export const ERROR_COPY: Readonly<Record<ErrorCode, ErrorMessage>> = {
 export function errorCopyForCode(code: ErrorCode | undefined): ErrorMessage {
   return code === undefined ? unknownErrorCopy : (ERROR_COPY[code] ?? unknownErrorCopy);
 }
+
+/**
+ * 세션 시작을 막은 응답 중 **고유 안내가 있는 것** (`S4-H4`, `D4-145` NB-18 — 기존 문구 그대로 재사용).
+ *
+ * - `SESSION_ALREADY_ACTIVE` — 열린 세션이 `recording`/`paused` 일 때 (이 탭에서 이어 갈 수 없다)
+ * - `ONBOARDING_INCOMPLETE` — 서버는 미완료라 했는데 다시 받은 `me` 가 `completed` 일 때 (어긋남, 이동 0)
+ *
+ * 그 밖의 실패(Detail 조회 실패 포함 — `D4-146` Q4)는 `null` → 화면은 기존 일반 실패 문구를 쓴다.
+ */
+export function sessionStartBlockedCopy(code: ErrorCode | undefined): ErrorMessage | null {
+  return code === 'SESSION_ALREADY_ACTIVE' || code === 'ONBOARDING_INCOMPLETE'
+    ? ERROR_COPY[code]
+    : null;
+}
+
+/**
+ * 글 한 칸(Toast `message`)에 제목과 설명을 함께 담는다 — `제목. 설명` (`D4-146` Q1 ⓐ). 단어는 바꾸지 않는다.
+ */
+export function joinErrorMessage(message: ErrorMessage): string {
+  return `${message.title}. ${message.description}`;
+}

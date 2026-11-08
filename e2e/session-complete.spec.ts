@@ -10,6 +10,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 import { FRAME_SNAPSHOT } from '../playwright.config';
+import { advanceUntilToastGone } from './support/clock';
 import { hideDevPanel } from './support/gallery';
 import { logInToHome, requestOperations, settleImages, startSession } from './support/session';
 
@@ -480,6 +481,8 @@ test.describe('`D4-100` · C-3 스티커 입장', () => {
     });
 
   test('Submit 경로: Toast 중 미시작 → 퇴장 후 재생 · 슬롯 64 · 좌표 불변', async ({ page }) => {
+    // Toast 수명은 주입 clock 으로 흘린다 (`QA-4B-003` — `support/clock.ts`)
+    await page.clock.install();
     await page.addInitScript(() => {
       // 첫 애니메이션 시작을 놓치지 않도록 페이지 안에서 기록한다.
       document.addEventListener(
@@ -504,7 +507,7 @@ test.describe('`D4-100` · C-3 스티커 입장', () => {
       toastUp: true,
     });
 
-    await expect(toast(page)).toHaveCount(0, { timeout: 8_000 });
+    await advanceUntilToastGone(page, toast(page));
     await expect(page.locator(STICKER)).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute('data-c3-toast-up', 'false');
     // `D4-105`: C-3 delay 만 0 이다 — C-2 는 그대로 120ms.
@@ -524,10 +527,11 @@ test.describe('`D4-100` · C-3 스티커 입장', () => {
   });
 
   test('재진입: 연출 없이 즉시 표시', async ({ page }) => {
+    await page.clock.install();
     const sessionId = await submitSession(page);
     await page.getByRole('button', { name: 'Close session' }).click();
     await expect(page).toHaveURL(/\/$/);
-    await expect(toast(page)).toHaveCount(0, { timeout: 8_000 });
+    await advanceUntilToastGone(page, toast(page));
     await spaGoto(page, `/session/${sessionId}/complete`);
     await expect(page.getByRole('heading', { name: 'Session Complete' })).toBeVisible();
     expect(await stickerState(page)).toMatchObject({ visibility: 'visible', animations: 0 });
@@ -550,12 +554,13 @@ test.describe('prefers-reduced-motion', () => {
         toastUp: document.querySelector('.haru-toast') !== null,
       }));
 
+    await page.clock.install();
     await submitSession(page);
     await expect(toast).toBeVisible();
     expect(await state()).toEqual({ visibility: 'hidden', animations: 0, toastUp: true });
     const held = await box(page, '.haru-attendance-sticker');
 
-    await expect(toast).toHaveCount(0, { timeout: 8_000 });
+    await advanceUntilToastGone(page, toast);
     await expect(chip).toBeVisible();
     expect(await state()).toEqual({ visibility: 'visible', animations: 0, toastUp: false });
     await expect(chip).toHaveCSS('opacity', '1');

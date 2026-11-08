@@ -6,10 +6,16 @@
  *
  * | plan | 동작 |
  * |---|---|
+ * | `initialPermission` | `checkPermission()` 의 처음 값 (`prompt` · `denied` · `unavailable` · `granted` — `S4-H2R`) |
  * | `permission: 'denied'` | 권한 요청 → `denied`, `start()` → `RecorderStartError('permission_denied')` |
+ * | `permission: 'unavailable'` | 권한 요청 → `unavailable`, `start()` → `RecorderStartError('unavailable')` |
+ * | `revokedOnStart` | 권한은 허용인데 `start()` → `permission_denied` — 이후 권한 = `denied` (AC-4-148) |
  * | `interruptions` | part 마다 `eventAfterChunks` 번째 청크 뒤 원인 1개를 **캡처 종료**로 낸다 — 마지막 조각을 먼저 보낸 뒤 알린다 |
  * | `backgroundOnce` | 첫 part 의 `eventAfterChunks` 번째 청크 뒤 `background` 를 **알림으로만** 낸다 (녹음 계속 — `D4-26`) |
  * | `autoTimeout` · `crashRecovered` | 어댑터는 아무것도 하지 않는다 — 각각 Controller 의 주입 clock · `S4-E` 저장소 몫 |
+ *
+ * 권한 상태는 **기기 하나의 값**이다 — 같은 플랫폼에서 만든 녹음기들이 `permissionCell` 을 공유하면 Start Session
+ * 판정(`S4-H2R`)에서 받은 허용을 세션 화면의 녹음기가 그대로 본다 (실제 브라우저가 권한을 기억하는 것과 같다).
  *
  * 시간은 주입 `Scheduler` 로만 흐른다 (`setTimeout` 직접 호출 금지 — `mock-source-rules.test.ts`).
  * 청크 본문은 결정적이다 (`seq` 로 채운 고정 길이 바이트).
@@ -64,6 +70,15 @@ export interface MockRecorderAdapterOptions {
   scheduler: Scheduler;
   chunkBytes?: number;
   mimeType?: string;
+  /** 권한 상태 공유 칸 — 없으면 이 녹음기 혼자 `plan.initialPermission` 에서 시작한다. */
+  permissionCell?: MockPermissionCell;
+  /** 호출 기록 공유 — 없으면 이 녹음기 것만 담는다. 플랫폼이 여러 녹음기의 호출을 한 줄로 센다. */
+  calls?: MockRecorderCall[];
+}
+
+/** 기기 권한 상태 1칸 (`S4-H2R`). */
+export interface MockPermissionCell {
+  current: MicPermissionState;
 }
 
 export function createMockRecorderAdapter(
@@ -75,10 +90,10 @@ export function createMockRecorderAdapter(
 
   const chunkListeners = new Set<(chunk: RecorderChunk) => void>();
   const interruptionListeners = new Set<(interruption: RecorderInterruption) => void>();
-  const calls: MockRecorderCall[] = [];
+  const calls: MockRecorderCall[] = options.calls ?? [];
   const pendingInterruptions = [...plan.interruptions];
 
-  let permission: MicPermissionState = 'prompt';
+  const cell: MockPermissionCell = options.permissionCell ?? { current: plan.initialPermission };
   let state: 'inactive' | 'recording' | 'paused' = 'inactive';
   let timesliceMs = 0;
   let startedAtMs = 0;
@@ -161,12 +176,14 @@ export function createMockRecorderAdapter(
 
     checkPermission() {
       calls.push('checkPermission');
-      return Promise.resolve(permission);
+      return Promise.resolve(cell.current);
     },
 
     requestPermission() {
       calls.push('requestPermission');
-      permission = plan.permission;
+      // 이미 정해진 상태에서는 프롬프트가 없다 — 결과도 그 상태 그대로다.
+      if (cell.current !== 'prompt') return Promise.resolve(cell.current);
+      cell.current = plan.permission;
       return Promise.resolve(plan.permission);
     },
 
@@ -177,13 +194,20 @@ export function createMockRecorderAdapter(
         nextStartFailure = null;
         return Promise.reject(new RecorderStartError(reason, 'mock start failure'));
       }
-      if (plan.permission === 'denied') {
+      if (plan.revokedOnStart) {
+        cell.current = 'denied';
+        return Promise.reject(new RecorderStartError('permission_denied', 'mock: revoked'));
+      }
+      if (plan.permission === 'denied' || cell.current === 'denied') {
         return Promise.reject(new RecorderStartError('permission_denied', 'mock: denied'));
+      }
+      if (plan.permission === 'unavailable' || cell.current === 'unavailable') {
+        return Promise.reject(new RecorderStartError('unavailable', 'mock: no microphone'));
       }
       if (state !== 'inactive') {
         return Promise.reject(new RecorderStartError('busy', 'mock: already capturing'));
       }
-      permission = 'granted';
+      cell.current = 'granted';
       timesliceMs = startOptions.timesliceMs;
       startedAtMs = clock.now();
       state = 'recording';

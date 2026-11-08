@@ -23,6 +23,7 @@ import {
 } from '../src/mocks/fixtures/sessions';
 import { createPromptPreviewFixture } from '../src/mocks/fixtures/prompt-sets';
 import { ROUTES } from '../src/shared/config/routes';
+import { appCopy } from '../src/shared/copy/app-copy';
 import { createSystemClock } from '../src/shared/lib/clock';
 import { libraryCopy } from '../src/shared/copy/library-copy';
 import { createHarness, type Harness } from '../src/test/harness';
@@ -81,7 +82,34 @@ function pathname(): string {
   return screen.getByTestId('pathname').textContent ?? '';
 }
 
+/**
+ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
+ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
+ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
+ * 세션 화면의 상세 대기 Spinner(`.haru-session--pending`)도 이름이 `Loading` 이라 Guard 의 것만 센다.
+ */
+async function waitForGuard(): Promise<void> {
+  await waitFor(() => {
+    expect(
+      screen
+        .queryAllByRole('status', { name: appCopy.guard.loadingLabel })
+        .filter((node) => node.closest('.haru-session') === null),
+    ).toHaveLength(0);
+  });
+}
+
+/**
+ * `QA-4B-006` · `D4-153` — 세션 화면 진입은 `D4-150` 과 같다: ① 경로 ② 상세 query 대기(pending Spinner) 종료
+ * ③ 원래 단언(녹음 버튼). 이동과 상세 조회를 기본 1000ms 창 하나에 몰지 않는다.
+ */
+async function waitForSessionDetail(): Promise<void> {
+  await waitFor(() => {
+    expect(document.querySelector('.haru-session:not(.haru-session--pending)')).not.toBeNull();
+  });
+}
+
 async function firstStartButton(): Promise<HTMLElement> {
+  await waitForGuard();
   await waitFor(() => {
     expect(
       document.querySelector('.haru-activity-track:not(.haru-activity-track--skeleton)'),
@@ -105,6 +133,7 @@ async function startFromHome(
   await waitFor(() => {
     expect(pathname()).toMatch(/^\/session\//);
   });
+  await waitForSessionDetail();
   await screen.findByRole('button', { name: storytimeSessionCopy.record.start });
   expect(ops(harness, 'POST /v1/sessions')).toHaveLength(1);
 }
@@ -254,6 +283,7 @@ describe('AC-4-123 · 124 — 오프라인 캐시 카드 (`D4-33` · `D4-39`)', 
       scenarios: ['activity-cards:offline-cached-card'],
       cachedCard: true,
     });
+    await waitForGuard();
     await screen.findByText(activityDeckCopy.states.cachedTitle);
     const start = await firstStartButton();
 
@@ -280,6 +310,7 @@ describe('AC-4-123 · 124 — 오프라인 캐시 카드 (`D4-33` · `D4-39`)', 
 describe('서재 경로 — Reading Context 없이 `childBookId` 로 시작 (`D4-25`, AC-4-38 · 39)', () => {
   it('책 상세 시트의 Start Session → `POST /v1/sessions` 1회 → ready', async () => {
     const harness = await renderApp({ path: ROUTES.library });
+    await waitForGuard();
     await waitFor(() => {
       expect(document.querySelector('.haru-shelf-item--pressable')).not.toBeNull();
     });
@@ -299,6 +330,7 @@ describe('서재 경로 — Reading Context 없이 `childBookId` 로 시작 (`D4
       activityCardOptionId: null,
     });
     expect((create as { childBookId: string | null }).childBookId).not.toBeNull();
+    await waitForSessionDetail();
     await screen.findByRole('button', { name: storytimeSessionCopy.record.start });
   });
 });

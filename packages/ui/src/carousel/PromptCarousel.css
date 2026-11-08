@@ -86,6 +86,16 @@
   transition: translate var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
+/*
+ * `D4-135` (`K2-D1`, `S4-K2F`) — bar 안 요약 트랙(pill 라벨 = 표시 전용 텍스트·배지)은 탭을 받지 않는다.
+ * 트랙은 `translate` 로 화살표보다 위 층에 그려져, 1쪽에서 `Previous prompt` 의 hit 확장(`::before` 44)을
+ * 덮었다(가로 33.5). 실측: 배지만 끄면 pill 컨테이너가, pill 을 끄면 `__slide` 가 계속 덮는다 → 트랙 단위로 끈다.
+ * 쌓임 순서·레이아웃·시각은 그대로다. 스와이프 핸들러는 캐러셀 루트에 있어 이벤트가 그대로 버블된다.
+ */
+.haru-prompt-carousel__bar .haru-prompt-carousel__track {
+  pointer-events: none;
+}
+
 .haru-prompt-carousel__slide {
   display: flex;
   flex: 0 0 100%;

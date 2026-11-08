@@ -15,6 +15,7 @@ import { createMeResponseFixture } from '../src/mocks/fixtures/me';
 import { findChildDataKeys, type RequestLogEntry } from '../src/mocks/request-log';
 import { isPlaceholderLegalUrl } from '../src/shared/config/legal-links';
 import { ROUTES } from '../src/shared/config/routes';
+import { appCopy } from '../src/shared/copy/app-copy';
 import { createFixedClock } from '../src/shared/lib/clock';
 import { createHarness, type Harness } from '../src/test/harness';
 
@@ -43,8 +44,34 @@ async function renderSignedIn(scenarios: readonly string[]): Promise<Harness> {
       <AppRoutes />
     </Wrapper>,
   );
+  await waitForGuard();
 
   return harness;
+}
+
+/**
+ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
+ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
+ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
+ */
+async function waitForGuard(): Promise<void> {
+  await waitFor(() => {
+    expect(screen.queryByRole('status', { name: appCopy.guard.loadingLabel })).toBeNull();
+  });
+}
+
+/**
+ * `QA-4B-006` · `D4-153` — 동의 기록 뒤 이동은 ① `POST /v1/consents` ② `me` 재조회(무효화) ③ Guard 이동을
+ * 거친다. 경로를 기본 창 하나로 기다리지 않고 ①② 의 도달(기록 **뒤의** `me` 요청)을 먼저 기다린다.
+ */
+async function waitForMeAfterConsent(harness: Harness): Promise<void> {
+  await waitFor(() => {
+    const operations = harness.bundle.requestLog.entries().map((entry) => entry.operation);
+    expect(operations).toContain('POST /v1/consents');
+    expect(operations.lastIndexOf('GET /v1/me')).toBeGreaterThan(
+      operations.indexOf('POST /v1/consents'),
+    );
+  });
 }
 
 async function expectPath(expected: string): Promise<void> {
@@ -207,6 +234,7 @@ describe('동의 기록 → 다음 단계 (end-to-end, Mock)', () => {
 
     fireEvent.click(continueButton());
 
+    await waitForMeAfterConsent(harness);
     await expectPath(ROUTES.onboarding.start);
     expect(harness.bundle.consentState.granted()).toStrictEqual([
       'child_voice_data',
@@ -220,6 +248,7 @@ describe('동의 기록 → 다음 단계 (end-to-end, Mock)', () => {
     await checkAllRequired();
     fireEvent.click(continueButton());
 
+    await waitForMeAfterConsent(harness);
     await expectPath(ROUTES.onboarding.start);
 
     const recorded = harness.bundle.requestLog
@@ -244,6 +273,7 @@ describe('동의 기록 → 다음 단계 (end-to-end, Mock)', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: new RegExp(optional?.title ?? '') }));
     fireEvent.click(continueButton());
 
+    await waitForMeAfterConsent(harness);
     await expectPath(ROUTES.onboarding.start);
     expect(harness.bundle.consentState.granted()).toContain(optional?.type);
   });
@@ -272,6 +302,7 @@ describe('재동의 — consent-version-outdated (AC-2-15)', () => {
     await checkAllRequired();
     fireEvent.click(continueButton());
 
+    await waitForMeAfterConsent(harness);
     await expectPath(ROUTES.onboarding.start);
 
     const recorded = harness.bundle.requestLog
@@ -396,12 +427,18 @@ describe('AC-2-13 — 동의 기록 성공 이전 구간의 모든 요청에 아
     });
     fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 
-    // ② Guard 가 동의 화면으로 보낸다.
+    // ② Guard 가 동의 화면으로 보낸다. (`D4-153` — 가입 → `me` 조회 → 이동을 한 창에 몰지 않는다.)
+    await waitFor(() => {
+      expect(harness.bundle.requestLog.entries().map((entry) => entry.operation)).toContain(
+        'GET /v1/me',
+      );
+    });
     await expectPath(ROUTES.auth.consent);
     await checkAllRequired();
 
     // ③ 동의 기록.
     fireEvent.click(continueButton());
+    await waitForMeAfterConsent(harness);
     await expectPath(ROUTES.onboarding.start);
 
     const entries = harness.bundle.requestLog.entries();

@@ -28,6 +28,16 @@
  *   `Submit`·`Discard` 확인·30분 자동 종료(= recording·paused 가 아닌 상태)에서 닫힌다(AC-4-133).
  * - Prompt 가 0개면 칩은 `aria-disabled` + 사유(`aria-describedby`)이고 팝업을 렌더하지 않는다(`D4-58` NB-2).
  * - 조회 실패 = `SessionLoadError` (`D4-96`·`D4-99` — 완료 화면과 공유, `Back to Home` 출구).
+ * - 예외·안내 (`S4-H2`, 4b Spec §7): Record Control 변형 = `selectSessionRecordGate` → `selectRecordControlState`
+ *   (AC-4-134). `permission-denied` 탭 · 권한 거부 직후 1회 → 마이크 안내 시트(§7.3). 대화 전용 ready =
+ *   `permission-denied` + `Submit` 활성 · `Discard` 비활성(`D4-58` CP-6). 녹음 중 탭이 숨겨지면 공지 슬롯
+ *   `InlineAlert`(§7.2, `D4-26`) — 들어가지 않으면 Toast. 연결이 끊기고 돌아올 때 Toast 1회씩(§7.1). 30분 자동
+ *   종료 → Toast + 완료 화면(AC-4-64).
+ * - ⭐ `S4-H2R` (`D4-119` CP-10 · `D4-120` Q15): 대화 전용 세션 ready 에 **처음** 들어오면 마이크 시트를 1회 자동으로
+ *   연다(앱 실행당 세션별 — 기록은 조립 환경). 시트 문단은 모드별(§18.2 ③). 시트가 닫히면 포커스 = Record Control
+ *   (자동으로 열릴 때는 연 요소가 없다 — §18.10 ⑤).
+ * - ⭐ `D4-121` (`VG-H2-02`): 상단 줄(칩·닫기)을 Toast 상단 보정에 등록한다 — 완료 화면 `D4-103` 과 같은 방식.
+ *   Toast 가 칩·닫기를 덮거나 탭을 가로채지 않는다.
  * - 세션이 ready 가 아닌 상태로 열리면(이미 끝난 세션 등) 홈으로 돌아간다 — 재진입·복귀(AC-4-35)는 다음 단위.
  */
 import { MAX_RECORDED_SECONDS } from '@haru/contracts';
@@ -39,18 +49,29 @@ import {
   RecordControl,
   Spinner,
   useToast,
+  useToastTopBarInset,
 } from '@haru/ui';
-import { useCallback, useId, useRef, useState, type ComponentType } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from 'react';
 import { Navigate, useNavigate } from 'react-router';
 
 import { CharacterMedallion } from '../../../entities/character';
 import {
   formatSessionClock,
   selectRecordControlState,
+  selectSessionRecordGate,
   SessionBookChip,
   SessionReadyBubble,
   SessionStatusBlock,
   useCloseReadySession,
+  useConversationEntryNotice,
   useRememberSessionCompletion,
   useSessionDetail,
   useSessionRecorder,
@@ -60,8 +81,11 @@ import {
 import { ROUTES, sessionCompletePath } from '../../../shared/config/routes';
 import { storytimeSessionCopy } from '../copy';
 
+import { MicPermissionSheet } from './MicPermissionSheet';
 import { SessionActionBar, type SessionActionBarState } from './SessionActionBar';
 import { SessionLoadError } from './SessionLoadError';
+import { SessionNoticeSlot, type SessionNotice } from './SessionNoticeSlot';
+import { useSessionToast } from './useSessionToast';
 import { SUBMIT_ENTRY } from './useStickerEntrance';
 
 /** 화면 배치 — 컨트롤러 상태가 종착(completed · abandoned)으로 가는 동안에도 마지막 배치를 유지한다. */
@@ -84,17 +108,27 @@ const RECORD_LIMIT = formatSessionClock(MAX_RECORDED_SECONDS);
 export function StorytimeSessionScreen({ sessionId, PromptsPopover }: StorytimeSessionScreenProps) {
   const copy = storytimeSessionCopy;
   const navigate = useNavigate();
+  /** 완료 화면에서 보이는 Toast(`Submit` · 30분 자동 종료) — 기본 4000 (`D4-128` 대상 아님). */
   const toast = useToast();
+  /** 세션 화면에 머무는 Toast — 문구 전용 3000 (`D4-128`). */
+  const sessionToast = useSessionToast();
   const reasonId = useId();
   const popupId = useId();
   const noPromptsId = useId();
+  const recordReasonId = useId();
+  const recordId = useId();
   const chipRef = useRef<HTMLButtonElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
   /** 같은 이벤트 루프의 재탭까지 막는 잠금 — 상태 갱신 전에 들어온 두 번째 탭도 거른다 (AC-4-129 ⑤). */
   const exitLock = useRef(false);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [exit, setExit] = useState<{ kind: SessionExit; view: SessionView } | null>(null);
   const [promptsOpen, setPromptsOpen] = useState(false);
+  const [micSheetOpen, setMicSheetOpen] = useState(false);
+  /** 시트가 한 번이라도 열렸다가 닫혔는가 — 닫힌 뒤 Record Control 로 포커스를 옮긴다. */
+  const micSheetShown = useRef(false);
+  const [notice, setNotice] = useState<SessionNotice | null>(null);
   const focusChip = useCallback(() => {
     chipRef.current?.focus();
   }, []);
@@ -105,6 +139,30 @@ export function StorytimeSessionScreen({ sessionId, PromptsPopover }: StorytimeS
   const rememberCompletion = useRememberSessionCompletion();
   const detail = useSessionDetail(sessionId);
   const session = detail.session;
+
+  // 대화 전용 세션 첫 진입 안내 (`D4-119` CP-10 · AC-4-147 ①) — ready 로 열린 경우에만, 세션별 1회.
+  const openMicSheet = useCallback(() => {
+    setMicSheetOpen(true);
+  }, []);
+  useConversationEntryNotice(
+    session !== undefined && session.mode === 'conversation_only' && session.status === 'ready'
+      ? session.id
+      : null,
+    openMicSheet,
+  );
+
+  // 시트가 닫히면 포커스 = Record Control (AC-4-147 ③). `Sheet` 포커스 트랩의 복귀(연 요소)는 같은 커밋의
+  // 정리 단계에서 먼저 돌고, 이 effect 가 뒤에 돈다 — 자동으로 열렸을 때도 Record Control 로 간다.
+  // `preventScroll` (`D4-125`, `VG-H2R-02`) — 짧은 세로에서 사용자가 누르지 않은 요소로 화면이 움직이지 않게 한다.
+  // Record Control 은 그 크기에서도 이미 화면 안에 있다.
+  useEffect(() => {
+    if (micSheetOpen) {
+      micSheetShown.current = true;
+      return;
+    }
+    if (!micSheetShown.current) return;
+    document.getElementById(recordId)?.focus({ preventScroll: true });
+  }, [micSheetOpen, recordId]);
   const { recorder, snapshot } = useSessionRecorder(
     session === undefined || session.status !== 'ready'
       ? null
@@ -115,9 +173,46 @@ export function StorytimeSessionScreen({ sessionId, PromptsPopover }: StorytimeS
       void navigate(ROUTES.home, { replace: true });
     },
     onFailed: () => {
-      toast.show({ message: copy.closeFailed, tone: 'error' });
+      sessionToast.show({ message: copy.closeFailed, tone: 'error' });
     },
   });
+
+  // 안내 사건 (`S4-H2`) — 백그라운드 경고는 공지 슬롯, 30분 자동 종료는 Toast + 완료 화면 (AC-4-64).
+  useEffect(() => {
+    if (recorder === null) return undefined;
+    return recorder.onNotice((event) => {
+      if (event.type === 'background') {
+        setNotice('background');
+        return;
+      }
+      // 사용자가 이미 Submit/Discard 를 시작했다면 그쪽이 이동을 맡는다.
+      if (exitLock.current) return;
+      exitLock.current = true;
+      setPromptsOpen(false);
+      rememberCompletion(sessionId, event.result);
+      toast.show({ message: copy.autoTimeout(RECORD_LIMIT), tone: 'neutral' });
+      void navigate(sessionCompletePath(sessionId), { replace: true, state: SUBMIT_ENTRY });
+    });
+  }, [recorder, rememberCompletion, sessionId, toast, navigate, copy]);
+
+  // 연결 끊김 · 복구 — 바뀔 때 Toast 1회씩, 레이아웃 이동 0 (4b Spec §7.1 · §7.2 넷째 줄).
+  useEffect(() => {
+    if (recorder === null) return undefined;
+    return recorder.onConnectivity((value) => {
+      sessionToast.show({
+        message: value === 'offline' ? copy.connectivity.offline : copy.connectivity.online,
+        tone: 'neutral',
+      });
+    });
+  }, [recorder, sessionToast, copy]);
+
+  const dismissNotice = useCallback(() => {
+    setNotice(null);
+  }, []);
+  const noticeOverflowed = useCallback(() => {
+    setNotice(null);
+    sessionToast.show({ message: copy.notices.background.toast, tone: 'neutral' });
+  }, [sessionToast, copy]);
 
   if (detail.isPending) {
     return (
@@ -142,11 +237,19 @@ export function StorytimeSessionScreen({ sessionId, PromptsPopover }: StorytimeS
       ? status
       : (exit?.view ?? (status === 'completed' ? 'paused' : 'ready'));
   const active = view !== 'ready';
-  const controlState: SessionRecordControlState = selectRecordControlState({ status: view });
-  const barState: SessionActionBarState = view;
+  // 대화 전용 ready — 녹음 없이 `Submit` 으로 끝낸다 (`D4-44` · `D4-58` CP-6).
+  const conversation = session.mode === 'conversation_only' && view === 'ready';
+  const gate = selectSessionRecordGate({ phase: snapshot?.phase, mode: session.mode });
+  const controlState: SessionRecordControlState = selectRecordControlState({
+    status: view,
+    ...gate,
+  });
+  const barState: SessionActionBarState = conversation ? 'conversation' : view;
 
   const beginExit = (kind: SessionExit): boolean => {
-    if (recorder === null || exitLock.current || !active) return false;
+    if (recorder === null || exitLock.current || !(active || (conversation && kind === 'submit'))) {
+      return false;
+    }
     exitLock.current = true;
     setExit({ kind, view });
     setPromptsOpen(false);
@@ -179,7 +282,11 @@ export function StorytimeSessionScreen({ sessionId, PromptsPopover }: StorytimeS
         return;
       }
       rememberCompletion(sessionId, outcome.result);
-      toast.show({ message: copy.submitted, tone: 'success' });
+      // 대화 전용은 녹음이 없다 — `Recording submitted` 대신 별도 문구 (`D4-118`).
+      toast.show({
+        message: conversation ? copy.conversationSubmitted : copy.submitted,
+        tone: 'success',
+      });
       void navigate(sessionCompletePath(sessionId), { replace: true, state: SUBMIT_ENTRY });
     });
   };
@@ -191,9 +298,23 @@ export function StorytimeSessionScreen({ sessionId, PromptsPopover }: StorytimeS
 
   const toggleRecording = () => {
     if (recorder === null || exit !== null) return;
-    if (status === 'ready') void recorder.start();
+    if (controlState === 'permission-denied') {
+      setMicSheetOpen(true);
+      return;
+    }
+    // 권한 거부 직후 1회 자동으로 안내한다 (§7.3). 그 뒤로는 `permission-denied` 탭이 연다.
+    // 재개(새 캡처 part)가 거부돼도 같다 — 지금까지 녹음은 `Submit` 으로 낼 수 있다 (§18.2 ④, AC-4-148 ③).
+    const openSheetIfDenied = (outcome: { ok: boolean; reason?: string }) => {
+      if (
+        !outcome.ok &&
+        (outcome.reason === 'permission_denied' || outcome.reason === 'mic_unavailable')
+      ) {
+        setMicSheetOpen(true);
+      }
+    };
+    if (status === 'ready') void recorder.start().then(openSheetIfDenied);
     else if (status === 'recording') void recorder.pause();
-    else if (status === 'paused') void recorder.resume();
+    else if (status === 'paused') void recorder.resume().then(openSheetIfDenied);
   };
 
   // 팝업은 녹음 중·일시정지 중에만 보인다 — 종료 동작이 시작되었거나 30분 자동 종료(`completed`)면 닫는다.
@@ -210,7 +331,7 @@ export function StorytimeSessionScreen({ sessionId, PromptsPopover }: StorytimeS
   return (
     <div className={view === 'recording' ? 'haru-session haru-session--recording' : 'haru-session'}>
       <div className="haru-session__body">
-        <div className="haru-session__top-row">
+        <SessionTopRow>
           {active ? (
             <Button
               ref={chipRef}
@@ -251,7 +372,7 @@ export function StorytimeSessionScreen({ sessionId, PromptsPopover }: StorytimeS
               else requestDiscard();
             }}
           />
-        </div>
+        </SessionTopRow>
 
         <div className="haru-session__medallion">
           <span className="haru-session__medallion-ring" aria-hidden="true" />
@@ -259,6 +380,7 @@ export function StorytimeSessionScreen({ sessionId, PromptsPopover }: StorytimeS
         </div>
 
         <div
+          ref={stageRef}
           className={
             active ? 'haru-session__stage haru-session__stage--active' : 'haru-session__stage'
           }
@@ -277,6 +399,14 @@ export function StorytimeSessionScreen({ sessionId, PromptsPopover }: StorytimeS
                   view === 'recording' ? copy.status.upTo(RECORD_LIMIT) : copy.status.pausedHint
                 }
               />
+              {notice === null ? null : (
+                <SessionNoticeSlot
+                  notice={notice}
+                  stageRef={stageRef}
+                  onDismiss={dismissNotice}
+                  onOverflow={noticeOverflowed}
+                />
+              )}
             </>
           ) : (
             <SessionReadyBubble
@@ -290,11 +420,23 @@ export function StorytimeSessionScreen({ sessionId, PromptsPopover }: StorytimeS
 
         <div className="haru-session__controls">
           <RecordControl
+            id={recordId}
             state={controlState}
             label={recordLabel(controlState)}
-            caption={controlState === 'paused' ? copy.record.resumeCaption : copy.record.caption}
+            caption={recordCaption(controlState)}
+            {...(controlState === 'permission-denied'
+              ? { 'aria-haspopup': 'dialog' as const }
+              : {})}
+            {...(controlState === 'disabled' && gate.consentBlocked
+              ? { 'aria-describedby': recordReasonId }
+              : {})}
             onToggle={toggleRecording}
           />
+          {gate.consentBlocked ? (
+            <span className="haru-visually-hidden" id={recordReasonId}>
+              {copy.record.consentReason}
+            </span>
+          ) : null}
           <SessionActionBar
             state={barState}
             reasonId={reasonId}
@@ -318,7 +460,29 @@ export function StorytimeSessionScreen({ sessionId, PromptsPopover }: StorytimeS
             setConfirmOpen(false);
           }}
         />
+
+        <MicPermissionSheet
+          open={micSheetOpen}
+          conversation={session.mode === 'conversation_only'}
+          onClose={() => {
+            setMicSheetOpen(false);
+          }}
+        />
       </div>
+    </div>
+  );
+}
+
+/**
+ * 상단 줄 (칩 · 닫기) — Toast 상단 보정에 등록한다 (`D4-121`, `useToastTopBarInset`). 세션 조회가 끝난 뒤에야
+ * 렌더되므로 이 줄이 마운트될 때 등록해야 한다(화면 첫 렌더는 Spinner 다). 줄 노드는 상태가 바뀌어도 같다.
+ */
+function SessionTopRow({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useToastTopBarInset(ref);
+  return (
+    <div ref={ref} className="haru-session__top-row">
+      {children}
     </div>
   );
 }
@@ -327,5 +491,15 @@ function recordLabel(state: SessionRecordControlState): string {
   const copy = storytimeSessionCopy.record;
   if (state === 'recording') return copy.pause;
   if (state === 'paused') return copy.resume;
+  if (state === 'permission-denied') return copy.micOff;
+  // `disabled` 이름은 `idle` 과 같다 (4b Spec §9.1) — 사유는 `aria-describedby`.
   return copy.start;
+}
+
+/** 시각 라벨 — Figma 변형별 원문 (`163:1589` · `298:1227` · `298:1236` · `298:1245`). */
+function recordCaption(state: SessionRecordControlState): string {
+  const copy = storytimeSessionCopy.record;
+  if (state === 'paused') return copy.resumeCaption;
+  if (state === 'permission-denied') return copy.micOffCaption;
+  return copy.caption;
 }

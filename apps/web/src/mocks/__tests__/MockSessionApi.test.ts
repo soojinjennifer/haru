@@ -55,6 +55,8 @@ describe('MockSessionApi — Catalogue key (§5.4)', () => {
       'offline',
       'invalid-transition',
       'session-already-active',
+      'session-already-active-ready',
+      'session-already-active-paused',
       'onboarding-incomplete',
       'consent-missing',
       'abandoned',
@@ -358,6 +360,59 @@ describe('MockSessionApi — HARU 특화 (AC-4-34~36 · consent · abandoned)', 
     const active = await b.clients.sessions.getDetail({ sessionId: MOCK_ACTIVE_SESSION_ID });
     expect(active.status).toBe('recording');
     expect(SessionDetailSchema.safeParse(active).success).toBe(true);
+  });
+
+  for (const [key, status] of [
+    ['session-already-active-ready', 'ready'],
+    ['session-already-active-paused', 'paused'],
+  ] as const) {
+    it(`${key} — 같은 409 · 진행 중 세션이 \`${status}\` 다 (\`S4-H4\`, AC-4-35 ③)`, async () => {
+      const b = bundle(`sessions:${key}`);
+      const error = await errorOf(b.clients.sessions.create({ body: sessionBody() }, ik('c')));
+      expect(error.code).toBe('SESSION_ALREADY_ACTIVE');
+      expect(error.details).toStrictEqual({ sessionId: MOCK_ACTIVE_SESSION_ID });
+
+      const active = await b.clients.sessions.getDetail({ sessionId: MOCK_ACTIVE_SESSION_ID });
+      expect(active.status).toBe(status);
+      expect(active.mode).toBe('recorded');
+      expect(SessionDetailSchema.safeParse(active).success).toBe(true);
+      // 재탭도 같은 결과 (결정적)
+      expect(await codeOf(b.clients.sessions.create({ body: sessionBody() }, ik('c2')))).toBe(
+        'SESSION_ALREADY_ACTIVE',
+      );
+    });
+  }
+
+  it('session-already-active-ready — 복귀한 ready 세션은 그대로 녹음을 시작할 수 있다', async () => {
+    const b = bundle('sessions:session-already-active-ready');
+    await codeOf(b.clients.sessions.create({ body: sessionBody() }, ik('c')));
+    const started = await b.clients.sessions.transition(
+      { sessionId: MOCK_ACTIVE_SESSION_ID, body: to('recording') },
+      ik('r'),
+    );
+    expect(started.session.status).toBe('recording');
+  });
+
+  it('onboarding-incomplete — 409 를 낸 뒤 같은 Mock 세계의 `me` 가 in_progress 다 (`S4-H4`, NB-16 · `P4B-BIP-08`)', async () => {
+    const b = bundle('sessions:onboarding-incomplete');
+    expect((await b.clients.me.get()).onboardingStatus).toBe('completed');
+    expect(await codeOf(b.clients.sessions.create({ body: sessionBody() }, ik('c')))).toBe(
+      'ONBOARDING_INCOMPLETE',
+    );
+    const me = await b.clients.me.get();
+    expect(me.onboardingStatus).toBe('in_progress');
+    // 온보딩 전에는 아이 참조가 없다 (AC-2-13)
+    expect(me.child).toBeUndefined();
+  });
+
+  it('onboarding-incomplete — 연동은 scenario 오류에만 묶인다: `error` 로 같은 코드를 내면 `me` 는 그대로다', async () => {
+    const b = bundle('sessions.create:error', {
+      errorCodes: { 'sessions.create': 'ONBOARDING_INCOMPLETE' },
+    });
+    expect(await codeOf(b.clients.sessions.create({ body: sessionBody() }, ik('c')))).toBe(
+      'ONBOARDING_INCOMPLETE',
+    );
+    expect((await b.clients.me.get()).onboardingStatus).toBe('completed');
   });
 
   it('onboarding-incomplete — 세션 endpoint 전부 ONBOARDING_INCOMPLETE (AC-4-36)', async () => {

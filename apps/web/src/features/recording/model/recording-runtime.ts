@@ -36,6 +36,7 @@ import {
   type LocalRetentionSweepResult,
 } from './local-retention';
 import type { RecordingSink, SessionTransitionPort } from './ports';
+import { createRecordingNoticeCenter, type RecordingNoticeCenter } from './recording-notices';
 import { recoverUnfinishedRecordings, type RecoveredRecording } from './recording-recovery';
 import { createSessionOutbox, type SessionOutbox } from './session-outbox';
 import { createUploadQueue, type UploadQueue } from './upload-queue';
@@ -65,10 +66,13 @@ export interface RecordingRuntime {
   readonly outbox: SessionOutbox;
   readonly queue: UploadQueue;
   readonly retention: LocalRetentionMonitor;
+  /** 업로드 · 보관 안내 상태 (`S4-H3`) — 시작 전부터 큐·보관 신호를 듣는다. */
+  readonly notices: RecordingNoticeCenter;
   /** `RecordingController` 에 넘길 포트 2개. */
   portsFor(sessionId: string): { sink: RecordingSink; transitions: SessionTransitionPort };
   /**
-   * 앱 시작 시 1회 — ① 크래시 복구(→ outbox·큐 적재) ② 보관 상한 정리 ③ outbox·큐·보관 감시 시작.
+   * 앱 시작 시 1회 — ① 크래시 복구(→ outbox·큐 적재) ② 보관 상한 정리 ③ 48h 경계 점검(전송 없음)
+   * ④ outbox·큐·보관 감시 시작 ⑤ 안내 센터에 시작 보고 (`S4-H3` — 앱 시작 Toast 순서가 여기서 정해진다).
    * `activeSessionIds` = 이 탭에서 지금 녹음 중인 세션 (복구 대상 아님).
    */
   start(options?: { activeSessionIds?: ReadonlySet<string> }): Promise<RecordingRuntimeStartReport>;
@@ -121,10 +125,13 @@ export function createRecordingRuntime(options: RecordingRuntimeOptions): Record
     },
   });
 
+  // 큐·보관 감시보다 **먼저** 듣는다 — 시작 정리 중에 나는 신호(14일 · 48h)를 잃지 않는다 (§18.10 ④).
+  const notices = createRecordingNoticeCenter({ store, queue, retention, clock });
+
   const offOutbox = outbox.onEvent((event) => {
     // D4-13 — 서버가 폐기를 확정한 뒤에만 로컬을 지운다 (오프라인 Discard 가 나중에 전달된 경우 포함).
     if (event.type === 'confirmed' && event.entry.request.to === 'abandoned') {
-      void discardLocal(event.entry.sessionId);
+      void discardLocal(event.entry.sessionId).then(() => notices.refresh());
     }
   });
 
@@ -149,6 +156,7 @@ export function createRecordingRuntime(options: RecordingRuntimeOptions): Record
     outbox,
     queue,
     retention,
+    notices,
 
     portsFor(sessionId) {
       const port = outbox.portFor(sessionId);
@@ -185,9 +193,11 @@ export function createRecordingRuntime(options: RecordingRuntimeOptions): Record
         await queue.enqueue(item.sessionId);
       }
       const retentionResult = await retention.sweep();
+      await queue.markStalled();
       outbox.start();
       queue.start();
       retention.start();
+      await notices.started(recovered.length);
       return { recovered, retention: retentionResult };
     },
 
@@ -195,6 +205,7 @@ export function createRecordingRuntime(options: RecordingRuntimeOptions): Record
       await queue.clear();
       await outbox.clear();
       await store.clear();
+      await notices.reset();
     },
 
     dispose() {
@@ -202,6 +213,7 @@ export function createRecordingRuntime(options: RecordingRuntimeOptions): Record
       outbox.dispose();
       queue.dispose();
       retention.dispose();
+      notices.dispose();
     },
   };
 }

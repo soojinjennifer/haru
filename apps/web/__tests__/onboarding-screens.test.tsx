@@ -36,6 +36,7 @@ import {
 import { findChildDataKeys } from '../src/mocks/request-log';
 import { ONBOARDING_DRAFT_STORAGE_KEY } from '../src/shared/lib/onboarding-draft';
 import { ROUTES, onboardingStepPath } from '../src/shared/config/routes';
+import { appCopy } from '../src/shared/copy/app-copy';
 import { createHarness, type Harness } from '../src/test/harness';
 
 const CREDENTIALS = { email: 'sam@example.com', password: 'sunny-evening-8' } as const;
@@ -84,8 +85,21 @@ async function renderApp(options: {
       <AppRoutes />
     </Wrapper>,
   );
+  // 미인증(Trial)은 Guard 가 렌더 안에서 바로 판정한다 — 비동기 단계가 아니므로 로그인한 경우만 기다린다.
+  if (options.signIn === true) await waitForGuard();
 
   return harness;
+}
+
+/**
+ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
+ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
+ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
+ */
+async function waitForGuard(): Promise<void> {
+  await waitFor(() => {
+    expect(screen.queryByRole('status', { name: appCopy.guard.loadingLabel })).toBeNull();
+  });
 }
 
 function readStoredDraft(): unknown {

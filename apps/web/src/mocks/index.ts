@@ -114,6 +114,8 @@ export interface MockApiClientsBundle {
   sessionState: MockSessionState;
   /** Stage 4 `offline-queued` 연결 상태 (테스트가 `goOnline()` 으로 복구시킨다). */
   connectivity: MockConnectivity;
+  /** Mock **서버** 시계 (기본 `MOCK_EPOCH_MS` 고정) — 기기 seed 의 서버 세션 시각 (`D4-123`). */
+  clock: Clock;
   /**
    * sentinel 을 **실제로 사용하는** 자리. 이 참조가 없으면 Rollup 이
    * `mock` 빌드에서도 상수를 tree-shaking 으로 지워 버려서
@@ -155,6 +157,7 @@ export function createMockApiClientsBundle(
     onboardingState,
     sessionState,
     connectivity,
+    clock,
     sentinel: __HARU_MOCK_SENTINEL__,
     authGateway: createMockAuthGateway(deps),
     pushPermission: createMockPushPermissionPort({ store }),
@@ -167,7 +170,7 @@ export function createMockApiClientsBundle(
       home: createMockHomeApi(deps),
       activities: createMockActivityApi(deps),
       library: createMockLibraryApi(deps),
-      sessions: createMockSessionApi({ ...stage4, idempotency }),
+      sessions: createMockSessionApi({ ...stage4, idempotency, onboardingState }),
       recordings: createMockRecordingApi({ ...stage4, idempotency, connectivity }),
       uploadTransport: createMockUploadTransport({ ...stage4, connectivity }),
       notifications: createMockNotificationApi({ ...deps, errorCodes }),
@@ -440,6 +443,7 @@ export {
   createStickerAwardFixture,
   MOCK_COMPLETION_BUBBLE,
   MOCK_COMPLETION_BUBBLE_NO_SUBTEXT,
+  MOCK_DEVICE_SEED_SESSION_IDS,
   MOCK_HISTORY_SESSION_IDS,
   MOCK_READY_BUBBLE,
   MOCK_READY_REMINDER_BUBBLE,
@@ -470,12 +474,18 @@ export type { MockPushPermissionPort, PushScenarioKey } from './platform/MockPus
 export type { MockAppStatePort } from './platform/MockAppStatePort';
 export { resolveLocalStoreSeed } from './recorder/localStoreScenarios';
 export type { LocalStoreSeed } from './recorder/localStoreScenarios';
+export { applyRecordingDeviceSeed, resolveDeviceSeedSessionIds } from './recorder/deviceSeed';
+export type { RecordingDeviceSeedOptions } from './recorder/deviceSeed';
 export {
   MOCK_CRASH_CHUNKS,
+  MOCK_NOTICE_AGE_MS,
   MOCK_STALE_AGE_MS,
   MOCK_STALE_CHUNKS,
+  MOCK_STALLED_AGE_MS,
   mockChunkBytes,
   seedCrashedRecording,
+  seedNoticeRecording,
   seedStaleRecording,
+  seedStalledUpload,
 } from './fixtures/local-recordings';
 export type { LocalRecordingSeedTarget } from './fixtures/local-recordings';

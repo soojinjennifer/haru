@@ -28,6 +28,7 @@ import { findChildDataKeys } from '../src/mocks/request-log';
 import { createImmediateTimer } from '../src/shared/api/helpers';
 import { homeOverviewCopy } from '../src/features/home-overview';
 import { ROUTES } from '../src/shared/config/routes';
+import { appCopy } from '../src/shared/copy/app-copy';
 import {
   ACTIVITY_CARD_CACHE_STORAGE_KEY,
   createActivityCardCache,
@@ -77,6 +78,17 @@ async function renderSignedIn(path: string = ROUTES.home): Promise<Harness> {
 async function expectPath(expected: string): Promise<void> {
   await waitFor(() => {
     expect(screen.getByTestId('pathname').textContent).toBe(expected);
+  });
+}
+
+/**
+ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
+ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
+ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
+ */
+async function waitForGuard(): Promise<void> {
+  await waitFor(() => {
+    expect(screen.queryByRole('status', { name: appCopy.guard.loadingLabel })).toBeNull();
   });
 }
 
@@ -148,6 +160,7 @@ describe('`/settings` (AC-2-40 · C13-12)', () => {
 
   it('목록 항목이 로그아웃 1행뿐이다', async () => {
     await renderSignedIn(ROUTES.settings);
+    await waitForGuard();
 
     const list = await screen.findByRole('list', { name: settingsCopy.menuLabel });
     const items = within(list).getAllByRole('listitem');
@@ -160,6 +173,7 @@ describe('`/settings` (AC-2-40 · C13-12)', () => {
 
   it('데이터 관리 · 탈퇴 · 동의 이력 · 알림 설정 행이 없다 (Stage 3 · 6 · 8)', async () => {
     await renderSignedIn(ROUTES.settings);
+    await waitForGuard();
     await screen.findByRole('list', { name: settingsCopy.menuLabel });
 
     for (const label of [
@@ -178,6 +192,7 @@ describe('로그아웃 (AC-2-29 · AC-2-41 · D-7 · D-3)', () => {
   it('행을 눌러도 바로 로그아웃하지 않고 확인 Dialog 를 띄운다', async () => {
     seedDraft();
     await renderSignedIn(ROUTES.settings);
+    await waitForGuard();
 
     const dialog = await openLogOutDialog();
 
@@ -191,6 +206,7 @@ describe('로그아웃 (AC-2-29 · AC-2-41 · D-7 · D-3)', () => {
 
   it('destructive 라 초기 포커스가 취소다', async () => {
     await renderSignedIn(ROUTES.settings);
+    await waitForGuard();
 
     const dialog = await openLogOutDialog();
 
@@ -204,6 +220,7 @@ describe('로그아웃 (AC-2-29 · AC-2-41 · D-7 · D-3)', () => {
   it('취소하면 세션도 로컬 draft 도 그대로다', async () => {
     seedDraft();
     await renderSignedIn(ROUTES.settings);
+    await waitForGuard();
 
     const dialog = await openLogOutDialog();
     fireEvent.click(within(dialog).getByRole('button', { name: settingsCopy.logOut.cancelLabel }));
@@ -220,6 +237,7 @@ describe('로그아웃 (AC-2-29 · AC-2-41 · D-7 · D-3)', () => {
     seedActivityCardCache();
     expect(globalThis.localStorage.getItem(ACTIVITY_CARD_CACHE_STORAGE_KEY)).not.toBeNull();
     const harness = await renderSignedIn(ROUTES.settings);
+    await waitForGuard();
 
     // 로그아웃 전에는 `GET /v1/me` 응답이 캐시에 있다.
     await waitFor(() => {
@@ -249,6 +267,7 @@ describe('로그아웃 (AC-2-29 · AC-2-41 · D-7 · D-3)', () => {
   it('로그아웃 요청에 아동 데이터가 실리지 않는다 (AC-2-13)', async () => {
     seedDraft();
     const harness = await renderSignedIn(ROUTES.settings);
+    await waitForGuard();
 
     const dialog = await openLogOutDialog();
     fireEvent.click(within(dialog).getByRole('button', { name: settingsCopy.logOut.confirmLabel }));

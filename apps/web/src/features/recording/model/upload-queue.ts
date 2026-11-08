@@ -132,6 +132,11 @@ export interface UploadQueue {
   statusOf(sessionId: string): Promise<UploadClientStatus | null>;
   /** 시도 시각이 된 항목을 처리한다. `force` 면 대기 중인 항목도 지금 시도한다. */
   drain(options?: { force?: boolean }): Promise<void>;
+  /**
+   * 48h 경계만 점검한다 — **전송하지 않는다** (`S4-H3`). 앱 시작 시 큐를 돌리기 전에 불러 `stalled_48h` 안내를
+   * 시작 보고에 넣는다 (14일 → 48h → 크래시 복구 순서를 시작 시점에 한 번에 알 수 있게, `D4-120` Q14).
+   */
+  markStalled(): Promise<void>;
   onEvent(listener: (event: UploadQueueEvent) => void): () => void;
   /** 연결·화면 신호 구독 + 남은 항목 처리 예약. */
   start(): void;
@@ -576,6 +581,13 @@ export function createUploadQueue(options: UploadQueueOptions): UploadQueue {
           draining = null;
         });
       return draining;
+    },
+
+    async markStalled() {
+      for (const entry of await listEntries()) {
+        if (disposed) return;
+        await checkStalled(entry).catch(() => undefined);
+      }
     },
 
     onEvent(listener) {

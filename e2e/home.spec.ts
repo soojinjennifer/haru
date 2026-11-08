@@ -373,6 +373,41 @@ test.describe('`/` Home (AC-3-04 · AC-3-09 · AC-3-10 · AC-3-18 · AC-3-87)', 
     }
   });
 
+  test('320 에서 버블 보조 줄이 말줄임 없이 전부 보인다 (`VG-H4-09` · `D4-147` · `D4-148`)', async ({
+    page,
+  }) => {
+    // 보조 줄은 자기 칸(201)을 넘어 닫기 버튼 쪽 padding 까지 들어간다(문구 228). 클립 기준이 칸이면 모든 320
+    // 휴대폰(오버레이 스크롤바)에서 말줄임이 생긴다 — 기준은 버블 끝이어야 한다. 잘리는 곳은 클래식 320 뿐
+    // (`scrollbar-classic.spec.ts`). `D4-148`(`U-2`): 자르는 끝 = 버블 끝 − `--space-2`(8) → 박스 끝 288,
+    // 문구 끝 283 이 그 안(여유 5)이라 휴대폰에서는 여전히 말줄임 0.
+    await page.setViewportSize({ width: 320, height: 568 });
+    await logIn(page);
+    const hint = page.locator('.haru-home-stage__bubble .haru-bubble__hint');
+    await expect(hint).toBeVisible();
+    const result = await hint.evaluate((element) => {
+      const bubbleBox = element.closest('.haru-bubble')!.getBoundingClientRect();
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const textBox = range.getBoundingClientRect();
+      return {
+        bubbleRight: bubbleBox.right,
+        hintRight: element.getBoundingClientRect().right,
+        textRight: textBox.right,
+        scrollWidth: element.scrollWidth,
+        clientWidth: element.clientWidth,
+      };
+    });
+    expect(result.bubbleRight).toBe(296);
+    expect(result.hintRight).toBe(result.bubbleRight - 8);
+    expect(result.hintRight).toBe(288);
+    expect(result.textRight).toBeLessThanOrEqual(result.hintRight);
+    expect(result.scrollWidth, 'hint must not be truncated').toBeLessThanOrEqual(
+      result.clientWidth,
+    );
+    expect(result.textRight).toBeLessThanOrEqual(result.bubbleRight);
+    await expect(hint).toHaveText('Please select the book and start session');
+  });
+
   test('버블 닫기 — 터치 타깃 44×44, 닫아도 다른 요소가 밀리지 않는다', async ({ page }) => {
     await logIn(page);
     await expect(page.locator('.haru-activity-track')).toBeVisible();

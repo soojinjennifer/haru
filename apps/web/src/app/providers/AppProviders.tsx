@@ -10,6 +10,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 
 import type { SessionRecorderEnvironment } from '../../entities/session';
+import { RecordingNoticeToasts } from '../../features/storytime-session';
 import type { ApiClients } from '../../shared/api/types';
 import type { AuthGateway } from '../../shared/auth';
 import type { PushPermissionPort } from '../../shared/platform/push-permission';
@@ -50,7 +51,14 @@ export function AppProviders({
         fallback={fallback}
       >
         {/* Toast 는 화면 위에 하나만 뜬다 (§4.12). 앱 조립 지점에서 한 번 마운트한다. */}
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          {/*
+            앱 수준 녹음 안내 — 14일 삭제 · 48h 미확정 · 크래시 복구 Toast 를 한 번에 1개씩 (`S4-H3` · `D4-117`).
+            화면이 아니라 앱 수명에 묶는다.
+          */}
+          <RecordingNoticeToasts />
+          {children}
+        </ToastProvider>
       </ApiClientProvider>
     </QueryProvider>
   );

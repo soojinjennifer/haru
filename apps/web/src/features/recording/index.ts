@@ -87,6 +87,14 @@ export {
   type RecoveredRecording,
 } from './model/recording-recovery';
 export {
+  APP_RECORDING_NOTICE_ORDER,
+  createRecordingNoticeCenter,
+  type AppRecordingNotice,
+  type RecordingNoticeCenter,
+  type RecordingNoticeCenterOptions,
+  type RetentionNoticeState,
+} from './model/recording-notices';
+export {
   createRecordingRuntime,
   type RecordingRuntime,
   type RecordingRuntimeOptions,

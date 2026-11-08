@@ -20,7 +20,10 @@ import {
   createMockAppStatePort,
   createMockRecordingPlatform,
   type MockApiClientsBundle,
+  type MockErrorCodes,
 } from '../mocks';
+import type { MockAppStatePort } from '../mocks/platform/MockAppStatePort';
+import type { MockRecorderAdapter, MockRecorderCall } from '../mocks/platform/MockRecorderAdapter';
 import type { MockRecordingStorage } from '../mocks/platform/MockRecordingStorage';
 import { createScenarioSource, createScenarioStore } from '../mocks/scenarios';
 import { createImmediateTimer } from '../shared/api/helpers';
@@ -37,6 +40,11 @@ export interface HarnessOptions {
    * 검증할 때 `createManualScheduler(Date.now())` 를 넘긴다 (`S4-F1R`, AC-4-46).
    */
   recorderTime?: Clock & Scheduler;
+  /**
+   * `error` scenario 가 낼 Error Code (`group` · `group.method` — Mock 번들 옵션 그대로). 기본 `INTERNAL_ERROR`.
+   * `S4-H4`: 서버가 `ONBOARDING_INCOMPLETE` 를 냈는데 `me` 는 `completed` 인 **어긋남**을 재현한다.
+   */
+  errorCodes?: MockErrorCodes;
 }
 
 export interface Harness {
@@ -53,6 +61,18 @@ export interface Harness {
    * 세션 화면이 녹음 조립을 처음 열기 전에는 `null` 이다.
    */
   recordingStorage: () => MockRecordingStorage | null;
+  /**
+   * Mock 연결·화면 신호 (Stage 4b `S4-H2`) — 세션 화면 오프라인 Toast 를 결정적으로 낸다. 녹음 조립을 처음
+   * 열기 전에는 `null` 이다.
+   */
+  appState: () => MockAppStatePort | null;
+  /**
+   * 이 조립의 모든 Mock 녹음기 호출 (Stage 4b `S4-H2R`) — Start Session 판정 녹음기 + 세션 녹음기를 한 줄로 센다.
+   * 프롬프트 수 = `requestPermission` 개수 (AC-4-145). 녹음 조립을 처음 열기 전에는 빈 배열이다.
+   */
+  recorderCalls: () => readonly MockRecorderCall[];
+  /** 만들어진 Mock 녹음기 — 마지막 것이 지금 세션 화면의 녹음기다 (`failNextStart` 등 사건 주입). */
+  recorders: () => readonly MockRecorderAdapter[];
   wrapper: (props: { children: ReactNode }) => ReactNode;
 }
 
@@ -70,6 +90,7 @@ function storeFor(scenarios: readonly string[]) {
 export function createHarness(options: HarnessOptions = {}): Harness {
   const bundle = createMockApiClientsBundle({
     store: storeFor(options.scenarios ?? []),
+    ...(options.errorCodes === undefined ? {} : { errorCodes: options.errorCodes }),
     // 지연을 기다리지 않는다 — `loading` scenario 도 결정적으로 끝난다.
     timer: createImmediateTimer(),
   });
@@ -78,6 +99,9 @@ export function createHarness(options: HarnessOptions = {}): Harness {
   const clock: Clock = options.recorderTime ?? createSystemClock();
   const scheduler: Scheduler = options.recorderTime ?? createSystemScheduler();
   let recordingStorage: MockRecordingStorage | null = null;
+  let appState: MockAppStatePort | null = null;
+  let recorderCalls: readonly MockRecorderCall[] = [];
+  const recorders: MockRecorderAdapter[] = [];
   const sessionRecorder = createSessionRecorderEnvironment({
     clients: bundle.clients,
     clock,
@@ -87,10 +111,16 @@ export function createHarness(options: HarnessOptions = {}): Harness {
     platform: () => {
       const mock = createMockRecordingPlatform({ store: bundle.store, clock, scheduler });
       recordingStorage = mock.storage;
+      recorderCalls = mock.recorderCalls;
+      appState = createMockAppStatePort();
       return {
-        createRecorder: mock.createRecorder,
+        createRecorder: () => {
+          const recorder = mock.createRecorder();
+          recorders.push(recorder);
+          return recorder;
+        },
         storage: mock.storage,
-        appState: createMockAppStatePort(),
+        appState,
       };
     },
   });
@@ -100,6 +130,9 @@ export function createHarness(options: HarnessOptions = {}): Harness {
     queryClient,
     sessionRecorder,
     recordingStorage: () => recordingStorage,
+    appState: () => appState,
+    recorderCalls: () => recorderCalls,
+    recorders: () => recorders,
     wrapper: ({ children }) => (
       <MemoryRouter initialEntries={[...(options.initialEntries ?? ['/'])]}>
         <AppProviders

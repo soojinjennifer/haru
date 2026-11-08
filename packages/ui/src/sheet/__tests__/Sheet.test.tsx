@@ -1,4 +1,4 @@
-import { act } from 'react';
+import { act, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 
@@ -267,4 +267,83 @@ describe('Sheet — 면 색(`surface`) · 표지 그림자 자리(`contentShadow
     );
     expect(document.querySelector('.haru-sheet__leading')).toBeNull();
   });
+});
+
+/**
+ * Stage 4b `S4-G2M` — 닫힘 중(240ms) 처리 (Spec §20.4 · `D4-138` Q1 — **공유 `Sheet`**, 모든 variant).
+ *
+ * 닫힘 중 시트는 `inert` · `aria-modal` 없음, scrim 은 탭을 흡수하되 `onClose` 를 다시 부르지 않는다.
+ * 시각 변화는 0 이다 — 기하·모션은 e2e(`session-prompts.spec.ts` `S4-G2M`) 가 본다.
+ */
+describe('Sheet — 닫힘 중 (`S4-G2M` · Spec §20.4)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const VARIANTS = ['bottom', 'full', 'inset-card', 'floating'] as const;
+
+  for (const variant of VARIANTS) {
+    it(`${variant}: 열림 = 모달 · inert 없음 → 닫힘 중 = inert · aria-modal 없음 → 240ms 뒤 언마운트`, () => {
+      const { rerender } = render(
+        <Sheet open onClose={() => {}} title="Prompts" variant={variant}>
+          <Button onPress={() => {}}>Inside</Button>
+        </Sheet>,
+      );
+      const sheet = screen.getByRole('dialog', { name: 'Prompts' });
+      expect(sheet.getAttribute('aria-modal')).toBe('true');
+      expect(sheet.hasAttribute('inert')).toBe(false);
+
+      rerender(
+        <Sheet open={false} onClose={() => {}} title="Prompts" variant={variant}>
+          <Button onPress={() => {}}>Inside</Button>
+        </Sheet>,
+      );
+      const closing = document.querySelector('.haru-sheet--closing');
+      expect(closing).not.toBeNull();
+      expect(closing?.hasAttribute('inert')).toBe(true);
+      expect(closing?.hasAttribute('aria-modal')).toBe(false);
+      expect(document.querySelector('[aria-modal="true"]')).toBeNull();
+
+      act(() => {
+        vi.advanceTimersByTime(240);
+      });
+      expect(document.querySelector('.haru-sheet')).toBeNull();
+    });
+
+    it(`${variant}: scrim 연속 탭 → onClose 1회 (닫힘 중 탭은 흡수만)`, () => {
+      const onClose = vi.fn();
+      function Harness() {
+        const [open, setOpen] = useState(true);
+        return (
+          <Sheet
+            open={open}
+            onClose={() => {
+              onClose();
+              setOpen(false);
+            }}
+            title="Prompts"
+            variant={variant}
+          >
+            <p>body</p>
+          </Sheet>
+        );
+      }
+      render(<Harness />);
+
+      fireEvent.click(document.querySelector('.haru-scrim') as HTMLElement);
+      expect(onClose).toHaveBeenCalledOnce();
+      const scrim = document.querySelector('.haru-scrim--closing');
+      expect(scrim).not.toBeNull();
+      fireEvent.click(scrim as HTMLElement);
+      fireEvent.click(scrim as HTMLElement);
+      expect(onClose).toHaveBeenCalledOnce();
+      /* 닫힘 중에는 Escape 도 다시 부르지 않는다 (trap 이 꺼져 있다) */
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(onClose).toHaveBeenCalledOnce();
+    });
+  }
 });

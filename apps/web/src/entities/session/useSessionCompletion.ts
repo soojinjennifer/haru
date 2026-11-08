@@ -11,8 +11,9 @@
  * - 스티커는 재진입하면 `SessionDetail.sticker` 로 같은 지급을 읽는다 — 다시 만들지 않는다 (FR-19).
  * - 전이 응답이 있으면 조회하지 않는다. 오프라인 제출(`result: null`)도 같다 — 지급을 아직 모르므로
  *   칩·버블이 없다 (`D4-88` 현행 수용).
- * - `leave` — 조회해 보니 끝난 적 없는 세션이면(`ready` · `abandoned`) 완료 화면을 그리지 않는다 (`D4-91`).
- *   전이 응답이 기억된 경로는 판정하지 않는다. `recording` · `paused` 는 `S4-H2` 에서 판정한다 (AC-4-140 ⑤).
+ * - `leave` — 조회해 보니 끝난 적 없는 세션이면(`ready` · `abandoned` — `D4-91`, `recording` · `paused` —
+ *   `D4-113`, AC-4-140 ⑤) 완료 화면을 그리지 않는다. 전이 응답이 기억된 경로는 판정하지 않는다 — 오프라인
+ *   제출(서버는 아직 `paused`)도 기억된 응답으로 완료 화면에 머문다.
  */
 import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
@@ -29,8 +30,13 @@ import { sessionKeys } from './sessionKeys';
 
 type CompletionResult = Pick<SessionTransitionResult, 'completionBubble' | 'stickerAward'>;
 
-/** `/complete` 에 머물 수 없는 상태 (`D4-91`). */
-const NOT_COMPLETED: ReadonlySet<SessionStatus> = new Set(['ready', 'abandoned']);
+/** `/complete` 에 머물 수 없는 상태 — `ready` · `abandoned` (`D4-91`) · `recording` · `paused` (`D4-113`). */
+const NOT_COMPLETED: ReadonlySet<SessionStatus> = new Set([
+  'ready',
+  'abandoned',
+  'recording',
+  'paused',
+]);
 
 export function useRememberSessionCompletion() {
   const queryClient = useQueryClient();
@@ -64,7 +70,7 @@ export function selectCompletionBubble(
 export interface UseSessionCompletionResult {
   sticker: StickerAward | null;
   bubble: SessionCompletionBubble | null;
-  /** 끝난 적 없는 세션의 직접 진입 — 화면은 홈으로 돌려보낸다 (`D4-91`). */
+  /** 끝난 적 없는 세션의 직접 진입 — 화면은 홈으로 돌려보낸다 (`D4-91` · `D4-113`). */
   leave: boolean;
   isPending: boolean;
   isError: boolean;

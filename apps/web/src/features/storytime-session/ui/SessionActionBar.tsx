@@ -10,6 +10,8 @@
  * - `ready` → **둘 다 비활성** = `aria-disabled` + 포커스 가능 + 사유 `aria-describedby` (`D4-18`,
  *   AC-4-111 ②·AC-4-117 ③). 시각은 전역 `opacity .5` 하나 — 비활성 전용 색·테두리 0건.
  * - `recording` · `paused` → 둘 다 활성 (`D4-12`).
+ * - `conversation` (대화 전용 ready, `D4-58` CP-6 · 4b Spec §7.1) → `Submit` **활성** · `Discard` 비활성
+ *   (지울 녹음이 없다). 사유 문구는 `Discard` 에만 붙는다.
  * - `submitting` — `Submit` 을 누른 뒤 응답까지: `Submit` 은 loading(누름 무시·폭 유지), `Discard` 는
  *   누름만 무시한다 (Stage 4 Spec §2.5.1 ① "두 버튼 잠금" — 중복 제출 방지). 시각 변화는 Spinner 뿐이다.
  * - ⚠ 상태가 바뀌어도 **다시 마운트하지 않는다** — 같은 버튼에서 `aria-disabled` 만 토글한다.
@@ -20,7 +22,7 @@ import { Button } from '@haru/ui';
 
 import { storytimeSessionCopy } from '../copy';
 
-export type SessionActionBarState = 'ready' | 'recording' | 'paused';
+export type SessionActionBarState = 'ready' | 'recording' | 'paused' | 'conversation';
 
 export interface SessionActionBarProps {
   state: SessionActionBarState;
@@ -40,27 +42,26 @@ export function SessionActionBar({
   onSubmit,
 }: SessionActionBarProps) {
   const copy = storytimeSessionCopy.actions;
-  const blocked = state === 'ready';
-  const blockedProps = blocked
-    ? ({ 'aria-disabled': true, 'aria-describedby': reasonId } as const)
-    : {};
+  const blockedProps = { 'aria-disabled': true, 'aria-describedby': reasonId } as const;
+  const discardProps = state === 'ready' || state === 'conversation' ? blockedProps : {};
+  const submitProps = state === 'ready' ? blockedProps : {};
 
   return (
     <div className="haru-session-actions" role="group" aria-label={copy.groupLabel}>
       <Button
         variant="neutral"
-        {...blockedProps}
+        {...discardProps}
         onPress={() => {
           if (!submitting) onDiscard();
         }}
       >
         {copy.discard}
       </Button>
-      <Button variant="accent" {...blockedProps} loading={submitting} onPress={onSubmit}>
+      <Button variant="accent" {...submitProps} loading={submitting} onPress={onSubmit}>
         {copy.submit}
       </Button>
       <span className="haru-visually-hidden" id={reasonId}>
-        {copy.readyReason}
+        {state === 'conversation' ? copy.conversationReason : copy.readyReason}
       </span>
     </div>
   );

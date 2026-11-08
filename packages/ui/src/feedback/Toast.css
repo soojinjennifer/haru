@@ -87,6 +87,16 @@
   text-decoration: underline;
 }
 
+/*
+ * 닫기 버튼 — 줄어들지 않는다 (`D4-132`, `VG-H3-01`). flex 기본 `flex-shrink: 1` 이면 문구가 긴 Toast 에서
+ * `IconButton` 이 선언 크기 38(`--icon-button-size`)보다 좁아진다 — action + 닫기를 함께 쓴 48h Toast 에서
+ * 폭 20(hit 26×44)으로 실측됐다. 문구가 대신 줄바꿈되어 Toast 가 높아진다(393 76→86 · 320 86→104, 승인).
+ * `InlineAlert` 의 `.haru-alert__dismiss { flex: none }` 과 같은 처리다.
+ */
+.haru-toast > .haru-icon-button {
+  flex: none;
+}
+
 /* ===== 모션 (§9.1) =======================================================
  * enter: translateY(-12) → 0 + fade (240ms) / exit: fade only (180ms).
  * 상단 배치이므로 **위에서 내려온다** (2026-10-10). 퇴장은 fade 만이라 방향이 없다.

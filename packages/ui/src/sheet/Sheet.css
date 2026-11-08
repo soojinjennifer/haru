@@ -23,6 +23,8 @@
   background-color: var(--color-surface-strong);
   box-shadow: var(--shadow-glass-rest);
   transform: translateY(0);
+  /* 닫힘 추가 이동 거리 (§20.2) — 로컬 변수. `floating` 만 값을 준다. */
+  --haru-sheet-exit-extra: 0px;
   /*
    * 면 색 전환 — `surface` 를 **주는 시트에만** 실제로 일어난다 (다른 시트는 면 색이 바뀌지
    * 않으므로 선언이 있어도 렌더가 같다). 전환을 base 에 두는 이유: 되돌아올 때
@@ -106,6 +108,11 @@
   padding-block: var(--sheet-floating-pad-block-start) var(--sheet-floating-pad-block-end);
   padding-inline: var(--sheet-floating-pad-inline);
   border-radius: var(--sheet-inset-radius);
+  /* 닫힘에 바닥 inset + 위쪽 그림자 번짐만큼 더 내려가 그림자까지 화면 밖에서 끝난다
+   * (Stage 4b Spec §20.2 · `D4-139` — inset 만이면 바닥 2행에 그림자가 남아 언마운트 프레임에 사라졌다) */
+  --haru-sheet-exit-extra: calc(
+    var(--sheet-floating-inset-block-end) + var(--sheet-floating-exit-shadow-reach)
+  );
 }
 
 /* 핸들 `88:669` 40×4 — 슬롯 `88:668` 높이 8 의 가운데 (위·아래 2) */
@@ -243,18 +250,27 @@
   }
 }
 
+/*
+ * 닫힘 끝 = `100% + --haru-sheet-exit-extra` (Stage 4b Spec §20.2 · `D4-137`/`D4-138`).
+ * `translateY(100%)` 는 **자기 높이만큼만** 내려가서, 바닥에서 떠 있는 카드(`floating`)는 위 띠
+ * (inset 24 + safe-area)가 화면에 남은 채 끝나고 언마운트 프레임에 한 번에 사라졌다(`VG-G2-10`).
+ * 추가 거리는 **floating 만** 준다 — 기본 `0px` 이라 `bottom`·`full`·`inset-card` 의 계산값은 그대로다
+ * (Q4: `inset-card` 는 범위 밖). `0px` 은 단위가 있어야 한다 — `calc(100% + 0)` 은 무효다.
+ * 정적 `.haru-sheet--closing` 값도 **같은 끝 값**이어야 한다: 애니메이션 끝 ↔ 언마운트 타이머 사이
+ * 프레임에 정적 값으로 되튀면 띠가 다시 보인다.
+ */
 @keyframes haru-sheet-out {
   from {
     transform: translateY(0);
   }
 
   to {
-    transform: translateY(100%);
+    transform: translateY(calc(100% + var(--haru-sheet-exit-extra)));
   }
 }
 
 .haru-sheet--closing {
-  transform: translateY(100%);
+  transform: translateY(calc(100% + var(--haru-sheet-exit-extra)));
   animation: haru-sheet-out var(--motion-duration-base) var(--motion-ease-standard);
 }
 

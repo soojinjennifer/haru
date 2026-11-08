@@ -15,7 +15,9 @@
  * | `offline` | `NetworkError` |
  * | `invalid-transition` | `transition` 1회차가 `SESSION_INVALID_TRANSITION`(`details.from` = **서버 상태**, `to`) — 상태는 바꾸지 않는다. 클라이언트는 `getDetail` 로 서버 상태에 재동기화한다 (AC-4-34) |
  * | `session-already-active` | `create` → `SESSION_ALREADY_ACTIVE`(`details.sessionId`). 그 세션(`MOCK_ACTIVE_SESSION_ID`, `recording`)을 `getDetail` 로 조회할 수 있다 → 복귀 경로 (AC-4-35) |
- * | `onboarding-incomplete` | 모든 메서드 → `ONBOARDING_INCOMPLETE` (AC-4-36) |
+ * | `session-already-active-ready` | `S4-H4` — 위와 같고 진행 중 세션이 **`ready`**(`recorded`, 2분 전 준비)다. 시작 경로가 그 세션 화면으로 이동한다 (AC-4-35 ③, `D4-145` CP-15 ⓐ) |
+ * | `session-already-active-paused` | `S4-H4` — 위와 같고 진행 중 세션이 **`paused`** 다. `recording` 과 같은 분기(안내만, 이동 0) |
+ * | `onboarding-incomplete` | 모든 메서드 → `ONBOARDING_INCOMPLETE` (AC-4-36). `S4-H4` (NB-16): 그 응답을 낸 뒤 같은 Mock 세계의 `GET /v1/me` 가 `onboardingStatus='in_progress'` 를 돌려준다 — 서버 상태와 일관(`P4B-BIP-08`). 결정적이다 |
  * | `consent-missing` | `transition(to='recording')` → `CONSENT_REQUIRED` (AC-4-37 Plan 표 · CG) |
  * | `abandoned` | 서버 sweeper — `ready` 세션을 조회·전이할 때 `abandoned` 로 옮긴다 (actor `server`) |
  * | `recording-discarded` | 사용자 `Discard` 경로 재현. API 동작은 `success` 와 같다 — 폐기는 **상태 규칙**이 처리한다: `to='abandoned'` 확정 → 녹음 `uploadStatus='deleted'`, 이후 토큰 재발급·확정·전송은 `RECORDING_DELETED` (`D4-13`, §3.9) |
@@ -60,7 +62,7 @@ import { parseRequest, parseResponse, type Timer } from '../../shared/api/helper
 import type { ApiRequestOptions } from '../../shared/api/health-api';
 import type { ApiMutationOptions } from '../../shared/api/options';
 import type { SessionApi } from '../../shared/api/session-api';
-import { shiftedIso, type Clock } from '../../shared/lib/clock';
+import { createFixedClock, shiftedIso, type Clock } from '../../shared/lib/clock';
 import type { IdFactory } from '../../shared/lib/idFactory';
 import {
   createMockFailure,
@@ -81,6 +83,7 @@ import {
   MOCK_RAW_AUDIO_RETENTION_MS,
   resolveSessionBook,
 } from '../fixtures/sessions';
+import type { MockOnboardingState } from '../onboarding/onboardingState';
 import type { RequestLog } from '../request-log';
 import { resolveReadySessionShape } from './sessionFixtureScenarios';
 import { beginScenarioCall, type ScenarioGroupDefinition, type ScenarioStore } from '../scenarios';
@@ -101,6 +104,8 @@ export const SESSION_SCENARIO_KEYS = [
   'offline',
   'invalid-transition',
   'session-already-active',
+  'session-already-active-ready',
+  'session-already-active-paused',
   'onboarding-incomplete',
   'consent-missing',
   'abandoned',
@@ -140,10 +145,24 @@ export interface MockSessionApiDeps {
   idempotency: IdempotencyLedger;
   requestLog?: RequestLog | undefined;
   errorCodes?: MockErrorCodes | undefined;
+  /**
+   * `MockMeApi` 와 공유하는 온보딩 상태 (`S4-H4`, NB-16). `onboarding-incomplete` 가 오류를 낸 사실을 여기에
+   * 남기면 `GET /v1/me` 가 미완료를 말한다. 없으면(단위 테스트 단독 조립) 남기지 않는다.
+   */
+  onboardingState?: MockOnboardingState | undefined;
 }
+
+/** 진행 중 세션 scenario → 그 세션의 상태 (`S4-H4`). */
+const ACTIVE_SESSION_STATUS: Partial<Record<SessionScenarioKey, 'ready' | 'recording' | 'paused'>> =
+  {
+    'session-already-active': 'recording',
+    'session-already-active-ready': 'ready',
+    'session-already-active-paused': 'paused',
+  };
 
 export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
   const { store, clock, idFactory, timer, state, idempotency, requestLog, errorCodes } = deps;
+  const { onboardingState } = deps;
   const failure = createMockFailure(idFactory);
   const { fail } = failure;
   const group = sessionScenarioGroup.group;
@@ -177,13 +196,20 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
     });
   }
 
-  /** `session-already-active` 의 진행 중 세션 — 복귀 경로가 조회할 수 있어야 한다. */
-  function seedActiveSession(): MockSessionRecord {
+  /** `session-already-active*` 의 진행 중 세션 — 복귀 경로가 조회할 수 있어야 한다. */
+  function seedActiveSession(
+    status: 'ready' | 'recording' | 'paused',
+    /** 요청이 실어 온 기기 시각(`readyAt`) — 있으면 그 시각 기준으로 만든다 (`createActiveSessionFixture` 참조). */
+    referenceIso?: string,
+  ): MockSessionRecord {
     const existing = state.sessions.get(MOCK_ACTIVE_SESSION_ID);
     if (existing !== undefined) return existing;
 
+    const reference = referenceIso === undefined ? Number.NaN : Date.parse(referenceIso);
     const record: MockSessionRecord = {
-      summary: createActiveSessionFixture(clock),
+      summary: Number.isNaN(reference)
+        ? createActiveSessionFixture(clock, status)
+        : createActiveSessionFixture(clock, status, createFixedClock(reference)),
       childId: MOCK_CHILD_ID,
       clientSessionKey: null,
       sticker: null,
@@ -239,6 +265,7 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
   /** 전 메서드 공통 — `onboarding-incomplete` 는 세션 endpoint 전부를 막는다 (Catalogue §5.4). */
   function guardOnboarding(scenario: SessionScenarioKey): void {
     if (scenario === 'onboarding-incomplete') {
+      onboardingState?.markServerIncomplete();
       fail('ONBOARDING_INCOMPLETE', 'Finish onboarding before starting a session.');
     }
   }
@@ -336,8 +363,9 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
       );
       guardOnboarding(scenario);
 
-      if (scenario === 'session-already-active') {
-        const active = seedActiveSession();
+      const activeStatus = ACTIVE_SESSION_STATUS[scenario];
+      if (activeStatus !== undefined) {
+        const active = seedActiveSession(activeStatus, body.readyAt);
         return fail('SESSION_ALREADY_ACTIVE', 'A storytime is already open.', {
           sessionId: active.summary.id,
         });
@@ -420,7 +448,8 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
         options.signal,
       );
       guardOnboarding(scenario);
-      if (scenario === 'session-already-active') seedActiveSession();
+      const activeStatus = ACTIVE_SESSION_STATUS[scenario];
+      if (activeStatus !== undefined) seedActiveSession(activeStatus);
 
       const run = (): SessionDetail => {
         const record = findSession(request.sessionId);
@@ -468,7 +497,8 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
         options.signal,
       );
       guardOnboarding(scenario);
-      if (scenario === 'session-already-active') seedActiveSession();
+      const activeStatus = ACTIVE_SESSION_STATUS[scenario];
+      if (activeStatus !== undefined) seedActiveSession(activeStatus);
 
       if (scenario === 'consent-missing' && body.to === 'recording') {
         return fail('CONSENT_REQUIRED', 'Consent is needed before recording.');

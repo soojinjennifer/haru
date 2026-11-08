@@ -8,4 +8,6 @@ export { SessionCompleteScreen } from './ui/SessionCompleteScreen';
 export type { SessionCompleteScreenProps } from './ui/SessionCompleteScreen';
 export { SessionActionBar } from './ui/SessionActionBar';
 export type { SessionActionBarProps, SessionActionBarState } from './ui/SessionActionBar';
+export { RecordingNoticeToasts } from './ui/RecordingNoticeToasts';
+export { RetentionNoticeBanner } from './ui/RetentionNoticeBanner';
 export { storytimeSessionCopy } from './copy';

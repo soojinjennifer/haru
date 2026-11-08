@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { ActivityCardOfflineBanner } from '../../features/activity-card-deck';
 import { homeOverviewCopy, HomeWeekSummary } from '../../features/home-overview';
 import { settingsCopy } from '../../features/settings';
+import { RetentionNoticeBanner } from '../../features/storytime-session';
 import { ROUTES } from '../../shared/config/routes';
 
 /**
@@ -33,6 +34,9 @@ import { ROUTES } from '../../shared/config/routes';
  *
  * **Offline Banner** (Stage 4 `S4-J`, `D-11` · AC-4-82) — 오프라인 + 최근 카드 캐시일 때만 헤더 밴드 **밑**에
  * 붙는다 (TopBar 바로 아래 — Stage 1 §5.4). 평소에는 아무것도 렌더하지 않아 헤더 기하가 그대로다.
+ *
+ * **7일 보관 배너** (Stage 4b `S4-H3`, 4b Spec §18.5 · `D4-120` Q11) — 오프라인 배너와 **같은 슬롯**이다. 오프라인
+ * 배너가 우선하므로 그 `fallback` 으로 조립한다 (온라인 복귀 시 다시 보인다). 두 feature 의 조합은 여기서만 한다.
  */
 export function HomeTopBar() {
   const navigate = useNavigate();
@@ -62,7 +66,7 @@ export function HomeTopBar() {
           }
         />
       </div>
-      <ActivityCardOfflineBanner />
+      <ActivityCardOfflineBanner fallback={<RetentionNoticeBanner />} />
     </>
   );
 }

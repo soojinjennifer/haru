@@ -27,10 +27,14 @@ export interface SelectActivityOptionVariables {
 }
 
 export interface SelectActivityOptionMutation {
-  /** `onSelected` — 이 호출 하나에만 붙는 성공 콜백 (예: 이어서 세션을 만든다). */
+  /**
+   * `onSelected` — 이 호출 하나에만 붙는 성공 콜백 (예: 이어서 세션을 만든다).
+   * `onFailed` — 이 호출 하나에만 붙는 실패 콜백 (`S4-H3` `D4-125` — 호출한 쪽의 연속 `loading` 을 끝낸다).
+   */
   select: (
     variables: SelectActivityOptionVariables,
     onSelected?: (selection: ActivityCardSelection) => void,
+    onFailed?: () => void,
   ) => void;
   selection: ActivityCardSelection | undefined;
   isPending: boolean;
@@ -54,8 +58,11 @@ export function useSelectActivityOption(
   const error: unknown = mutation.error;
 
   return {
-    select: (variables, onSelected) => {
-      mutation.mutate(variables, onSelected === undefined ? undefined : { onSuccess: onSelected });
+    select: (variables, onSelected, onFailed) => {
+      mutation.mutate(variables, {
+        ...(onSelected === undefined ? {} : { onSuccess: onSelected }),
+        ...(onFailed === undefined ? {} : { onError: onFailed }),
+      });
     },
     selection: mutation.data,
     isPending: mutation.isPending,

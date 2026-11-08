@@ -427,6 +427,13 @@
    * `PromptCarousel` 소속이라 `--prompt-carousel-*` 다. `--prompt-drawer-pill-width` 는 `D4-71` 로 **없다**(pill = 본문 100%). */
   --sheet-floating-inset: var(--layout-gutter); /* 24 */
   --sheet-floating-inset-block-end: calc(var(--layout-gutter) + var(--layout-safe-bottom));
+  /* 닫힘 추가 거리 — 카드 top 위로 번지는 `--shadow-glass-rest` 그림자 (`D4-139`, `R-SHADOW-1` 3).
+   * 겹별 위쪽 도달 = blur − offsetY (spread 0): (0,2) r4 → 2 · (0,12) r28 → 16 · (0,28) r56 → **28**.
+   * 합성 그림자의 도달 = 겹 최댓값 28 (inset 2겹은 박스 밖에 안 그린다).
+   * 픽셀 프로브(Chromium, dsf 1, 흰 배경, 2026-11-04): 3겹 합성 채널 차 1px 위 10 · 4px 6 · 8px 4 ·
+   * 16px 1 · 22px 1 · **23px 이상 0** (겹별 도달 2 / 14 / 22). 실측 22 보다 큰 정의값 28 을 쓴다 —
+   * CSS 정의(번짐 = blur 반경)의 상한이라 렌더 엔진의 blur 근사 차이에 기대지 않는다. */
+  --sheet-floating-exit-shadow-reach: 28px;
   --sheet-floating-pad-block-start: var(--space-2-5); /* 10 */
   --sheet-floating-pad-block-end: 11px; /* 렌더 기준 — 스케일 밖 리터럴 (`D4-70`) */
   --sheet-floating-pad-inline: var(--space-5); /* 20 */

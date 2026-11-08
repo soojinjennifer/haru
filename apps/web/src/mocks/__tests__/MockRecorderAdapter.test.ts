@@ -10,6 +10,7 @@ import {
   MOCK_RECORDER_MIME_TYPE,
   createMockRecorderAdapter,
 } from '../platform/MockRecorderAdapter';
+import { createMockRecordingPlatform } from '../platform/mockRecordingPlatform';
 import { resolveRecorderScenario } from '../recorder/recorderScenarios';
 import { createScenarioStoreFrom } from '../scenarios';
 
@@ -65,6 +66,54 @@ describe('MockRecorderAdapter', () => {
     await expect(t.adapter.start({ timesliceMs: 1000 })).rejects.toMatchObject({
       reason: 'permission_denied',
     });
+  });
+
+  it('mic-permission-blocked — 처음부터 denied, 요청해도 프롬프트 없이 denied · start 거절 (S4-H2R)', async () => {
+    const t = run('recorder:mic-permission-blocked');
+    expect(await t.adapter.checkPermission()).toBe('denied');
+    expect(await t.adapter.requestPermission()).toBe('denied');
+    await expect(t.adapter.start({ timesliceMs: 1000 })).rejects.toMatchObject({
+      reason: 'permission_denied',
+    });
+  });
+
+  it('mic-unavailable — 장치 없음, start = unavailable (S4-H2R)', async () => {
+    const t = run('recorder:mic-unavailable');
+    expect(await t.adapter.checkPermission()).toBe('unavailable');
+    expect(await t.adapter.requestPermission()).toBe('unavailable');
+    await expect(t.adapter.start({ timesliceMs: 1000 })).rejects.toMatchObject({
+      reason: 'unavailable',
+    });
+  });
+
+  it('mic-permission-revoked — check granted 인데 start = permission_denied, 이후 denied (AC-4-148)', async () => {
+    const t = run('recorder:mic-permission-revoked');
+    expect(await t.adapter.checkPermission()).toBe('granted');
+    await expect(t.adapter.start({ timesliceMs: 1000 })).rejects.toMatchObject({
+      reason: 'permission_denied',
+    });
+    expect(await t.adapter.checkPermission()).toBe('denied');
+    expect(t.chunks).toEqual([]);
+  });
+
+  it('플랫폼 = 권한 상태·호출 기록 공유 — 판정 녹음기의 허용을 세션 녹음기가 본다 (S4-H2R)', async () => {
+    const scheduler = createManualScheduler(0);
+    const platform = createMockRecordingPlatform({
+      store: createScenarioStoreFrom({ search: '' }),
+      clock: scheduler,
+      scheduler,
+    });
+    const probe = platform.createRecorder();
+    expect(await probe.checkPermission()).toBe('prompt');
+    expect(await probe.requestPermission()).toBe('granted');
+    probe.dispose();
+    const session = platform.createRecorder();
+    expect(await session.checkPermission()).toBe('granted');
+    expect(platform.recorderCalls).toEqual([
+      'checkPermission',
+      'requestPermission',
+      'checkPermission',
+    ]);
   });
 
   it('recording-interrupted(그룹) — part 마다 3청크 뒤 원인 하나씩, 마지막 조각 먼저', async () => {

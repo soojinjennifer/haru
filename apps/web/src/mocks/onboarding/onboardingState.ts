@@ -20,6 +20,13 @@ export interface MockOnboardingState {
   /** 제출 완료 표시 — `GET /v1/me` 의 `onboardingStatus` 가 여기를 본다. */
   markSubmitted(): void;
   submitted(): boolean;
+  /**
+   * 서버가 "온보딩이 끝나지 않았다"(`ONBOARDING_INCOMPLETE`)고 답한 사실 (`S4-H4`, NB-16 · `P4B-BIP-08`).
+   * 세션 endpoint 가 그 오류를 낸 뒤에는 `GET /v1/me` 도 미완료를 말해야 한다 — 두 응답이 어긋나면
+   * Route Guard 가 이동할 곳을 정할 수 없다. 제출(`markSubmitted`)이 이 표시보다 우선한다.
+   */
+  markServerIncomplete(): void;
+  serverIncomplete(): boolean;
   reset(): void;
 }
 
@@ -30,6 +37,7 @@ export function createMockOnboardingState(
   let answers: OnboardingDraftAnswers = initial;
   let step: OnboardingStep = initialStep;
   let done = false;
+  let incomplete = false;
   const completed = new Set<OnboardingStep>();
 
   return {
@@ -49,10 +57,17 @@ export function createMockOnboardingState(
 
     submitted: () => done,
 
+    markServerIncomplete() {
+      incomplete = true;
+    },
+
+    serverIncomplete: () => incomplete,
+
     reset() {
       answers = initial;
       step = initialStep;
       done = false;
+      incomplete = false;
       completed.clear();
     },
   };

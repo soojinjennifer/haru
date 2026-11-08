@@ -128,6 +128,9 @@ export const FRAME_SNAPSHOT = {
   threshold: VISUAL_THRESHOLD_FRAME,
 } as const;
 
+/** 클래식 스크롤바 project 전용 spec (아래 `projects`). */
+const CLASSIC_SCROLLBAR_SPEC = /scrollbar-classic\.spec\.ts$/;
+
 export default defineConfig({
   testDir: './e2e',
   // 플랫폼별 렌더 차이를 섞지 않는다. 다른 OS 에서는 baseline 을 새로 만든다.
@@ -165,7 +168,22 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
 
-  projects: [{ name: 'chromium' }],
+  projects: [
+    { name: 'chromium', testIgnore: CLASSIC_SCROLLBAR_SPEC },
+    /**
+     * 클래식(항상 보이는) 스크롤바 — Stage 4b `S4-H4` · AC-4-99 ③ · `QA-4B-004` (`D4-141`).
+     *
+     * Playwright 는 headless Chromium 에 `--hide-scrollbars` 를 **기본으로** 넣는다. 그래서 기본 project 의 스크롤바
+     * 폭은 0 이고, Windows Chrome 기본 · macOS "스크롤 막대 항상 보기" 에서만 나는 15px 가로 넘침을 재현할 수 없었다
+     * (QA 프로브 P6 이 이 인자를 빼서 처음 재현했다). 이 project 는 그 인자 **하나만** 뺀다 — 나머지는 기본 project 와
+     * 같다. 시각 baseline 을 찍지 않는다(스크롤바가 픽셀에 들어가면 기본 project baseline 과 섞인다).
+     */
+    {
+      name: 'chromium-classic-scrollbar',
+      testMatch: CLASSIC_SCROLLBAR_SPEC,
+      use: { launchOptions: { ignoreDefaultArgs: ['--hide-scrollbars'] } },
+    },
+  ],
 
   webServer: {
     command: `pnpm --filter @haru/web run dev --port ${PORT} --strictPort --host 127.0.0.1`,

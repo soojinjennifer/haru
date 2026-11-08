@@ -17,6 +17,9 @@
  * | `vpc-pending` · `vpc-failed` | `parentVerification.status` 로 VPC 슬롯에 머묾              |
  * | `onboarding-incomplete`    | `onboardingStatus='in_progress'` → Guard 가 온보딩으로        |
  *
+ * `S4-H4` (NB-16): scenario 와 별개로, 세션 endpoint 가 `ONBOARDING_INCOMPLETE` 를 낸 뒤에는
+ * (`MockOnboardingState.serverIncomplete()`) `onboardingStatus='in_progress'` 를 돌려준다 — 제출이 우선한다.
+ *
  * `consent-missing` · `consent-version-outdated` 의 `missing` 목록은 **고정값이 아니라**
  * `MockConsentState` 에서 계산한다. `POST /v1/consents` 가 성공하면 같은 상태가 갱신되므로
  * 동의 → (VPC) → 온보딩 흐름이 Mock 만으로 end-to-end 로 진행된다 (실제 Backend 의
@@ -134,7 +137,10 @@ export function createMockMeApi(deps: MockMeApiDeps): MeApi {
           return createMeResponseFixture(clock, { onboardingStatus: 'in_progress' });
 
         default:
-          return createMeResponseFixture(clock);
+          // 세션 endpoint 가 `ONBOARDING_INCOMPLETE` 를 낸 뒤면 같은 서버의 `me` 도 미완료다 (`S4-H4`, `P4B-BIP-08`)
+          return onboardingState.serverIncomplete()
+            ? createMeResponseFixture(clock, { onboardingStatus: 'in_progress' })
+            : createMeResponseFixture(clock);
       }
     })();
 

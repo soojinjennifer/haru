@@ -12,6 +12,7 @@
  * 54 = 아이콘 20 + padding 16×2 + border 1×2. 남는 54px 밀림은 허용 차이 `AD-S4-11` (`D4-38`).
  */
 import { InlineAlert } from '@haru/ui';
+import type { ReactNode } from 'react';
 
 import { useTodayActivityCard } from '../../../entities/activity-card';
 import { activityDeckCopy } from '../copy';
@@ -22,9 +23,18 @@ import { activityDeckCopy } from '../copy';
  */
 export const ACTIVITY_CARD_OFFLINE_TITLE_ID = 'activity-card-offline-title';
 
-export function ActivityCardOfflineBanner() {
+export interface ActivityCardOfflineBannerProps {
+  /**
+   * 오프라인 배너가 **없을 때** 같은 슬롯에 대신 보일 것 (`S4-H3` 7일 보관 배너 — 4b Spec §18.3, `D4-120` Q11).
+   * 같은 슬롯에는 배너 1개뿐이고 오프라인 배너가 우선한다 — 온라인으로 돌아오면 이 내용이 다시 보인다.
+   * Page 가 조립한다 (feature 간 import 0).
+   */
+  fallback?: ReactNode;
+}
+
+export function ActivityCardOfflineBanner({ fallback = null }: ActivityCardOfflineBannerProps) {
   const { isCached } = useTodayActivityCard();
-  if (!isCached) return null;
+  if (!isCached) return fallback;
 
   return (
     <InlineAlert

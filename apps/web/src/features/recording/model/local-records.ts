@@ -44,6 +44,11 @@ export interface LocalRecordingRecord {
   readonly storagePersistence: StoragePersistenceState | null;
   /** 7일 안내를 낸 시각 (`D4-29`) — 한 번만 낸다. */
   readonly retentionNoticeAtMs: number | null;
+  /**
+   * 7일 안내 배너를 사용자가 닫은 시각 (`S4-H3`, 4b Spec §18.3 · NB-14) — 재시작 후에도 다시 띄우지 않는다.
+   * 이 필드가 생기기 전 레코드에는 없다(= 닫지 않음). 그래서 선택 필드다.
+   */
+  readonly retentionDismissedAtMs?: number | null;
   readonly parts: readonly LocalPartRecord[];
 }
 
@@ -103,6 +108,8 @@ export function isLocalRecordingRecord(value: unknown): value is LocalRecordingR
     isNumberOrNull(value['recordedSeconds']) &&
     (value['storagePersistence'] === null || typeof value['storagePersistence'] === 'string') &&
     isNumberOrNull(value['retentionNoticeAtMs']) &&
+    (value['retentionDismissedAtMs'] === undefined ||
+      isNumberOrNull(value['retentionDismissedAtMs'])) &&
     Array.isArray(value['parts']) &&
     value['parts'].every(isPart)
   );

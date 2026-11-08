@@ -24,6 +24,7 @@ import {
   MOCK_SESSION_BOOK_NO_COVER,
 } from '../src/mocks/fixtures/sessions';
 import { ROUTES, sessionCompletePath, sessionPath } from '../src/shared/config/routes';
+import { appCopy } from '../src/shared/copy/app-copy';
 import { createHarness, type Harness } from '../src/test/harness';
 import { createManualScheduler, type ManualScheduler } from '../src/test/manual-scheduler';
 
@@ -38,6 +39,22 @@ function LocationProbe() {
 
 function pathname(): string {
   return screen.getByTestId('pathname').textContent ?? '';
+}
+
+/**
+ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
+ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
+ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
+ * 세션 화면의 상세 대기 Spinner(`.haru-session--pending`)도 이름이 `Loading` 이라 Guard 의 것만 센다.
+ */
+async function waitForGuard(): Promise<void> {
+  await waitFor(() => {
+    expect(
+      screen
+        .queryAllByRole('status', { name: appCopy.guard.loadingLabel })
+        .filter((node) => node.closest('.haru-session') === null),
+    ).toHaveLength(0);
+  });
 }
 
 function transitions(harness: Harness): readonly Record<string, unknown>[] {
@@ -76,6 +93,7 @@ async function openReady(scenarios?: readonly string[]): Promise<Opened> {
       <AppRoutes />
     </Wrapper>,
   );
+  await waitForGuard();
   await waitFor(() => {
     expect(
       document.querySelector('.haru-activity-track:not(.haru-activity-track--skeleton)'),
@@ -92,6 +110,15 @@ async function openReady(scenarios?: readonly string[]): Promise<Opened> {
   fireEvent.click(
     within(sheet).getByRole('button', { name: activityDeckCopy.readingContext.confirm }),
   );
+  // `QA-4B-005` · `D4-150` — 확인 → 녹음 버튼을 기본 1000ms 창 하나로 기다리지 않는다(부하 시 최대 964ms 실측).
+  // 단계마다 기본 창을 따로 준다: ① 세션 생성 → `/session/<id>` 이동 ② 상세 query 대기(pending Spinner) 종료
+  // ③ 녹음 버튼. 단언은 그대로다 — 각 단계도 결국 도달해야 하며 timeout 값은 바꾸지 않는다.
+  await waitFor(() => {
+    expect(pathname()).toMatch(/^\/session\/[^/]+$/);
+  });
+  await waitFor(() => {
+    expect(document.querySelector('.haru-session:not(.haru-session--pending)')).not.toBeNull();
+  });
   await screen.findByRole('button', { name: copy.record.start });
   const sessionId = pathname().split('/').pop() ?? '';
   return { harness, time, sessionId };
@@ -466,6 +493,7 @@ describe('S4-H1 — 완료 화면 데이터 (AC-4-58 · 59 · 60)', () => {
     );
     await flush();
     fireEvent.click(screen.getByRole('link', { name: 're-enter' }));
+    await waitForGuard();
     await screen.findByRole('heading', { name: copy.complete.title });
   }
 
@@ -543,12 +571,53 @@ describe('S4-H1 — 완료 화면 데이터 (AC-4-58 · 59 · 60)', () => {
     );
     await flush();
     fireEvent.click(screen.getByRole('link', { name: 're-enter' }));
+    await waitForGuard();
     await waitFor(() => {
       expect(pathname()).toBe(ROUTES.home);
     });
     expect(screen.queryByRole('heading', { name: copy.complete.title })).toBeNull();
     expect(transitions(harness)).toHaveLength(0);
   });
+
+  it.each(['recording', 'paused'] as const)(
+    'AC-4-140 ⑤ / `D4-113` 끝나지 않은 세션(`%s`) 직접 진입 → 홈 replace · 전이 추가 0',
+    async (status) => {
+      const opened = await openReady();
+      const { harness } = opened;
+      await recordFor(opened, 1);
+      if (status === 'paused') {
+        fireEvent.click(screen.getByRole('button', { name: copy.record.pause }));
+        await screen.findByRole('button', { name: copy.record.resume });
+        await flush();
+      }
+      // 세션 화면을 떠난 뒤(새로고침과 같은 재진입) — 전이 응답 기억 없이 Detail 만으로 판정한다.
+      cleanup();
+      await flush();
+      harness.queryClient.clear();
+      const sent = transitions(harness).length;
+      const detail = await harness.bundle.clients.sessions.getDetail({
+        sessionId: opened.sessionId,
+      });
+      expect(detail.status).toBe(status);
+
+      const Wrapper = harness.wrapper;
+      render(
+        <Wrapper>
+          <LocationProbe />
+          <Link to={sessionCompletePath(opened.sessionId)}>re-enter</Link>
+          <AppRoutes />
+        </Wrapper>,
+      );
+      await flush();
+      fireEvent.click(screen.getByRole('link', { name: 're-enter' }));
+      await waitForGuard();
+      await waitFor(() => {
+        expect(pathname()).toBe(ROUTES.home);
+      });
+      expect(screen.queryByRole('heading', { name: copy.complete.title })).toBeNull();
+      expect(transitions(harness)).toHaveLength(sent);
+    },
+  );
 
   it('AC-4-140 ④ 오프라인 제출(`result: null`)은 판정 대상이 아니다 — 조회 0 · 튕김 0', async () => {
     const opened = await openReady(['sessions.transition:offline']);
@@ -586,6 +655,7 @@ describe('S4-H1 — 완료 화면 데이터 (AC-4-58 · 59 · 60)', () => {
       </Wrapper>,
     );
 
+    await waitForGuard();
     const retry = await screen.findByRole('button', { name: copy.states.retry });
     const before = detailReads(harness);
     fireEvent.click(retry);
@@ -612,6 +682,7 @@ describe('S4-H1 — 완료 화면 데이터 (AC-4-58 · 59 · 60)', () => {
         </Wrapper>,
       );
 
+      await waitForGuard();
       const home = await screen.findByRole('button', { name: copy.states.backHome });
       expect(screen.getByRole('button', { name: copy.states.retry })).toBeTruthy();
       expect(home.closest('[role="alert"]')).toBeNull();

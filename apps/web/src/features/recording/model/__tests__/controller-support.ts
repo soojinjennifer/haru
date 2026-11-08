@@ -60,7 +60,9 @@ export const VOICE_MISSING: ConsentStatus = {
 
 export const PLAN_SUCCESS: RecorderScenarioPlan = {
   key: 'success',
+  initialPermission: 'prompt',
   permission: 'granted',
+  revokedOnStart: false,
   interruptions: [],
   backgroundOnce: false,
   autoTimeout: false,

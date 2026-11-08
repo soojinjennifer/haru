@@ -186,6 +186,18 @@
   margin-block-start: var(--session-status-block-offset);
 }
 
+/*
+ * 공지 슬롯 (`S4-H2`, 4b Spec §7.2 · `AD-S4-14`) — 상태 블록 아래 **남는 공간 가운데**. stage 가
+ * `flex: 1 · min-block-size: 0` 이라 슬롯은 stage 를 키우지 않고 위 요소도 움직이지 않는다. 들어가지
+ * 않으면(세로 압축) `SessionNoticeSlot` 이 넘침을 재서 Toast 로 바꾼다. 그림자 없는 `InlineAlert` 라
+ * `R-SHADOW-1` inset 불필요.
+ */
+.haru-session__notice {
+  flex: none;
+  inline-size: 100%;
+  margin-block: auto;
+}
+
 .haru-session__controls {
   display: flex;
   flex: none;

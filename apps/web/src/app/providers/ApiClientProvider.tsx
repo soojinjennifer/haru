@@ -96,7 +96,10 @@ export function ApiClientProvider({
 
     void resolveAdapters()
       .then((next) => {
-        if (!cancelled) setLoaded(next);
+        if (cancelled) return;
+        // 채택한 벌만 녹음 런타임을 연다 (복구 → 보관 정리 → outbox·큐). 버려진 벌(StrictMode)은 열지 않는다.
+        next.sessionRecorder.warmUp();
+        setLoaded(next);
       })
       .catch((error: unknown) => {
         // 여기서 실패하면 앱이 API 를 전혀 쓸 수 없다. AppErrorBoundary 로 올린다.

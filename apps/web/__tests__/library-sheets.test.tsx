@@ -30,6 +30,7 @@ import { AppRoutes } from '../src/app/router';
 import { BookDetailSheet, LibraryShelfSheet } from '../src/features/library';
 import { MOCK_EPOCH_MS, MOCK_PURCHASE_URL } from '../src/mocks';
 import { ROUTES } from '../src/shared/config/routes';
+import { appCopy } from '../src/shared/copy/app-copy';
 import { createBookReasonFixture } from '../src/mocks/fixtures/books';
 import { createLibraryOverviewFixture } from '../src/mocks/fixtures/library';
 import { MOCK_CARD_PROMPTS } from '../src/mocks/fixtures/prompt-sets';
@@ -54,6 +55,7 @@ async function renderLibrary(scenarios: readonly string[] = []): Promise<Harness
     </Wrapper>,
   );
 
+  await waitForGuard();
   await waitFor(() => {
     const node = document.querySelector('.haru-library-shelves');
     expect(node).not.toBeNull();
@@ -61,6 +63,17 @@ async function renderLibrary(scenarios: readonly string[] = []): Promise<Harness
   });
 
   return harness;
+}
+
+/**
+ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
+ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
+ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
+ */
+async function waitForGuard(): Promise<void> {
+  await waitFor(() => {
+    expect(screen.queryByRole('status', { name: appCopy.guard.loadingLabel })).toBeNull();
+  });
 }
 
 function dialog(): HTMLElement {

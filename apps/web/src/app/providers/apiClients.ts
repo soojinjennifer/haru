@@ -48,6 +48,8 @@ export interface AppAdapters {
   /**
    * Stage 4 `S4-F1` — 녹음 상태 머신 조립 (`RecorderAdapter` · 로컬 저장소 = Web | Mock).
    * Native 는 후속 `S4N-B` 가 `RecordingPlatform` 한 벌을 여기에 추가한다.
+   * ⚠️ `warmUp()` 은 여기서 부르지 않는다 — 결과를 **채택한 쪽**(`ApiClientProvider`)이 1회 부른다. dev StrictMode 는
+   * 이 함수를 두 번 돌려 한 벌을 버리는데, 버려진 벌이 런타임을 시작하면 복구·업로드 요청이 두 번 나간다 (`S4-H3` 실측).
    */
   sessionRecorder: SessionRecorderEnvironmentHandle;
 }
@@ -70,7 +72,7 @@ export async function resolveAdapters(): Promise<AppAdapters> {
   const scheduler = createSystemScheduler();
 
   if (import.meta.env.VITE_API_MODE === 'mock') {
-    const { createBrowserMockApiClients, createMockRecordingPlatform } =
+    const { applyRecordingDeviceSeed, createBrowserMockApiClients, createMockRecordingPlatform } =
       await import('../../mocks');
     // 세 번째 인자 = **기기** 시계 (Mock 서버 시계가 아니다) — `offline-cached-card` 캐시 seed 가 쓴다.
     const bundle = createBrowserMockApiClients(env.mockScenario, undefined, clock);
@@ -89,8 +91,18 @@ export async function resolveAdapters(): Promise<AppAdapters> {
           appState: createWebAppStatePort(),
         };
       },
+      // `D4-123` — `?scenario=recorder:crash-recovered` 등이 고른 "이 기기에 남은 녹음" 을 런타임 시작 전에 채운다.
+      // 크래시 복구 · 48h · 7일 · 14일 안내가 데모·e2e 에서 실제와 같은 경로로 난다. 기본 scenario 는 아무것도 넣지 않는다.
+      seedDevice: (target) =>
+        applyRecordingDeviceSeed({
+          scenarios: bundle.store,
+          sessionState: bundle.sessionState,
+          serverClock: bundle.clock,
+          deviceClock: clock,
+          target: target.store,
+          kv: target.kv,
+        }),
     });
-    sessionRecorder.warmUp();
 
     return {
       clients: bundle.clients,
@@ -108,7 +120,6 @@ export async function resolveAdapters(): Promise<AppAdapters> {
     platform: createWebRecordingPlatform,
     wipeDevice: wipeWebRecordingStorage,
   });
-  sessionRecorder.warmUp();
 
   return {
     clients,
