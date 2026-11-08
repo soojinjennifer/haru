@@ -1,0 +1,757 @@
+diff --git a/apps/web/__tests__/consent-screens.test.tsx b/apps/web/__tests__/consent-screens.test.tsx
+index a5467b3..4987ce0 100644
+--- a/apps/web/__tests__/consent-screens.test.tsx
++++ b/apps/web/__tests__/consent-screens.test.tsx
+@@ -15,6 +15,7 @@ import { createMeResponseFixture } from '../src/mocks/fixtures/me';
+ import { findChildDataKeys, type RequestLogEntry } from '../src/mocks/request-log';
+ import { isPlaceholderLegalUrl } from '../src/shared/config/legal-links';
+ import { ROUTES } from '../src/shared/config/routes';
++import { appCopy } from '../src/shared/copy/app-copy';
+ import { createFixedClock } from '../src/shared/lib/clock';
+ import { createHarness, type Harness } from '../src/test/harness';
+ 
+@@ -43,10 +44,36 @@ async function renderSignedIn(scenarios: readonly string[]): Promise<Harness> {
+       <AppRoutes />
+     </Wrapper>,
+   );
++  await waitForGuard();
+ 
+   return harness;
+ }
+ 
++/**
++ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
++ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
++ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
++ */
++async function waitForGuard(): Promise<void> {
++  await waitFor(() => {
++    expect(screen.queryByRole('status', { name: appCopy.guard.loadingLabel })).toBeNull();
++  });
++}
++
++/**
++ * `QA-4B-006` · `D4-153` — 동의 기록 뒤 이동은 ① `POST /v1/consents` ② `me` 재조회(무효화) ③ Guard 이동을
++ * 거친다. 경로를 기본 창 하나로 기다리지 않고 ①② 의 도달(기록 **뒤의** `me` 요청)을 먼저 기다린다.
++ */
++async function waitForMeAfterConsent(harness: Harness): Promise<void> {
++  await waitFor(() => {
++    const operations = harness.bundle.requestLog.entries().map((entry) => entry.operation);
++    expect(operations).toContain('POST /v1/consents');
++    expect(operations.lastIndexOf('GET /v1/me')).toBeGreaterThan(
++      operations.indexOf('POST /v1/consents'),
++    );
++  });
++}
++
+ async function expectPath(expected: string): Promise<void> {
+   await waitFor(() => {
+     expect(screen.getByTestId('pathname').textContent).toBe(expected);
+@@ -207,6 +234,7 @@ describe('동의 기록 → 다음 단계 (end-to-end, Mock)', () => {
+ 
+     fireEvent.click(continueButton());
+ 
++    await waitForMeAfterConsent(harness);
+     await expectPath(ROUTES.onboarding.start);
+     expect(harness.bundle.consentState.granted()).toStrictEqual([
+       'child_voice_data',
+@@ -220,6 +248,7 @@ describe('동의 기록 → 다음 단계 (end-to-end, Mock)', () => {
+     await checkAllRequired();
+     fireEvent.click(continueButton());
+ 
++    await waitForMeAfterConsent(harness);
+     await expectPath(ROUTES.onboarding.start);
+ 
+     const recorded = harness.bundle.requestLog
+@@ -244,6 +273,7 @@ describe('동의 기록 → 다음 단계 (end-to-end, Mock)', () => {
+     fireEvent.click(screen.getByRole('checkbox', { name: new RegExp(optional?.title ?? '') }));
+     fireEvent.click(continueButton());
+ 
++    await waitForMeAfterConsent(harness);
+     await expectPath(ROUTES.onboarding.start);
+     expect(harness.bundle.consentState.granted()).toContain(optional?.type);
+   });
+@@ -272,6 +302,7 @@ describe('재동의 — consent-version-outdated (AC-2-15)', () => {
+     await checkAllRequired();
+     fireEvent.click(continueButton());
+ 
++    await waitForMeAfterConsent(harness);
+     await expectPath(ROUTES.onboarding.start);
+ 
+     const recorded = harness.bundle.requestLog
+@@ -396,12 +427,18 @@ describe('AC-2-13 — 동의 기록 성공 이전 구간의 모든 요청에 아
+     });
+     fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+ 
+-    // ② Guard 가 동의 화면으로 보낸다.
++    // ② Guard 가 동의 화면으로 보낸다. (`D4-153` — 가입 → `me` 조회 → 이동을 한 창에 몰지 않는다.)
++    await waitFor(() => {
++      expect(harness.bundle.requestLog.entries().map((entry) => entry.operation)).toContain(
++        'GET /v1/me',
++      );
++    });
+     await expectPath(ROUTES.auth.consent);
+     await checkAllRequired();
+ 
+     // ③ 동의 기록.
+     fireEvent.click(continueButton());
++    await waitForMeAfterConsent(harness);
+     await expectPath(ROUTES.onboarding.start);
+ 
+     const entries = harness.bundle.requestLog.entries();
+diff --git a/apps/web/__tests__/home-settings.test.tsx b/apps/web/__tests__/home-settings.test.tsx
+index 0699343..68c1215 100644
+--- a/apps/web/__tests__/home-settings.test.tsx
++++ b/apps/web/__tests__/home-settings.test.tsx
+@@ -28,6 +28,7 @@ import { findChildDataKeys } from '../src/mocks/request-log';
+ import { createImmediateTimer } from '../src/shared/api/helpers';
+ import { homeOverviewCopy } from '../src/features/home-overview';
+ import { ROUTES } from '../src/shared/config/routes';
++import { appCopy } from '../src/shared/copy/app-copy';
+ import {
+   ACTIVITY_CARD_CACHE_STORAGE_KEY,
+   createActivityCardCache,
+@@ -80,6 +81,17 @@ async function expectPath(expected: string): Promise<void> {
+   });
+ }
+ 
++/**
++ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
++ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
++ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
++ */
++async function waitForGuard(): Promise<void> {
++  await waitFor(() => {
++    expect(screen.queryByRole('status', { name: appCopy.guard.loadingLabel })).toBeNull();
++  });
++}
++
+ /** 이 기기에 남아 있는 온보딩 draft 를 seed 한다 (Trial 응답 = 아동 데이터). */
+ function seedDraft(): void {
+   createOnboardingDraftStore({ clock: createFixedClock(NOW) }).write(DRAFT);
+@@ -148,6 +160,7 @@ describe('`/settings` (AC-2-40 · C13-12)', () => {
+ 
+   it('목록 항목이 로그아웃 1행뿐이다', async () => {
+     await renderSignedIn(ROUTES.settings);
++    await waitForGuard();
+ 
+     const list = await screen.findByRole('list', { name: settingsCopy.menuLabel });
+     const items = within(list).getAllByRole('listitem');
+@@ -160,6 +173,7 @@ describe('`/settings` (AC-2-40 · C13-12)', () => {
+ 
+   it('데이터 관리 · 탈퇴 · 동의 이력 · 알림 설정 행이 없다 (Stage 3 · 6 · 8)', async () => {
+     await renderSignedIn(ROUTES.settings);
++    await waitForGuard();
+     await screen.findByRole('list', { name: settingsCopy.menuLabel });
+ 
+     for (const label of [
+@@ -178,6 +192,7 @@ describe('로그아웃 (AC-2-29 · AC-2-41 · D-7 · D-3)', () => {
+   it('행을 눌러도 바로 로그아웃하지 않고 확인 Dialog 를 띄운다', async () => {
+     seedDraft();
+     await renderSignedIn(ROUTES.settings);
++    await waitForGuard();
+ 
+     const dialog = await openLogOutDialog();
+ 
+@@ -191,6 +206,7 @@ describe('로그아웃 (AC-2-29 · AC-2-41 · D-7 · D-3)', () => {
+ 
+   it('destructive 라 초기 포커스가 취소다', async () => {
+     await renderSignedIn(ROUTES.settings);
++    await waitForGuard();
+ 
+     const dialog = await openLogOutDialog();
+ 
+@@ -204,6 +220,7 @@ describe('로그아웃 (AC-2-29 · AC-2-41 · D-7 · D-3)', () => {
+   it('취소하면 세션도 로컬 draft 도 그대로다', async () => {
+     seedDraft();
+     await renderSignedIn(ROUTES.settings);
++    await waitForGuard();
+ 
+     const dialog = await openLogOutDialog();
+     fireEvent.click(within(dialog).getByRole('button', { name: settingsCopy.logOut.cancelLabel }));
+@@ -220,6 +237,7 @@ describe('로그아웃 (AC-2-29 · AC-2-41 · D-7 · D-3)', () => {
+     seedActivityCardCache();
+     expect(globalThis.localStorage.getItem(ACTIVITY_CARD_CACHE_STORAGE_KEY)).not.toBeNull();
+     const harness = await renderSignedIn(ROUTES.settings);
++    await waitForGuard();
+ 
+     // 로그아웃 전에는 `GET /v1/me` 응답이 캐시에 있다.
+     await waitFor(() => {
+@@ -249,6 +267,7 @@ describe('로그아웃 (AC-2-29 · AC-2-41 · D-7 · D-3)', () => {
+   it('로그아웃 요청에 아동 데이터가 실리지 않는다 (AC-2-13)', async () => {
+     seedDraft();
+     const harness = await renderSignedIn(ROUTES.settings);
++    await waitForGuard();
+ 
+     const dialog = await openLogOutDialog();
+     fireEvent.click(within(dialog).getByRole('button', { name: settingsCopy.logOut.confirmLabel }));
+diff --git a/apps/web/__tests__/home-stage3.test.tsx b/apps/web/__tests__/home-stage3.test.tsx
+index 53c03e1..67ea4b1 100644
+--- a/apps/web/__tests__/home-stage3.test.tsx
++++ b/apps/web/__tests__/home-stage3.test.tsx
+@@ -31,6 +31,7 @@ import {
+ import { createFixedClock } from '../src/shared/lib/clock';
+ import { tabCopy } from '../src/shared/config/tabs';
+ import { capabilityCopy } from '../src/shared/copy/capability-copy';
++import { appCopy } from '../src/shared/copy/app-copy';
+ import { libraryCopy } from '../src/shared/copy/library-copy';
+ import { progressCopy } from '../src/shared/copy/progress-copy';
+ import { createHarness, type Harness } from '../src/test/harness';
+@@ -60,6 +61,18 @@ async function renderHome(options: { scenarios?: readonly string[]; path?: strin
+   return harness;
+ }
+ 
++/**
++ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
++ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
++ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
++ * 진입 도우미(`renderHome`)에는 넣지 않는다 — `loading` 테스트가 단계 사이의 과도 프레임(Skeleton)을 잡는다.
++ */
++async function waitForGuard(): Promise<void> {
++  await waitFor(() => {
++    expect(screen.queryByRole('status', { name: appCopy.guard.loadingLabel })).toBeNull();
++  });
++}
++
+ /**
+  * 가로 트랙 (로드 완료 상태). 1차의 Z축 스택(`.haru-swipe-deck`)은 Home 에서 쓰지 않는다.
+  * Skeleton 도 같은 트랙 기하를 쓰므로 **modifier 로 구분**한다.
+@@ -90,6 +103,7 @@ function backFace(position = 0): HTMLElement {
+ }
+ 
+ async function waitForTrack(): Promise<void> {
++  await waitForGuard();
+   await waitFor(() => {
+     expect(
+       document.querySelector('.haru-activity-track:not(.haru-activity-track--skeleton)'),
+@@ -172,6 +186,7 @@ describe('BottomTabBar 마운트 (AC-3-04 · AC-3-05 · AC-3-08)', () => {
+   */
+   it('`/library` 에 제목 행과 서재 섹션이 함께 마운트된다', async () => {
+     await renderHome({ path: ROUTES.library });
++    await waitForGuard();
+ 
+     expect(
+       await screen.findByRole('heading', { level: 2, name: libraryCopy.sectionTitles.curated }),
+@@ -253,6 +268,7 @@ describe('Home 본문 (AC-3-09 · AC-3-10 · AC-3-13)', () => {
+ 
+   it('캐릭터 버블이 서버 주 문구 + copy 보조 문구 한 줄을 보여 준다 (`A-7`)', async () => {
+     await renderHome();
++    await waitForGuard();
+ 
+     expect(
+       await screen.findByText('Fifteen minutes together is plenty for tonight.'),
+@@ -315,6 +331,7 @@ describe('Home 본문 (AC-3-09 · AC-3-10 · AC-3-13)', () => {
+ 
+   it('TopBar 에 이번 주 세션 수 칩이 붙는다 (streak·분 표시 없음 — D-6)', async () => {
+     await renderHome();
++    await waitForGuard();
+ 
+     const banner = await screen.findByRole('banner');
+     await waitFor(() => {
+@@ -386,6 +403,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
+ 
+   it('`empty` 에서 카드 없음 안내가 덱 자리에 inline 으로 뜬다 (`AC-3-82`)', async () => {
+     await renderHome({ scenarios: ['activity-cards:empty'] });
++    await waitForGuard();
+ 
+     expect(await screen.findByText(activityDeckCopy.states.emptyTitle)).toBeDefined();
+     expect(document.querySelector('.haru-activity-track')).toBeNull();
+@@ -395,6 +413,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
+ 
+   it('`error` 에서 재시도 버튼이 있는 ErrorState 가 뜬다', async () => {
+     await renderHome({ scenarios: ['activity-cards:error'] });
++    await waitForGuard();
+ 
+     expect(await screen.findByText(activityDeckCopy.states.errorTitle)).toBeDefined();
+     expect(screen.getByRole('button', { name: activityDeckCopy.states.retry })).toBeDefined();
+@@ -402,6 +421,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
+ 
+   it('`offline` 에서 오프라인 안내가 뜬다', async () => {
+     await renderHome({ scenarios: ['activity-cards:offline'] });
++    await waitForGuard();
+ 
+     expect(await screen.findByText(activityDeckCopy.states.offlineTitle)).toBeDefined();
+   });
+@@ -455,6 +475,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
+ 
+   it('`offline-cached-card` 인데 캐시가 없으면 Stage 3 의 오프라인 안내 (배너 없음)', async () => {
+     await renderHome({ scenarios: ['activity-cards:offline-cached-card'] });
++    await waitForGuard();
+ 
+     expect(await screen.findByText(activityDeckCopy.states.offlineDescription)).toBeDefined();
+     expect(screen.queryByText(activityDeckCopy.states.cachedTitle)).toBeNull();
+@@ -467,6 +488,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
+       createActivityCardFixture(createFixedClock(MOCK_EPOCH_MS)),
+     );
+     await renderHome({ scenarios: ['activity-cards:error'] });
++    await waitForGuard();
+ 
+     expect(await screen.findByText(activityDeckCopy.states.errorTitle)).toBeDefined();
+     expect(document.querySelector('.haru-activity-track')).toBeNull();
+@@ -480,6 +502,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
+       createActivityCardFixture(twoDaysAgo),
+     );
+     await renderHome({ scenarios: ['activity-cards:offline'] });
++    await waitForGuard();
+ 
+     expect(await screen.findByText(activityDeckCopy.states.offlineDescription)).toBeDefined();
+     expect(document.querySelector('.haru-activity-track')).toBeNull();
+@@ -492,6 +515,7 @@ describe('상태 화면 (AC-3-14 · AC-3-15 · AC-3-20 · AC-3-82)', () => {
+   */
+   it('`session-already-active` 를 **버블 문구**가 알리고 세션 생성 호출이 0건이다', async () => {
+     const harness = await renderHome({ scenarios: ['home:session-already-active'] });
++    await waitForGuard();
+ 
+     expect(
+       await screen.findByText('A storytime is still open — you can pick it back up.'),
+diff --git a/apps/web/__tests__/library-entry-screens.test.tsx b/apps/web/__tests__/library-entry-screens.test.tsx
+index 94c914e..5e03f48 100644
+--- a/apps/web/__tests__/library-entry-screens.test.tsx
++++ b/apps/web/__tests__/library-entry-screens.test.tsx
+@@ -17,6 +17,7 @@ import { GiftRequestStatusSchema } from '@haru/contracts';
+ import { AppRoutes } from '../src/app/router';
+ import { MOCK_EPOCH_MS } from '../src/mocks';
+ import { ROUTES } from '../src/shared/config/routes';
++import { appCopy } from '../src/shared/copy/app-copy';
+ import { giftRequestStatusCopy, libraryCopy } from '../src/shared/copy/library-copy';
+ import { createHarness, type Harness } from '../src/test/harness';
+ 
+@@ -35,9 +36,21 @@ async function renderAt(path: string, scenarios: readonly string[] = []): Promis
+       <AppRoutes />
+     </Wrapper>,
+   );
++  await waitForGuard();
+   return harness;
+ }
+ 
++/**
++ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
++ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
++ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
++ */
++async function waitForGuard(): Promise<void> {
++  await waitFor(() => {
++    expect(screen.queryByRole('status', { name: appCopy.guard.loadingLabel })).toBeNull();
++  });
++}
++
+ /**
+  * Route Guard 판정이 끝나기를 기다린다 — `me` 조회가 비동기이고 그 동안 **Spinner** 가
+  * 본문 자리를 차지한다. TopBar(`h1`)는 Guard **밖**에 있어서 제목만 기다리면 부족하다.
+diff --git a/apps/web/__tests__/library-screen.test.tsx b/apps/web/__tests__/library-screen.test.tsx
+index e13c4a7..1e4ff7a 100644
+--- a/apps/web/__tests__/library-screen.test.tsx
++++ b/apps/web/__tests__/library-screen.test.tsx
+@@ -20,6 +20,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
+ import { AppRoutes } from '../src/app/router';
+ import { MOCK_EPOCH_MS } from '../src/mocks';
+ import { ROUTES } from '../src/shared/config/routes';
++import { appCopy } from '../src/shared/copy/app-copy';
+ import { capabilityCopy } from '../src/shared/copy/capability-copy';
+ import { libraryCopy } from '../src/shared/copy/library-copy';
+ import { createHarness, type Harness } from '../src/test/harness';
+@@ -39,9 +40,22 @@ async function renderLibrary(scenarios: readonly string[] = []): Promise<Harness
+       <AppRoutes />
+     </Wrapper>,
+   );
++  await waitForGuard();
+   return harness;
+ }
+ 
++/**
++ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
++ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
++ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
++ * (Loading 테스트는 이 도우미를 쓰지 않는다 — 단계 사이의 과도 프레임을 잡는 테스트라 대기를 끼우면 그 프레임이 지나간다.)
++ */
++async function waitForGuard(): Promise<void> {
++  await waitFor(() => {
++    expect(screen.queryByRole('status', { name: appCopy.guard.loadingLabel })).toBeNull();
++  });
++}
++
+ function shelves(): HTMLElement {
+   const node = document.querySelector('.haru-library-shelves');
+   if (node === null) throw new Error('library shelves not rendered');
+diff --git a/apps/web/__tests__/library-sheets.test.tsx b/apps/web/__tests__/library-sheets.test.tsx
+index b697b9b..1b45fa9 100644
+--- a/apps/web/__tests__/library-sheets.test.tsx
++++ b/apps/web/__tests__/library-sheets.test.tsx
+@@ -30,6 +30,7 @@ import { AppRoutes } from '../src/app/router';
+ import { BookDetailSheet, LibraryShelfSheet } from '../src/features/library';
+ import { MOCK_EPOCH_MS, MOCK_PURCHASE_URL } from '../src/mocks';
+ import { ROUTES } from '../src/shared/config/routes';
++import { appCopy } from '../src/shared/copy/app-copy';
+ import { createBookReasonFixture } from '../src/mocks/fixtures/books';
+ import { createLibraryOverviewFixture } from '../src/mocks/fixtures/library';
+ import { MOCK_CARD_PROMPTS } from '../src/mocks/fixtures/prompt-sets';
+@@ -54,6 +55,7 @@ async function renderLibrary(scenarios: readonly string[] = []): Promise<Harness
+     </Wrapper>,
+   );
+ 
++  await waitForGuard();
+   await waitFor(() => {
+     const node = document.querySelector('.haru-library-shelves');
+     expect(node).not.toBeNull();
+@@ -63,6 +65,17 @@ async function renderLibrary(scenarios: readonly string[] = []): Promise<Harness
+   return harness;
+ }
+ 
++/**
++ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
++ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
++ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
++ */
++async function waitForGuard(): Promise<void> {
++  await waitFor(() => {
++    expect(screen.queryByRole('status', { name: appCopy.guard.loadingLabel })).toBeNull();
++  });
++}
++
+ function dialog(): HTMLElement {
+   return screen.getByRole('dialog');
+ }
+diff --git a/apps/web/__tests__/onboarding-screens.test.tsx b/apps/web/__tests__/onboarding-screens.test.tsx
+index 53f034d..6f121bc 100644
+--- a/apps/web/__tests__/onboarding-screens.test.tsx
++++ b/apps/web/__tests__/onboarding-screens.test.tsx
+@@ -36,6 +36,7 @@ import {
+ import { findChildDataKeys } from '../src/mocks/request-log';
+ import { ONBOARDING_DRAFT_STORAGE_KEY } from '../src/shared/lib/onboarding-draft';
+ import { ROUTES, onboardingStepPath } from '../src/shared/config/routes';
++import { appCopy } from '../src/shared/copy/app-copy';
+ import { createHarness, type Harness } from '../src/test/harness';
+ 
+ const CREDENTIALS = { email: 'sam@example.com', password: 'sunny-evening-8' } as const;
+@@ -84,10 +85,23 @@ async function renderApp(options: {
+       <AppRoutes />
+     </Wrapper>,
+   );
++  // 미인증(Trial)은 Guard 가 렌더 안에서 바로 판정한다 — 비동기 단계가 아니므로 로그인한 경우만 기다린다.
++  if (options.signIn === true) await waitForGuard();
+ 
+   return harness;
+ }
+ 
++/**
++ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
++ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
++ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
++ */
++async function waitForGuard(): Promise<void> {
++  await waitFor(() => {
++    expect(screen.queryByRole('status', { name: appCopy.guard.loadingLabel })).toBeNull();
++  });
++}
++
+ function readStoredDraft(): unknown {
+   const raw = globalThis.localStorage.getItem(ONBOARDING_DRAFT_STORAGE_KEY);
+   return raw === null ? null : JSON.parse(raw);
+diff --git a/apps/web/__tests__/session-prompts.test.tsx b/apps/web/__tests__/session-prompts.test.tsx
+index 9a2f5d8..3183788 100644
+--- a/apps/web/__tests__/session-prompts.test.tsx
++++ b/apps/web/__tests__/session-prompts.test.tsx
+@@ -18,6 +18,7 @@ import { SessionPromptsPopover, sessionPromptsCopy } from '../src/features/sessi
+ import { storytimeSessionCopy } from '../src/features/storytime-session';
+ import { createSessionPromptsFixture } from '../src/mocks/fixtures/sessions';
+ import { ROUTES } from '../src/shared/config/routes';
++import { appCopy } from '../src/shared/copy/app-copy';
+ import { createHarness, type Harness } from '../src/test/harness';
+ import { createManualScheduler, type ManualScheduler } from '../src/test/manual-scheduler';
+ 
+@@ -35,6 +36,22 @@ function pathname(): string {
+   return screen.getByTestId('pathname').textContent ?? '';
+ }
+ 
++/**
++ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
++ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
++ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
++ * 세션 화면의 상세 대기 Spinner(`.haru-session--pending`)도 이름이 `Loading` 이라 Guard 의 것만 센다.
++ */
++async function waitForGuard(): Promise<void> {
++  await waitFor(() => {
++    expect(
++      screen
++        .queryAllByRole('status', { name: appCopy.guard.loadingLabel })
++        .filter((node) => node.closest('.haru-session') === null),
++    ).toHaveLength(0);
++  });
++}
++
+ function transitionTargets(harness: Harness): readonly unknown[] {
+   return harness.bundle.requestLog
+     .entries()
+@@ -71,6 +88,7 @@ async function openReady(scenarios?: readonly string[]): Promise<Opened> {
+       <AppRoutes />
+     </Wrapper>,
+   );
++  await waitForGuard();
+   await waitFor(() => {
+     expect(
+       document.querySelector('.haru-activity-track:not(.haru-activity-track--skeleton)'),
+@@ -87,6 +105,15 @@ async function openReady(scenarios?: readonly string[]): Promise<Opened> {
+   fireEvent.click(
+     within(sheet).getByRole('button', { name: activityDeckCopy.readingContext.confirm }),
+   );
++  // `QA-4B-005` · `D4-150` — 확인 → 녹음 버튼을 기본 1000ms 창 하나로 기다리지 않는다(부하 시 최대 964ms 실측).
++  // 단계마다 기본 창을 따로 준다: ① 세션 생성 → `/session/<id>` 이동 ② 상세 query 대기(pending Spinner) 종료
++  // ③ 녹음 버튼. 단언은 그대로다 — 각 단계도 결국 도달해야 하며 timeout 값은 바꾸지 않는다.
++  await waitFor(() => {
++    expect(pathname()).toMatch(/^\/session\/[^/]+$/);
++  });
++  await waitFor(() => {
++    expect(document.querySelector('.haru-session:not(.haru-session--pending)')).not.toBeNull();
++  });
+   await screen.findByRole('button', { name: copy.record.start });
+   const sessionId = pathname().split('/').pop() ?? '';
+   const readyPromptTexts = [
+@@ -404,10 +431,12 @@ describe('AC-4-133 — 정리 · 빈 목록', () => {
+       expect(transitionTargets(opened.harness).at(-1)).toBe('completed');
+     });
+     expect(popup()).toBeNull();
+-    expect(chip().getAttribute('aria-expanded')).toBe('false');
+-    // 다시 눌러도 열리지 않는다
+-    tap(chip());
++    // `S4-H2` (AC-4-64): 자동 종료는 완료 화면으로 넘어간다 — 완료 화면에 팝업·칩 잔존 0 (AC-4-133).
++    await waitFor(() => {
++      expect(pathname()).toBe(`/session/${opened.sessionId}/complete`);
++    });
+     expect(popup()).toBeNull();
++    expect(screen.queryByRole('button', { name: copy.prompts })).toBeNull();
+   });
+ 
+   it('`prompts: []` → 칩 aria-disabled + 사유 · 팝업 미렌더 · 탭 무시 (`D4-58` NB-2)', async () => {
+@@ -615,10 +644,13 @@ describe('`S4-G2` — `See all prompts` → Prompt Drawer `88:960` (AC-4-137 ·
+     await waitFor(() => {
+       expect(drawer()).toBeNull();
+     });
+-    expect(document.activeElement).toBe(chip());
+-    tap(chip());
++    // `S4-H2` (AC-4-64): 자동 종료는 완료 화면으로 넘어간다 — Drawer·팝업·칩 잔존 0 (AC-4-133).
++    await waitFor(() => {
++      expect(pathname()).toBe(`/session/${opened.sessionId}/complete`);
++    });
+     expect(popup()).toBeNull();
+     expect(drawer()).toBeNull();
++    expect(screen.queryByRole('button', { name: copy.prompts })).toBeNull();
+   });
+ 
+   it('55 (Drawer 부분) — 열기 · 페이지 이동 · 닫기 동안 vibrate · play 0회', async () => {
+diff --git a/apps/web/__tests__/session-ready.test.tsx b/apps/web/__tests__/session-ready.test.tsx
+index 6bf6e5f..bd2e20d 100644
+--- a/apps/web/__tests__/session-ready.test.tsx
++++ b/apps/web/__tests__/session-ready.test.tsx
+@@ -23,6 +23,7 @@ import {
+ } from '../src/mocks/fixtures/sessions';
+ import { createPromptPreviewFixture } from '../src/mocks/fixtures/prompt-sets';
+ import { ROUTES } from '../src/shared/config/routes';
++import { appCopy } from '../src/shared/copy/app-copy';
+ import { createSystemClock } from '../src/shared/lib/clock';
+ import { libraryCopy } from '../src/shared/copy/library-copy';
+ import { createHarness, type Harness } from '../src/test/harness';
+@@ -81,7 +82,34 @@ function pathname(): string {
+   return screen.getByTestId('pathname').textContent ?? '';
+ }
+ 
++/**
++ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
++ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
++ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
++ * 세션 화면의 상세 대기 Spinner(`.haru-session--pending`)도 이름이 `Loading` 이라 Guard 의 것만 센다.
++ */
++async function waitForGuard(): Promise<void> {
++  await waitFor(() => {
++    expect(
++      screen
++        .queryAllByRole('status', { name: appCopy.guard.loadingLabel })
++        .filter((node) => node.closest('.haru-session') === null),
++    ).toHaveLength(0);
++  });
++}
++
++/**
++ * `QA-4B-006` · `D4-153` — 세션 화면 진입은 `D4-150` 과 같다: ① 경로 ② 상세 query 대기(pending Spinner) 종료
++ * ③ 원래 단언(녹음 버튼). 이동과 상세 조회를 기본 1000ms 창 하나에 몰지 않는다.
++ */
++async function waitForSessionDetail(): Promise<void> {
++  await waitFor(() => {
++    expect(document.querySelector('.haru-session:not(.haru-session--pending)')).not.toBeNull();
++  });
++}
++
+ async function firstStartButton(): Promise<HTMLElement> {
++  await waitForGuard();
+   await waitFor(() => {
+     expect(
+       document.querySelector('.haru-activity-track:not(.haru-activity-track--skeleton)'),
+@@ -105,6 +133,7 @@ async function startFromHome(
+   await waitFor(() => {
+     expect(pathname()).toMatch(/^\/session\//);
+   });
++  await waitForSessionDetail();
+   await screen.findByRole('button', { name: storytimeSessionCopy.record.start });
+   expect(ops(harness, 'POST /v1/sessions')).toHaveLength(1);
+ }
+@@ -254,6 +283,7 @@ describe('AC-4-123 · 124 — 오프라인 캐시 카드 (`D4-33` · `D4-39`)',
+       scenarios: ['activity-cards:offline-cached-card'],
+       cachedCard: true,
+     });
++    await waitForGuard();
+     await screen.findByText(activityDeckCopy.states.cachedTitle);
+     const start = await firstStartButton();
+ 
+@@ -280,6 +310,7 @@ describe('AC-4-123 · 124 — 오프라인 캐시 카드 (`D4-33` · `D4-39`)',
+ describe('서재 경로 — Reading Context 없이 `childBookId` 로 시작 (`D4-25`, AC-4-38 · 39)', () => {
+   it('책 상세 시트의 Start Session → `POST /v1/sessions` 1회 → ready', async () => {
+     const harness = await renderApp({ path: ROUTES.library });
++    await waitForGuard();
+     await waitFor(() => {
+       expect(document.querySelector('.haru-shelf-item--pressable')).not.toBeNull();
+     });
+@@ -299,6 +330,7 @@ describe('서재 경로 — Reading Context 없이 `childBookId` 로 시작 (`D4
+       activityCardOptionId: null,
+     });
+     expect((create as { childBookId: string | null }).childBookId).not.toBeNull();
++    await waitForSessionDetail();
+     await screen.findByRole('button', { name: storytimeSessionCopy.record.start });
+   });
+ });
+diff --git a/apps/web/__tests__/session-recording.test.tsx b/apps/web/__tests__/session-recording.test.tsx
+index b3a3255..e525e9e 100644
+--- a/apps/web/__tests__/session-recording.test.tsx
++++ b/apps/web/__tests__/session-recording.test.tsx
+@@ -24,6 +24,7 @@ import {
+   MOCK_SESSION_BOOK_NO_COVER,
+ } from '../src/mocks/fixtures/sessions';
+ import { ROUTES, sessionCompletePath, sessionPath } from '../src/shared/config/routes';
++import { appCopy } from '../src/shared/copy/app-copy';
+ import { createHarness, type Harness } from '../src/test/harness';
+ import { createManualScheduler, type ManualScheduler } from '../src/test/manual-scheduler';
+ 
+@@ -40,6 +41,22 @@ function pathname(): string {
+   return screen.getByTestId('pathname').textContent ?? '';
+ }
+ 
++/**
++ * `QA-4B-006` · `D4-153` — 첫 화면을 기본 1000ms 창 하나로 기다리지 않는다. 진입 직후 Route Guard 가 `me`
++ * 조회 동안 Spinner 를 그리고, 판정이 끝나야 화면이 마운트된다(+ 화면 query). 단계마다 기본 창을 따로 준다:
++ * ① 여기 = Guard 판정 종료 ② 각 테스트의 원래 대기. 단언은 그대로이고 timeout 값은 바꾸지 않는다.
++ * 세션 화면의 상세 대기 Spinner(`.haru-session--pending`)도 이름이 `Loading` 이라 Guard 의 것만 센다.
++ */
++async function waitForGuard(): Promise<void> {
++  await waitFor(() => {
++    expect(
++      screen
++        .queryAllByRole('status', { name: appCopy.guard.loadingLabel })
++        .filter((node) => node.closest('.haru-session') === null),
++    ).toHaveLength(0);
++  });
++}
++
+ function transitions(harness: Harness): readonly Record<string, unknown>[] {
+   return harness.bundle.requestLog
+     .entries()
+@@ -76,6 +93,7 @@ async function openReady(scenarios?: readonly string[]): Promise<Opened> {
+       <AppRoutes />
+     </Wrapper>,
+   );
++  await waitForGuard();
+   await waitFor(() => {
+     expect(
+       document.querySelector('.haru-activity-track:not(.haru-activity-track--skeleton)'),
+@@ -92,6 +110,15 @@ async function openReady(scenarios?: readonly string[]): Promise<Opened> {
+   fireEvent.click(
+     within(sheet).getByRole('button', { name: activityDeckCopy.readingContext.confirm }),
+   );
++  // `QA-4B-005` · `D4-150` — 확인 → 녹음 버튼을 기본 1000ms 창 하나로 기다리지 않는다(부하 시 최대 964ms 실측).
++  // 단계마다 기본 창을 따로 준다: ① 세션 생성 → `/session/<id>` 이동 ② 상세 query 대기(pending Spinner) 종료
++  // ③ 녹음 버튼. 단언은 그대로다 — 각 단계도 결국 도달해야 하며 timeout 값은 바꾸지 않는다.
++  await waitFor(() => {
++    expect(pathname()).toMatch(/^\/session\/[^/]+$/);
++  });
++  await waitFor(() => {
++    expect(document.querySelector('.haru-session:not(.haru-session--pending)')).not.toBeNull();
++  });
+   await screen.findByRole('button', { name: copy.record.start });
+   const sessionId = pathname().split('/').pop() ?? '';
+   return { harness, time, sessionId };
+@@ -466,6 +493,7 @@ describe('S4-H1 — 완료 화면 데이터 (AC-4-58 · 59 · 60)', () => {
+     );
+     await flush();
+     fireEvent.click(screen.getByRole('link', { name: 're-enter' }));
++    await waitForGuard();
+     await screen.findByRole('heading', { name: copy.complete.title });
+   }
+ 
+@@ -543,6 +571,7 @@ describe('S4-H1 — 완료 화면 데이터 (AC-4-58 · 59 · 60)', () => {
+     );
+     await flush();
+     fireEvent.click(screen.getByRole('link', { name: 're-enter' }));
++    await waitForGuard();
+     await waitFor(() => {
+       expect(pathname()).toBe(ROUTES.home);
+     });
+@@ -550,6 +579,46 @@ describe('S4-H1 — 완료 화면 데이터 (AC-4-58 · 59 · 60)', () => {
+     expect(transitions(harness)).toHaveLength(0);
+   });
+ 
++  it.each(['recording', 'paused'] as const)(
++    'AC-4-140 ⑤ / `D4-113` 끝나지 않은 세션(`%s`) 직접 진입 → 홈 replace · 전이 추가 0',
++    async (status) => {
++      const opened = await openReady();
++      const { harness } = opened;
++      await recordFor(opened, 1);
++      if (status === 'paused') {
++        fireEvent.click(screen.getByRole('button', { name: copy.record.pause }));
++        await screen.findByRole('button', { name: copy.record.resume });
++        await flush();
++      }
++      // 세션 화면을 떠난 뒤(새로고침과 같은 재진입) — 전이 응답 기억 없이 Detail 만으로 판정한다.
++      cleanup();
++      await flush();
++      harness.queryClient.clear();
++      const sent = transitions(harness).length;
++      const detail = await harness.bundle.clients.sessions.getDetail({
++        sessionId: opened.sessionId,
++      });
++      expect(detail.status).toBe(status);
++
++      const Wrapper = harness.wrapper;
++      render(
++        <Wrapper>
++          <LocationProbe />
++          <Link to={sessionCompletePath(opened.sessionId)}>re-enter</Link>
++          <AppRoutes />
++        </Wrapper>,
++      );
++      await flush();
++      fireEvent.click(screen.getByRole('link', { name: 're-enter' }));
++      await waitForGuard();
++      await waitFor(() => {
++        expect(pathname()).toBe(ROUTES.home);
++      });
++      expect(screen.queryByRole('heading', { name: copy.complete.title })).toBeNull();
++      expect(transitions(harness)).toHaveLength(sent);
++    },
++  );
++
+   it('AC-4-140 ④ 오프라인 제출(`result: null`)은 판정 대상이 아니다 — 조회 0 · 튕김 0', async () => {
+     const opened = await openReady(['sessions.transition:offline']);
+     await recordFor(opened, 1);
+@@ -586,6 +655,7 @@ describe('S4-H1 — 완료 화면 데이터 (AC-4-58 · 59 · 60)', () => {
+       </Wrapper>,
+     );
+ 
++    await waitForGuard();
+     const retry = await screen.findByRole('button', { name: copy.states.retry });
+     const before = detailReads(harness);
+     fireEvent.click(retry);
+@@ -612,6 +682,7 @@ describe('S4-H1 — 완료 화면 데이터 (AC-4-58 · 59 · 60)', () => {
+         </Wrapper>,
+       );
+ 
++      await waitForGuard();
+       const home = await screen.findByRole('button', { name: copy.states.backHome });
+       expect(screen.getByRole('button', { name: copy.states.retry })).toBeTruthy();
+       expect(home.closest('[role="alert"]')).toBeNull();

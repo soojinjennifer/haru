@@ -582,6 +582,7 @@ design-agent 는 Figma 를 수정하지 않는다. 아래 표는 디자이너 �
 | T-39 | `--session-stage-min-block-size` | Component | `205px` | 4b §5.3 · §8.2 · `D4-58`·`D4-78`·`D4-81` |
 | T-40 | `--sheet-floating-inset` | Component | `var(--layout-gutter)` | 4b §5.3 · `D4-69`·`D4-70`·`D4-74` |
 | T-40 | `--sheet-floating-inset-block-end` | Component | `calc(var(--layout-gutter) + var(--layout-safe-bottom))` | 4b §5.3 · `D4-69`·`D4-70`·`D4-74` |
+| — | `--sheet-floating-exit-shadow-reach` | Component | `28px` | `D4-139` (2026-11-04 추가, 위 122개 집계 밖 · Spec 번호 없음) — `--shadow-glass-rest` 위쪽 번짐, floating 닫힘 추가 거리 |
 | T-40 | `--sheet-floating-pad-block-start` | Component | `var(--space-2-5)` | 4b §5.3 · `D4-69`·`D4-70`·`D4-74` |
 | T-40 | `--sheet-floating-pad-block-end` | Component | `11px` | 4b §5.3 · `D4-69`·`D4-70`·`D4-74` |
 | T-40 | `--sheet-floating-pad-inline` | Component | `var(--space-5)` | 4b §5.3 · `D4-69`·`D4-70`·`D4-74` |

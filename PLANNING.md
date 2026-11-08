@@ -241,6 +241,8 @@ FR ID가 없는 화면 요구사항:
 
 ### Stage 4 — Storytime Session + Recording Client + Pause/Resume + Prompt Drawer + Local Recording + Upload UX
 
+> ✅ **진행 상태 (2026-11-08)** — **Stage 4 완료.** Stage 4a `PASS (accepted: D4-34, NV-4A-1)` (2026-10-18) · Stage 4b `PASS (accepted: NV-4B-2, NV-4B-3)` (QA 3회차 2026-11-08, `docs/qa/stage-4b-qa-report.md` §R3-7). 네이티브 `S4N-A`~`D` 는 `D4-1` 후속 단계.
+>
 > ⭐ **진행 상태 (2026-10-13)** — **Plan `APPROVED (2026-10-13, user)`** · Design Spec 승인됨 · **Stage 4a 구현 착수**.
 > **`4a` / `4b` 분할** (`D4-9`) — 표기는 `4a`/`4b` 이고 **Stage 5~8 번호는 밀지 않는다**. ⛔ **4a `PASS` 로 Stage 5 를 시작하지 않는다**(Stage 5 회고 카드 `91:691` 이 완료 화면과 **같은 프레임 `29:62`** 이고 완료 화면은 4b 다).
 > **집계**: 사용자 결정 **22건**(`D4-1`~`D4-22`) · In Scope **22** · AC **111**(AC-4-01 ~ AC-4-122 — 이동 9 · 폐기 2) · 그중 4a 약 **73** / 4b 약 **38** · NEEDS DECISION **15**(⛔ **4a 0** · ⛔ **4b 1** = `N4-10`) · 허용 차이 **등록 4건**(`AD-S4-1`·`AD-S4-4`·`AD-S4-5`·`AD-S4-6`) + **승인 대기 4건**(`AD-S4-7`~`AD-S4-10`) · 신규 가값 **`P-25`** · PRD 수정 대상 **8건**(8~15).

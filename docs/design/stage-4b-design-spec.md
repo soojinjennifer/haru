@@ -5,6 +5,7 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 
 개정 이력: 2026-10-27 design-agent — `docs/design/stage-4b-visual-gap-f1.md` Spec 정정(VG-F1-01·03·04·07) + 사용자 결정 `D4-62`·`D4-63`·`D4-64` 반영 (§16 · §0.1 · §2.4 · §3.4 · §4 · §5.3 · §9 · §13). 결정 반영 개정이므로 Status 유지.
 개정 이력: 2026-10-29 design-agent — `docs/design/stage-4b-visual-gap-f2.md`(`S4-F2`) 반영: 토큰 T-31~T-33 등재(§5.3) · `D4-66` aria-live 낭독 철회(§9.1) · `D4-67`/`AD-S4-19` tabular-nums 유지(§2.2 · §9.1) · `D4-65` 확인 다이얼로그 문구 승인(§3.4 · §11.2) · `P-26`·`P-27` 등재 참조(§9.2). 결정 반영 개정이므로 Status 유지.
+개정 이력: 2026-11-03 design-agent — **§18 신설 (`S4-H2R` · `S4-H3`, Plan rev 1.4 §13.3·§13.4 · `D4-112`·`D4-114`)** — §18 **APPROVED (2026-11-03, user — `D4-119` · `D4-120`)**. 기존 절의 Status 는 유지. §7.1 마지막 두 행 · §7.3 · 상위 §7 ③⑤⑥ 의 정정은 §18.8 에 delta 로 적고 §18 승인(`D4-119`)으로 효력 발생.
 개정 이력: 2026-11-02 design-agent — `S4-H1` 마무리: 상위 Spec 정정 §17 신설(`D4-74`·`D4-86`·`D4-87`·`D4-90`·`D4-100`·`D4-101`·`D4-103`~`D4-106`) · 압축 확정 §8.2 · §7.2(`D4-78`·`D4-79`·`D4-81`~`D4-85`) · 토큰 T-34~T-43 등재(§5.3) · §1 · §4 · §9.1 · §11.2 · §12 · §13 갱신. 결정 반영 개정이므로 Status 유지.
 
 ---
@@ -701,3 +702,624 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 | ⑯ | 스티커 아이콘 정체 | ✅ **해소** — `90:602` 에셋 path 사용, HARU 전용 SVG 로 처리. 타일 픽셀 0% | `visual-gap-h1` §4 · §9.2 |
 
 ⚠️ ②: `D4-87` 은 표시 경로를 정했을 뿐 **Stage 3 `D-6` 의 `Min` 미채택과 같은 계열인지**는 판단하지 않았다. 그 판단은 생성 문구 쪽 사안으로 남는다.
+
+---
+
+## 18. ⭐ `S4-H2R` · `S4-H3` 명세 (2026-11-03, design-agent) — **APPROVED (2026-11-03, user — `D4-119` · `D4-120`)**
+
+> 근거: Plan `stage-4b-plan.md` **rev 1.4** §13.3 · §13.4 · §14(AC-4-63 재정의 · AC-4-145~153) · §18 4·5항 · §19.3 · `D4-112`~`D4-118`. 권고안(CP-8~14 · NB-12~15) 기준으로 쓰고, 각 CP 의 대안을 고르면 달라지는 곳을 §18.7 에 한 줄씩 적었다.
+> ⛔ 이 절은 **Plan §19.3 승인 전 구현 근거가 아니다.** Figma 에 없는 UI 는 전부 **후보**로만 표시했다 — 허용 차이 등록·C-13 확정은 사용자 몫이다.
+
+### 18.0 측정 방법 (`R-FIGMA-1` ⑤)
+
+| 표기 | 무엇을 어떻게 | 대상 |
+|---|---|---|
+| `[meta]` | `get_metadata` — 자식 이름·좌표 전수 | Activity card `163:2648`(+인스턴스 `163:2649` 펼침) · 서재 `145:1132` · `163:1669` · 서재 카드 `145:1085` · `163:2347` · Home `26:21` · Design Guide `8:2` 전체 |
+| `[scan]` | 페이지 `16:2` metadata 전체(노드 **952**개)를 파일로 받아 이름을 정규식 `perm\|mic\|upload\|retent\|offline\|alert\|toast\|banner\|notice\|delete\|allow\|setting\|loading\|spinner` 로 검색 | 페이지 `16:2` |
+| `[ctx]` | `get_design_context` — **선언값**(variant · state · fill) | `Button/card` 인스턴스 `I163:2649;86:373` · `I163:2347;163:1916` |
+| `[search]` | `search_design_system` — `Button/card` · `microphone permission` · `loading spinner` | 연결 라이브러리 |
+| `[직독]` | 저장소 코드 읽기만 (Playwright·dev 서버 실행 0 — 지시) | `InlineAlert.tsx/.css` · `Toast.tsx` · `ToastProvider.tsx` · `useFocusTrap.ts` · `ReadingContextSheet.tsx` · `StartSessionAction.tsx` · `MicPermissionSheet.tsx` · `copy.ts` · `HomeTopBar.tsx` · `local-retention.ts` · `upload-queue.ts` · design-tokens |
+| `[계산]` | 위 토큰값의 산술 | §18.5 배너 높이 |
+
+⚠️ **렌더 측정은 하지 않았다** (지시: Playwright 금지). §18.5 의 높이·밀림은 **토큰 산술**이며 구현 후 Visual Gap 에서 `getBoundingClientRect` 로 확정한다.
+
+### 18.1 실측 결과 — 권한·마이크·업로드 노드는 Figma 에 없다
+
+| 대상 | 결과 | 표기 |
+|---|---|---|
+| Activity card `163:2648` | 자식 = `Prompt Card/Home` ×3. 펼친 `163:2649` = `Cardtitle` · 책 정보 · `Prompt Card` ×4 · **`Button/card`**(`Save` + `Start Session`) — **권한·마이크 노드 0** | `[meta]` |
+| `Button/card` (`I163:2649;86:373` · 서재 `I163:2347;163:1916`) | `Button/White`(Save 87×45) + `Button`(teal `#85bfb6`, `Start Session` 235 폭). **state/loading 속성 없음** | `[ctx]` |
+| Design Guide `Button` `17:20` | 변형 = Glass × {Rest, Hover, Pressed, Disabled} · Accent × {Rest, **Secondary**, Hover, Pressed, Disabled} — **Loading 변형 없음** | `[meta]` |
+| Reading Context 시트 | **Figma 노드 없음** (결과 칩 `86:538` 만 — 상위 §7.5 · `FIGMA_SCREEN_MAP:120`). 시트 자체가 명세 화면이다 | `[meta][scan]` |
+| 서재 `145:1132` · `163:1669` | 헤더 · 섹션 · 행 · Tab Bar · `Deemed`(시트 카드 `145:1085` = `163:2649` 동형 / `163:2347` = `Book List` + `Button/card`) — **권한·마이크 노드 0** | `[meta]` |
+| Home `26:21` | 자식 11개 (Plan 실측과 동일) — **안내·배너 노드 0** | `[meta]` |
+| 페이지 `16:2` 전체 | 매칭 3건 — `298:1245` `PermissionDenied`(Record Control 변형, 기존) · `248:1179` `Trial notice`(온보딩 Step 1, 무관) · `298:1414` 초안 설명문. **권한 안내·업로드·보관 안내 화면 0** | `[scan]` |
+| 라이브러리 | HARU 라이브러리 매칭 0 (외부 Community 결과뿐) | `[search]` |
+
+→ **확인 중 상태 = 기존 `Button loading` 으로 덮인다.** 두 경로의 버튼이 이미 `loading` 을 쓴다 `[직독]`: Activity = `ReadingContextSheet.tsx:117` `loading={submitting}`(시트 footer `Button accent fullWidth`), 서재 = `StartSessionAction.tsx:49` `loading={createSession.isPending}`. Button `loading` 은 Stage 1 #22 명세 상태(Spinner + `aria-busy`, native `disabled` 미사용으로 포커스 유지, 누름 무시 — `Button.tsx:51-52,92-94`)다. **새 상태·새 시각 0, 허용 차이 0** — 단 `loading` 구간이 "권한 확인 + 생성" 으로 길어진다(§18.2 ①).
+
+### 18.2 `S4-H2R` — Start Session 전 권한 확인 (CP-8 · CP-9 권고 기준)
+
+**① 확인 중 (AC-4-145 ⑥)**
+
+| 경로 | `loading` 을 켜는 요소 | 켜는 시점 → 끄는 시점 |
+|---|---|---|
+| Home Activity | Reading Context 시트 footer 확인 버튼 (기존 `submitting`) | 확인 탭 → **권한 판정** → 선택 POST → 생성 응답(이동) 또는 실패 |
+| 서재 | 책 시트 `Start Session` (기존 `isPending`) | 탭 → **권한 판정** → 생성 응답 또는 실패 |
+
+- OS 프롬프트는 **버튼 Spinner 위에** 뜬다. 프롬프트를 닫지 않으면 `loading` 유지(시간 제한 없음 — Plan 권고). 문구·진행 텍스트를 덧붙이지 않는다(Figma 없음).
+- `loading` 중 재탭 = 무시(기존 Button 규칙). 시트 **닫기(✕·scrim·Escape)는 막지 않는다** — 닫히면 그 뒤 도착한 권한 결과로 선택 POST·생성 요청을 **보내지 않는다**(AC-4-145 ⑦ "이탈 시 `selection` 0").
+- 권한 거부·차단·장치 없음 → **화면 변화 없이** `conversation_only` 로 생성·이동한다. Home·시트에서 안내하지 않는다(CP-9 ⓐ, 최우선 규칙 2) — 안내는 세션 화면 시트(②).
+
+**② 대화 전용 세션 진입 안내 (CP-10 ⓐ · AC-4-147) — §7.3 개정**
+
+| 항목 | 명세 |
+|---|---|
+| 컴포넌트 | **기존 `MicPermissionSheet`** (`Sheet variant="bottom"`, 제목 · 안내 문단 · footer `Button glass fullWidth` `Not now`) — 신규 컴포넌트·토큰 0 |
+| 자동 표시 조건 | ① `mode=conversation_only` 세션의 ready 화면이 **처음 렌더될 때 1회** ② **녹음 세션**에서 녹음 시작이 권한 거부로 끝난 직후 1회(현행 §7.3 유지) |
+| 자동 표시 안 함 | 같은 세션 재진입(같은 앱 실행 안) · Prompts 팝업·Drawer·Dialog 가 열려 있을 때 · ready 가 아닌 상태 |
+| "1회" 의 범위 | **세션 id 당 · 앱 실행 당**(메모리) — 권고. 새로고침 후 재표시는 정보성이라 해가 없다. 대안: 세션 id 를 로컬 기록(재시작 후에도 0) → `S4B-Q15` |
+| 수동 열기 | `permission-denied` Record Control 탭 → 시트(`D4-118` 유지) |
+| 포커스 | 열림 = 시트의 첫 포커스 대상(현행). ⚠️ **자동 표시는 여는 요소가 없다** — `useFocusTrap` 은 열기 직전 `document.activeElement` 로 돌려준다 `[직독: useFocusTrap.ts:51]` → 세션 진입 직후는 `body`·이전 화면 요소일 수 있다. **닫힘 후 포커스 = Record Control 을 feature 가 명시적으로 지정**한다(AC-4-147 ③). `packages/ui` 변경 0 (`initialFocus` 와 대칭인 복귀 prop 이 필요하면 Shared UI 확장 → 보고) |
+| 시트 열림 중 | 상태 전이 0 · 바탕 ready 버블·바 그대로 |
+| 대상 상태 | `denied` · `unavailable`(장치 없음) 둘 다 같은 시트·같은 변형 문구(`S4B-Q16`) |
+
+**③ 시트 문구 자리 (NB-12 · `N4B-28`) — 문구 확정은 사용자**
+
+| 키 (예시 이름) | 쓰는 곳 | 상태 |
+|---|---|---|
+| `micSheet.title` | 두 모드 공통 `Your microphone is off` | `D4-115` 승인 — 그대로 |
+| `micSheet.description` | **녹음 세션**(ready·paused 에서 거부) — *"… then come back to this screen."* | `D4-115` 승인 — 그대로 (녹음 세션에서는 사실이다) |
+| **`micSheet.conversationDescription`** 🆕 | **대화 전용 세션** — 1건 | development-agent 초안 → 사용자 승인 |
+
+- 변형 문구 조건: ① *"이 화면으로 돌아오면 녹음된다"* 류 문장 0(모드 고정) ② 장치 없음에도 사실일 것(권한 허용만 말하지 않는다) ③ 이 세션은 녹음 없이 계속된다는 사실 + **다음 세션**부터 녹음하려면 무엇을 하는지 ④ 진단·질책·`failed`·`error` 0 ⑤ 320 에서 시트 높이가 화면을 넘지 않게 **3줄 이내 권장**(`subheadline` 15/20, 시트 내부 폭 기준 — Visual Gap 에서 실측).
+- 방향 예시(확정 아님): *"This session will continue without recording. To record next time, turn on the microphone for this site and start a new session."*
+
+**④ `Talk without recording` 제거 (CP-11 ⓐ · AC-4-148)**
+
+- §7.3 의 `Button accent` **`Talk without recording`** 를 **명세에서 삭제**한다. 시트 footer = `Not now` 1개(현행 구현 그대로 — `MicPermissionSheet.tsx`).
+- copy 키 `micSheet.talkWithoutRecording` 은 **폐기 대상**(development-agent 가 키·주석 정리).
+- 녹음 세션 ready 에서 거부 → 시트 + 기존 닫기(`D4-57`, 확인 없이 `ready → abandoned`) → 홈 → 다시 `Start Session` → 판정 `denied` → 자동 `conversation_only`. **신규 UI 0.**
+- paused 재개 시 거부 → 시트 + `Submit` 로 지금까지 녹음 제출(현행 바).
+
+**⑤ 프로브 스트림 해제 (NB-13)** — UI 영향 없음(Home·ready 동안 브라우저 마이크 표시등 0 이 기대 결과). Safari 가 Record 탭에서 다시 묻는 경우 Record Control 은 기존 `requesting_permission` → `disabled` 를 거친다(AC-4-134 · H2-4 ①) — 새 시각 0.
+
+**⑥ `AD-S4-16` 판정** — 시트 시각·구성은 등록된 `AD-S4-16`(`D4-58` CP-5) 안이다. 다만 **트리거 1개 추가(대화 전용 첫 진입) · 버튼 1개 제거 · 문구 변형 1건**은 등록 당시 내용과 다르다 → **"`AD-S4-16` 범위 개정" 후보**로 둔다(신규 번호 불필요하다고 보나, 별도 번호로 등록할지도 사용자 판단). ⚠️ approvals §4 대장 표에 `AD-S4-12`~`17` 행이 없다(`D4-58` 본문에만 "14·16 등록") — 대장 정리 대상.
+
+### 18.3 `S4-H3` — 업로드 · 48h · 7일 · 14일 (CP-12 · 13 · 14 권고 기준, C-13)
+
+| 사건 | 신호 `[직독]` | 수단 (권고) | 위치 | 문구 자리 | 사용자 행동 |
+|---|---|---|---|---|---|
+| 업로드 진행·성공 | 큐 `queued`/`uploading` · 확정 | **표시 0** (CP-12 ⓐ) — 완료 화면 y468 아래 비움 유지(AC-4-61·104) | — | — | — |
+| `RECORDING_INCOMPLETE` 자동 재시도 | 큐 HEAD offset 확인 → 재시도 | **표시 0** (CP-14 ⓐ) — 계속 실패하면 48h 행으로 합류 | — | — | — |
+| **48h 미확정** | `upload-queue.ts` `stalled_48h` + `stalledNoticeAtMs` | `Toast tone="neutral"` + action **`Try again`** + 닫기(`dismissLabel`) | 앱 수준 `ToastProvider`(상단, `D4-117` 선례) | `uploads.stalled` 1건 + `Try again`(기존 copy 재사용) | `Try again` → 큐 즉시 처리 1회 · Toast 닫힘 |
+| **7일 보관 안내** | `local-retention.ts` `retention_notice` + `deleteAtMs` + `retentionNoticeAtMs` | **Home 배너** `InlineAlert tone="warning" placement="banner"` + 닫기 — **닫거나 업로드가 확정될 때까지 유지** | Home 헤더 밴드 밑(오프라인 캐시 배너와 **같은 슬롯**, §18.5) | `uploads.retentionNotice(date)` 1건 (+ `Try again` 은 `S4B-Q10` 결과) | 닫기 · (선택) `Try again` |
+| **14일 삭제** | `retention_expired` | `Toast tone="neutral"` 1회 (action 없음, 기본 시간) | 앱 수준 | `uploads.retentionExpired` 1건 | 없음 (이미 일어난 사건) |
+
+- **Toast tone** = `neutral` (Toast tone 은 `neutral`·`success`·`error` 3종 `[직독: Toast.tsx:7]` — `warning` 없음). 문구에 `failed`·`error` 0 (상위 §7.2 원칙 유지) → `error` tone 도 쓰지 않는다. 48h Toast 는 action 이 있어 기존 규칙상 6000ms(`TOAST_DURATION_MS.withAction`) + 수동 닫기.
+- **Toast 는 큐가 없다** — 같은 순간 다른 Toast 가 뜨면 교체된다 `[직독: ToastProvider · H2F-4 ③]`. 그래서 **유실 위험(7일)만 배너**로 둔다(Plan CP-13 ⓒ 의 근거와 같다).
+- `Try again`(48h · 7일 공통): 누른 뒤 ① 온라인 → 큐 처리 1회, 성공하면 7일 배너는 사라진다(AC-4-150 ④), 성공 Toast 0(CP-12 ⓐ) ② 오프라인 → 요청 0 + **오프라인 안내 1회**(AC-4-149 ④). ⚠️ 세션 화면의 `connectivity.offline` 문구는 `features/storytime-session` copy 소유 — 다른 feature 가 import 하면 feature 간 import 위반. **공용 copy 로 옮기거나 새 키 1건**이 필요하다(development-agent 판단 · 새 키면 승인 대상).
+- 7일 배너 문구: **삭제 예정일을 날짜로** 담는다(§18.4). 여러 녹음이 7일 구간에 있으면 배너 **1개**, 날짜 = **가장 이른** `deleteAtMs`, 건수는 말하지 않는다(`D4-117` 의 "건수와 무관한 한 문장" 과 같은 방식).
+- 7일 배너 **닫기 범위**: 닫는 순간 7일 구간에 있던 녹음 전부. 그 뒤 **새 녹음**이 7일에 들어오면 다시 뜬다. 닫기 기록은 로컬 레코드에 둔다(NB-14 — 재시작 후 재표시 0, 로그아웃 정리 대상 AC-4-153 ④).
+- ⚠️ **표시는 사건이 아니라 상태에서 파생**해야 한다: 보관 판정은 앱 시작 sweep 에서 돌아 **Home 이 구독하기 전에 `retention_notice` 가 나갈 수 있다**. 레코드에 `retentionNoticeAtMs`·`stalledNoticeAtMs` 가 이미 저장된다 `[직독: local-retention.ts:117-121 · upload-queue.ts:262]` → 배너 = "안내 시각 있음 ∧ 미확정 ∧ 닫기 기록 없음" 레코드가 ≥1 이면 표시. 48h·14일 Toast 도 앱 시작 보고를 조립 지점이 보관했다가 구독 시 1회 전달(`D4-117` `onRecoveredRecordings` 패턴). 구현 확인은 development-agent `[직독]`.
+
+**우선순위·동시 표시 (AC-4-153 ② ③)**
+
+| 겹침 | 규칙 (권고) |
+|---|---|
+| 같은 녹음에 48h·7일·14일이 동시에 해당 (예: 앱을 8일 만에 열었다) | **가장 심한 것만** — 14일 > 7일 > 48h. 덜 심한 안내는 표시한 것으로 기록(다시 뜨지 않음) |
+| 다른 녹음끼리 Toast 가 겹침 (앱 시작 시 14일 · 48h · 크래시 복구) | **한 번에 1개, 앞 Toast 가 닫힌 뒤 다음** — 순서 14일 → 48h → 크래시 복구(`D4-117`). 순차는 안내 계층(조립 지점/feature)이 하고 `ToastProvider` 는 바꾸지 않는다(큐 추가는 Shared UI 변경 → 별도 승인) — `S4B-Q14` |
+| 7일 배너 ↔ Toast | 채널이 달라 **함께 보일 수 있다**(배너는 흐름 안, Toast 는 상단 오버레이) |
+| 7일 배너 ↔ **오프라인 캐시 배너**(`AD-S4-11`) | **같은 슬롯에 1개만. 오프라인 배너 우선** — 이유: ① 오프라인 배너는 비활성 `Start Session` 의 사유(`aria-describedby`, `D4-33`·`D4-39`)라 빠지면 사유가 사라진다 ② 오프라인에서는 `Try again` 이 아무것도 못 한다. 7일 배너는 온라인 복구 시 다시 보인다(닫기 기록 소비 0). 두 배너 적층(밀림 54+α)은 비권고 — `S4B-Q11` |
+| 세션 화면 recording·paused 중 앱 수준 Toast (48h·14일) | **보류 후 세션 화면을 떠난 뒤 표시** — 녹음 중 개입 0(PRD §7.5) 원칙. 대안 = 즉시 표시(크래시 복구 Toast 는 현재 route 제한 없음 — H2F-4 ②) — `S4B-Q13` |
+
+### 18.4 7일 안내의 삭제 예정일 표기 (AC-4-150 ③)
+
+| 항목 | 명세 (권고) |
+|---|---|
+| 값 | `deleteAtMs` (= 첫 part 시작 + 14일) — 응답 값이 아니라 로컬 레코드 값 |
+| 형식 | **절대 날짜** · 영어 · 기기 로캘 시간대 — `Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' })` → **`Nov 17`**. 해가 다르면 `year: 'numeric'` 추가 → `Jan 3, 2027` |
+| 상대 표기 금지 | `in 7 days` 류는 배너가 여러 날 남아 있는 동안 **틀린 값이 된다** |
+| 시각 표기 없음 | 삭제는 그 시각 이후 첫 sweep 에서 일어난다(앱이 닫혀 있으면 더 늦다) — 날짜보다 **이르게 지워지는 일은 없다**. 문장은 *"on {date}"* 가 사실과 맞는다. 시각까지 쓰면 앱이 닫혀 있을 때 틀린다 |
+| 날짜 생성 위치 | copy 모듈의 함수 `retentionNotice(date: string)` 에 **형식화된 문자열**을 넘긴다. 형식화 함수는 `shared/lib` 1곳(테스트 가능 · 주입 clock) |
+
+### 18.5 Home 배치 — 오프라인 배너와 같은 슬롯 (C-13 · `AD-S4-25` 후보)
+
+- 슬롯: `HomeTopBar` 의 헤더 밴드(48) **바로 아래** — 오프라인 캐시 배너(`ActivityCardOfflineBanner`)와 같은 자리·같은 `placement="banner"` `[직독: HomeTopBar.tsx:69]`. 배너 컴포넌트는 feature 가 소유하고 **Page 가 조립**한다(feature 간 import 0).
+- 밀림: 배너는 흐름을 차지한다 → 버블 `261:1293`·캐릭터 `26:22` 가 배너 높이만큼 내려간다. 비교 기준: 오프라인 1줄 배너 **+54 = 가슴 하트가 카드 뒤**(사용자 수용 `AD-S4-11`) · 2단 배너 **+94 = 얼굴 하반부가 카드 뒤**(`G-01`, 사용자가 줄이라고 결정 `D4-32`).
+
+**배너 높이 `[계산 — 렌더 측정 아님]`** — border 1×2 + padding `--space-4` 16×2 = 34 · 제목 `subheadline` 20/줄 · 본문 `footnote` 18/줄 · body gap `--space-1` 4 · action `--size-touch-min` 44 · 닫기 `--icon-button-size` 38 (가로만 차지). 텍스트 폭 = 컬럼 − 34 − 아이콘 20 − gap 12×2 − 닫기 38 → **393: 229px · 320: 156px**.
+
+| 구성 | 393 높이 (= 밀림) | 320 높이 | 평가 |
+|---|---|---|---|
+| ⓐ 제목 + 본문(날짜) + `Try again` + 닫기 | 34+20+4+18~36+4+44 = **124~142** | 3~4줄 → **142~178** | `G-01`(+94) 보다 크다 — 얼굴이 가려진다 |
+| ⓑ 제목 1문장(날짜 포함) + `Try again` + 닫기 | 34+20~40+4+44 = **102~122** | **122~142** | 여전히 +94 초과 |
+| **ⓒ 제목 1문장(날짜 포함) + 닫기, `Try again` 없음 (권고)** | 34+20~40 = **54~74** | 2~3줄 → **74~94** | `AD-S4-11`(+54) 수준. 393 2줄이면 +74 |
+| ⓓ 배너 없이 앱 시작마다 Toast(`duration: 0`, 닫을 때까지) | 0 | 0 | 다른 Toast 가 오면 교체돼 사라진다 · 상단 헤더를 가린다 — 비권고 |
+
+- **권고 ⓒ** — 근거: ① 큐가 이미 자동 재시도 중이라 `Try again` 은 "지금 한 번 더" 일 뿐이다(CP-14 와 같은 논리 — 사용자 행동이 필요 없는 일을 버튼으로 만들지 않는다) ② 7일 구간에서 사용자가 할 일은 **HARU 를 온라인에서 열어 두는 것**이고, 문장이 그것을 말하면 된다 ③ 밀림을 사용자가 이미 수용한 크기(`AD-S4-11`)로 맞춘다. ⚠️ Plan CP-13 문안(*"7일 = Home 안내 + `Try again`"*)과 다르다 → **`S4B-Q10`** 로 사용자에게 묻는다.
+- 문장 길이 목표: 393 에서 1줄(229px ≈ `subheadline semibold` 30자 안팎), 320 에서 2줄. 실제 줄 수는 Visual Gap 에서 실측(`D4-37` 때와 같은 방법 — 실제 배너 DOM 에 후보 문구를 넣어 잰다).
+- 잘라내지 않는다(`line-clamp`·`text-overflow` 금지 — 확대 시 줄바꿈 허용, `visual-gap-s4j` §6.1 과 같은 규칙).
+- 모션: 기존 배너 등장(`haru-alert-in`, reduced motion 시 없음). 높이 전환 없음(`G-05` 와 같은 상태, 별도 조치 없음).
+- tone `warning` → `role="alert"` `[직독: InlineAlert.tsx:62]` — **앱 시작 때 1회 낭독**된다. 유실 위험 안내라 적절하다고 본다(대안: `info` → `status`/polite — 색도 바뀐다).
+- 대비: `--color-status-warning-*` 는 가값 `P-04` 대상(`InlineAlert.css`) — 신규 가값 0, QA 리포트의 P-04 목록에 사용처 1곳 추가.
+- `R-SHADOW-1`: `InlineAlert` 배너 `box-shadow: none` → 대상 아님. 배너 삽입이 덱 트랙 overflow 박스를 바꾸지 않는지는 오프라인 배너 때와 같은 회귀 확인(`visual-gap-s4j` §1.3).
+- 600+ : 앱 컬럼 480 안 — 393 과 같은 규칙(텍스트 폭 316px → 1줄 가능성 높음).
+
+### 18.6 신규 컴포넌트 · 토큰
+
+| 구분 | 내용 |
+|---|---|
+| 신규 Shared UI | **0** — `Sheet` · `Button loading` · `InlineAlert banner` · `Toast`(action·dismiss) 재사용 |
+| 신규 Domain/Feature 컴포넌트 | 안내 구독 렌더러 2개(가칭 — Home 보관 배너 · 앱 수준 업로드 Toast). `RecoveredRecordingsToast`(`D4-117`) 와 같은 "렌더 0 또는 배너 1" 패턴. 위치·이름은 development-agent (feature 간 import 0 · Page 조립) |
+| `UploadStatusBadge` | CP-12 ⓐ 채택 시 **Stage 4 에서 만들지 않는다**. `COMPONENT_MAP` 행은 승인 후 design-agent 가 "Stage 4 미생성 — Stage 8 데이터 관리에서 재검토" 로 정정 |
+| 신규 토큰 | **0** — 모든 값이 기존 토큰(`--space-*` · `--size-touch-min` · `--icon-button-size` · `--color-status-warning-*` · Toast 토큰) |
+| 신규 copy (승인 대상) | `micSheet.conversationDescription` · `uploads.stalled` · `uploads.retentionNotice(date)` · `uploads.retentionExpired` (+ 오프라인 안내 공용화 시 1건) — 이름은 예시 |
+| 폐기 copy | `micSheet.talkWithoutRecording` (CP-11 ⓐ) |
+| Mock | 기존 `recordings:upload-stalled-48h` · `recordings:recording-incomplete` · `recordings:offline-queued` · `recordings:recording-upload-success` · `recorder:local-retention-exceeded` + Plan 제안 `recorder:local-retention-notice` · `recorder:mic-permission-blocked` · `mic-unavailable` · `mic-permission-revoked`. **추가 제안 0** |
+
+### 18.7 CP 대안을 고르면 이 명세가 어떻게 달라지는가 (한 줄씩)
+
+| CP | 대안 | 명세 변화 |
+|---|---|---|
+| CP-8 ① | ⓐ check 만 | Start 에서 프롬프트 0 · `loading` 은 거의 즉시 끝남 · 첫 사용자의 거부가 **세션 안**(Record 탭)에서 일어나 §18.2 ④ 경로(시트 → 닫기 → 재시작)가 주 경로가 된다 |
+| CP-8 ② | `Start Session`(시트 열기 전) 시점 | `loading` 위치 = **카드의 `Start Session`**(`Button/card` 의 teal 버튼) — 시트 확인 버튼이 아니다. 프롬프트 뒤 시트를 취소하면 권한만 받고 끝난다(POST 0) |
+| CP-8 ③ | `unavailable` → 생성 막고 오류 | Home 시트·서재 시트에 **오류 Toast 1건 신규**(copy · C-13 · 허용 차이 후보 추가). `S4B-Q16` 소멸 |
+| CP-9 | ⓑ 프롬프트 전 설명 시트 | **신규 C-13 시트**(`Sheet bottom` · 제목 · 문단 · `Continue` accent / `Not now` glass) — `prompt` 상태에서만, 확인 탭 → 설명 시트 → `Continue` 탭 → OS 프롬프트. 문구 3~4건 · `AD-S4-27` 후보 · 이 절에 명세 추가 필요 |
+| CP-9 | ⓒ 디자이너 요청 | `S4-H2R` 차단 — 요청서 개정(Q 신규 1) |
+| CP-10 | ⓑ 생성 전 Home 확인 다이얼로그 | `ConfirmDialog` 재사용(`AD-S4-4` 사용처 확장) · 문구 4건 · 자동 시트 트리거(§18.2 ② ①) 삭제 · 다이얼로그 취소 시 생성 0 |
+| CP-10 | ⓒ 알리지 않음 | 자동 표시 ① 삭제 · AC-4-147 폐기 · 변형 문구는 탭으로 열 때만 쓰임 |
+| CP-11 | ⓑ 녹음 ready 에서만 버튼 | 시트 footer 2버튼(`accent` 위 · `glass` 아래, 현 §7.3 순서) — 동작 = 닫기와 같은 `ready → abandoned` + 홈. 대화 전용 세션 시트에는 버튼 0 |
+| CP-11 | ⓒ 재생성(contract 추가) | 버튼 복원 + 전환 중 `loading` · 실패 Toast 신규 — plan-agent contract 선행 |
+| CP-12 | ⓑ 배지 | 완료 화면 y468~521 슬롯에 `UploadStatusBadge` 6상태 명세 재작성 · AC-4-61/104 수정 · 허용 차이 후보 1 · `S4-H1` baseline 재생성 |
+| CP-12 | ⓒ 성공 Toast 만 | 앱 수준 `Toast success` 1건 신규(copy) · 우선순위 표에 1행(최하위) |
+| CP-13 | ⓐ 전부 Toast | 7일 = Toast(action) 1회 → §18.5 전체 삭제 · `AD-S4-25` 소멸 · **놓치면 14일에 유실**(R4-11) |
+| CP-13 | ⓑ 전부 Home 배너 | 48h·14일도 같은 슬롯 배너 → 슬롯 우선순위 14일 > 7일 > 48h(+오프라인 최우선) · 밀림 빈도 증가 · Toast 순차 규칙 축소 |
+| CP-14 | ⓑ 즉시 Toast | `RECORDING_INCOMPLETE` 마다 `Toast neutral` 1건(copy) — 자동 재시도 성공 시에도 이미 떴다. 우선순위 표 최하위 1행 |
+
+### 18.8 기존 절 정정 (§18 승인 시 효력)
+
+| 대상 | 현재 | 정정 |
+|---|---|---|
+| 4b §7.1 행 "크래시 복구" | *"상위 §7 ⑥ 그대로 (완료 화면 상단)"* | **`D4-117` 로 이미 바뀜** — 앱 시작 후 `Toast neutral` 1회(`RecoveredRecordingsToast`). 스테일 표기 정정(§18 승인과 무관하게 사실 정정) |
+| 4b §7.1 행 "업로드 / 48h / 14일" | *"상위 §7.2 그대로"* — 상위 §7.2 에 **14일이 없다** · 배지 슬롯이 AC-4-61 과 충돌 | → **§18.3 표**로 대체 (진행·성공 0 · 48h Toast · 7일 Home 배너 · 14일 Toast) |
+| 4b §7.1 행 "마이크 거부" · "대화 전용" | 탭 → 시트 · `mic-permission-denied` 경유 | 진입 = **Start Session 판정**(`D4-112`) · 대화 전용 첫 진입 시 시트 자동 1회 · Mock key 에 `mic-permission-blocked`·`mic-unavailable`·`mic-permission-revoked` 추가 |
+| 4b §7.3 | footer = `Talk without recording`(accent) + `Not now`(glass) · 트리거 = 탭 또는 거부 직후 | → **§18.2 ②~④** (footer `Not now` 1개 · 트리거 +대화 전용 첫 진입 · 문구 변형 1) |
+| 4b §10 | C13-4B-4 "PermissionDenied 세션 화면 · 대화 전용 ready" | 범위 유지 + 신규 C-13 항목은 §18.9 |
+| 상위 §7 ③ `C13-7` | `UploadStatusBadge` + `InlineAlert` + `Toast` + `ProgressBar`, §7.2 3계층 | **Stage 4 미적용** — 진행·성공 표시 0, 실패는 자동 재시도 후 48h 경로(§18.3). §7.2 의 문구 원칙(`failed`·`error` 금지 · 로컬 보존 사실을 알린다)은 **유지** |
+| 상위 §7 ⑤ `C13-9` | 48h = `InlineAlert warning` + `Try again`, 완료 화면 업로드 슬롯 | → 앱 수준 `Toast neutral` + `Try again` (48h 시점에 사용자는 완료 화면에 없다) |
+| 상위 §7 ⑥ `C13-10` | 크래시 복구 = `InlineAlert info`, 세션/완료 화면 상단 | → `D4-117` Toast (위와 같음) |
+| 상위 §7 ⑨ · ⑩ · §7.4 | in-page 상태 · Record Control `disabled` · 흐름에 Drawer | 이미 4b §7.3(`D4-58` CP-5) · CP-6 으로 대체됨 — 진입이 생성 시점으로 바뀐다는 점만 추가(`D4-112`) |
+| 상위 §13 대체 목록 | — | 위 행들을 §13 표에 반영(승인 후 design-agent) |
+
+### 18.9 Figma 누락(C-13) · 허용 차이 후보 · 사용자 결정 — **등록·확정하지 않는다**
+
+**C-13 항목 (전부 "design-agent 명세 가능" 으로 분류 — 화면별 승인 필요)**
+
+| # | 화면 / 상태 | 분류 | 근거 |
+|---|---|---|---|
+| C13-4B-11 | 권한 확인 중 버튼 | **C-13 아님** — 기존 `Button loading`(Stage 1 #22) | §18.1 |
+| C13-4B-12 | 대화 전용 첫 진입 시트 자동 표시 + 변형 문구 | 명세 가능 (§18.2 ②③) — `AD-S4-16` 범위 개정 후보 | 기존 시트 재사용 |
+| C13-4B-13 | Home 7일 보관 배너 | 명세 가능 (§18.4·§18.5) — `AD-S4-25` 후보 | `26:21` 안내 노드 0 |
+| C13-4B-14 | 앱 수준 48h · 14일 Toast · 순차 | 명세 가능 (§18.3) — `AD-S4-26` 후보 | `D4-117` 과 같은 수단 |
+| (조건부) C13-4B-15 | 프롬프트 전 권한 이유 시트 | CP-9 ⓑ 선택 시에만 — `AD-S4-27` 후보 | PRD §13 "이유 안내 화면" |
+
+**허용 차이 후보** — ⚠️ **Plan 이 적은 `AD-S4-19` 는 이미 등록된 번호**(경과 시간 숫자 폭, `D4-67`, 2026-10-29)다. 다음 빈 번호는 **`AD-S4-25`** (`AD-S4-24` = `D4-107`).
+
+| 후보 | 대상 | Figma | 구현(권고) |
+|---|---|---|---|
+| `AD-S4-16` 범위 개정 | 마이크 시트 트리거 +1 · 버튼 −1 · 문구 변형 +1 | 없음 | §18.2 |
+| **`AD-S4-25`** | Home 7일 배너 + 버블·캐릭터 밀림 | 배너 없음 | §18.5 ⓒ — 393 **+54~74** · 320 **+74~94** `[계산]` |
+| **`AD-S4-26`** | 앱 수준 48h · 14일 Toast | 없음 | §18.3 |
+| (조건부) `AD-S4-27` | 프롬프트 전 설명 시트 | 없음 | CP-9 ⓑ 시 |
+
+**사용자 결정 (Plan CP-8~14 · NB-12~15 외 추가분)**
+
+| ID | 질문 | 권고 | 차단 |
+|---|---|---|---|
+| **`S4B-Q10`** | 7일 배너 구성 (§18.5 ⓐ~ⓓ) — Plan CP-13 은 `Try again` 포함 | **ⓒ 제목 1문장 + 닫기, `Try again` 없음** (밀림 `AD-S4-11` 수준) | ⛔ `S4-H3` |
+| **`S4B-Q11`** | 7일 배너 ↔ 오프라인 캐시 배너 | 같은 슬롯 1개 · **오프라인 우선**, 온라인 복구 시 7일 재표시 | ⛔ `S4-H3` |
+| `S4B-Q12` | 삭제 예정일 표기 | 절대 날짜 `Nov 17`(해 다르면 연도) · 시각 없음 · *"on {date}"* | 비차단 |
+| `S4B-Q13` | recording·paused 중 앱 수준 Toast | 세션 화면을 떠날 때까지 보류 | 비차단 |
+| `S4B-Q14` | 앱 시작 Toast 겹침 | 1개씩 순차 · 14일 → 48h → 크래시 복구 · `ToastProvider` 불변 | 비차단 |
+| `S4B-Q15` | 대화 전용 시트 자동 "1회" 범위 | 세션 id 당 · 앱 실행 당(메모리) | 비차단 |
+| `S4B-Q16` | 장치 없음(`unavailable`)도 같은 시트·같은 변형 문구 | 같게 — 문구가 두 경우 모두 사실이게 쓴다 | 비차단 (CP-8 ③ 권고 채택 시) |
+
+### 18.10 Plan rev 1.4 와 어긋난 지점 (Plan 은 고치지 않는다 — plan-agent 보고)
+
+1. **`AD-S4-19` 번호 충돌** — Plan §13.4 ③ · §17.6 `N4B-31` · §18 5항 · AC-4-150 ⑤ · CP-13 이 Home 배너 후보를 `AD-S4-19` 로 적었으나 이미 등록된 번호다 → `AD-S4-25` 로 바꿔야 한다.
+2. **CP-13 의 7일 `Try again`** — 배너 높이 산술상 `Try again`(44) 을 넣으면 밀림이 `G-01`(+94, 사용자가 줄이기로 한 크기)을 넘는다(§18.5). design-agent 권고는 `Try again` 없음(`S4B-Q10`). 채택 시 AC-4-150 ② 문안 수정.
+3. **AC-4-153 ② "우선순위로 1개씩"** — 7일은 배너, 48h·14일은 Toast 라 채널이 다르다. "1개씩" 은 **Toast 끼리**와 **같은 녹음 안**에서만 성립한다(§18.3 표). 오프라인 배너와의 관계(`S4B-Q11`)는 AC 에 없다.
+4. **`N4B-33` 전제** — Plan 은 *"4a 는 같은 프로세스 안 1회만 보증"* 이라 적었으나, 레코드에 `retentionNoticeAtMs`·`stalledNoticeAtMs` 가 **저장된다** `[직독]` → 신호 1회는 재시작 후에도 유지될 가능성이 있다(저장소 영속성은 development-agent 확인). 반대로 **앱 시작 sweep 이 Home 구독보다 먼저 끝나면 안내가 화면에 닿지 않는다** — 표시를 상태에서 파생해야 한다(§18.3 ⚠️). AC-4-153 증거에 "구독 전 신호" 케이스 추가 권고.
+5. **AC-4-147 ③ 포커스 복귀** — 자동 표시는 여는 요소가 없어 `useFocusTrap` 기본 복귀로는 Record Control 에 가지 않는다(§18.2 ②). Plan §13.3 ⑦ 구현 지시에 없음.
+6. **AC-4-149 ④ "오프라인 안내 재사용"** — 재사용 대상 문구(`connectivity.offline`)가 `features/storytime-session` 소유라 Home·앱 수준 안내에서 그대로 import 할 수 없다(§18.3).
+7. 4b §7.1 "크래시 복구" 행이 `D4-117` 이후 스테일 — Plan §13.4 ① 표에 없다(§18.8).
+
+### 18.11 development-agent 메모 (승인 후)
+
+- `loading` 은 새로 만들지 않는다 — 기존 `submitting`·`isPending` 의 시작을 권한 판정 앞으로 당긴다. 시트가 닫히면 늦게 온 권한 결과를 버린다.
+- 마이크 시트: 모드별 `description` 키 분기 1곳 · 자동 표시 플래그(세션 id) · 닫힘 후 Record Control 로 포커스 지정. footer 는 현행(`Not now` 1개) 유지.
+- 안내 렌더러는 **상태 파생**(배너) / **보관된 앱 시작 보고 + 구독 시 1회**(Toast). Toast 순차는 안내 계층에서. `ToastProvider`·`InlineAlert`·`Sheet` 변경 0 — 필요해지면 멈추고 보고.
+- 날짜 형식화는 `shared/lib` 1곳 + 주입 clock 단위 테스트(연도 경계 · 시간대).
+- Visual Gap 대상(최우선 규칙 5): Home 7일 배너 393·320·600 (밀림 실측 · 줄 수) · 오프라인 배너 우선 전환 · 대화 전용 시트(변형 문구 줄 수 320) · `loading` 두 경로 · 48h Toast(action·닫기) · 14일 Toast. 기준은 이 명세(Figma 없음).
+
+---
+
+## 19. 세션 화면 Toast 위치 대안 — `D4-124` (2026-11-04, design-agent) — **종결 (사용자 결정 `D4-128`, 2026-11-04)**
+
+> ⭐ **2026-11-04 사용자 결정 `D4-128`** — 대안 ⓐⓑⓒ 는 채택하지 않았다. **y64 유지 + 세션 화면 문구 전용 Toast 3초 + 겹침 허용(`AD-S4-14`)**. 이 절의 대안 분석은 근거 기록으로 남긴다.
+
+Based on: `D4-121` · `D4-124` · `docs/design/stage-4b-visual-gap-h2r.md` §1.3 (`VG-H2R-03`) · `-h2.md` §1 · `-k1.md` §3.1 · 후속 2·3 · 2차 1 · 측정 산출물 `/private/tmp/claude-501/-Users-soojin-dev-haru/7b50a86b-2be0-48a1-abae-023eff5d2b12/scratchpad/vgh2r/impl/results-toast.json` · `results-complete.json` · `…/vgh2/impl/results.json` · 코드 직독 `packages/ui/src/feedback/Toast.css` · `ToastProvider.tsx` · `apps/web/src/features/storytime-session/ui/StorytimeSessionScreen.tsx` · `copy.ts`.
+
+Production Code · Figma 수정 0. **Playwright·dev 서버 실행 0** (`S4-H3` 구현 중) — 이 절의 새 수치는 전부 기존 실측 좌표 + 토큰 산술이다. 표기: `[실측]` = 위 문서·JSON 의 `getBoundingClientRect` 값 · `[계산]` = 그 값과 토큰으로 낸 산술 · `[추정]` = 문구 길이로 줄 수를 가정한 값(Visual Gap 에서 확인할 것).
+
+### 19.1 유지 조건 (`D4-124`)
+
+① 칩 · 닫기 · Record · `Submit` / `Discard` 등 누를 수 있는 요소 가림 0 ② Figma 요소 이동 0 (최우선 규칙 ①) ③ 702 · 628 경계와 ≤627 스크롤 구간(`AD-S4-18`·`22`·`23`) 포함 ④ **Figma 요소(메달리온 등) 겹침 0 이 목표** — 사용자가 y64 의 38~68px 겹침을 수용하지 않았다.
+
+### 19.2 세션 route 에 뜨는 Toast 전수 `[직독: StorytimeSessionScreen.tsx · copy.ts]`
+
+| Toast | 상태 | 높이 393 / 320 | 근거 |
+|---|---|---|---|
+| 오프라인 · 복구 (`connectivity.*`) | ready · recording · paused | 50 / 68 | `[실측]` h2r §1.3 |
+| Web 백그라운드 공지 대체 (`notices.background.toast`) | recording (Web 전용, 슬롯이 안 들어갈 때 — 실기기 웹은 사실상 항상, `VG-H2-01`) | 68 / 86 | `[실측]` h2 §1-5 (y16 시점, 높이는 위치 무관) |
+| 닫기 실패 (`closeFailed`, `tone="error"`) | ready (사용자 탭 직후) | 50 / 68 | `[추정]` 49자 ≈ 오프라인 52자 |
+| 크래시 복구 (`recovered`, `D4-117`) | 앱 시작 1회 — 세션 route 에서 시작할 때만 | 50 / 68 | `[추정]` 46자 |
+| 48h (`Try again` action) · 14일 | ready 만 (recording · paused 는 `D4-120` Q13 로 보류) | 76 / ≥76 | `[계산]` padding 16×2 + `--size-touch-min` 44 |
+| 30분 자동 종료 · `Submit` | 완료 화면에서 표시 | — | 세션 화면 아님 (완료 화면 겹침 0 `[실측]`) |
+
+### 19.3 세션 화면 세로 좌표 (Web, safe-area 0)
+
+| 요소 | 393×852 | 393×702 | 393×628 (= ≤627 의 기하) | 320×568 |
+|---|---|---|---|---|
+| 상단 줄 | 0~48 `[실측]` | 0~48 `[실측]` | 0~48 `[실측]` | 0~48, recording 스크롤 시 −19~29 `[실측]` |
+| 메달리온 링 | 76~266 `[실측]` | 76~266 `[실측]` | 76~228 `[실측]` | 76~228 (스크롤 시 57~209) `[실측]` |
+| ready 버블 | 271~558.6 `[계산: ring+5, K1 796 bottom 558.6]` | 271~456.6 `[실측 K1]` | 233~418.6 `[실측 K1 664 = 같은 기하]` | 동 628 |
+| 책 칩 / 상태 블록 (recording · paused) | 281~321 / 344~455 `[실측]` | 동 `[계산]` | 243~283 / 306~417 `[계산: 228+15, +40+23, +111]` | 동 628 |
+| Record | 621~771 `[실측]` | 471~621 `[실측]` | 433~583 `[실측]` | 433~583 (화면에 135 보임) `[실측]` |
+| 바 | 789~834 `[실측]` | 639~684 `[실측]` | 583~628 `[실측]` | 583~628 (첫 화면 밖) `[실측]` |
+| 완료 화면 링 (비교) | 116 `[실측]` | — | — | 116 `[실측]` |
+
+### 19.4 빈 공간 전수 — Toast(최소 50 높이 × 컬럼 폭)가 들어가는가 `[계산]`
+
+| 후보 자리 | 852 | 702 | 628 · 568 | 판정 |
+|---|---|---|---|---|
+| 상단 줄 ↔ 링 (48~76) | 28 | 28 | 28 | ❌ 모든 높이에서 50 미만. 1줄 Toast 를 28 로 줄이는 변형도 393 에서 오프라인 문구가 1줄에 안 들어간다 `[추정]` |
+| 상단 줄 안 칩 ↔ 닫기 사이 | 폭 192 (320 = 119) × 38 | 동 | 동 | ❌ 문구가 3줄 이상 → 높이 86+ 로 링을 덮는다. ready 는 칩이 없어 폭 307 이지만 2줄 68 → 겹침 |
+| 상태 블록 ↔ Record (= 공지 슬롯 자리) | recording 166 · ready 62.4 | 16 · 14.4 | 16 · 14.4 | ⚠️ recording 큰 높이에서만 (§19.5 ⓐ) |
+| Record ↔ 바 | 18 | 18 | 0~17 | ❌ |
+| 바 아래 | 18 (iOS 는 홈 인디케이터 영역) | 18 | 0 | ❌ |
+
+→ **702 이하에서는 세션 화면 어디에도 Toast 가 Figma 요소와 겹치지 않고 들어갈 빈 공간이 없다.** 실기기 웹 콘텐츠 높이는 대부분 660~760 이다(`VG-H2-01`). 그래서 "위치"만으로는 `D4-124` 를 풀 수 없고, 아래 ⓒ 는 **세션 화면에 띄우는 Toast 수를 줄이는** 안이다.
+
+### 19.5 대안
+
+#### ⓐ 공지 슬롯 자리(상태 블록 ↔ Record) 가운데 + 안 들어가면 y64 로 대체
+
+| | 393×852 | 320×852 | 393×702 | 393×628 · 320×568 |
+|---|---|---|---|---|
+| recording 오프라인 (50 / 68) | y513~563 · 여백 58 · **겹침 0** | y504~572 · 49 · **0** | 간격 16 < 50 → **y64 대체 → 38** | 대체 → 38 / 56 (스크롤 시 68) |
+| recording 공지 대체 (68 / 86) | y504~572 · **0** | y495~581 · **0** | 대체 → 56 | 대체 → 56 / 74 (스크롤 시 93) |
+| ready 오프라인 | 간격 62.4 → y564.8~614.8 · 여백 **6.2** (68 이면 5.6 침범 → 대체) | 대체 → 56 | 대체 → 38 | 대체 → 38 / 56 |
+
+- 겹침 0 의 최소 높이 `[계산]` recording = 686 + Toast + 32 → **768 (50) · 786 (68) · 804 (86)**. ready 는 어떤 높이에서도 여백 16 을 만들 수 없다.
+- 실기기 웹(660~760)은 **거의 항상 대체 경로** → 지금(y64)과 같다. 큰 높이의 e2e(852)에서만 좋아 보인다 — `VG-H2-01` 과 같은 함정.
+- 공지 슬롯과 같은 자리라 `InlineAlert` 가 떠 있으면 Toast 가 들어갈 수 없다 → 우선순위 규칙이 하나 더 생긴다.
+- 앱 전역 규칙("Toast 는 상단에서 내려온다", 2026-10-10 결정)과 어긋나 이 화면만 화면 중간에 뜨고, 진입 모션 방향(위 → 아래 12)도 어색해진다.
+- 변경 범위: **`packages/ui` `ToastProvider`** — 영역 등록 + 들어가는지 판정 + 대체 + 스크롤(≤627) 중 재측정. Shared UI API 추가 → 별도 승인 (§18.11 "`ToastProvider` 변경 0").
+
+#### ⓑ 상단 줄 아래 간격 16 → 4 (y52)
+
+| Toast 높이 | 393×852 · 702 · 628 (링 76) | 320×568 ready (링 76) | 320×568 recording 스크롤 (링 57) |
+|---|---|---|---|
+| 50 | **26** (y64 대비 −12) | 26 | 45 |
+| 68 | 44 | 44 | 63 |
+| 86 | 62 | 62 | 81 |
+
+- 모두 `[계산]` = 52 + 높이 − 링 top. **겹침 0 이 되는 경우 없음** — 줄어들 뿐이다.
+- Toast 와 닫기(10~48) 사이가 4 가 된다. Toast 그림자 위쪽 번짐 22 `[실측: R-SHADOW-1 ③ 의 --shadow-glass-rest]` 가 칩 · 닫기 위에 얹힌다(가로챔은 없음 — 그림자는 hit 영역이 아니다). 답답해 보일 수 있다.
+- 변경 범위: `packages/ui` — `useToastTopBarInset` 에 간격 옵션 1개. 신규 Tier-3 토큰 후보 `--toast-top-bar-gap-tight: var(--space-1)`. 신규 Primitive 0.
+
+#### ⓒ 세션 route 에서는 Toast 를 줄인다 — 위치 y64(`D4-121`) 그대로 ⭐ 권고
+
+| Toast | 바꾸는 것 | 세션 화면 겹침 |
+|---|---|---|
+| 오프라인 · 복구 | **세션 route 에서 띄우지 않는다.** 녹음은 로컬로 계속되고(PRD §11 "오프라인" 행 · §13 "녹음 중 네트워크 끊김 → 로컬 저장 지속, 복구 시 자동 업로드" — 둘 다 화면 안내를 요구하지 않는다) 사용자가 할 일이 없다. 나가서 Home 에 가면 기존 오프라인 캐시 배너(`ActivityCardOfflineBanner`, `AD-S4-11`, §18.5)가 상태를 보여 준다 — 표시 조건이 "오프라인 + 캐시 카드" 인지는 Visual Gap 에서 확인 | **0** (모든 높이) |
+| 48h · 14일 | `D4-120` Q13 보류 범위를 recording · paused → **세션 route 전체(ready 포함)** 로 넓힌다 | **0** |
+| 크래시 복구 | 같은 보류 (세션 route 를 떠난 뒤 1회) | **0** |
+| 닫기 실패 (ready) | 그대로 y64 — 사용자가 방금 누른 동작의 결과라 즉시 알려야 한다 | 38 / 56 `[계산 · 높이 추정]` (드묾 · 오류 경로) |
+| Web 백그라운드 공지 대체 | 그대로 y64 — 녹음 시작 순간에 알려야 의미가 있다. **Web 전용**(네이티브는 해당 없음) | 56 / 74 (320×568 스크롤 시 93) `[계산]` |
+
+- 남는 겹침은 **두 경로**뿐이다(사용자 탭 직후 오류 · Web 전용 경고). 가장 잦은 오프라인·복구 Toast(실기기에서 지하철·엘리베이터 등으로 반복 가능)가 0 이 된다.
+- 대안 ⓒ′ (비권고): 오프라인을 버리지 않고 **완료 화면에서** 띄운다 — `Submit` Toast 와 겹치면 교체되므로 순차(`useToastPresent`, `D4-104`)가 필요하고, 스티커 C-3 이 Toast 2개 뒤로 밀린다(약 8초). 320 에서 오프라인 문구는 2줄 68 이라 완료 화면 링(116)과도 **16 겹친다** `[계산: 64+68−116]`.
+- 변경 범위: **세션 feature 만** (`features/storytime-session` 의 connectivity 구독 1곳 제거 · 앱 수준 안내 렌더러의 보류 조건에 ready 추가). `packages/ui` 변경 0 · 신규 토큰 0 · 신규 UI 0.
+- 영향: `S4B-Q8`/CP-5 로 채택된 "세션 화면 오프라인 Toast 1회+1회"(§7.1 행)를 철회하는 결정이다 → plan-agent 의 AC 문안 확인 필요. 승인 문구 `connectivity.offline`/`online`(`D4-115`) 은 세션 화면에서 쓰이지 않게 된다 — AC-4-149 ④ 재사용 대상(§18.10-6)이라 파일 자체는 남는다.
+
+### 19.6 공통 비교
+
+| | ⓐ 슬롯 자리 | ⓑ y52 | ⓒ 줄이기 (권고) | 현행 y64 |
+|---|---|---|---|---|
+| 누를 수 있는 요소 가림 | 0 (대체 경로 포함) | 0 | 0 | 0 |
+| Figma 요소 이동 | 0 | 0 | 0 | 0 |
+| 메달리온 겹침 — 실기기 웹 높이(≤760) | 38~93 (대체) | 26~81 | **오프라인·복구·48h·14일·복구 0** / 잔여 2경로 38~93 | 38~93 |
+| 스크린리더 | Toast `role=status` 그대로 — 위치와 무관 | 동 | 세션 중 연결 변화 알림이 **시각·스크린리더 모두** 사라진다(같은 정보 유지). 잔여 2경로는 그대로(닫기 실패 = `assertive`) | — |
+| 완료 화면 · Home 일관성 | ❌ 이 화면만 중간 배치 | ⚠️ 이 화면만 간격 4 | ✅ 위치 규칙 `D4-103`/`D4-121` 동일 | ✅ |
+| 공지 슬롯(`VG-H2-01`) | 같은 자리 경합 → 규칙 추가 | 무관 | 무관 (대체 Toast 는 잔여로 남음) | 무관 |
+| 변경 범위 | `packages/ui` API (승인 필요) | `packages/ui` 옵션 + 토큰 후보 1 | feature 만 | — |
+
+### 19.7 권고
+
+**ⓒ** — 702 이하에는 겹치지 않는 빈 공간이 없다는 것이 §19.4 산술의 결론이고, ⓐ · ⓑ 는 실기기 높이에서 겹침을 없애지 못한다. ⓒ 는 위치 규칙과 Shared UI 를 건드리지 않고 겹침이 나는 **빈도**를 잔여 2경로로 줄인다. 녹음 중 개입 0(PRD §7.5) · `D4-120` Q13 의 방향과 같다. 잔여 2경로를 더 줄이고 싶으면 ⓑ 를 그 둘에만 더할 수 있다(−12, `packages/ui` 변경 동반).
+
+신규 토큰: ⓒ 0. ⓑ 를 더할 때만 후보 `--toast-top-bar-gap-tight: var(--space-1)` (Tier-3).
+
+### 19.8 사용자 결정 질문
+
+| # | 질문 | 권고 |
+|---|---|---|
+| 1 | 세션 Toast 위치 대안 ⓐ / ⓑ / ⓒ / 현행 중 무엇으로 할지 | ⓒ |
+| 2 | (ⓒ 일 때) 세션 화면의 오프라인 · 복구 안내를 없애는 것 — 연결 상태는 Home 오프라인 배너에서만 보인다 (ⓒ′ 완료 화면 표시는 비권고) | 없앤다 |
+| 3 | (ⓒ 일 때) `D4-120` Q13 보류 범위를 ready 를 포함한 세션 route 전체로 넓히고, 크래시 복구 Toast 도 같은 보류를 따르는 것 | 넓힌다 |
+| 4 | (ⓒ 일 때) 잔여 2경로 — 닫기 실패(ready) · Web 백그라운드 공지 대체 — 의 y64 겹침(38~93, 4초)을 수용할지, ⓑ 를 그 둘에만 더할지 | 수용 (빈도 낮음 · 사용자 조작 직후/Web 전용). 수용 시 `AD-S4-14` 에 두 경로와 수치를 명기 |
+
+### 19.9 Visual Gap 에서 확인할 것 (이번에 측정하지 않음)
+
+- `closeFailed` · `recovered` Toast 의 실제 높이(393 / 320) — §19.2 `[추정]` 값 확인.
+- (ⓒ 채택 시) 393×852 · 393×702 · 393×628 · 320×568 에서 `context.setOffline(true/false)` → 세션 화면 Toast 0 · 이동 0 · 이후 Home 이동 시 오프라인 배너 표시.
+- (ⓒ 채택 시) ready 에서 48h · 14일 · 크래시 복구 신호 → 세션 화면 0 → 닫기로 Home 이동 후 순차 1회(`S4B-Q14` 순서).
+- 잔여 2경로의 y64 Toast — 칩 · 닫기 `elementFromPoint` 가림 0 재확인 · 링 겹침 실측(§19.5 ⓒ 표의 `[계산]` 대조).
+- (ⓑ 를 더할 때) Toast 그림자 위쪽 번짐이 칩 · 닫기 위에 얹히는 모습 캡처 + 가로챔 0.
+
+---
+
+## 20. Prompt Drawer 닫힘 모션 — `D4-137` (2026-11-04, design-agent) — APPROVED (2026-11-04, user — `D4-138`) (§20.9 → `D4-138`)
+
+근거: `docs/decisions/stage-4-approvals.md` `D4-137` (사용자 지시 *"부드러운 효과로 적용해서 코딩해줘"*) · Gap `VG-G2-10` (`stage-4b-visual-gap-g2.md` §3 · `-final.md` §4/§7-2) · 인계 ⑬. **Figma 에 모션 정의 없음** — Reactions 는 MCP 로 노출되지 않고 `88:960` 은 미배치 컴포넌트다(2026-11-04 재조회, `-final.md` §11). C-13 성격이며 `D4-137` 로 명세가 승인되었다. 새 값은 만들지 않고 **기존 motion 토큰 + 기존 시트 모션과 대칭**으로만 정한다 (`D4-3` CSS 모션 · 라이브러리 0).
+
+### 20.1 현행 (직독 — 2026-11-04)
+
+| 항목 | 현행 | 근거 |
+|---|---|---|
+| 열림 | `haru-sheet-in` `translateY(100%) → 0` · `--motion-duration-base`(240ms) · `--motion-ease-standard` · scrim `haru-scrim-in` opacity 0→1 같은 길이·곡선 | `packages/ui/src/sheet/Sheet.css` · `Scrim.css` |
+| 닫힘 | `.haru-sheet--closing` → `haru-sheet-out` `0 → translateY(100%)` · base · standard · scrim `haru-scrim-out` 1→0 · `usePresence(open, MOTION_DURATION_MS.base)` 가 240ms 뒤 언마운트 | `Sheet.tsx` · `hooks/usePresence.ts` |
+| reduce | 열림·닫힘 모두 **opacity 만**(같은 길이), transform 제거 · 면 색 전환 off | `Sheet.css` reduce 블록 (Stage 1 Spec §9.2) |
+| 닫힘 중 상호작용 | 시트는 `role=dialog` **`aria-modal="true"` 그대로**, scrim 이 탭을 받는다(`onClose` 재호출 — 무해), 시트 내부 버튼은 240ms 동안 눌린다 | `Sheet.tsx` (state 와 무관하게 같은 속성) |
+| 포커스 복귀 | **닫힘 시작 커밋 시점**에 trap cleanup → 부모 effect 가 **Prompts 칩**으로 덮어쓴다 (AC-4-137 ③) | `useFocusTrap.ts` cleanup · `SessionPromptsPopover.tsx` `returnFocus` |
+
+**결함의 정체 (`VG-G2-10`)** `[계산]`: `floating` 은 뷰포트 바닥에서 `--sheet-floating-inset-block-end`(24 + safe-area) 떠 있다. `translateY(100%)` 는 **자기 높이만큼만** 내려가므로 393×852 · 높이 329 에서 끝 위치 top = 852 − 24 − 329 + 329 = **828** → 카드 **위 24px 띠(+ radius 28 모서리 · blur 면 · 그림자)** 가 화면에 남은 채 애니메이션이 끝나고, 언마운트 프레임에 **한 번에 사라진다**. `--motion-ease-standard` 는 감속 곡선이라 띠가 끝 위치 근처에 머무는 시간이 길어 "멈췄다가 툭 사라짐" 으로 보인다. 같은 띠가 열림 첫 프레임에도 있다(§20.9 Q2).
+
+### 20.2 명세 — 닫힘 (no-preference)
+
+| 항목 | 값 |
+|---|---|
+| 속성 | 시트 `transform` 만: `translateY(0)` → **`translateY(calc(100% + var(--sheet-floating-inset-block-end)))`** — 카드가 **뷰포트 아래로 완전히** 나간다. opacity 는 바꾸지 않는다(열림과 대칭 — 열림도 transform 만) |
+| scrim | 현행 `haru-scrim-out` 그대로 (opacity 1→0) — 시트와 **같은 시작 · 같은 길이 · 같은 곡선** |
+| duration | **`--motion-duration-base`** (240ms) — 열림과 같다. 언마운트 타이머 `MOTION_DURATION_MS.base` 와 같아야 한다 |
+| easing | **`--motion-ease-standard`** — 열림과 같다 |
+| 끝 상태 고정 | `.haru-sheet--closing` 의 **정적 `transform` 도 같은 끝 값**이어야 한다. 애니메이션 끝 ↔ 타이머 언마운트 사이 프레임에서 정적 값(현행 `100%`)으로 **되튀면 띠가 다시 보인다** |
+| 새 값 | **0** — 이동 거리는 기존 토큰 `--sheet-floating-inset-block-end` 를 참조한다 |
+
+구현 방식(권고, 메커니즘만): `Sheet.css` 에 **로컬 custom property 1개**(예: `--haru-sheet-exit-extra`, 기본 `0px`)를 두고 `haru-sheet-out` 끝 값과 `.haru-sheet--closing` 정적 값을 `calc(100% + var(--haru-sheet-exit-extra))` 로 쓴다. `.haru-sheet--floating` 만 `--haru-sheet-exit-extra: var(--sheet-floating-inset-block-end)` 를 준다. → `bottom` · `full` · `inset-card` 는 `100% + 0` = **현행과 계산값 동일**. 새 `@keyframes` 이름을 만들지 않으므로 `stage4-motion-guards.test.ts` `EXPECTED` 표 변경 0.
+
+잔여 그림자 `[계산, 실측 필요]`: 카드 top 이 뷰포트 바닥에 닿은 순간에도 `--shadow-glass-rest` 위쪽 번짐(최대 28 — `stage-4-session-figma-audit.md` §4.2)이 바닥 가장자리에 남는다. 이 시점은 scrim 도 거의 0 이고 알파가 가장자리에서 0 으로 수렴하므로 보이지 않을 것으로 **추정**한다 — `R-SHADOW-1` ③ 에 따라 **픽셀 프로브로 확인**한다(§20.8 ③). 기준을 넘으면 그때만 §20.9 Q3 대안으로 간다. 이동 거리에 그림자 여유를 더하는 값은 미리 넣지 않는다.
+
+### 20.3 명세 — 닫힘 (`prefers-reduced-motion: reduce`)
+
+**현행 유지** — transform 없음, 시트 opacity 1→0 · scrim 1→0, `--motion-duration-base` · `--motion-ease-standard`. reduce 블록의 `.haru-sheet--closing { transform: none }` 이 §20.2 의 끝 값을 덮어써야 한다(이동 0). 변경 0.
+
+### 20.4 닫힘 중 포커스 · 상호작용
+
+| 항목 | 명세 | 현행 대비 |
+|---|---|---|
+| 포커스 복귀 시점 | **닫힘 시작**(= `open` false 커밋) — 240ms 를 기다리지 않는다. 대상 = **Prompts 칩** (AC-4-137 ③ 그대로). 사라지는 시트 안에 포커스를 240ms 남기지 않기 위해서다 | 변경 0 |
+| 시트 내부 조작 | 닫힘 중(`haru-sheet--closing`) 시트에 **`inert`** — 캐러셀 화살표·스와이프·Tab 진입 0 | **변경** |
+| 모달 표시 | 닫힘 중 **`aria-modal` 제거**(또는 `inert` 로 접근성 트리에서 빠짐). 현행은 240ms 동안 `[aria-modal="true"]` 가 남아 팝업의 `modalOpen()` 이 `Escape` 를 양보하고, 보조기술이 칩을 모달 바깥으로 본다 | **변경** |
+| scrim 탭 | 닫힘 중에도 scrim 은 **탭을 계속 흡수**하되 `onClose` 를 다시 부르지 않는다. 통과시키지 않는 이유: 세션 화면에서 scrim 바로 아래가 **Record Control · Submit**이다 — 닫으려고 연속 탭한 두 번째 탭이 녹음 일시정지/제출로 새면 안 된다 (`D4-53` 녹음 상태 불변) | scrim 흡수 유지 · 재호출만 막음 |
+| 녹음 상태 | 무관 — 닫힘 모션은 전이·녹음 API 를 모른다 (`D4-53`, AC-4-130) | 변경 0 |
+| 강제 닫힘 | 세션이 `live` 가 아니게 되어 닫힐 때도 같은 모션. route 가 바뀌어 화면째 언마운트되면 모션 없이 사라진다(현행과 같음) | 변경 0 |
+
+### 20.5 범위 — 공유 `Sheet` vs Drawer 전용
+
+`Sheet` 사용처(직독 2026-11-04): `SessionPromptsDrawer`(`floating`) · `MicPermissionSheet`(`bottom`) · `ReadingContextSheet`(variant 미지정 = `bottom`) · `SelectTrigger` 선택 시트(`bottom` — 온보딩) · `LibraryShelfSheet` · `BookDetailSheet`(`inset-card`) · dev gallery.
+
+| 변경 | 위치 | 번지는 화면 | 권고 |
+|---|---|---|---|
+| ① 닫힘 이동 거리 + 끝 상태 | `Sheet.css`, **`floating` 에만 값** | **Prompt Drawer 만**. 다른 variant 계산값 동일 | **이번 범위** |
+| ② 닫힘 중 `inert` · `aria-modal` 제거 · scrim 재호출 방지 | `Sheet.tsx` / `Scrim.tsx` (공유) | **모든 시트**(마이크 권한 · Reading Context · 온보딩 선택 · Library 2종). 시각 변화 0, 닫힘 240ms 동안의 조작 가능성만 바뀐다 | 공유로 넣는 것을 권고(variant 별로 다를 이유가 없다) — **다른 화면에 번지므로 §20.9 Q1 승인 필요**. 미승인이면 Drawer 에서만 필요한 처리는 ① 만 하고 ② 는 보류 |
+| (참고) `inset-card` 의 같은 띠 | Library 2종 — 14 + safe-area 띠가 같은 방식으로 남는다(`VG-G2-10` 원문 "inset-card 와 같은 동작") | Library · Book Detail | **이번 범위 아님**(Stage 3 승인 화면). 원하면 ① 의 같은 변수로 한 줄 — §20.9 Q4 |
+
+### 20.6 토큰
+
+| 용도 | 토큰 | 비고 |
+|---|---|---|
+| duration | `--motion-duration-base` (240ms) · JS `MOTION_DURATION_MS.base` | 기존 · 열림과 같음 |
+| easing | `--motion-ease-standard` | 기존 · 열림과 같음 |
+| 이동 거리 추가분 | `--sheet-floating-inset-block-end` (`--layout-gutter` + `--layout-safe-bottom`) | 기존 |
+| scrim | `--color-scrim` · `haru-scrim-out` | 기존 |
+
+**신규 토큰 0.** 후보로만 기록(도입 비권고): `--motion-ease-exit`(가속 곡선) — 퇴장에 흔히 쓰지만 Figma·기존 토큰에 근거가 없어 값을 지어내야 한다. §20.2 로 띠가 화면 밖에서 끝나면 감속 곡선의 "머무름"은 보이지 않으므로 필요 없다.
+
+### 20.7 접근성
+
+- 상태를 모션만으로 전달하지 않는다 — 닫힘은 포커스 이동(칩)과 칩 `aria-expanded` 로 전달된다(현행 · Stage 1 Spec §9.1 규칙 4).
+- 무음 · 무진동 유지. 깜빡임 0.
+- reduce 에서는 이동 0 (§20.3).
+
+### 20.8 검증 기준 (development-agent 자체 확인 · 이후 Visual Gap — 측정 방법을 적을 것, `R-FIGMA-1` ⑤)
+
+1. **끝 위치**: 393×852 · 320×568 · 1024×768 · safe-area 0 에서 닫힘 애니메이션 마지막 프레임과 언마운트 직전 프레임의 시트 `getBoundingClientRect().top ≥ innerHeight` (rAF 샘플링). 정적 값 되튐 0.
+2. **다른 variant 불변**: `bottom` · `inset-card` 닫힘 끝 computed transform = 현행(`translateY(100%)` 의 matrix 값). 시각 baseline **재생성 0** (`--update-snapshots` 불필요해야 정상 — 필요하면 `R-BASELINE-1` ⑤ 분해 후 멈춤).
+3. **언마운트 프레임**: 언마운트 직전·직후 두 프레임의 하단 120px 띠 diff 가 채널당 5.3 이하(`VISUAL_THRESHOLD_FRAME` 0.02 과 같은 기준) — 그림자 잔여(§20.2) 실측. 넘으면 수치와 함께 보고(§20.9 Q3).
+4. **reduce**: 닫힘 전 과정 transform 변화 0, opacity 1→0.
+5. **포커스**: 닫힘 시작 프레임에 `document.activeElement` = Prompts 칩 (AC-4-137 ③ 기존 테스트 통과).
+6. (② 승인 시) 닫힘 중: 시트 `inert` · `[aria-modal="true"]` 0 · 시트 화살표 클릭 무반응 · scrim 두 번째 탭에서 `onClose` 호출 1회 · Record Control 상태 불변 · 팝업 `Escape` 양보 0.
+7. `stage4-motion-guards.test.ts` 통과(새 keyframes 0 · reduce 대체 1:1 유지).
+
+### 20.9 사용자 결정 필요
+
+| # | 질문 | 권고 |
+|---|---|---|
+| Q1 | §20.5 ② (닫힘 중 `inert` · `aria-modal` 제거 · scrim 재호출 방지)를 **공유 `Sheet`** 에 넣어 모든 시트(마이크 권한 · Reading Context · 온보딩 선택 · Library 2종)에 적용할지 | 공유 적용 (시각 변화 0) |
+| Q2 | 열림도 같은 거리(`100% + inset`)에서 시작하게 할지 — 현행 열림 첫 프레임에도 24px 띠가 먼저 나타난다. `D4-137` 은 닫힘만 지시했다 | 이번엔 닫힘만(지시 범위). 원하면 같은 변수로 열림 keyframes 시작값만 바꾸면 된다 |
+| Q3 | (§20.8 ③ 이 기준을 넘을 때만) 그림자 잔여 처리 — ⓐ 이동 거리에 그림자 위쪽 번짐을 더함(Tier-3 토큰 후보 `--sheet-floating-exit-shadow-reach`) ⓑ 닫힘에 opacity 를 함께 줌(열림과 비대칭) | 측정 후 결정 — 미리 넣지 않음 |
+| Q4 | Library `inset-card` 2종에도 같은 처리를 할지 (Stage 3 화면 동작 변경) | 이번 범위 밖 · 별도 지시 시 |
+
+---
+
+## 21. ⭐ `S4-H4` 명세 — 4b QA 1회차 후속 (2026-11-06, design-agent) — APPROVED (2026-11-07, user — `D4-146`) (`D4-145` 승인 범위 안)
+
+근거: Plan rev 1.6 §13.5 · §14 (AC-4-35·36 화면 부분 · AC-4-99 ③ · AC-4-154~156) · §18 항목 6 · 결정 `D4-140`~`D4-145` (CP-15 ⓐ · NB-16 · NB-17 · NB-18) · QA `QA-4B-001`·`002`·`004` · `VG-K1S-04`.
+**Figma**: 이 단위의 대상(오류 안내 · 이동 · 스크롤바)은 Figma 에 정의가 없다. 새 화면·새 요소를 만들지 않으므로 Figma 를 다시 조회하지 않았다. 측정은 모두 **현재 작업 트리**(커밋 안 된 변경 포함)를 dev 서버(포트 4319, 단독 실행, 끝난 뒤 종료)에 띄우고 Playwright 프로브로 했다. 5173·5174 는 건드리지 않았다. 프로브 스크립트는 저장소 밖(scratchpad)에 있다.
+
+### 21.0 결론 — 새 UI 필요 없음
+
+| 항목 | 판정 | 근거 |
+|---|---|---|
+| ① `ready` 복귀 | 새 UI **0** | 기존 ready 화면(`/session/:id`)이 복귀 지점이다 (CP-15 ⓐ) |
+| ① `recording`/`paused` 안내 | 새 요소 **0** — 두 경로 모두 **기존 오류 표시 자리**에 들어간다 (§21.1). 단 **서재 경로의 Toast 는 문구 1줄짜리**라 기존 두 줄(제목·설명)을 어떻게 담을지 정해야 한다 → §21.6 Q1 | 실측 §21.1 |
+| ② 온보딩 이동 | 새 UI **0** — 기존 Route Guard 이동 · 어긋날 때는 ①과 같은 자리에 기존 `ONBOARDING_INCOMPLETE` 문구 | §21.2 |
+| ③ 스크롤바 | 시각 요소 추가 0 — `AppColumn` 최소 폭 규칙 1곳을 고친다. **320 + 클래식 스크롤바에서만** 컬럼이 305 가 된다(시각 변화 있음 → §21.6 Q3) | §21.3 |
+| ⑤ 측정판 | dev 전용. **Production UI 영향 0** | §21.4 |
+
+**C-13 항목 0** (새 화면·새 요소 없음). Figma 에 있는 요소를 빼는 것도 없다.
+
+### 21.1 `SESSION_ALREADY_ACTIVE` (`recording`/`paused`) 안내 — 기존 자리에 들어가는가
+
+**두 경로의 기존 오류 표시 자리는 서로 다르다** `[직독]`:
+
+| 경로 | 기존 자리 | 지금 문구 | 컴포넌트가 받는 값 |
+|---|---|---|---|
+| Home Activity Card → Reading Context 시트 | 시트 안 `InlineAlert tone="error"`, 선택지 아래 (`ReadingContextSheet.tsx:154`) | `startFailed` 제목만 | `title` + **`description`(있음, 지금 안 씀)** |
+| 서재 `BookDetailSheet` → `Start Session` | **Toast** `tone="error"`, 시트는 그대로 (`StartSessionAction.tsx:52`) | `startFailed` 1줄 | **`message` 하나뿐** (제목·설명 구분 없음) |
+
+문구 (NB-18, 기존 그대로 — `shared/copy/error-copy.ts:76`): 제목 `A storytime is already open` / 설명 *"Continue the open storytime, or finish it before starting a new one."*
+
+**실측 — Activity 시트 `InlineAlert`** (`sessions:session-already-active` 로 실제 실패 상태를 만든 뒤, 같은 Alert 에 제목·설명을 넣어 높이를 잼):
+
+| 뷰포트 | 지금 (`startFailed` 제목만) | 이미 열린 세션 안내 (제목 + 설명) | 시트 | `Continue` 버튼 |
+|---|---|---|---|---|
+| 393×852 | 74 (2줄) | **94** (제목 1 · 설명 2) | 위로 20 커짐 (top 303 → 283) | 보임 · 위치 그대로 (bottom 828) |
+| 320×852 | 74 (2줄) | **94** (1 · 2) | 위로 20 커짐 | 그대로 |
+| 393×600 | 74 · 시트 안 스크롤 없음 | 94 · 시트 내용 스크롤 1px 생김 (414/413) | 최대 높이에 닿음 | 그대로 |
+| **320×568** | 74 중 **61 보임** (아래 여백 13 이 footer 아래로 감 — **원래 있던 현상**) | 94 중 **61 보임** → 제목 + 설명 첫 줄만 보이고 **설명 둘째 줄은 스크롤해야 보인다** | 최대 높이(top 32) | 그대로 |
+
+- 넣기: Alert 가 시트 안에서 아래로 늘어난다. 다른 요소를 밀어 올리거나 가리지 않으며 가로 넘침도 없다. 이 시트는 이미 스크롤되는 시트라 새 레이아웃 규칙이 필요 없다.
+- 320×568 에서 둘째 줄이 화면 밖에 남는 것은 **이 시트에 원래 있던 성질**(지금 문구도 아래 여백이 잘린다)이다. `role="alert"` 라 스크린리더는 전체를 읽는다. 처리 방식은 §21.6 Q2.
+
+**실측 — 서재 Toast** (실제 실패 Toast 의 글자만 바꿔서 잼, Toast 폭 = 컬럼 − 2×gutter):
+
+| 넣는 문구 | 320×568 | 393×852 |
+|---|---|---|
+| 지금 `startFailed` | 2줄 · 68 | 1줄 · 50 |
+| 제목만 | 1줄 · 50 | 1줄 · 50 |
+| 설명만 | 2줄 · 68 | 2줄 · 68 |
+| 제목 + `. ` + 설명 | **3줄 · 86** | 2줄 · 68 |
+
+- 320×568 에서는 Toast(top 56)가 inset-card 시트 위쪽(top 40)과 **원래부터 겹친다**(지금 문구도 그렇다 — z-toast 가 위). 새로 생기는 현상이 아니다. 393 에서는 겹치지 않는다(시트 top 278).
+- Toast 는 4~6초 뒤 사라지는 자리다. Stage 1 Spec §5.5(*"오류를 Toast 로만 알리지 않는다"*)와 원래 어긋나 있던 자리이며, 이번 단위에서 바꾸지 않는다(바꾸면 서재 시트에 새 요소가 생긴다 → C-13). 기록만 남긴다.
+- Toast 에 제목 칸을 새로 만드는 것은 **새 변형**이므로 하지 않는다. 기존 `message` 한 칸에 어떤 글을 넣을지만 정한다 → §21.6 Q1.
+
+**`ONBOARDING_INCOMPLETE` 어긋남 안내**(§21.2 ③ — 다시 받은 `me` 가 여전히 `completed` 일 때)도 같은 두 자리를 쓴다. 기존 문구 `A few setup steps are left` / *"Finish setting up the profile to continue."* 실측: Alert 393 = 76(1·1) · 320 = 94(1·2) / Toast `제목. 설명` 320 = 2줄, 393 = 2줄. 위 표의 경계 안이다.
+
+**상태별 표시 (두 경로 같음)**:
+
+| 상황 | Activity 시트 | 서재 | 이동 |
+|---|---|---|---|
+| 409 → Detail `ready` | 오류 표시 0 · 버튼 `loading` 유지 → 이동 | 같음 | `/session/:id` (§21.2) |
+| 409 → Detail `recording`/`paused` | `InlineAlert error` = `SESSION_ALREADY_ACTIVE` 제목 + 설명 · 선택은 그대로 둔다(기존 실패 규칙) | Toast `error` = Q1 결정 문구 | 0 |
+| 409 → Detail 조회 실패 (AC-4-35 ④) | 기존 `startFailed` 를 같은 자리에 (새 문구 없음 — 기존 일반 실패 문구가 "다시 시도해 주세요" 의미와 맞는다) | 기존 `startFailed` Toast | 0 |
+| 다시 탭 (⑤) | 같은 결과 · `loading` 동안 재탭 무시(기존 `launching` 규칙) | 같음 | — |
+
+⚠️ AC-4-35 ④ 문언은 *"Detail 조회 실패 → **전용 문구**"* 다. 기존에 맞는 전용 문구가 없으므로 위 표는 **기존 `startFailed` 를 그대로 쓰는 것**으로 명세했다. 새 문구가 필요하면 NB-18 범위 밖이므로 → §21.6 Q4.
+
+### 21.2 이동 중 과도기 프레임 기준 (`ready` 복귀 · 온보딩 이동)
+
+**기준: 일반 시작 성공 경로와 같은 프레임 순서를 지키고, 그보다 늘어나는 프레임이 없어야 한다.**
+
+일반 성공 경로 `[직독]`: 탭 → 버튼 `loading`(`launching`, `D4-125`) → 생성 응답 → `navigate(sessionPath)` → Home 언마운트(시트는 모션 없이 화면째 사라짐 — §20.4 "강제 닫힘"과 같음) → 세션 화면 `detail.isPending` Spinner → ready.
+
+| # | 기준 | 위반 예 |
+|---|---|---|
+| T1 | 탭부터 화면 이동(또는 안내 표시)까지 **버튼 `loading` 이 끊기지 않는다** — 409 수신 · Detail 조회 · `me` 다시 받기 동안 모두 | 409 와 Detail 조회 사이에 버튼이 한 프레임 보통 상태로 돌아옴 |
+| T2 | 이동하는 경우 **오류 표시가 한 프레임도 나오지 않는다** (`startFailed` Alert · Toast 0) | 409 를 먼저 일반 실패로 그렸다가 이동 |
+| T3 | 시트 닫힘 모션을 따로 돌리지 않는다 — 일반 경로처럼 route 변경으로 화면째 사라진다. 시트를 먼저 닫고 이동하면 **Home 이 잠깐 보이는 프레임**이 생기므로 금지 | 시트 닫기 → 240ms → 이동 |
+| T4 | `ready` 복귀: 세션 화면 진입 후 프레임은 일반 경로와 같다(Spinner 가 나오면 일반 경로와 같은 길이). 권고(필수 아님): 시작 쪽에서 이미 받은 Detail 을 `sessionKeys.detail(id)` 캐시에 넣어 Spinner 프레임을 줄인다 — 넣는다면 일반 경로와 다르게 보이는 것은 "더 빠름" 한 가지뿐이어야 한다 | 세션 화면이 `SessionLoadError` 를 한 번 그림 |
+| T5 | 온보딩 이동: `me` 는 **이전 값을 유지한 채 다시 받는다**(invalidate·refetch). `resetQueries`/`removeQueries` 처럼 `me` 가 `undefined` 가 되면 `RouteGuard` 가 **전체 화면 Spinner**(`RouteGuard.tsx:41`)를 그리므로 금지 | 시트 → 빈 화면 Spinner → 온보딩 |
+| T6 | 온보딩 화면 도착은 Guard 의 `Navigate replace`(기존)로만 한다. 이 단위에서 별도 `navigate` 를 부르지 않는다 (NB-16, 이동 규칙은 한 곳에서만) | — |
+| T7 | `prefers-reduced-motion` 과 무관 — 새 모션 0 | — |
+
+검증 방법(구현 후 Visual Gap): 탭부터 도착까지 rAF 마다 `[role=alert]` 수 · `.haru-toast` 수 · 버튼 `aria-busy` · `location.pathname` · `main` 존재를 기록하고, 위 T1~T5 를 위반하는 프레임이 0 인지 본다(`sessions:session-already-active-ready` · `sessions:onboarding-incomplete`, 경로 2개).
+
+📝 plan-agent 확인 필요 (시각 영향 0, 기록만): AC-4-35 ③ 은 `ready` 복귀를 `replace` 로 적었고, 일반 시작 성공은 **push**(`navigate(sessionPath(id))`)다. 두 경로의 브라우저 뒤로가기 결과가 달라진다(복귀한 세션에서 뒤로가기 → Home 이 아니라 그 앞 기록). 의도된 차이인지 Plan 에서 확인한다.
+
+### 21.3 클래식 스크롤바 가로 넘침 (`QA-4B-004`, NB-17)
+
+**원인 위치** (computed 로 확인 — CSS 파일 grep 만으로 판단하지 않음, `R-FIGMA-1` ④):
+
+- `packages/ui/src/layout/AppColumn.css:9` `.haru-app-column { min-inline-size: var(--layout-min-width) }` (= 320px).
+- 스크롤 박스(`[data-app-shell-viewport]`, Tailwind `overflow-y-auto`) 안의 폭은 **창 폭 − 스크롤바(15)** 다. 창이 320 이면 305 인데 컬럼이 320 을 고집해 **15 넘친다**.
+- 넘치는 요소는 이 컬럼 **1개**뿐이다. `vw` 를 쓰는 규칙은 없다(`activity-card-deck.css:5·45` 의 `100vw` 는 주석이고, 실제 값은 `100% + 2×gutter`). 같은 규칙의 Tailwind 유틸리티 `app-column`·`min-w-app`(`design-tokens/src/utilities.css:113·125`)도 같은 성질이다 — 화면에서 쓰는지는 development-agent 가 확인한다.
+- 시험(프로브에서 스타일만 바꿔 봄): `min-inline-size: 0` → 320×568 넘침 15 → **0**, 컬럼 305, 컬럼 중심 = `clientWidth` 중심(152.5).
+
+**수정 방향 (NB-17 ⓐ)**: 컬럼의 최소 폭을 **스크롤 박스 폭보다 커지지 않게** 한다 — 예: `min-inline-size: min(var(--layout-min-width), 100%)`. 새 토큰 0. 스크롤바는 그대로 보인다. `scrollbar-gutter`·스크롤바 숨김은 쓰지 않는다(ⓑ·ⓒ 미채택).
+
+**시각 영향**:
+
+| 조건 | 수정 전 | 수정 후 |
+|---|---|---|
+| 오버레이 스크롤바 (iOS·Android·macOS 기본) | 넘침 0 | **변화 0** (모든 크기에서 같은 값 실측) |
+| 클래식 · 창 ≥ 335 | 넘침 0 · 컬럼 중심 = `clientWidth`/2 (창 중심보다 −7.5) | **변화 0** — 이 −7.5 는 스크롤바가 차지한 폭이다. 가운데 기준 = `clientWidth` (NB-17) |
+| 클래식 · 창 320 · 세로 스크롤 있음 | 넘침 15 · 컬럼 320 · 가로 스크롤 생김 | 넘침 0 · **컬럼 305** · 내용 폭 272 → **257** (−15) |
+| 클래식 · 창 320 · 세로 스크롤 없음 | 넘침 0 | 변화 0 |
+
+320 + 클래식에서 내용 폭 257 은 `--layout-min-width`(320) 가 지키려던 최소 폭보다 좁다. 실측으로는 Welcome · Home · Library · 세션 ready 에서 **글자 잘림 0**(보이는 텍스트 요소의 `scrollWidth > clientWidth` 0 — 숨김 텍스트 제외) · Record Control 중심 153(= 컬럼 중심) · 팝업 `min(329px, 100%)` · pill 240 모두 들어간다. 이 좁아짐을 허용할지는 → §21.6 Q3.
+
+**넘침 측정 매트릭스 (수정 전, 실측)** — 스크롤 박스 `scrollWidth − clientWidth`:
+
+| 창 크기 | 스크롤바 | Welcome | Home | Library | 세션 ready |
+|---|---|---|---|---|---|
+| 320×568 | 클래식 | **15** | **15** | **15** | **15** |
+| 320×852 | 클래식 | 0 (스크롤 없음) | 0 (스크롤 없음) | **15** (Library 는 항상 스크롤) | 0 |
+| 393×600 · 393×852 · 600×600 · 1024×500 | 클래식 | 0 | 0 | 0 | 0 |
+| 모든 크기 | 오버레이 | 0 | 0 | 0 | 0 |
+
+→ 영향 범위는 **세션 화면만이 아니라 Stage 1~3 탭 화면(Home · Library)과 온보딩 앞 화면(Welcome) 전부**다(같은 `AppShell`·`AppColumn`). 320 에 세로 스크롤이 생기는 모든 화면이 해당된다. 수정 뒤 320×568 Welcome · Home · Library · 세션 ready 와 1024×500 세 화면 모두 넘침 0 을 확인했다(프로브).
+
+**수정 후 Visual Gap 매트릭스 (development-agent 구현 후 design-agent 가 잼)**:
+
+- 크기: 320×568 · 320×852 · 393×600 · 393×852 · 600×600(또는 600×800) · 1024×500 · 1024×768
+- 스크롤바: 오버레이(Playwright 기본) · 클래식(`--hide-scrollbars` 제외 launch)
+- 화면: Welcome(온보딩 앞 1화면) · Home · Library · 세션 ready · 세션 recording · 완료 화면
+- 잴 것: ① `scrollWidth ≤ clientWidth` ② 컬럼 중심 = `clientWidth`/2 (±0.5) ③ 컬럼 폭 = `min(clientWidth, 480)` ④ 보이는 텍스트 잘림 0 ⑤ **그림자 세로·가로 프로브**(`R-SHADOW-1` ⑥ — 컬럼 폭이 바뀌면 카드·시트 그림자가 스크롤 박스 끝에 닿는 위치도 바뀐다) ⑥ 오버레이 조건의 시각 baseline **재생성 0** — 바뀌면 `R-BASELINE-1` ⑤ 대로 원인별로 쪼개 보고하고 멈춘다
+- 확인할 것 (미확정): 320 + 클래식 + 수정 후 Home 캐릭터 버블 보조 줄 오른쪽 끝이 버블 끝에 거의 닿아 보였다(스크린샷). 잘림 프로브에서는 넘침이 잡히지 않았다 — 구현 후 픽셀로 다시 본다
+- 범위: `AD-S4-23`(627 이하 세로 스크롤)은 **세로 축** 허용 차이다. 이번 가로 넘침은 그 범위가 **아니다**(별개 결함 — 그래서 FAIL 이었다). 수정 뒤 `AD-S4-23` 문언 변경 0.
+
+### 21.4 측정판 (`/__dev/ui/recording-measure`, AC-4-154·155)
+
+- dev 전용 route(`app/router.tsx:52` `import.meta.env.DEV` 삼항 → Production 빌드에서 사라짐) · `assert:no-mocks` 가 보증. **Production UI 영향 0. Visual Gap 대상 아님.**
+- 표시 형식은 dev 도구라 Design System 대상에서 빠지지만, 기존 측정판의 표·버튼 구성을 그대로 따른다(새 Shared UI 0). 사용자가 실기기(320~393 폭)에서 읽으므로 **표가 가로로 넘치지 않을 것**(ms 값 · 중위값 · 브라우저/`mimeType`/timeslice 줄바꿈 허용)만 기준으로 둔다.
+- `getUserMedia` 감싸기 · 원복은 Plan §13.5-⑤ 그대로다 — 디자인 결정 사항 없음.
+
+### 21.5 토큰 · 접근성
+
+- 신규 토큰 **0**. 사용: `InlineAlert` `--color-status-error-*`(P-04 가값 그대로) · Toast 기존 · `--layout-min-width` · `--layout-app-max-width`.
+- 접근성: Activity 안내 `role="alert"`(기존) · 서재 Toast `aria-live="assertive"`(기존 `error` tone). 이동할 때는 알림 0(T2). 포커스: 안내가 나올 때 포커스는 `Continue`/`Start Session` 에 그대로 둔다(기존 실패 규칙). 온보딩 도착 후 포커스는 Stage 2 Guard 이동과 같다.
+- 스크롤바는 보이게 둔다(NB-17) — 데스크톱에서 스크롤 위치 표시가 유지된다.
+
+### 21.6 사용자 결정 필요
+
+| # | 질문 | 선택지 | 권고 |
+|---|---|---|---|
+| **Q1** | 서재 경로의 Toast 는 글 한 칸이다. 기존 두 줄(제목·설명)을 어떻게 넣을지 | ⓐ `제목. 설명` 한 칸에 이어 붙임 (320: 3줄 · 86 / 393: 2줄) ⓑ 제목만 (모든 폭 1줄) ⓒ 설명만 (2줄) | **ⓐ** — 기존 단어를 바꾸지 않고(NB-18) Activity 경로와 같은 내용을 준다. Toast 는 몇 초 뒤 사라지므로 "이미 열려 있다"와 "어떻게 하라"를 한 번에 보여야 한다. 이어 붙이는 방식도 문구의 일부이므로 QA 전에 확인을 받는다 |
+| **Q2** | 320×568 Activity 시트에서 안내 설명 둘째 줄이 footer 아래에 남는다(원래 있던 현상의 연장) | ⓐ 허용 차이로 등록 ⓑ 안내가 나올 때 시트 내용을 그 Alert 가 보이도록 스크롤(`scrollIntoView({ block: 'nearest' })` — 새 요소 0, 기존 시트 동작 변경 1) | **ⓑ** — 새 UI 없이 고칠 수 있고, 지금 `startFailed` 의 아래 여백이 잘리는 현상도 함께 사라진다. 단 Stage 3 시트 동작이 바뀌므로 승인 필요. 미승인이면 ⓐ |
+| **Q3** | 320 + 클래식 스크롤바에서 컬럼이 305(내용 257)로 좁아지는 것 | ⓐ 허용 (넘침 0 이 우선, 오버레이 기기는 변화 0) ⓑ 다른 방식 재검토 | **ⓐ** — 15px 가로 스크롤이 생기는 것보다 낫다. 해당 환경은 데스크톱 웹 프리뷰(`C-18`)뿐이다. 허용 차이로 등록하는 것은 사용자 승인 뒤에 한다 |
+| Q4 | AC-4-35 ④ "Detail 조회 실패 → **전용 문구**" — 기존에 맞는 문구가 없다 | ⓐ 기존 `startFailed` 를 그대로 씀 (§21.1 표) ⓑ 새 문구 1건 초안 → 승인 | **ⓐ** (NB-18 "기존 문구 재사용"과 같은 방향). plan-agent 가 AC 문언을 "일반 실패 문구, 이동 0"으로 고친다 |
+| 확인 | AC-4-35 ③ `replace` ↔ 일반 시작 push 의 뒤로가기 차이 (§21.2 📝) | — | plan-agent 확인 (시각 영향 0) |
+
+### 21.7 development-agent 구현 메모
+
+1. Activity: `ReadingContextSheet` 의 기존 `failed` Alert 를 **오류 종류별 문구**로 바꾼다(`title` + `description`). 문구는 `shared/copy/error-copy.ts` 를 쓰고, 컴포넌트 안에 다시 적지 않는다.
+2. 서재: `StartSessionAction` 의 기존 Toast `message` 에 Q1 결정 문구를 넣는다. Toast 컴포넌트 API 는 바꾸지 않는다.
+3. §21.2 T1~T6 — `launching` 을 409 → Detail → 이동/안내까지 이어서 켜 둔다. `me` 는 invalidate/refetch 만 쓴다(reset·remove 금지).
+4. §21.3 — `AppColumn.css` 최소 폭 1곳(+ 같은 성질의 유틸리티를 쓰는 곳이 있으면 그곳). 근거 주석 필수. 클래식 스크롤바 launch 설정의 양축 프로브를 상설 e2e 로 둔다(AC-4-99 ③) — Welcome · Home · Library · 세션 3화면 포함.
+5. Q2 ⓑ 가 승인되면: Alert 가 나타날 때 한 번만 스크롤한다. 사용자가 시트를 스크롤하는 동안 계속 따라가지 않는다.

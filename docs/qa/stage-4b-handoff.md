@@ -1023,3 +1023,822 @@ Visual Gap 재확인(design-agent) 대상: Toast 퇴장 후 C-3 체감 · 대기
 정정 대상(문서, development-agent 범위 밖): Stage 4 Spec §6.4 C-3 지연 240 · §6.6 "즉시 표시" 표현 — `D4-105` · `D4-106` 반영 필요.
 
 측정 범위 밖: 실기기 · Production 빌드 타이밍 · VoiceOver. `D4-107` 은 코드 변경 없음.
+
+---
+
+# S4-H2 — 예외·안내 UI (2026-11-02, development-agent)
+
+Status: **HANDOFF (부분)** · 커밋 안 함 · Plan·Spec·approvals 수정 안 함 · `apps/api` · `supabase` · `apps/mobile` 없음.
+근거: Plan §13 `S4-H2` 행 · Spec §7.1~§7.3 · `D4-26` · `D4-44` · `D4-58`(CP-4·5·6) · `D4-111`. Figma 노드 없음(C13-4B-4·8 = design-agent 명세) — Record Control 변형 2종은 `S4-F2` 실측값 그대로.
+
+## H2-1. 구현
+
+| 항목 | 위치 | 내용 |
+|---|---|---|
+| 구독 경계 | `entities/session/sessionRecorder.tsx` · `app/providers/sessionRecorderEnvironment.ts` | `SessionRecorder` 에 `onNotice`(`background` · `auto_timeout`+전이 결과) · `connectivity`/`onConnectivity`(플랫폼 `AppStatePort`) 추가, 스냅샷에 `mode` · `completedReason`. 조립 지점이 컨트롤러 이벤트를 옮긴다 |
+| 변형 연결 (AC-4-134) | `entities/session/recordControlState.ts` `selectSessionRecordGate` | `permission_denied`·`mic_unavailable` → `permission-denied` · `conversation_only` → `permission-denied` · `consent_blocked` → `disabled`(+`aria-describedby`) · `requesting_permission`·`starting`·`stopping` → `disabled` |
+| 마이크 거부 시트 (AC-4-63, §7.3) | `features/storytime-session/ui/MicPermissionSheet.tsx` | `Sheet bottom` · 제목 · 안내 문단 · `Not now`(glass, footer). 권한 거부 직후 1회 자동 + `permission-denied` 탭(`aria-haspopup="dialog"`). ⚠ `Talk without recording` **미렌더** — H2-D1 |
+| 대화 전용 ready (CP-6) | `SessionActionBar` state `conversation` · `StorytimeSessionScreen` | Record `permission-denied` · `Submit` 활성 · `Discard` 비활성(사유) · `Submit` → `ready → completed(user_done)` → 완료 화면 |
+| 공지 슬롯 (AC-4-70, §7.2) | `ui/SessionNoticeSlot.tsx` · `storytime-session.css` `.haru-session__notice` | 녹음 중 탭 숨김(`notice` · `background`) → `InlineAlert info` + `Dismiss`. stage 남는 공간 가운데(`margin-block: auto`), Figma 요소 이동 0. 들어가지 않으면(stage 넘침 측정) 슬롯을 거두고 Toast |
+| 오프라인 Toast (§7.1) | `StorytimeSessionScreen` | 연결이 바뀔 때만 `Toast neutral` 1회씩 (S1~S3) |
+| 30분 자동 종료 (AC-4-64) | `StorytimeSessionScreen` | `auto_timeout` 전이 결과 → 완료 응답 기억 · `Toast neutral` · 완료 화면(`SUBMIT_ENTRY`). `Recording submitted` 는 띄우지 않는다 |
+| 문구 | `features/storytime-session/copy.ts` | Spec 원문: `Microphone is off` · `Mic is off` · `Talk without recording` · `Not now` · `Dismiss`(기존). **초안(승인 대상)**: `record.consentReason` · `micSheet.title`/`description` · `actions.conversationReason` · `notices.background.*` · `connectivity.*` · `autoTimeout` |
+| 테스트 | `apps/web/__tests__/session-exceptions.test.tsx`(+13) · `e2e/session-exceptions.spec.ts`(+6) · `src/test/harness.tsx`(`appState()` 접근자) | |
+| 기존 테스트 수정 | `__tests__/session-prompts.test.tsx` 2건 | "30분 자동 종료 뒤 세션 화면에 칩이 남아 다시 눌러도 안 열린다" → AC-4-64 로 **완료 화면으로 이동**하므로 "완료 화면 · 팝업/Drawer/칩 잔존 0"(AC-4-133 원문)으로 단정 교체. 약화 아님 — 기대 화면이 바뀌었다 |
+
+## H2-2. AC
+
+| AC | 상태 | 증거 |
+|---|---|---|
+| **134** 변형 연결 | 구현 | unit: 거부 → `permission-denied` 이름·`aria-haspopup`·라벨, 동의 없음 → `disabled` + 사유 + 탭 요청 0. 처리 중 `disabled` 는 단계 함수 범위(아래 H2-4 ①) |
+| **63** 마이크 거부 | **부분** | 안내 시트 · 변형 · 요청 0 ✓. `Talk without recording` → `conversation_only` 전환 **미구현**(H2-D1) — 대화 전용 화면 자체는 `conversation_only` 세션으로 검증(unit 2) |
+| **64** 자동 종료 | 구현 | unit: `completed(auto_timeout)` 1건 · 1800s · Toast · 완료 화면 / e2e: 실제 브라우저 시계 30분 |
+| **65** 크래시 복구 | **화면 미구현** | 복구 전이·업로드는 4a(`recoverUnfinishedRecordings`). 안내를 띄울 화면이 정해지지 않았다 — H2-D4 |
+| **68** 인터럽션 3종 | 현행 화면으로 충족 주장 | unit 3종: paused + `Tap the button to keep recording` · 파일 유지 · 재개 → 전이 `recording,paused,recording`. 별도 안내 UI 없음 — H2-D5 |
+| **69** abandoned 후 새 세션 | 확인 | unit: 10분 방치 → 홈 → 다시 Start Session → 새 id · 생성 2건 |
+| **70** 백그라운드 경고 | 구현 | unit: 공지 1개 · 녹음 계속 · Dismiss / e2e: 393×852 좌표 불변(책 칩 281 · 상태 344 · Record 621) · 슬롯 x24 w345 · 393×700 → Toast |
+| 140 ⑤ | **현행 유지** | H2-D7 |
+
+## H2-3. 결정 필요 (구현하지 않은 것)
+
+| ID | 지점 | 선택지 | 권고 |
+|---|---|---|---|
+| **H2-D1** | `Talk without recording` → `mode=conversation_only` 전환 수단이 없다 (`mode` 는 생성 시 고정, 전이 body 에 `mode` 없음) | ⓐ 현 세션 `ready → abandoned` + `POST /sessions` `mode=conversation_only` 새 세션(계약 변경 0, 서버에 방치 세션 1건 남음, `SessionSummary` 에 `bookId`/`childBookId`/카드 옵션 id 가 없어 책 연결을 그대로 옮길 수 없음) ⓑ ready 한정 모드 전환 계약 신설(plan-agent + `API_CONTRACTS.md`) ⓒ Start Session 전 권한 확인 후 처음부터 대화 전용 생성(홈 흐름 변경) | **ⓑ** — 세션 1개 · 데이터 일관. AC-4-63 "요청 body 확인" 도 충족 |
+| **H2-D2** | 초안 문구 9건 (H2-1 문구 행) | 승인 / 수정 | 승인 후 copy 만 교체 |
+| **H2-D3** | 30분 **근접** 경고 임계값 (상위 Spec §7.3 "제안값을 넣지 않았다") | 없음 / 5분 전 1회 / 1분 전 1회 | **없음** — AC-4-64 는 종료 안내만 요구, PRD·Figma 근거 0 |
+| **H2-D4** | 크래시 복구 안내 위치 (AC-4-65). 복구는 앱 시작 시 돌고 사용자는 세션·완료 화면에 있지 않다 | ⓐ 앱 시작 후 Toast 1회 ⓑ 홈 InlineAlert ⓒ 그 세션 완료 화면을 열 때만 | **ⓐ** (레이아웃 이동 0) — 문구 필요 |
+| **H2-D5** | 인터럽션 안내 (AC-4-68) — Spec §7.1 에 행이 없다 | ⓐ paused 화면(보조 줄)으로 충족 ⓑ 공지 슬롯 `InlineAlert` 추가 | **ⓐ** |
+| **H2-D6** | 업로드 / 48h / 14일 화면 (Plan 범위 칸에 있으나 AC 칸 63·64·65·68·69·70·134 에 없음, 4b 목록의 AC-4-30·32·67 화면 부분) | 상위 Spec §7.2 = 신규 `UploadStatusBadge` + 큐 상태 노출 필요 | **별도 단위(`S4-H3`)로 plan-agent 분할** |
+| **H2-D7** | AC-4-140 ⑤ `/complete` 직접 진입 + Detail `recording`·`paused` (R4B-15) — 문서에 규칙 없음 | ⓐ 현행(완료 화면) ⓑ 홈 `replace`(`D4-91` 확장) ⓒ `/session/:id` `replace`(지금은 그 화면이 비-ready 를 홈으로 보내 결과는 ⓑ, 재진입 AC-4-35 구현 후 복귀) | **ⓑ** — 오프라인 제출 뒤 새로고침(R4B-15)에서 outbox 가 `completed` 를 보낼 세션을 paused 로 다시 여는 혼선이 없다 |
+| **H2-D8** | 대화 전용 `Submit` Toast 가 `Recording submitted`(녹음 없음) · 대화 전용에서 Record 탭 → 같은 마이크 시트 | 별도 문구 / Toast 없음 · 시트 유지 / 탭 무반응 | 별도 문구 · 시트 유지 (AC-4-134 "탭 → 안내") |
+
+## H2-4. 임의 판단 (검토 요청)
+
+① **처리 중 `disabled`** = 컨트롤러 단계 `requesting_permission`·`starting`·`stopping` 만. `pendingTransitions > 0`(서버 응답 대기)은 넣지 않았다 — 컨트롤러가 낙관적으로 전이하므로 Pause·재개마다 변형이 깜빡이고 오프라인 전송 실패까지 막힌다. Submit/Discard 중(`stopping`)에는 잠깐 `disabled` 가 보인다.
+② **동의 없음 `disabled`** 는 컨트롤러가 확인한 뒤(`consent_blocked`)부터다. `me.consentStatus` 선판정을 화면에 복제하지 않았다 — 동의 누락 계정은 Guard 가 세션 화면 전에 막는다(`me:consent-missing`).
+③ 백그라운드 경고 시점 = 녹음 중 탭이 숨겨졌다 돌아온 **사건 1회**(Mock `web-background-warning` 과 같은 계약). 녹음 시작 때 항상 띄우는 안이 아니다. recording·paused 동안 Dismiss 까지 유지.
+④ 슬롯 → Toast 전환 판정 = 렌더 직후 stage `scrollHeight > clientHeight` 1회. 표시 중 창 크기 변경은 다시 재지 않는다.
+⑤ 자동 종료 뒤 완료 화면은 `Submit` 과 같은 스티커 등장(`SUBMIT_ENTRY`)을 쓴다.
+
+## H2-5. Mock 시나리오
+
+`?scenario=recorder:mic-permission-denied` · `sessions:consent-missing` · `recorder:web-background-warning` · `recorder.<visibilitychange|devicechange|track-ended>:recording-interrupted` · 오프라인 = 브라우저 offline(Playwright `context.setOffline`) / unit `harness.appState().setConnectivity` · 자동 종료 = 주입 시계 30분. 신규 key 0.
+
+## H2-6. baseline (`R-BASELINE-1`)
+
+신규 2장 — `s4-session-background-notice.png`(393×852, 시계 고정 `00:05`, 공지 표시 후 300ms 진행) · `s4-session-mic-sheet.png`(시트 요소, 등장 후 `settle`). 둘 다 육안 확인: 과도기 프레임·dev 패널 없음. **기존 baseline 재생성 0장** — 전체 실행에서 기존 baseline 전부 비교 통과(공지·시트는 사건이 있을 때만 그려지고 기본 화면 DOM·기하는 그대로다). 분해할 diff 없음.
+
+## H2-7. 검증
+
+`typecheck` · `lint` · `lint:boundaries`(776 modules, 위반 0) · `format:check` · `build` · `assert:no-mocks` ✓ · `test` **2354 → 2367 / 162 → 163 files** ✓ · `test:e2e` 단독 **461 → 467 passed (10.5m)**, 실패 0 · `ls apps/api supabase apps/mobile` → 전부 없음. 실행 전후 Playwright 프로세스 · 포트 4319 리슨 0, 강제 종료 없음.
+수동 미확인: iOS Safari 실기기(마이크 거부 시트 · 탭 전환 경고 · AC-4-68 ③ 전화 수신) — `NOT VERIFIED` 예상, 절차 = 실기기에서 `?scenario` 없이 마이크 권한 거부 후 Start recording / 녹음 중 앱 전환 후 복귀.
+
+## H2-8. `BACKEND_INTEGRATION_PENDING` 예상
+
+서버 측 `mode` 전환(H2-D1 ⓑ 시) · 자동 종료 `completed(auto_timeout)` 서버 확정(기존 `P4-BIP`) · 동의 서버 강제(`CONSENT_REQUIRED`, 기존). 신규 0 (H2-D1 결정 전).
+
+---
+
+# S4-H2F — `S4-H2` 후속 `D4-113` · `D4-115` · `D4-117` · `D4-118` (2026-11-03, development-agent)
+
+Status: **HANDOFF** · 커밋 안 함 · Plan·Spec·approvals·`API_CONTRACTS.md` 수정 안 함 · `apps/api` · `supabase` · `apps/mobile` 없음.
+범위 밖(이번에 안 함): `D4-112`(Start Session 전 마이크 확인 → 대화 전용 생성) · `Talk without recording` 렌더 — plan-agent 계획 중. 업로드/48h/14일 화면(`S4-H3`, `D4-114`).
+Figma 노드 없음 — 새 UI 0. Toast 는 기존 `ToastProvider`(상단) · 기존 tone 그대로.
+
+## H2F-1. 구현
+
+| 결정 | 위치 | 내용 |
+|---|---|---|
+| **`D4-113`** | `entities/session/useSessionCompletion.ts` | `NOT_COMPLETED` = `ready` · `abandoned` · **`recording` · `paused`**. `/session/:id/complete` 직접 진입(전이 응답 기억 없음) + Detail 이 넷 중 하나면 `leave` → `SessionCompleteScreen` 이 홈 `replace`(기존 `D4-91` 분기 그대로). 전이 응답이 기억된 경로(오프라인 제출 포함)는 판정하지 않는다 — 기존 규칙 유지 |
+| **`D4-117`** 크래시 복구 Toast | `app/providers/sessionRecorderEnvironment.ts` · `entities/session/sessionRecorder.tsx` · `features/storytime-session/ui/RecoveredRecordingsToast.tsx` · `app/providers/AppProviders.tsx` | 런타임 `start()` 보고의 `recovered.length` 를 조립 지점이 보관 → `SessionRecorderEnvironment.onRecoveredRecordings(listener)` 로 **앱 실행당 1회** 전달(구독 전에 끝났으면 구독 즉시, 0건이면 전달 0). entity hook `useRecoveredRecordingsNotice` → feature `RecoveredRecordingsToast`(렌더 0, `toast.show({ tone: 'neutral' })`) → `AppProviders` 의 `ToastProvider` 안에 1번 마운트. 레이어: app → features → entities, feature 간 import 0 |
+| **`D4-118`** 대화 전용 Submit | `features/storytime-session/ui/StorytimeSessionScreen.tsx` | `conversation`(대화 전용 ready)이면 `copy.conversationSubmitted`, 아니면 기존 `copy.submitted`. tone `success` 그대로 |
+| **`D4-118`** Record 탭 | (코드 변경 0) | 대화 전용 `permission-denied` 탭 → 기존 마이크 시트 — 현행 확인 + 테스트 보강 |
+| **`D4-115`** | `features/storytime-session/copy.ts` | 해당 키의 `⚠ 초안` → `승인 D4-115` 로 주석만 교체. 문구 변경 0 |
+| `D4-116` · `D4-117` 후반 | — | 코드 변경 없음 (근접 경고 없음 · 인터럽션 = 현행 paused 화면) |
+
+## H2F-2. 초안 문구 (승인 대상, `copy.ts` `⚠ 초안`)
+
+| 키 | 문구 | 근거 |
+|---|---|---|
+| `recovered` | `We saved what was recorded before HARU closed.` | `D4-117` — 건수와 무관한 한 문장(복구가 2건 이상이어도 Toast 1회) |
+| `conversationSubmitted` | `Session submitted` | `D4-118` — `Recording submitted` 와 같은 형식, 녹음 언급 없음 |
+
+## H2F-3. AC
+
+| AC | 상태 | 증거 |
+|---|---|---|
+| **140 ⑤** | 구현 | unit `session-recording.test.tsx` `it.each(recording, paused)`: Detail 상태 확인 → `/complete` 직접 진입 → 홈 · 완료 제목 0 · 전이 추가 0. 변경 되돌리면 2건 실패(확인함). 기존 `ready`(⑤) · 오프라인 제출(④) 테스트 통과 유지 |
+| **65** 크래시 복구 안내 | 구현 (unit) | unit `session-exceptions.test.tsx` 3건: 복구 1건 → Toast 1회(`haru-toast--neutral`) + 전이 `completed(recovered_after_crash)` · 다시 마운트 → 0 / 화면보다 복구가 먼저 끝나도 1회 / 복구 0건 → Toast 0 · 전이 0. 마운트를 빼면 2건 실패(확인함). **브라우저 e2e 없음** — H2F-5 ① |
+| **63 / 134** 대화 전용 Record 탭 | 확인 | 기존 테스트 보강: `aria-haspopup=dialog` · 같은 시트(제목·안내·`Not now`) · 전이 0 · 로컬 파일 0 |
+| 대화 전용 Submit Toast (`D4-118`) | 구현 | unit: `Session submitted` 표시 · `Recording submitted` 0. 분기 되돌리면 1건 실패(확인함). 녹음 세션의 `Recording submitted` 는 기존 AC-4-114 테스트가 유지 |
+
+## H2F-4. 임의 판단 (검토 요청)
+
+① **1회의 단위 = 앱 실행(조립 환경 인스턴스)**. 같은 실행에서 화면 트리를 다시 붙여도 다시 뜨지 않는다. 새로고침 = 새 실행이지만 그때는 이미 복구가 끝나 0건이라 뜨지 않는다.
+② **표시 화면 제한 없음** — 앱 시작 직후 어느 route 든(로그인 화면 포함) 뜬다. 로그아웃은 로컬 녹음을 지우므로(AC-4-72) 로그아웃 상태에서 복구 건이 남는 경우는 정상 경로에 없다.
+③ Toast 는 큐가 없어 같은 순간 다른 Toast 가 뜨면 교체된다(기존 `ToastProvider` 규칙).
+④ 주입 테스트 트리(`clients` 주입, `warmUp` 없음)에서는 첫 세션 화면이 런타임을 열 때 복구가 돈다 — 그때 복구 건이 있으면 세션 화면에서 뜬다. 실제 앱은 `resolveAdapters()` 가 시작 시 `warmUp()` 한다.
+
+## H2F-5. 결정 필요 · 발견
+
+① **`?scenario=recorder:crash-recovered` 가 브라우저에서 저장소를 seed 하지 않는다** (기존 공백). `resolveLocalStoreSeed` 는 정의돼 있으나 `createMockRecordingPlatform` 에 연결되지 않았다(`mocks/fixtures/local-recordings.ts` 주석 "브라우저 조립(scenario → seed)은 `S4-F`"). seed 하려면 Mock 서버에 `recording` 세션도 함께 있어야 한다. 그래서 이번 Toast 는 unit(저장소 선 seed)으로만 검증했고 e2e·데모로는 재현되지 않는다. 연결하려면 Mock 플랫폼에 "시작 전 seed" 단계 + Mock 서버 세션 fixture 가 필요하다 — 범위 확인 요청.
+② **`D4-115` "9건" vs 목록 10키** — `record.consentReason` · `micSheet.title` · `micSheet.description` · `actions.conversationReason` · `notices.background.title` · `.description` · `.toast` · `connectivity.offline` · `.online` · `autoTimeout` = 10. 목록에 적힌 10키 모두 `승인 D4-115` 로 표기했다. 숫자 정정이 필요하면 approvals 쪽 수정 대상.
+
+## H2F-6. Mock 시나리오
+
+신규 key 0. 크래시 복구 = unit 에서 Mock 저장소 선 seed(`seedCrashedRecording`) + Mock 서버 `recording` 세션. 대화 전용 = `POST /sessions mode=conversation_only`(기존 테스트 경로).
+
+## H2F-7. baseline (`R-BASELINE-1`)
+
+신규·재생성 0장. 기본 화면 DOM·기하 변경 없음(복구 Toast 는 복구 건이 있을 때만, 대화 전용 문구는 Toast 텍스트만).
+
+## H2F-8. 검증
+
+`typecheck` · `lint` · `lint:boundaries`(777 modules, 위반 0) · `format:check` · `build` · `assert:no-mocks` ✓ · `test` **2367 → 2372 / 163 files** ✓ · `test:e2e` 단독 **467 → 467 passed (10.2m)**, 실패 0 (신규 e2e 0 — H2F-5 ①) · `ls apps/api supabase apps/mobile` → 전부 없음.
+
+## H2F-9. `BACKEND_INTEGRATION_PENDING` 예상
+
+`completed(recovered_after_crash)` 서버 확정·업로드(기존 4a 항목). 신규 0.
+
+---
+
+# S4-H2R — Start Session 전 마이크 판정 → 대화 전용 세션 + `D4-121` (2026-11-03, development-agent)
+
+Status: **HANDOFF** · 커밋 안 함 · Plan·Spec·approvals·`API_CONTRACTS.md` 수정 안 함 · `apps/api` · `supabase` · `apps/mobile` 없음.
+근거: Plan rev 1.4 §13.3 · AC-4-63(재정의) · 145~148 · 134 · Spec **§18.2 · §18.10 ⑤ · §18.11** · `D4-112` · `D4-119`(CP-8~11) · `D4-120`(Q15·Q16) · `D4-121` · `D4-122`.
+범위 밖: `S4-H3`(업로드·48h·7일·14일). Figma 노드 없음(Spec §18.1) — 새 시각 요소 0 (기존 `Button loading` · `MicPermissionSheet` · Toast 재사용).
+
+## H2R-1. 구현
+
+| 항목 | 위치 | 내용 |
+|---|---|---|
+| 권한 판정 포트 | `app/providers/sessionRecorderEnvironment.ts` | `resolveSessionMode()` = 판정 전용 녹음기 1개 → `PermissionService.ensure()`(미정이면 프롬프트) → `granted` → `recorded`, `denied`·`unavailable` → `conversation_only` → **`finally` 에서 `dispose()`** (Web 어댑터가 `primed` 스트림을 닫는다 — AC-4-146). 런타임은 열지 않는다. 판정 자체가 throw 하면 `recorded`(H2R-4 ①) |
+| entity hook | `entities/session/sessionRecorder.tsx` | `useResolveSessionMode()` → `{ resolve, isResolving }` — 판정 중 재호출은 **같은 promise**(프롬프트 1건). `useConversationEntryNotice(sessionId \| null, cb)` — 조립 환경의 `takeConversationNotice(id)` 가 처음일 때만 cb (앱 실행당 세션별, `D4-120` Q15) |
+| Home 경로 | `features/activity-card-deck/ui/ActivityCardDeck.tsx` | 확인 탭 → 판정 → `selection` → `sessions(mode)`. 판정 중 확인 버튼 = 기존 `submitting`(`loading`). 시도 번호(`attempt`) — 시트 닫기·재탭이 올리면 늦게 온 판정은 버린다(AC-4-145 ⑦). 판정 중 닫기는 막지 않는다(§18.2 ①) |
+| 서재 경로 | `features/library/StartSessionAction.tsx` · `BookDetailSheet.tsx` | 탭 → 판정 → `sessions(mode)`. `loading` = 판정 중 ∨ 생성 중. 새 prop `open`(BookDetailSheet 가 전달) + 언마운트 → 결과 버림. 탭 번호로 재탭 시 생성 1건 |
+| 자동 시트 | `features/storytime-session/ui/StorytimeSessionScreen.tsx` | `conversation_only` ∧ `ready` 로 열린 세션에 `useConversationEntryNotice` → 시트 1회 |
+| 포커스 복귀 | 같은 파일 | 시트가 한 번 열렸다 닫히면 effect 가 `RecordControl`(`id`)로 포커스 — `Sheet` 포커스 트랩 복귀(정리 단계)보다 뒤에 돈다. `packages/ui` 변경 0 (§18.10 ⑤) |
+| 재개 거부 시트 | 같은 파일 | paused `resume()` 결과가 `permission_denied`·`mic_unavailable` 이면 시트 자동(§18.2 ④ · AC-4-148 ③) — 전에는 ready `start()` 만 열었다 |
+| 시트 문단 | `ui/MicPermissionSheet.tsx` · `copy.ts` | prop `conversation` → `micSheet.conversationDescription` / `description`. `talkWithoutRecording` 키·주석 **삭제**(CP-11) |
+| **`D4-121`** | `StorytimeSessionScreen.tsx` `SessionTopRow` | 상단 줄(칩·닫기)을 `useToastTopBarInset` 으로 등록 — 줄이 조회 후에야 마운트되므로 줄 컴포넌트 안에서 등록(화면 첫 렌더는 Spinner). CSS 변경 0 |
+| Mock | `mocks/recorder/recorderScenarios.ts` · `platform/MockRecorderAdapter.ts` · `platform/mockRecordingPlatform.ts` | key 3 신규(H2R-5). 계획에 `initialPermission` · `permission`(`unavailable` 추가) · `revokedOnStart`. **권한 상태·호출 기록을 플랫폼 하나에 하나로 공유** — 판정 녹음기의 허용을 세션 녹음기가 본다(재프롬프트 0) |
+| harness | `src/test/harness.tsx` | `recorderCalls()` · `recorders()` 접근자 |
+| 테스트 | `__tests__/session-permission.test.tsx`(신규 22) · `src/app/providers/__tests__/sessionRecorderEnvironment.test.ts`(+9) · `src/mocks/__tests__/MockRecorderAdapter.test.ts`(+4) · `recorder-scenarios.test.ts`(+4, 기존 3건은 key·계획 필드 추가 반영) · `e2e/session-exceptions.spec.ts`(+6) | 기존 수정: `session-exceptions.test.tsx` 녹음 세션 거부 2건 → `mic-permission-revoked`(Start 거부는 이제 대화 전용이라 녹음 세션 거부가 그 경로로만 생긴다) + 포커스·버튼 1개 단정 추가 · 대화 전용 1건 → 자동 시트 닫은 뒤 Record 탭 · 문단 = 대화 전용 변형. e2e 마이크 시트 1건 → `mic-permission-revoked`. 약화 0 |
+| `D4-122` | `copy.ts` | `recovered` · `conversationSubmitted` 주석 `⚠ 초안` → `승인 D4-122` (문구 변경 0) |
+
+## H2R-2. 초안 문구 (승인 대상, `copy.ts` `⚠ 초안`)
+
+| 키 | 문구 | 근거 |
+|---|---|---|
+| `micSheet.conversationDescription` | `This session continues without recording. To record, turn on the microphone and start a new session.` | §18.2 ③ ①~⑤ — 돌아오면 녹음된다 류 0 · 장치 없음에도 사실("turn on") · 이 세션은 계속 + 다음엔 새 세션 · 진단어 0. **실측(Chromium, 문단 폭 272)**: Spec 예시 방향 문장(128자)은 320 에서 **4줄** → 3줄 이내 권장(⑤)을 맞추려 줄였다. 이 문구 = 320 **3줄** · 393 3줄(`D4-115` 녹음 세션 문단과 같은 줄 수) |
+
+## H2R-3. AC
+
+| AC | 상태 | 증거 |
+|---|---|---|
+| **63** (재정의) | 구현 | unit `session-permission.test.tsx` 매트릭스: 경로 2 × 거부·차단·장치 없음 → body `mode=conversation_only` · 책 id 경로별 동일 · Record `permission-denied` · `Submit` 활성 / Home 대화 전용 `Submit` → `completed` 1건 · 완료 화면 · 녹음기 `start` 0 · `recordings` 요청 0. e2e 3 key(Home): body · 순서 · 시트. 설정 딥링크 = 안내 문단(Web) |
+| **145** ①~⑤ | 구현 | unit 경로 2 × 5상태(`granted`=`mic-permission-revoked` 처음 값 · `prompt`→허용 · `prompt`→거부 · `denied` · `unavailable`) — `mode` · `requestPermission` 수(0/1/1/0/0). ③ 권한 API 미지원(`null`)은 **Web 어댑터 단위**(`sessionRecorderEnvironment.test.ts`, 허용·거부 2건) — Mock 은 `null` 을 재현하는 key 가 없다(어댑터가 `null → prompt` 로 접으므로 경로는 ② 와 같다) |
+| **145** ⑥ | 구현 | unit: Home 확인 버튼 `aria-busy` · 재탭 2회 → 판정 1 · selection 1 · 생성 1 / 서재 `aria-busy` · 재탭 → 판정 1 · 생성 1 |
+| **145** ⑦ | 구현 | unit: 순서 `selection → sessions`(경로 Home 5상태 · e2e 3 key) / 판정 중 Escape → selection 0 · 생성 0 (Home) · 생성 0 (서재) |
+| **145** ⑧ | 구현 | `lint:boundaries` 위반 0 — 두 feature 는 `entities/session` hook 만 쓴다 |
+| **146** | **unit 구현 · 실브라우저 NOT VERIFIED 예상** | Web 어댑터 + 가짜 미디어 환경: 판정이 연 스트림 수 = 판정 안에서 닫힌 수(허용 1/1, 거부·차단·장치 없음 0/0). e2e 는 Mock 녹음기라 `MediaStreamTrack.readyState` 를 볼 수 없다 → 수동: Chrome 첫 사용 → Start Session 허용 → Home/ready 에서 주소창 마이크 표시등 꺼짐 확인 → Record 탭 녹음 정상 |
+| **147** ①~④ | 구현 | unit: 차단·장치 없음 → 시트 자동 · 대화 전용 문단 · `come back to this screen` 0 · 버튼 = `Not now` 1개 · 닫힘 → `activeElement` = Record · 전이 0 / 같은 세션 재진입 → 자동 0, Record 탭 → 시트 / 녹음 세션 자동 0. e2e 3 key: 시트 · 문단 · 포커스 · 전이 0 |
+| **148** ① | 구현 | unit + e2e(`mic-permission-revoked`): 시트(녹음 세션 문단) · 생성 1건 그대로 · 전이 0 · 버튼 `Not now` 1개 |
+| **148** ② | 구현 | unit: 거부 → `Not now` → 닫기 → `abandoned` → 홈 → Start → 새 id · 생성 body `mode` = `[recorded, conversation_only]` · 프롬프트 0 |
+| **148** ③ | 구현 | unit: 녹음 → 캡처 끊김(paused) → `failNextStart('permission_denied')` → Resume 탭 → 시트 · 로컬 파일 유지 · `Submit` → 전이 `[recording, paused, completed]` · 생성 1건 |
+| **134** | 회귀 + 경로 추가 | Start 판정 거부 → `conversation_only` → `permission-denied`(매트릭스) |
+| **`D4-121`** | 구현 | unit: 세션 화면 Toast 뷰포트 `--below-top-bar`. e2e: ready offline Toast y **64**(상단 줄 0~48) · 닫기 중심 `elementFromPoint` = `Close session` / recording 칩·닫기 가림 0. **수정 되돌리면 e2e 2건 실패**(Toast y 16 · 가림 true) 확인 |
+
+변경 되돌림 확인(unit): 자동 시트 제거 → 3건 실패 · 포커스 effect 제거 → 2건 · inset 제거 → 1건 · Home `mode: 'recorded'` 고정 + 시도 번호 제거 → 9건 · 서재 가드 제거 → 1건.
+
+## H2R-4. 임의 판단 (검토 요청)
+
+① **판정 예외 → `recorded`** — 어댑터가 throw 하는 경우(정상 경로는 throw 하지 않는다). 세션 안 Record 탭이 다시 묻고, 거부면 시트 → 닫고 재시작 경로(CP-11).
+② **재개 거부도 시트 자동** — §18.2 ④ "paused 재개 시 거부 → 시트" 를 따랐다(이전 구현은 ready 시작 거부에만 자동).
+③ **포커스 복귀는 시트가 닫힐 때마다 Record Control** — 수동으로 열 때도 연 요소가 Record Control 이라 결과는 같다.
+④ **"1회" 기록 위치 = 조립 환경(`createSessionRecorderEnvironment`) 메모리** — `D4-117` 복구 안내와 같은 단위(앱 실행). 새로고침 후 다시 뜬다(Q15 권고대로).
+⑤ **Mock 권한 상태 공유** — 이전에는 녹음기마다 `prompt` 에서 시작했다. 같은 플랫폼의 다음 세션은 앞 세션에서 정해진 권한을 본다(브라우저와 같다). 기존 테스트 영향 0.
+⑥ Toast y 64 는 메달리온 링(y76~266)과 위쪽 12px 겹친다 — 완료 화면 `D4-103` 과 같은 배치(VG-H2-02 권고 · `D4-121`).
+⑦ 시트 자동 표시 조건 중 "Prompts 팝업·Drawer·Dialog 열림 중 0"(§18.2 ②)은 대상이 ready 진입 시점뿐이라 별도 조건 코드를 두지 않았다(ready 에는 팝업·Drawer·Dialog 가 없다).
+
+## H2R-5. Mock 시나리오
+
+| key | 판정 | 세션 화면 |
+|---|---|---|
+| `recorder:success`(기본) | `prompt` → 프롬프트 1 → 허용 → `recorded` | 녹음 정상 |
+| `recorder:mic-permission-denied` | `prompt` → 프롬프트 1 → 거부 → `conversation_only` (**의미 변경** — 전에는 세션 안 Record 탭 거부) | 시트 자동 1회 |
+| ⭐ `recorder:mic-permission-blocked` | `denied` → 프롬프트 0 → `conversation_only` | 시트 자동 1회 |
+| ⭐ `recorder:mic-unavailable` | `unavailable` → 프롬프트 0 → `conversation_only` | 시트 자동 1회 (같은 문단 — Q16) |
+| ⭐ `recorder:mic-permission-revoked` | `granted` → 프롬프트 0 → `recorded` | Record 탭 → `permission_denied` → 시트(녹음 세션 문단) · 이후 권한 `denied` |
+
+⚠ **`API_CONTRACTS.md` 반영 필요** (이번에 수정하지 않음): Mock scenario catalogue `recorder` 그룹에 key 3 추가 · `mic-permission-denied` 설명 갱신(Start Session 판정 경로). contracts(`packages/contracts`) 변경 0.
+
+## H2R-6. baseline (`R-BASELINE-1`)
+
+신규 1장 — `s4-session-mic-sheet-conversation.png`(393, 시트 요소, 등장 후 `settle`, dev 패널 숨김). 육안 확인: 정착 프레임 · 대화 전용 문단 3줄 · 버튼 1개. ⚠ 첫 실행이 **문구 교체 전** 이미지를 기록해 삭제 후 재생성했다(스테일 1회 — 현재 파일은 최종 문구). 기존 `s4-session-mic-sheet.png` 는 시나리오만 `mic-permission-revoked` 로 바꿨고 같은 화면이라 비교 통과(재생성 0). 기존 baseline 재생성 0장.
+
+## H2R-7. 검증
+
+`typecheck` · `lint` · `lint:boundaries`(778 modules, 위반 0) · `format:check` · `build` · `assert:no-mocks` ✓ · `test` **2372 → 2411 / 163 → 164 files** ✓ · `test:e2e` 단독 **467 → 473 passed (10.4m)**, 실패 0 · `ls apps/api supabase apps/mobile` → 전부 없음.
+수동 미확인(`NOT VERIFIED` 예상) — Plan §15 manual device: iOS Safari · 데스크톱 Safari · Chrome ① 첫 사용 Start Session 프롬프트 → 허용 → Record 탭 시 **재프롬프트 여부**(R4B-16 — 판정 스트림을 닫으므로 Safari 가 다시 물을 수 있다) ② 거부 → 대화 전용 진입 · 시트 ③ 설정에서 허용 후 새 세션 = `recorded` ④ AC-4-146 표시등.
+
+## H2R-8. `BACKEND_INTEGRATION_PENDING` 예상
+
+신규 0. 기존: 대화 전용 미제출 ready 세션 서버 정리(sweeper — `D4-45`, R4B-21 로 비중 상향) · 서버 측 `mode` 수용(생성 body 그대로 — 계약 변경 0).
+
+---
+
+# S4-H3 — 업로드 · 48h · 7일 · 14일 안내 + `D4-123` · `D4-125` · `D4-126` (2026-11-04, development-agent)
+
+Status: **HANDOFF** · 커밋 안 함 · Plan·Spec·approvals 수정 안 함 · `apps/api` · `supabase` · `apps/mobile` 없음 · **`D4-124`(세션 화면 Toast 위치) 손대지 않음**.
+근거: Plan rev 1.4 §13.4 · §14 AC-4-149~153 (+ AC-4-30·32·67 화면 부분) · §12 · Spec **§18.3~§18.6 · §18.8 · §18.10 · §18.11** · `D4-114` · `D4-117` · `D4-119`~`D4-127`. Spec 이 Plan 과 다른 곳은 Spec(`D4-119`): 7일 배너 `Try again` 없음 · 허용 차이 번호 `AD-S4-25`~.
+Figma 노드 없음(Spec §18.1) — 신규 Shared UI 0 · 신규 토큰 0 · 신규 CSS 0 (`Toast` · `InlineAlert banner` 재사용, `ToastProvider`·`InlineAlert`·`Sheet` 변경 0).
+
+## H3-1. 구현
+
+| 항목 | 위치 | 내용 |
+|---|---|---|
+| 안내 상태 (도메인) | `features/recording/model/recording-notices.ts` (신규) | `RecordingNoticeCenter` — 런타임과 함께 생성되어 **시작 전부터** 큐·보관 신호를 듣는다. Toast 안내 = `retention_expired` · `upload_stalled` · `recovered` (꺼내는 순서 고정, 꺼내면 소비). 7일 배너 = **레코드에서 파생**(안내 시각 있음 ∧ 로컬에 있음(=미확정) ∧ 닫기 기록 없음 → 가장 이른 `deleteAtMs`). 같은 녹음 우선순위: 14일이 나면 그 녹음의 48h 버림 · 7일 안내가 난 녹음의 48h 내지 않음. 보류 중 업로드 확정 → 48h 버림. 여러 녹음 = 안내 1건. **시작 정리 전에는 꺼내지 않는다**(순서를 시작 보고에서 정한다). React 0 |
+| 닫기 기록 | `features/recording/model/local-records.ts` | `retentionDismissedAtMs?` (선택 — 이전 레코드 호환, 가드 갱신). 닫기 = 그 순간 7일 구간의 녹음 전부(§18.3) · 새 녹음이 7일에 들어오면 다시 |
+| 48h 시작 점검 | `features/recording/model/upload-queue.ts` | `markStalled()` — 48h 경계만 점검, **전송 0**. 런타임 시작 순서 = 복구 → 보관 정리 → **48h 점검** → outbox·큐·보관 시작 → 센터에 시작 보고(복구 수) |
+| 런타임 | `features/recording/model/recording-runtime.ts` | `notices` 노출 · `clearAll` 에 센터 `reset`(AC-4-153 ④) · 확정된 폐기 후 배너 재계산 |
+| 조립 | `app/providers/sessionRecorderEnvironment.ts` | `notices`(peek · take · retention · dismissRetention · **capturing** · retryUploads · subscribe). `capturing` = recording·paused 컨트롤러 수(`D4-120` Q13). `retryUploads` = 오프라인이면 `'offline'`(요청 0) · 아니면 큐 `drain({ force })`. `onRecoveredRecordings` 는 센터로 흡수하며 **삭제**. 신규 옵션 `seedDevice`(런타임 시작 전 1회, 실패해도 시작) |
+| `warmUp` 위치 | `app/providers/apiClients.ts` → `ApiClientProvider.tsx` | `resolveAdapters()` 안에서 부르던 `warmUp()` 을 **결과를 채택한 쪽**으로 옮겼다 — H3-4 ⑥ |
+| entity hook | `entities/session/sessionRecorder.tsx` | `useRecordingAppNotices()` · `useRetentionNotice()` (조립 없음 = 안내 0). 타입 `RecordingAppNotice` · `RetentionNotice` · `SessionRecorderNotices` · `UploadRetryResult` |
+| 앱 Toast | `features/storytime-session/ui/RecordingNoticeToasts.tsx` (신규, `RecoveredRecordingsToast` 대체·삭제) | `AppProviders` 의 `ToastProvider` 안 1회 마운트. **한 번에 1개** — `useToastPresent()` 가 false 일 때만 다음을 꺼낸다(다른 화면 Toast 도 기다린다) · **녹음 중 보류** · 48h = `neutral` + `Try again` + `Dismiss` (탭 → Toast 닫힘 + 큐 1회 / 오프라인 → `connectivity.offline` Toast) · 14일 = `neutral`, action 0 · 복구 = 기존 문구 |
+| Home 배너 | `features/storytime-session/ui/RetentionNoticeBanner.tsx` (신규) · `features/activity-card-deck/ui/ActivityCardOfflineBanner.tsx` (`fallback` prop) · `pages/home/HomeTopBar.tsx` | `InlineAlert tone="warning" placement="banner"` · 제목 한 문장 + `Dismiss`. Page 가 `<ActivityCardOfflineBanner fallback={<RetentionNoticeBanner />} />` 로 조립 — **같은 슬롯 1개 · 오프라인 캐시 배너 우선**(Q11), feature 간 import 0 |
+| 날짜 | `shared/lib/date-format.ts` (신규) | `formatMonthDay(atMs, nowMs, timeZone?)` — `en-US` `Nov 17`, 기준 시각과 해가 다르면 `Jan 3, 2027`. 시계를 읽지 않는다(기준 = 센터가 계산한 `asOfMs`) |
+| 문구 | `features/storytime-session/copy.ts` | `uploads.stalled` · `uploads.retentionNotice(date)` · `uploads.retentionExpired` (⚠ 초안 — H3-2). `micSheet.conversationDescription` 주석 → **승인 `D4-126`**(문구 변경 0). `Try again` = `states.retry` · 닫기 = `notices.dismiss` · 오프라인 = `connectivity.offline` 재사용 → 신규 키는 3개뿐 |
+| **`D4-123`** 브라우저 seed | `mocks/recorder/deviceSeed.ts` (신규) · `mocks/fixtures/local-recordings.ts` · `mocks/fixtures/sessions.ts` · `mocks/recorder/{recorderScenarios,localStoreScenarios}.ts` · `mocks/index.ts` · `app/providers/apiClients.ts` | H3-5 표. `mock` 조립만 `seedDevice` 를 넘긴다. 번들에 Mock **서버** 시계 `clock` 노출 |
+| **`D4-125`** `VG-H2R-01` | `features/activity-card-deck/ui/ActivityCardDeck.tsx` · `features/library/StartSessionAction.tsx` · `entities/activity-card/useSelectActivityOption.ts` | 탭 ~ 이동/실패까지 끊기지 않는 `launching` 상태. 실패·닫기·결과 버림·이동에서 끈다(선택 실패는 `select(…, onSelected, onFailed)` 새 선택 인자). 시각 값 변경 0 |
+| **`D4-125`** `VG-H2R-02` | `features/storytime-session/ui/StorytimeSessionScreen.tsx` | 시트 닫힘 후 `focus({ preventScroll: true })` |
+| contracts | — | **변경 0** (안내 상태는 클라이언트 전용) |
+
+## H3-2. 초안 문구 (승인 대상, `copy.ts` `⚠ 초안`)
+
+| 키 | 문구 | 근거 · 실측 |
+|---|---|---|
+| `uploads.stalled` | `Your recording hasn't uploaded yet. It's still saved on this device.` | 48h Toast. `failed`·`error` 0, 로컬 보존 사실(상위 §7.2). 건수 무관 한 문장 |
+| `uploads.retentionNotice(date)` | `Go online before ${date} or your recording will be removed.` | 7일 배너 제목 1문장. 삭제 예정 사실(AC-4-150 ③) + 할 일(온라인으로 열기, §18.5 ②). *before* = 삭제 시각이 그날 중이어도 사실. **실측(Chromium)**: 393 **2줄 74** · 320 **3줄 94** · 600 **2줄 74** — H3-3 결정 ① |
+| `uploads.retentionExpired` | `A recording that couldn't upload in 14 days was removed from this device.` | 14일 Toast. 이미 일어난 사건 · action 0 |
+
+## H3-3. 결정 필요
+
+| # | 지점 | 실측 · 선택지 | 권고 |
+|---|---|---|---|
+| ① | **7일 배너 줄 수** — Spec §18.5 목표 "393 1줄 · 320 2줄" 미달 | 후보 3개를 실제 배너 DOM 에 넣어 쟀다: 위 초안 · `Go online by ${date} or this recording will be removed.` · `Go online by ${date} to keep your recording.` → **셋 다 393 2줄(+74) · 320 3줄(+94)**. 320 텍스트 폭(약 156px)에서 날짜 포함 의미 있는 문장은 3줄이 된다. +94 = `G-01` 크기(`D4-32` 에서 줄이기로 한 크기)와 같다 · Spec §18.5 ⓒ 산술 범위(393 54~74 · 320 74~94) 안 | 초안 유지 + `AD-S4-25` 를 **393/600 +74 · 320 +94** 로 등록 판단. 줄이려면 문구가 삭제 예정 사실을 빼야 한다(AC-4-150 ③ 충돌) |
+| ② | 초안 문구 3건 (H3-2) | 승인 / 수정 | 승인 후 copy 만 교체 |
+| ③ | AC-4-150 ② 문안 "Home `InlineAlert warning` + `Try again`" | `D4-119` 로 `Try again` 없음 — 구현은 Spec 기준 | plan-agent AC 문안 정정 (Spec §18.10 ②) |
+| ④ | 허용 차이 후보 | `AD-S4-25`(Home 7일 배너 + 버블·캐릭터 밀림 = 배너 높이) · `AD-S4-26`(앱 수준 48h · 14일 Toast) · `AD-S4-16` 범위 개정(H2R) | 사용자 승인 후 등록 — 등록하지 않았다 |
+
+## H3-4. 임의 판단 (검토 요청)
+
+① **48h · 14일 · 복구 Toast 는 메모리에 보관**(Spec §18.3 "보관 후 구독 시 1회") — 꺼내기 전에 앱이 닫히면(예: 녹음 중 보류 상태에서 탭 종료) 다시 나오지 않는다. 신호가 녹음당 1회라 "재시작 후 재표시 0"(AC-4-153 ①)과 같은 쪽이다. 7일 배너만 레코드에서 파생(재시작해도 남는다).
+② **여러 녹음의 같은 안내 = Toast 1건**(`D4-117` "건수 무관 한 문장" 확장) · **보류 중 업로드가 확정되면 48h 버림**.
+③ **오프라인 캐시 배너가 없을 때의 오프라인**(카드 캐시 없음 → 덱 슬롯 안내)에서는 7일 배너가 보인다 — Q11 은 "같은 슬롯 1개 · 오프라인 배너 우선" 이고 그 경우 슬롯의 오프라인 배너가 없다.
+④ UI 렌더러 2개를 `features/storytime-session` 에 둔 것 — `features/recording` 은 React 를 쓰지 않는다(AC-4-47). 앱 Toast 가 크래시 복구와 **같은 순차 안**에 있어야 해서 `RecoveredRecordingsToast` 를 대체했다. 오프라인 안내는 같은 feature 의 `connectivity.offline` 을 그대로 쓴다(공용 이동·신규 키 0 — Spec §18.10 ⑥ 해소).
+⑤ `capturing` 판정 = 컨트롤러 스냅샷 status `recording`·`paused`. 세션 화면을 떠나면(컨트롤러 dispose) 풀린다. 완료 화면으로 가면 `completed` 라 풀린다.
+⑥ **`warmUp()` 을 채택 지점으로 이동** — e2e 에서 `crash-recovered` 복구 전이가 **2건** 기록됐다. dev StrictMode 가 `resolveAdapters()` 를 두 번 돌려 한 벌을 버리는데, 버려진 벌도 런타임을 시작했다(공유 요청 로그에 남는다). 이제 `ApiClientProvider` 가 채택한 벌만 `warmUp()`. Production(StrictMode 이중 실행 없음)의 동작은 같다.
+⑦ 48h seed 는 업로드 큐 항목을 `kv` 에 **직접** 쓴다(큐에 적재 시각을 정하는 공개 경로가 없다) — `UploadQueueEntry` 타입으로 묶어 tsc 가 일치를 검사한다. 7일 seed 는 큐 항목·서버 세션 없이(배너가 곧바로 사라지지 않게), 14일 seed 는 서버 세션 없이(RU-16 요청 0).
+⑧ `useSelectActivityOption().select` 에 선택 인자 `onFailed` 추가(entity, 기존 호출 영향 0).
+
+## H3-5. Mock 시나리오 (`D4-123` — 브라우저에서 재현)
+
+| `?scenario=` | 기기 seed | Mock 서버 | 화면 |
+|---|---|---|---|
+| `recorder:crash-recovered` | 끝나지 못한 part | 세션 `recording` (`66666666-…-0001`) | 앱 시작 복구 Toast · `completed(recovered_after_crash)` 1건 |
+| `recordings:upload-stalled-48h` | 48h+1분 전 적재된 미확정 업로드 | 세션 `completed` (`…-0002`) | 48h Toast + `Try again` (업로드는 계속 실패) |
+| ⭐ `recorder:local-retention-notice` (신규 key) | 7일+1분 전 미업로드 녹음 | 없음 | Home 7일 배너 |
+| `recorder:local-retention-exceeded` | 14일+1분 전 미업로드 녹음 | 없음 | 14일 Toast · 서버 요청 0 |
+| `recorder:local-retention-exceeded,recordings:upload-stalled-48h` | 둘 다 | | 14일 Toast → 사라진 뒤 48h Toast |
+| `activity-cards:offline-cached-card,recorder:local-retention-notice` | 카드 캐시 + 7일 | | 오프라인 배너 1개만 |
+
+안내 0 확인: `recordings:recording-upload-success` · `recordings:recording-incomplete`(자동 재시도) — unit. `API_CONTRACTS.md` **Rev 8.11** 로 §5.4 반영(H2R key 3 · `mic-permission-denied` 설명 · `local-retention-notice` · 브라우저 seed). Mock 데이터는 `mocks/` 에만.
+
+## H3-6. AC
+
+| AC | 상태 | 증거 |
+|---|---|---|
+| **149** ① | 구현 | unit `recording-notices.test.ts`: 적재 48h −1ms peek 0 / 48h `upload_stalled` 1 · 꺼낸 뒤 0 · 재시도 3회 후 0 · **재시작 후 0** / 시작 전에 48h 를 넘은 항목 → 시작 보고 안 |
+| **149** ②③④⑤ | 구현 | unit `session-notices.test.tsx`: `neutral` · `Dismiss` · `Try again` → 큐 1회 + 닫힘 · 오프라인 → 요청 0 + `connectivity.offline` · 문구 `fail`/`error` 0. 실조립(seed): `Try again` → 업로드 요청 증가 · 로컬 파일 > 0. e2e 2건(온라인 증가 · 오프라인 0 + 안내) |
+| **150** ① ③ ④ | 구현 | unit: 7일 −1분 null / 7일 `deleteAtMs` = 첫 part + 14일 · 같은 값 같은 객체 · 업로드 확정 → null · 여러 녹음 → 가장 이른 날짜 / `date-format.test.ts` 5건(연도 경계 · 시간대) |
+| **150** ② | 구현 (Spec 기준) | 배너 `warning` · `banner` · `role="alert"` · 헤더 슬롯 · 버튼 = `Dismiss` 1개 · 닫기 → 0 · 레코드에 닫기 시각 · 다시 붙여도/다시 열어도 0 · 닫은 뒤 새 녹음 7일 → 다시. `Try again` 없음 = `D4-119` (H3-3 ③) |
+| **150** ⑤ | 실측 | e2e: 높이 = 34 + 20×줄 · 밀림(캐릭터·버블 top 차) = 배너 높이 — **393 +74 · 320 +94 · 600 +74** · 닫기 → 밀림 0. 허용 차이 `AD-S4-25` 미등록(H3-3 ①④) |
+| **151** ①②③④ | 구현 | unit: `retention_expired` 1 · 파일 0 · 요청 0 · 재시작 0. e2e: Toast · action 0 · 업로드 요청 0 |
+| **152** ⓐ | 구현 | 업로드 배지 미생성(완료 화면 DOM 불변 — 기존 AC-4-61·104 테스트 통과 유지) · unit: `recording-upload-success` · `recording-incomplete` 자동 재시도 중 Toast 0 · 배너 0 (= AC-4-30 화면 부분, `N4B-32` ⓐ) |
+| **153** ① | 구현 | 위 재시작 3종(48h · 7일 닫기 · 14일) |
+| **153** ② | 구현 | unit: 같은 녹음 7일+48h → 배너만(48h Toast 0, 판정은 저장) · 48h 보류 중 14일 → 14일만 |
+| **153** ③ | 구현 | unit: 시작 시 셋 → 14일 → 48h → 복구 / 시작 전 peek 0 · 가짜 타이머로 한 번에 1개 · 다른 Toast 대기. e2e: 14일 → 48h 순차 · 동시 1개 |
+| **153** ④ | 구현 | unit: `clearAll` → Toast 0 · 배너 0 · 레코드 0 · 큐 0 |
+| 30·32·67 화면 | 구현 | 30 = 152 ⓐ · 32·67 = 48h Toast 1회 |
+| `D4-120` Q13 | 구현 | unit: 녹음 중 Toast 0(60초) → 해제 즉시 1 · 조립 `capturing` recording·paused true / dispose false |
+| `D4-123` | 구현 | unit `device-seed.test.ts` 6 · 실조립 3(복구 · 14일 · 48h) · e2e 5 |
+| `D4-125` ① | 구현 | **e2e(Chromium)**: 확인 탭 → 이동까지 `aria-busy` 켜짐 **1회**. 수정 되돌리면 **2회**(재현 확인). jsdom 은 이 끊김을 재현하지 못한다(React 가 마이크로태스크 뒤에 렌더) — unit 2건은 연속성·실패 시 해제 가드 |
+| `D4-125` ② | 구현 | e2e 320×568: 시트 닫힘 후 Record y 불변(433). 되돌리면 **414**(VG 의 19px 재현). unit: `focus` 인자 `{ preventScroll: true }` — 되돌리면 실패 |
+| `D4-126` | 반영 | 주석만 |
+
+되돌림 확인(unit): 7일 우선 규칙 제거 → 1 실패 · 14일이 48h 버림 제거 → 1 · 시작 전 꺼냄 막기 제거 → 1 · 녹음 중 보류 제거 → 1 · 표시 중 대기 제거 → 1.
+
+## H3-7. baseline (`R-BASELINE-1`)
+
+신규·재생성 **0장**. 7일 배너 문구에 실행 날짜(기기 시계 + 7일)가 들어가 매일 바뀐다 — 기하는 수치로 단정했다. 기본 화면 DOM·기하 변경 없음(안내는 seed 가 있을 때만).
+
+## H3-8. 검증
+
+`typecheck` · `lint` · `format:check` · `lint:boundaries`(**786 modules**, 위반 0) · `build` · `assert:no-mocks` ✓ · `test` **2411 → 2460 / 164 → 168 files** ✓ · `ls apps/api supabase apps/mobile` → 전부 없음.
+
+## H3-9. e2e
+
+`test:e2e` 단독 **473 → 485 passed (10.7m)**, 실패 0 (신규 `e2e/session-notices.spec.ts` 12). 실행 전후 다른 Playwright 프로세스 0, 강제 종료 없음. baseline 재생성 0 (`git status e2e/__screenshots__` 변화 없음).
+
+## H3-10. `BACKEND_INTEGRATION_PENDING` 예상
+
+신규 0 (contract·endpoint 0). 기존: RU-16(14일 로컬 삭제로 녹음이 오지 않는 `completed` 세션 서버 정리) · 실제 Storage 업로드·서버 확정·48h 이후 서버 측 상태(`RECORDING_UPLOAD_SPEC`) · push 알림은 `N4B-34` ⓐ(앱 내 안내로 충족)라 신규 아님.
+
+## H3-11. Visual Gap 대상 (design-agent, 최우선 규칙 5)
+
+Home 7일 배너 393 · 320 · 600(밀림 · 줄 수) · 오프라인 배너 우선 · 48h Toast(action · 닫기) · 14일 Toast · `loading` 두 경로 이음매(Chromium). 재현: H3-5 표의 `?scenario=`.
+
+---
+
+# S4-H3F — `D4-128` 세션 Toast 3초 · `D4-129` 문구 승인 반영 (2026-11-04, development-agent)
+
+근거: `docs/decisions/stage-4-approvals.md` `D4-128` · `D4-129`. Plan · Spec · approvals 수정 0.
+
+## H3F-1. `D4-128` — 세션 화면 문구 전용 Toast 3000ms
+
+| 항목 | 내용 |
+|---|---|
+| 방식 | 세션 feature 소유 훅 `useSessionToast` — `action` 도 `duration` 도 없으면 `duration: SESSION_TOAST_DURATION_MS`(3000, `D4-128` 주석)를 붙여 `useToast().show` 로 넘긴다. 버튼 있는 Toast 는 그대로 → `packages/ui` `TOAST_DURATION_MS.withAction` 6000 |
+| `packages/ui` | 변경 0 (`TOAST_DURATION_MS` 기본 4000 / 6000 그대로) |
+| 3000 적용 (세션 화면에 머무는 Toast) | `closeFailed`(ready 닫기 실패) · `connectivity.offline` / `online`(ready · recording · paused) · `notices.background.toast`(공지 슬롯이 들어가지 않을 때) |
+| 4000 유지 | `submitted` · `conversationSubmitted` · `autoTimeout` — 띄운 직후 완료 화면으로 이동해 **완료 화면에서 보인다**(`D4-128` "완료 화면 4초"). `useStickerEntrance` 가 이 Toast 존재에 기대므로 바꾸지 않았다. Home · 서재 · 그 밖 route 의 Toast 전부 |
+| 위치 · 문구 | 변경 0 (y64 · `D4-121` 그대로) |
+
+### 앱 수준 Toast (`RecordingNoticeToasts`, `AppProviders` 에 1번 마운트) — 현재 동작
+
+녹음 중(recording · paused)에는 보류(`D4-120` Q13)되지만 **ready 화면에서는 뜰 수 있다**. 이번 변경은 이 컴포넌트에 손대지 않았으므로:
+
+| Toast | 세션 route(ready)에서 뜰 때 현재 시간 |
+|---|---|
+| 14일 삭제 통지 `uploads.retentionExpired` (문구 전용) | **4000** |
+| 크래시 복구 `recovered` (문구 전용) | **4000** |
+| 48h `uploads.stalled` (`Try again` + `Dismiss`) | 6000 |
+| 48h `Try again` 오프라인 안내 `connectivity.offline` | 4000 |
+
+권고: **현행 4000 유지**. 이유 — ① 세션 화면 사건이 아니라 앱 시작 시 1회 통지이고 route 와 무관하게 같은 시간이어야 순차 표시(`D4-120` Q14)가 화면마다 달라지지 않는다 ② 14일 통지는 녹음 삭제 사실이라 읽을 시간이 필요하다 ③ 3000 을 적용하려면 앱 수준 컴포넌트가 현재 route 를 알아야 한다(새 결합). `D4-128` 문언("세션 화면의 문구 전용 Toast")을 엄격히 적용하려면 사용자 결정이 필요하다.
+
+## H3F-2. `D4-129` — 문구 승인 표기
+
+`features/storytime-session/copy.ts` 표 머리글 행과 `uploads.stalled` · `uploads.retentionNotice` · `uploads.retentionExpired` JSDoc 의 `⚠ 초안` → `승인 D4-129`. 문구 문자열 변경 0.
+
+## H3F-3. 파일
+
+- 신규 `apps/web/src/features/storytime-session/ui/useSessionToast.ts`
+- 신규 `apps/web/src/features/storytime-session/ui/__tests__/useSessionToast.test.tsx` (4)
+- 수정 `apps/web/src/features/storytime-session/ui/StorytimeSessionScreen.tsx` (세션 화면 Toast 3곳 → `sessionToast`)
+- 수정 `apps/web/src/features/storytime-session/copy.ts` (주석만)
+
+## H3F-4. 테스트 · 되돌림 확인
+
+unit 4: 상수 3000 · 문구 전용 2999ms 표시 → 3000ms 닫힘 · 버튼 있는 Toast 5999ms 표시 → 6000ms 닫힘 · 기본 `useToast` 3999ms 표시 → 4000ms 닫힘(세션 밖 4000 유지). 가짜 타이머.
+되돌림: 상수를 4000 으로 바꾸면 **2 실패**(상수 · 2999→3000 닫힘) 확인 후 원복.
+⚠️ 남은 사각: 세션 화면이 `sessionToast` 대신 `toast` 를 쓰도록 되돌리는 회귀는 이 unit 이 잡지 않는다(jsdom 통합 테스트는 실제 타이머 + `findBy` 라 가짜 타이머 전환이 어렵다).
+
+## H3F-5. 검증
+
+`typecheck` · `lint` · `format:check` · `lint:boundaries`(788 modules, 위반 0) · `build` · `assert:no-mocks` ✓ · `test` **2460 → 2464 / 168 → 169 files** ✓ · `ls apps/api supabase apps/mobile` → 전부 없음.
+
+## H3F-6. e2e · baseline
+
+`test:e2e` 단독 **485 passed (10.9m)**, 실패 0 (신규 e2e 0). 실행 전 다른 Playwright 프로세스 0, 강제 종료 없음. baseline 신규·재생성 0 (`e2e/__screenshots__` 파일 수정시각 변화 없음 — 미추적 `session-exceptions.spec.ts/` 3장은 11-02 · 11-03 생성분 그대로. Toast 시간은 스냅샷 대상 아님).
+
+## H3F-7. `BACKEND_INTEGRATION_PENDING` 예상
+
+신규 0 (contract · endpoint · Mock 변경 0).
+
+---
+
+# `S4-H3R` — Visual Gap H3 후속 `D4-132` · `D4-134` (2026-11-04, development-agent)
+
+Status: **HANDOFF** · 커밋 안 함 · Plan·Spec·approvals 수정 안 함 · `apps/api` · `supabase` · `apps/mobile` 없음 · 위치·시간·문구 변경 0 · 신규 토큰 0.
+근거: `docs/design/stage-4b-visual-gap-h3.md` `VG-H3-01` · `VG-H3-02` · `VG-H3-04` · 결정 `D4-132` · `D4-134`.
+
+## H3R-1. 변경
+
+| 항목 | 파일 | 내용 |
+|---|---|---|
+| `VG-H3-01` (`D4-132`) | `packages/ui/src/feedback/Toast.css` | `.haru-toast > .haru-icon-button { flex: none }` — 닫기 버튼이 flex-shrink 로 줄지 않는다(`InlineAlert` `.haru-alert__dismiss` 와 같은 처리). 48h Toast `Dismiss` **20.3×38 → 38×38**(hit 44), 높이 393 **76→86** · 320 **86→104** (승인 수치와 일치) |
+| `VG-H3-02` (`D4-134`) | `apps/web/src/app/providers/sessionRecorderEnvironment.ts` | 보류(`capturing`)는 컨트롤러가 recording · paused 에 들어가면 켜지고 **컨트롤러 dispose(= 세션 화면 이탈) 때만** 풀린다. 이전: 스냅샷이 `completed` 가 되는 순간 풀림. 이탈 시점에는 `Recording submitted` 가 이미 떠 있어 `RecordingNoticeToasts` 가 기존 `useToastPresent` 규칙으로 그 Toast 가 사라진 뒤 꺼낸다(`RecordingNoticeToasts` 로직 변경 0, 주석만) |
+| 〃 | `apps/web/src/entities/session/sessionRecorder.tsx` · `features/storytime-session/ui/RecordingNoticeToasts.tsx` | `capturing()` 계약 주석 갱신 (코드 변경 0) |
+| `VG-H3-04` (`D4-134`) | `apps/web/src/shared/lib/focus.ts` (신규) · `features/storytime-session/ui/RetentionNoticeBanner.tsx` | `nextTabbableAfter(container)` — 문서 순서에서 container 뒤 첫 Tab 대상(disabled · `tabindex=-1` · hidden · inert · aria-hidden 제외). 배너 `Dismiss` 시 포커스가 배너(`role="alert"`) 안에 있으면 닫기 직후 그 대상에 `focus({ preventScroll: true })`. `InlineAlert` 는 수정하지 않았다(공통 거동 변경 0 — feature 에서 지정) |
+
+## H3R-2. `VG-H3-02` 원인 확정 (런타임)
+
+1. **재현 + 시각표**: Playwright 임시 probe(문서 전체 `MutationObserver` 로 Toast 문구 · Record Control `aria-label` · `pathname` 변화를 `performance.now()` 와 기록, 시나리오 `recorder:crash-recovered,recordings:upload-stalled-48h`, 48h 표시 중 녹음 시작 → `Submit`). 수정 전:
+   `7067` Record Control 이 `Start recording`(컨트롤러 `completed`) · **세션 route** → `7071` 복구 Toast 등장(세션 route) → `7079` `Recording submitted` 로 교체(`/complete`) → 복구 재표시 0.
+   = 보류가 **`completed` 스냅샷에서 풀리고**(이탈 전), 같은 tick 의 `toast.show(submitted)` 가 덮었다. 가설 그대로.
+2. **토글**: 보류 해제를 dispose 로만 바꾼 뒤 같은 probe → `7039` `Recording submitted`(`/complete`) → `11225` 사라짐 → **`11226` 복구 Toast**(`/complete`) → `15411` 사라짐(체류 4185ms). 되돌리면 다시 유실 → 원인 확정.
+3. probe 파일(`e2e/zz-h3r-probe.spec.ts`)은 삭제했다. 같은 판정을 정식 e2e 로 남겼다(H3R-3).
+
+## H3R-3. 테스트 (되돌리면 실패 — 전부 확인)
+
+| 종류 | 위치 | 내용 | 되돌림 확인 |
+|---|---|---|---|
+| unit | `app/providers/__tests__/sessionRecorderEnvironment.test.ts` (+2) | `submit()` → `completed` 후에도 `capturing` true · dispose 후 false + 구독 알림 / ready 만 거친 화면은 보류 0 | 이전 식으로 되돌리면 1 실패 |
+| unit | `__tests__/session-notices.test.tsx` (+1) | 배너 닫기 버튼에 포커스 → 닫기 → `activeElement` = 버블 닫기(`homeOverviewCopy.bubbleDismiss`), `BODY` 아님 | `onDismiss={dismiss}` 로 되돌리면 1 실패 |
+| unit | `shared/lib/__tests__/focus.test.ts` (신규, 3) | 뒤 첫 대상 · 제외 규칙 · 없으면 null | — |
+| e2e | `e2e/session-notices.spec.ts` `S4-H3R` (+5) | ① `Submit` → 복구 Toast 는 `/complete` 에서 · `Recording submitted` 소멸 **이후** 등장 · 체류 ≥ 4000ms · 각 1회 ② Discard → Home 에서 복구 1회(`visual-gap-h3` §7 권고) ③④ 393 / 320 48h `Dismiss` 38×38 · Toast 높이 86 / 104 ⑤ 배너 키보드 닫기 → 포커스 = 닫기 전 Tab 대상 | ① 수정 전 코드에서 실패(복구 Toast 미표시) · ③④ CSS 규칙 제거 시 실패(폭 20.34) |
+
+`VG-H3-04` 대상 근거: 393 · 320 실측 Tab 순서 = 배너 `Dismiss` → **버블 닫기**(`Dismiss`) → 카드 트랙 → 카드 flip. 즉 "닫기 전 Tab 했을 때 가는 곳"과 같다. 버블이 이미 닫혔으면 같은 규칙으로 카드 트랙이 된다.
+
+## H3R-4. 검증
+
+`typecheck` · `lint` · `format:check` · `lint:boundaries`(790 modules, 위반 0) · `build` · `assert:no-mocks` ✓ · `test` **2464 → 2470 / 169 → 170 files** ✓ · `ls apps/api supabase apps/mobile` → 전부 없음.
+`test:e2e` 단독 **485 → 490 passed (11.6m)**, 실패 0. 실행 전 다른 Playwright · vite 프로세스 0, 강제 종료 없음, 포트 5173 사용 0.
+
+## H3R-5. baseline 영향
+
+**0** — 실패 0, 재생성 0, `e2e/__screenshots__` 수정시각 변화 0 (미추적 `session-exceptions.spec.ts/` 3장은 이전 생성분 그대로). 클러스터 분해 대상 없음.
+이유: CSS 규칙이 바꾸는 것은 **닫기 버튼 + 긴 문구가 함께 있는 Toast** 뿐이다. Production 에서 Toast 에 닫기를 다는 곳은 48h(`RecordingNoticeToasts`) 하나이고 baseline 이 없다(날짜·시간 의존 안내). Home · 완료 화면(`Recording submitted`) · 세션 화면 Toast 는 닫기 버튼이 없어 영향 0. dev gallery `v9-toast` 의 "with action" 은 문구가 짧아 원래 줄지 않았다(baseline 통과로 확인).
+
+## H3R-6. 임의 판단 (검토 요청)
+
+① `VG-H3-04` 대상을 "배너 다음 Tab 대상"이라는 **위치 규칙**으로 구현했다(버블 닫기를 이름으로 지정하지 않음 — feature 간 import 0, 버블이 없으면 카드 트랙). 포커스가 배너 안에 없었으면(포인터 클릭 · Safari) 옮기지 않는다.
+② 헬퍼를 `shared/lib/focus.ts` 에 두었다(앱 공용 순수 DOM 유틸). `InlineAlert` 공통 거동은 바꾸지 않았다.
+③ `VG-H3-02` 를 `RecordingNoticeToasts` 가 아니라 조립 환경 `capturing` 의 해제 시점으로 고쳤다 — "완료 Toast 가 사라진 뒤"는 기존 `useToastPresent` 순차 규칙이 이미 보장하므로, 해제가 그 Toast 표시 **뒤**(이탈 시점)로만 가면 된다. 30분 자동 종료 · Discard 도 같은 경로를 탄다.
+④ Toast CSS 는 `Toast.tsx` DOM 을 바꾸지 않도록 자식 선택자(`.haru-toast > .haru-icon-button`)로 썼다.
+
+## H3R-7. `BACKEND_INTEGRATION_PENDING` 예상
+
+신규 0 (contract · endpoint · Mock 변경 0).
+
+---
+
+# `S4-K2` — 회귀 · 시각 (AC-4-95 ~ 103 · 109) (2026-11-04, development-agent)
+
+Status: **HANDOFF** · 커밋 안 함 · Plan·Spec·approvals 수정 안 함 · **UI·문구·토큰 변경 0**(테스트만 추가) · `apps/api` · `supabase` · `apps/mobile` 없음 · baseline 재생성 0.
+근거: Plan `stage-4b-plan.md` rev 1.5 §13 `S4-K` 행 · 상위 Plan `stage-4-plan.md` §11.10 · §11.11 · AC-4-109 · 대장 `stage-4-approvals.md` §4 · `R-SHADOW-1` · `R-BASELINE-1` · `R-FIGMA-1`.
+
+## K2-1. 추가한 테스트
+
+| 종류 | 위치 | 수 | 내용 |
+|---|---|---|---|
+| unit (소스 가드) | `apps/web/__tests__/stage4-motion-guards.test.ts` (신규) | 10 | **AC-4-98** CSS 파서로 `animation` 선언마다 reduce 대체 방식을 계산 → 대조표(19종)와 **정확히 일치**(대체 없는 애니메이션 = `UNCOVERED` 0) · 세션 무한 모션 2종(breathing · record pulse)은 reduce 에서 **정지** · reduce 재정의 keyframes 에 이동 0 / **AC-4-109** 워크스페이스 `package.json` · `pnpm-lock.yaml`(전이 포함) 애니메이션 라이브러리 0 · `.lottie`/`.riv`/Lottie JSON 0 · 소스 `.animate(` · 라이브러리 import 0 / **AC-4-100** 세션 CSS 3파일의 `overflow` 선언 목록 고정(4건) + 선언마다 근거 주석(`R-SHADOW-1`) |
+| e2e | `e2e/session-regression.spec.ts` (신규) | 25 (`test.fail` 1) | 아래 K2-2 |
+
+되돌림 확인: breathing reduce 블록을 지우면 `UNCOVERED` 로 2 실패(확인 후 원복, `cmp` 동일). e2e AC-4-98 은 no-preference 대조 테스트가 같은 측정으로 `haru-session-breathing` 을 잡는다(프로브가 문다).
+
+## K2-2. e2e `session-regression.spec.ts`
+
+| describe | 내용 |
+|---|---|
+| **AC-4-97** 터치 타깃 (13 + `test.fail` 1) | 상태별로 **보이는 인터랙티브 요소 전부**를 `elementFromPoint` 로 가운데 + 상하좌우 ±21.5 hit-test(같은 요소여야 44). 모서리 4점은 annotation 기록만 — `IconButton` hit 확장은 Stage 1 부터 원형 44(`--radius-pill`)라 모서리가 원 밖(설계, gallery `button · Back 44x44` 와 같은 기준). 대상: ready · recording+팝업 · paused · Drawer · Discard 다이얼로그 · 마이크 시트(+뒤 `Microphone is off`) · 대화 전용 시트 · 공지 슬롯 · 완료 · 조회 실패 · 7일 배너 · 48h Toast 393/320 |
+| **AC-4-98** reduce (2) | ready → recording+공지 슬롯 → 팝업 → paused → Drawer → 완료+Toast 매 상태 `document.getAnimations()` 실행 중 **무한 0 · 이동 0** (남는 것: scrim/sheet/toast opacity 페이드만) · no-preference 대조 |
+| **AC-4-99** 반응형 (5) | 320×852 · 393×852 · 600×852 · 1024×852 · 1024×768 × ready · recording+팝업 · paused · 완료: 컬럼 = min(w,480) · 좌우 여백 차 ≤ 0.5 · 문서/뷰포트 가로 넘침 0 · 닫기·메달리온·Record·바·버블·팝업·책 칩·상태 블록이 컬럼 안 · ≥ 796 높이 세로 넘침 0 |
+| **AC-4-100** computed overflow (1) | 393×852 ready · recording+팝업+공지 · 393×700 · 320×568 · 완료의 computed `overflow ≠ visible` 박스 목록 고정 — 뷰포트(Tailwind `overflow-y-auto`, `D4-82`) · `__list`(< 796) · 메달리온 원형 crop(Stage 3) · 1줄 말줄임 글자 박스 · sr-only. 전부 그림자 자식 0 또는 기존 양축 프로브 있음 |
+| **AC-4-100** 4b 신규 그림자 (3) | 공지 슬롯 · 7일 배너 = `box-shadow: none`(자를 그림자 없음 — 더하면 단정이 깨져 프로브 요구) · 48h Toast = 아래 17 / 오른쪽 18 번짐 보임(fixed portal, overflow 박스 밖) |
+
+## K2-3. AC → 증거 매핑
+
+| AC | 상태 | 증거 (테스트 이름 · baseline) |
+|---|---|---|
+| **AC-4-95** 허용 차이 · Figma 대조 | 증거 있음 — **판정은 QA** | 기하: `session.spec.ts` "ready 기하 — Figma `300:1309`" · `session-recording.spec.ts` "recording 기하 — Figma `298:1262`" · "paused — Figma `298:1340`" · `session-prompts.spec.ts` "팝업 기하 — Figma `296:1257`" · "Prompt Drawer `88:960` — 기하 (`AD-S4-7`)" · `session-complete.spec.ts` "393×852 — Figma `29:62` 대조" / baseline: `s4-session-ready`(+`-320` · `-no-greeting` · `-long-greeting` · `-reminder`) · `s4-session-recording`(+`-320`) · `s4-session-paused` · `s4-session-prompts`(`296:1210`) · `s4-prompt-drawer` · `s4-record-control`(5변형) · `s4-button-sm` · `s4-session-complete` · `s4-session-discard-dialog`(`AD-S4-4`·`15`) · `s4-session-mic-sheet`(+`-conversation`, `AD-S4-16`) · `s4-session-background-notice`(`AD-S4-14`) / Visual Gap 문서 `docs/design/stage-4b-visual-gap-*.md` / 무효 `AD-S4-2`·`3` 부재: `Discard` 동작 테스트(`session-recording.spec.ts` "Discard: 다이얼로그 …") · ready 버블 = `139:2803` pill 그대로(`session.spec.ts` AC-4-120~122). ⚠️ 대장 §4.1 `AD-S4-7`·`9`·`10` 행 상태 칸은 "승인 대기", 절 제목은 "등록 (2026-10-25, `D4-49`)" — 문서 표기 불일치(수정 안 함) |
+| **AC-4-96** 임의 값 신규 0 | 증거 있음 | grep(이번 실행): 세션 3 CSS + `features/recording` · `entities/session` 에서 HEX 0 · Tailwind arbitrary 0 · `style={{` 0. 남은 리터럴 = `@container (height < 796/702/664px)`(토큰 불가, K1-1 기록) · `inset 0 0 0 1px` hairline · `clamp(0px …)` |
+| **AC-4-97** 터치 ≥ 44 | **결함 1** (`K2-D1`) | `session-regression.spec.ts` AC-4-97 13건 통과 · 기존 `session-recording.spec.ts` "칩 터치 타깃 = 세로 44" · `session-prompts.spec.ts` "`See all` 터치 44" · "포인터: 화살표 hit 44"(Next 만) · `session.spec.ts` AC-4-136 "닫기 터치 44" · ⛔ `test.fail` "K2-D1 — `Previous prompt` 가로 hit ≥ 44" |
+| **AC-4-98** reduced-motion | 증거 있음 | unit `stage4-motion-guards.test.ts` AC-4-98 5건 · e2e `session-regression.spec.ts` AC-4-98 2건 · 기존 `session-recording.spec.ts` "모션 배분 …" · `session-complete.spec.ts` "prefers-reduced-motion" 3건 · `responsive.spec.ts` "reduce 에서 무한 애니메이션이 멈춘다" |
+| **AC-4-99** 320/393/600/1024 · 짧은 세로 | 증거 있음 | `session-regression.spec.ts` AC-4-99 5건 · `session.spec.ts` AC-4-118(320/393/600) · `session-prompts.spec.ts` "짧은 세로 압축 (AC-4-99 ②)" · "`D4-81`" · "`D4-82`" · "`D4-78`" · "`D4-79`" · "Prompt Drawer 기하"(320~1024) · `session-complete.spec.ts` "320×568" · "짧은 세로 — 내용 도달" · ⏸ 320×568 바 뷰포트 `test.fail`(K1-3, 디자이너 대기) · iOS Safari `dvh` 는 `NOT VERIFIED`(K1-8) |
+| **AC-4-100** overflow · 양축 프로브 | 증거 있음 | unit AC-4-100 · e2e AC-4-100 4건 · 기존 `shadow.spec.ts` "세션 팝업 pill 목록 … (S4-K1)" · "세션 ready pill 목록 … (D4-78)" · "세션 ready 그림자 … (S4-F1)" · "세션 뷰포트 스크롤 … (D4-82)" · `session-prompts.spec.ts` "`R-SHADOW-1` ⑥ — 캐러셀 viewport" |
+| **AC-4-101** Stage 1~3 핵심 경로 | 증거 있음 | 전체 e2e: `auth` · `consent` · `onboarding` · `home` · `library` · `tabs` · `scenarios` · `visual` 등 (K2-4) |
+| **AC-4-102** 명령 · `any`/`@ts-ignore` 0 | 증거 있음 | K2-4 · 신규 파일 `any`/`@ts-ignore` 0 |
+| **AC-4-103** e2e 전체 · baseline 근거 | 증거 있음 | K2-4 · 재생성 0 → 클러스터 분해 대상 없음 |
+| **AC-4-109** CSS 모션만 | 증거 있음 | unit `stage4-motion-guards.test.ts` AC-4-109 4건 |
+
+## K2-4. 검증
+
+`typecheck` · `lint` · `format:check` · `lint:boundaries`(791 modules, 위반 0) · `build` · `assert:no-mocks` ✓ · `test` **2470 → 2480 / 170 → 171 files** ✓ · `ls apps/api supabase apps/mobile` → 전부 없음 · 신규 파일 `any`/`@ts-ignore` 0.
+`test:e2e` 단독 **490 → 515 passed (12.1m)**, 실패 0 (`test.fail` 2건 = K1-3 320×568 · `K2-D1` 포함). 실행 전 다른 Playwright · vite 프로세스 0, 강제 종료 없음, 포트 5173 사용 0.
+baseline: 재생성 0 · `git status e2e/__screenshots__` 변경 0 (미추적 `session-exceptions.spec.ts/` 는 이전 생성분 그대로) → `R-BASELINE-1` ⑤ 분해 대상 없음. 신규 spec 은 baseline 을 만들지 않는다(전부 수치 단정).
+
+## K2-5. ⛔ 드러난 결함 (보고만 — 수정 안 함)
+
+| ID | 내용 | 실측 | 영향 AC | 비고 |
+|---|---|---|---|---|
+| **`K2-D1`** | Prompt Drawer 1번째 페이지 `Previous prompt`(24×24) 의 오른쪽 hit 확장을 pill 안 배지 `Tag(size="xs")`(`PromptPill.tsx:56-57`, phase / pageRef)가 덮는다 | 가로 hit **33.5**(왼쪽 22.5 · 오른쪽 11), 세로는 통과. `Next prompt` 는 44 | AC-4-97 (Drawer 좌우 화살표) | 기존 S4-G2 테스트가 `Next` 만 쟀다. 해결은 UI 변경(화살표 z-order 또는 배지 `pointer-events`)이라 결정 필요. `test.fail` 로 고정 — 고치면 터진다 |
+
+관찰(결함 아님): `IconButton` 38 의 hit 영역은 원형 44 — 모서리(±21.5,±21.5) 미포함. Stage 1 설계 그대로.
+문서 관찰: 대장 §4.1 `AD-S4-7`·`9`·`10` 행 상태 칸 "승인 대기" ↔ 절 제목 "등록 (D4-49)".
+
+## K2-6. `BACKEND_INTEGRATION_PENDING` 예상
+
+신규 0 (테스트만 추가).
+
+---
+
+# `S4-K2F` — `K2-D1` 수정 (`D4-135`) (2026-11-04, development-agent)
+
+| 항목 | 내용 |
+|---|---|
+| 원인 (실측 정정) | 배지만이 아니다. bar 안 요약 트랙(`.haru-prompt-carousel__track`)이 `translate` 로 **화살표보다 위 층**에 그려져, 1쪽의 트랙 내용 전체가 `Previous prompt` `::before`(44) 오른쪽을 덮었다. 단계별 실측 blocker: 배지 `Tag` → (배지 `pointer-events:none` 시) `.haru-prompt-pill--bare` → (pill 도 끄면) `.haru-prompt-carousel__slide` — 셋 다 가로 hit **33.5** 그대로 |
+| 수정 | `packages/ui/src/carousel/PromptCarousel.css` — `.haru-prompt-carousel__bar .haru-prompt-carousel__track { pointer-events: none; }` 한 규칙. `D4-135` 취지(표시 전용 내용이 탭을 받지 않음 · 쌓임 순서 변경 없음 · 시각 0) 그대로, 대상만 배지 → 요약 트랙. 상세 트랙(노트)·`PromptPill`(Home 카드 · Book Detail · 세션 popover)은 변경 없음 |
+| 영향 검토 | 트랙 안 포커스·상호작용 대상 0(`PromptPill` = 텍스트 + `Tag` span). 스와이프 `onPointerDown/Up` 은 캐러셀 루트에 있어 이벤트가 그대로 버블된다(`session-prompts.spec.ts` 통과) |
+| 테스트 | `e2e/session-regression.spec.ts` `test.fail` → 일반 `test` ("K2-D1 — … 표시 전용 요약 트랙이 탭을 받지 않는다"), 위 Drawer 테스트의 `Previous prompt` 제외 필터 제거. 결과 가로 hit ≥ 44 통과. **되돌림 확인**: 규칙을 `auto` 로 바꾸면 `33.5`(blocker `haru-tag`)로 실패 → 복원 |
+| 검증 | typecheck · lint · test(171 files / 2480) · lint:boundaries · build · format:check · assert:no-mocks 통과. test:e2e 단독 **515 passed (12.1m)**, 실패 0 · `test.fail` 1건(K1-3 320×568)만 남음 · baseline 갱신 0 · 다른 Playwright·vite 프로세스 0, 포트 5173 미사용 |
+| BACKEND_INTEGRATION_PENDING | 신규 0 |
+
+# `S4-G2M` — Prompt Drawer 닫힘 모션 (`D4-137` · `D4-138`) + `VG-FIN-02` (2026-11-04, development-agent)
+
+## G2M-1. 변경
+| 파일 | 내용 |
+|---|---|
+| `packages/ui/src/sheet/Sheet.css` | 로컬 변수 `--haru-sheet-exit-extra`(기본 `0px`) · `haru-sheet-out` 끝 값과 정적 `.haru-sheet--closing` 을 `translateY(calc(100% + var(--haru-sheet-exit-extra)))` 로 같게 · `.haru-sheet--floating` 만 `var(--sheet-floating-inset-block-end)`. 새 토큰 0 · 새 `@keyframes` 0 · reduce 블록 그대로(opacity 만) |
+| `packages/ui/src/sheet/Sheet.tsx` | (Q1 공유) 닫힘 중 `inert` · `aria-modal` 제거 · scrim `onClick` = `dismissible && state === 'open'` (탭은 흡수, `onClose` 재호출 0) |
+| 열림 모션 · 서재 `inset-card` | 변경 0 (Q2 · Q4). `inset-card` 닫힘 끝 top 838 (393×852) 그대로 |
+
+## G2M-2. §20.8 검증 (측정 방법은 `e2e/prompt-drawer-close.spec.ts` 머리 주석)
+| # | 결과 |
+|---|---|
+| ① 끝 위치 | 393×852 · 320×568 · 1024×768: keyframe 끝(끝 − 0.01ms seek) top = 정적 값 top = innerHeight (852 / 568 / 768), translateY = 높이 + 24 (353 / 371 / 353). 자연 재생 rAF 샘플 단조 증가, 되튐 0 |
+| ② 다른 variant | bottom(Reading Context) translateY 459 = 높이 · inset-card(Library 서가) 798 = 높이 → 현행 `100%`. baseline 재생성 0 |
+| ③ 언마운트 프레임 | **기준 미달 → 수정 안 함 (Q3)**. 하단 120px 띠의 채널 차: 393×852 **max 7 / 575px** · 320×568 **max 8 / 393px** · 1024×768 **max 8 / 754px**. 차이가 나는 행은 **뷰포트 맨 아래 2행뿐**. 시트 `box-shadow` 만 꺼서 다시 찍으면 **세 뷰포트 모두 max 0** → 원인은 `--shadow-glass-rest` 위쪽 번짐 잔여로 확정(런타임 토글). 기준 테스트는 `test.fail`(Q3 결정 후 해제) + 원인 분해 테스트는 일반 통과 |
+| ④ reduce | 닫힘 전 프레임 transform `none` · top 고정 · opacity 단조 감소 → 끝 < 0.3 |
+| ⑤ 포커스 | 닫힘 첫 rAF 프레임 activeElement = Prompts 칩 (no-preference · reduce 둘 다), 기존 AC-4-137 ③ 통과 |
+| ⑥ 닫힘 중 | `inert` · `[aria-modal="true"]` 0 · 화살표 좌표 hit = scrim, 클릭해도 `Prompt 1 of 7` 유지 · scrim·Record 자리 연속 탭 → 일시정지 0 · 칩 Enter 로 팝업 재열림 → Escape 로 닫힘(양보 0). `onClose` 1회는 단위 테스트(4 variant) |
+| ⑦ | `stage4-motion-guards.test.ts` 변경 없이 통과 |
+
+## G2M-3. 테스트 · 되돌림 확인
+- `packages/ui/src/sheet/__tests__/Sheet.test.tsx` +8 (bottom · full · inset-card · floating × 닫힘 중 속성 / scrim 연속 탭 onClose 1회)
+- `e2e/prompt-drawer-close.spec.ts` 신규 14 (① 4 · ② 2 · ③ 6(`test.fail` 3 포함) · ⑥ 1 · ④ 1)
+- `e2e/session-regression.spec.ts` `VG-FIN-02` +2: 활성 2/7쪽 · 5/5쪽 `Previous prompt` 가로 hit ≥ 44 (`previousHitExtent` 공용화)
+- 되돌림: Sheet.css·tsx 를 HEAD 로 → 단위 8 전부 실패, e2e ①×3 · ②×2 · ③ 원인×3 · ⑥ 실패. `PromptCarousel.css` `pointer-events: auto` → K2-D1 · VG-FIN-02 2건 33.5 로 실패(5쪽 blocker = 문구). 전부 복원(`cmp` 확인)
+
+## G2M-4. 공유 `Sheet` 회귀
+마이크 시트 · 대화 전용 시트 · Reading Context · 온보딩 선택 시트 · Library 서가/Book Detail 전 e2e 와 시각 baseline 통과, baseline 재생성 0. 시각 변화는 floating 닫힘 거리뿐.
+
+## G2M-5. 검증
+typecheck · lint · lint:boundaries(791 modules, 위반 0) · format:check · build · assert:no-mocks 통과. `test` **2480 → 2488 / 171 files**. `test:e2e` 단독 **515 → 531 passed (12.7m)**, 실패 0 (`test.fail` 4 = K1-3 + ③ 3). `e2e/__screenshots__` 변경 0. 다른 Playwright·vite 프로세스 0, 포트 5173 미사용. `apps/api` · `supabase` · `apps/mobile` 없음.
+
+## G2M-6. 사용자 결정 필요
+- **Q3**: 언마운트 프레임 그림자 잔여 max 7~8(기준 5) · 바닥 2행. ⓐ 이동 거리에 그림자 위쪽 번짐 추가(토큰 후보 `--sheet-floating-exit-shadow-reach`) ⓑ 닫힘에 opacity 추가(비대칭) ⓒ 수용. 결정 후 ③ `test.fail` 해제.
+
+## G2M-7. `BACKEND_INTEGRATION_PENDING`
+신규 0.
+
+# `S4-G2MF` — floating 닫힘 거리 + 그림자 번짐 (`D4-139`) (2026-11-04, development-agent)
+
+## G2MF-1. 번짐 값 (`R-SHADOW-1` 3)
+- 겹별 위쪽 도달 = blur − offsetY (spread 0): `0 2 4` → 2 · `0 12 28` → 16 · `0 28 56` → **28**. 합성 도달 = 겹 최댓값 28 (inset 2겹은 박스 밖에 안 그림).
+- 픽셀 프로브(Chromium dsf 1, 흰 배경, 300×250 r28 박스 위 1px 열): 겹별 첫 비0 행 2 / 14 / 22, 3겹 합성 채널 차 1px 위 10 · 4px 6 · 8px 4 · 16px 1 · 22px 1 · 23px 이상 0.
+- 채택 **28px** (정의 상한 ≥ 실측 22 — 엔진 blur 근사에 기대지 않음).
+
+## G2MF-2. 변경
+| 파일 | 내용 |
+|---|---|
+| `packages/design-tokens/src/component/index.css` | 신규 `--sheet-floating-exit-shadow-reach: 28px` (근거 주석: 겹별 계산 + 실측) |
+| `packages/ui/src/sheet/Sheet.css` | `.haru-sheet--floating` `--haru-sheet-exit-extra` = `calc(inset-block-end + exit-shadow-reach)`. keyframe 끝 · 정적 `.haru-sheet--closing` 은 같은 변수라 같은 끝값. 시간 · 이징 · 열림 · reduce · 다른 variant 변경 0 |
+| `packages/design-tokens/__tests__/token-tiers.test.ts` | Component 토큰 목록에 신규 1개 |
+| `e2e/prompt-drawer-close.spec.ts` | ③ 3건 `test.fail` 해제(기준 ≤ 5 그대로) · ① translateY = 높이 + 24 + 28, staticTop ≥ innerHeight + 28 |
+| `docs/DESIGN_TOKEN_MAP.md` §8 | 행 1개 (Spec 번호 없음, `D4-139`) |
+
+## G2MF-3. 결과
+- ① 393 / 320 / 1024: translateY 381 / 399 / 381 (= 높이 + 52), top 880 / 596 / 796 (= innerHeight + 28), keyframe 끝 = 정적 값.
+- ③ 언마운트 직전↔직후 하단 120px: 세 뷰포트 **max 0 · over 0** (이전 7 / 8 / 8). 원인 분해 테스트도 withShadow · shadowOff 모두 0.
+- ② bottom 459 = 높이 · inset-card 798 = 높이 — 불변.
+- 되돌림: `--haru-sheet-exit-extra` 를 inset 만으로 → ①×3 · ③×3 실패(`max 7 / 8 / 8`, rows [1,2]) → 복원(`cmp` 확인).
+- 관찰: ⑥ 이 스펙 첫 실행에서 1회 `Try this prompt!` 숨김 대기 실패, 단독 4회 반복 · 이후 전체 실행 통과 (변경과 무관한 타이밍으로 판단, 미수정).
+
+## G2MF-4. 검증
+build · typecheck · lint · lint:boundaries(791 modules, 위반 0) · format:check · assert:no-mocks 통과. `test` **2488 / 171 files** 통과 (`token-tiers` 목록 +1, `fonts.test` manifest component 261 → 262 — 신규 토큰 반영; 테스트 수 불변). `prompt-drawer-close.spec.ts` 단독 14/14 (`test.fail` 0).
+`test:e2e` 단독 전체 2회: **529 passed · 2 failed (15.9m)** → **530 passed · 1 failed (15.9m)**. 실패는 매회 다른 테스트 — 1회차 `onboarding.spec.ts:184` · `session-notices.spec.ts:365`, 2회차 `onboarding.spec.ts:226`. 셋 다 단독 재실행 통과(앞 둘 3/3, onboarding 전체 80/80 ×2). `floating` 변형은 Prompt Drawer 만 쓰므로(`SessionPromptsDrawer`) onboarding 과 무관 — 장시간 실행 타이밍 flake 로 판단, 미수정·QA 확인 요청. `e2e/__screenshots__` 변경 0 (untracked `session-exceptions.spec.ts/` 는 11-02~03 기존 파일). `apps/api` · `supabase` · `apps/mobile` 없음. `BACKEND_INTEGRATION_PENDING` 신규 0.
+
+# `S4-H4` — 4b QA 1회차 후속 (`D4-140`~`D4-146`) (2026-11-07, development-agent)
+
+근거: Plan rev 1.6 §13.5 · §14 (AC-4-35·36 화면 부분 · AC-4-99 ③ · AC-4-103 · AC-4-154~156) · Spec §21 (APPROVED `D4-146`) · 허용 차이 `AD-S4-27`. 실행 순서 Plan §13.5-⑥ 대로 ④ 조사 → ③ → ② → ① → ⑤. 새 UI · 새 문구 0 (기존 `InlineAlert` · Toast · `error-copy.ts` 재사용). contracts · error code · endpoint 변경 0.
+
+## H4-1. 변경
+
+| 파일 | 내용 |
+|---|---|
+| `packages/ui/src/layout/AppColumn.css` | ③ `min-inline-size: min(var(--layout-min-width), 100%)` (근거 주석 — 원인 · 실측 · `AD-S4-27`). 같은 성질의 Tailwind 유틸리티 `app-column` · `min-w-app`(`design-tokens/src/utilities.css`)는 **사용처 0**(grep)이라 바꾸지 않았다 |
+| `apps/web/src/entities/session/useCreateSession.ts` | ①② 시작을 막는 응답 처리 — mutation 안에서: `SESSION_ALREADY_ACTIVE` → `details.sessionId` Detail 1건 → `ready` 면 그 세션을 성공으로(일반 시작과 같은 push) · 아니면 원 오류 · 조회 실패면 그 오류 / `ONBOARDING_INCOMPLETE` → `invalidateQueries(meKeys.detail())`(이전 값 유지) → 미완료면 아무것도 안 함(Guard 이동) · `completed` 면 원 오류. `onFailed(errorCode)` 인자 추가(기존 무인자 호출 호환) |
+| `apps/web/src/shared/copy/error-copy.ts` | `sessionStartBlockedCopy(code)` (두 코드만 기존 `ERROR_COPY` 반환, 그 외 `null`) · `joinErrorMessage` (`제목. 설명`, Q1 ⓐ) — 문구 신규 0 |
+| `features/activity-card-deck/ui/ReadingContextSheet.tsx` | prop `failed: boolean` → `failure: { title, description? } | null` · 안내가 **나타날 때 1회** `scrollIntoView({ block: 'nearest' })` (Q2 ⓑ — 기존 실패 문구 포함). 기준점용 무스타일 래퍼 `div` 1개(`InlineAlert` 가 ref 를 받지 않음, flex 항목 수 불변) |
+| `features/activity-card-deck/ui/ActivityCardDeck.tsx` | 실패 안내 선택 — 생성 실패는 `sessionStartBlockedCopy ?? startFailed`, 선택 확정 실패는 `startFailed` |
+| `features/library/StartSessionAction.tsx` | Toast `message` = `joinErrorMessage(blocked)` 또는 기존 `startFailed`. Toast API 변경 0 |
+| `mocks/sessions/MockSessionApi.ts` · `mocks/fixtures/sessions.ts` | 신규 key `session-already-active-ready` · `-paused` · `onboarding-incomplete` 가 오류를 낼 때 `onboardingState.markServerIncomplete()` · 활성 세션 fixture 에 상태·기준 시각 인자 |
+| `mocks/onboarding/onboardingState.ts` · `mocks/me/MockMeApi.ts` · `mocks/index.ts` | `markServerIncomplete` / `serverIncomplete` — 표시 후 `me` 기본 응답 = `in_progress`(제출이 우선) |
+| `apps/web/src/dev/recording-measure/latency-core.ts` (신규) · `RecordingMeasurePage.tsx` | ⑤ 측정판 ⑧ 시작 지연 · ⑨ 판정 스트림 (H4-6) |
+| `apps/web/src/test/harness.tsx` | `errorCodes` 옵션 (어긋남 재현용 — Mock 번들 옵션 전달만) |
+| `playwright.config.ts` | project `chromium-classic-scrollbar` 추가(`ignoreDefaultArgs: ['--hide-scrollbars']`, `scrollbar-classic.spec.ts` 전용 · 기본 project 는 그 파일 제외) |
+| `e2e/support/clock.ts` (신규) · `session-notices` · `session-complete` · `session-regression` spec | ④ Toast 수명 대기 7개 테스트를 실시계 → 주입 clock(`page.clock.runFor`)으로 (H4-2) |
+| `e2e/session-start-blocked.spec.ts` · `scrollbar-classic.spec.ts` · `recording-measure.spec.ts` (신규) · `__tests__/session-start-blocked.test.tsx` (신규) · `dev/__tests__/latency-core.test.ts` (신규) · `mocks/__tests__/MockSessionApi.test.ts` | 테스트 (H4-7) |
+| `docs/API_CONTRACTS.md` | Rev 8.13 — §5.3 · §5.4 신규 key 2 구현 확정 · `onboarding-incomplete` 개정 |
+
+## H4-2. ④ `QA-4B-003` — 원인 판별 (AC-4-156 ①②)
+
+판별 기준 = Plan §13.5-③. 프로브는 저장소 밖 gitignored `.omc/s4h4/` (`p12.probe.ts` = QA P12 v1 과 같은 흐름 · 심장박동만 · rAF 루프 없음 + `visibilityState` · `hasFocus()` · `freeze`/`resume` · `blur`/`focus` 기록 · 9초 뒤 1회 rAF 요청 후 재측정). 로그 `.omc/s4h4/step1-run1.log` · `step1-run2-trace.log` · `p12-final-50.log`.
+
+| 단계 | 방법 | 결과 |
+|---|---|---|
+| 1 재현 | P12x `--repeat-each=30`(trace off) + `=40`(trace `retain-on-failure` — 기본 설정과 같은 screencast 조건) | **재현 0 / 69** (30회 중 1건은 측정 중 내가 소스를 고쳐 HMR 이 페이지를 다시 그린 실패 — 원인 기록 · 집계 제외). 전 회차 심장박동 39~42 · 최대 간격 정상 · `visibilityState` 항상 `visible` · `hasFocus` true · `freeze` 0 · Toast `closing` +4004ms → 언마운트 +184ms |
+| 1′ QA 실패 기록 재분석 | QA `flake-run2/trace.zip` `1-trace.trace` 직독 | 완료 화면 진입 585890 → 마지막 프레임 586127 → **7,602ms 프레임 0** → 593729 재개. 그 동안 `expect` 폴링(locator 해석 13회)은 응답했다. Toast 4초 타이머가 **+7.8s 에야** 울렸다 — 막힌 것은 JS 가 아니라 **타이머·프레임 작업의 실행 시점**이다. QA P12 v1 실패 1건도 앱과 무관한 심장박동 `setInterval` 이 Toast `closing` 과 같은 250ms 창에서 멈췄고(20/40) `evaluate` 는 응답했다 |
+| 2 억제 해제 인자 | `playwright-core@1.63.0` `lib/coreBundle.js` `chromiumSwitches` 직독 | `--disable-background-timer-throttling` · `--disable-backgrounding-occluded-windows` · `--disable-renderer-backgrounding` 가 **이미 기본**이다. 즉 1단계 69회가 곧 "억제 해제 상태" 실행이며 재현 0 |
+| 3 제품 측 | `[직독]` `packages/ui/src/feedback/ToastProvider.tsx` timer effect(`[open, toast]` · cleanup `clearTimeout`) · `hooks/usePresence.ts`(`exiting` effect) | 타이머가 도는 상태(심장박동 정상)에서 `closing` 뒤 미언마운트 **0 / 69**. 또 제품 코드는 **남의 `setInterval` 을 멈출 수 없고**, JS 를 막는 경로(동기 루프 · `alert` · 동기 XHR)는 CDP 응답도 막는다 — QA 관측(심장박동 정지 + CDP 응답)과 양립하는 제품 경로가 없다. grep: `apps/web/src` · `packages/ui/src` 에 `alert(`·`confirm(`·`prompt(`·동기 XHR 0 |
+| 4 실기기 | `D4-143` 수동 확인 목록에 추가 권고 | 미실시 (사용자) |
+
+**결론: 테스트 환경 요인**(OS·브라우저가 보이지 않는 headless 렌더러의 타이머·프레임 작업을 미룸). 보강 정황: QA 실패 3건의 시각이 전부 **01:13 · 01:38 · 01:44 KST**(사용자 유휴 시간대), 이번 69회는 주간 사용자 활동 중 — 재현 조건(장시간 유휴 · 전원 관리)은 이 세션에서 만들 수 없었다. 이 한계는 판정 근거 ①(독립 심장박동 동시 정지) · ②(CDP 응답 중 타이머·프레임만 정지)로 보완했다.
+
+**조치 (환경 요인 → 기다리는 방식 안정화)**: Toast 수명을 **실시계로 기다리던 7개 테스트**(e2e 전체의 실시계 Toast 대기 전부)를 주입 clock 으로 바꿨다 — `e2e/support/clock.ts` `advanceUntil` / `advanceUntilToastGone` / `advanceUntilToastText` (페이지 로드 전 `page.clock.install()`, 조건이 맞을 때까지 `page.clock.runFor(100)` 반복, 상한 15s 가짜 시간). `runFor` 는 CDP 로 페이지 안 가짜 타이머를 실행하므로 실제 타이머가 미뤄져도 결과가 같다. 고정 ms sleep 0 · 재시도·`skip`·임계값 변경 0 · launch 인자 추가 0(더할 인자가 없다).
+
+| spec | 테스트 | 바뀐 대기 |
+|---|---|---|
+| `session-notices.spec.ts` | `VG-H3-02` 보류 안내 Submit 경로 (QA 1회차 실패 365 의 짝) · Discard 경로(365) · AC-4-153 14일 → 48h | `toHaveCount(0,{10s})` ×4 · `toHaveText(RECOVERED,{10s})` ×2 · `waitForTimeout(1000)` → `clock.runFor(1000)` · `toContainText(STALLED,{8s})` |
+| `session-regression.spec.ts` | 완료 화면 닫기 터치 타깃(351, QA 2회차 실패) · `D4-82` 박스 목록(637) | `submitToComplete` · 637 의 `toHaveCount(0,{8s})` |
+| `session-complete.spec.ts` | Submit 경로 스티커 · 재진입 · reduce Submit 경로 | `toHaveCount(0,{8s})` ×3 |
+
+AC-4-156 ③ P12 `--repeat-each=50`: H4-8 참조. ④ 실시계 Toast 대기 신규 0 — grep `toHaveCount(0, { timeout` · `waitForTimeout` (H4-8).
+
+## H4-3. ③ 클래식 스크롤바 (AC-4-99 ③, `QA-4B-004`)
+
+원인 = Spec §21.3 그대로(`AppColumn.css` `min-inline-size: 320px` 가 스크롤 박스 안쪽 305 보다 큼). 수정 `min(var(--layout-min-width), 100%)` (NB-17 ⓐ, `AD-S4-27`). 상설 e2e `e2e/scrollbar-classic.spec.ts` — project `chromium-classic-scrollbar` 전용, **16건**: 환경 확인 1(320×568 Library: 스크롤바 폭 **15** · `clientWidth 305` · 컬럼 **305**) + 5 크기(320×568 · 320×852 · 393×600 · 600×800 · 1024×500) × 3 묶음(Welcome+온보딩 첫 화면 · Home+Library · 세션 ready+recording+완료). 각 화면 양축 프로브: 스크롤 박스 `scrollWidth ≤ clientWidth` · 문서 가로·세로 넘침 0 · 컬럼 중심 = 박스 `clientWidth` 중심 ±0.5 · 컬럼 폭 = `min(clientWidth, 480)` · 스크롤이 생긴 화면은 스크롤바 폭 > 0. 기본(오버레이) project 시각 baseline 재생성 0 (H4-8). `R-SHADOW-1` ⑥ 그림자 세로·가로 프로브 = 기존 `e2e/shadow.spec.ts` 전체 재실행 통과(H4-8).
+
+## H4-4. ② AC-4-36 화면 부분 (`QA-4B-002`, NB-16)
+
+| ① `me` 재조회 1건 → Guard 이동 | unit `session-start-blocked.test.tsx` Home · 서재 (`GET /v1/me` 증가 = 1, 도착 `/onboarding…`) · e2e `session-start-blocked.spec.ts` AC-4-36 2건 (`me` +1 · 도착) |
+|---|---|
+| ② 일반 실패 문구 0 | 같은 테스트 — `startFailed` · `ONBOARDING_INCOMPLETE` 문구 0, e2e 프레임마다 `[role=alert]`·Toast 0 |
+| ③ 어긋남 → 기존 문구 · 이동 0 · 루프 0 | unit — `sessions.create:error` + `errorCodes {'sessions.create':'ONBOARDING_INCOMPLETE'}`(Mock 연동 표시 없음 → `me` 그대로 `completed`) → 시트 `A few setup steps are left` + 설명 · `/` 유지 · 탭마다 `me` 1건(2탭 = 2, 50ms 더 기다려도 불변) · 서재 Toast `제목. 설명` |
+| ④ 두 경로 동일 | 위 Home · 서재 짝 |
+| T1 · T2 · T5 | e2e 프레임 기록(rAF, 탭 이후): 출발 화면 프레임 전부 `aria-busy` · 알림/Toast 프레임 0 · Guard 전체 화면 Spinner 프레임 0 (Home `/` 2프레임 busy 2 · 서재 `/library` 1 busy 1 → `/onboarding/start`) |
+| Mock | `sessions:onboarding-incomplete` 409 뒤 `me` = `in_progress` · 아이 참조 없음 (unit `MockSessionApi.test.ts`) · `error` 로 같은 코드를 내면 연동 0 (unit) |
+
+## H4-5. ① AC-4-35 화면 부분 (`QA-4B-001`, CP-15 ⓐ · NB-18 · `D4-146`)
+
+| 기준 | 증거 |
+|---|---|
+| ① 일반 실패 문구 0 | unit · e2e `recording`/`paused` 경로 — `We couldn't start…` 0 |
+| ② Detail 조회 1건 | unit `GET /v1/sessions/:sessionId` = 탭당 1 (재탭 후 2) · e2e = 1 |
+| ③ `ready` → 그 세션 화면 (push) · 새 생성 0 | unit Home · 서재 → `/session/99999999-…0001` + `Start recording` · `POST /v1/sessions` = 1 · e2e `history.length` +1 (push, `D4-146`) |
+| ③ `recording`/`paused` → 기존 문구 · 이동 0 · 녹음·로컬 변화 0 | unit 2 key × 2 경로 · e2e Home 2 key(전이·녹음 요청 0) · 서재 Toast = `A storytime is already open. Continue the open storytime, or finish it before starting a new one.` |
+| ④ Detail 조회 실패 → 기존 일반 실패 문구 (`D4-146` Q4) | unit Home `startFailed` 시트 · 서재 `startFailed` Toast (`sessions.getdetail:error`) |
+| ⑤ 재탭 → 같은 결과 · 이중 요청 0 | unit 재탭 → 생성 2 · Detail 2 (탭당 1) · 같은 문구 · `loading` 중 재탭 무시는 기존 `Button` 규칙 |
+| Q2 ⓑ 스크롤 | unit `scrollIntoView({block:'nearest'})` **1회**(이후 재렌더 0) · 기존 실패 문구에도 1회 · e2e 320×568 — 안내 전체가 시트 내용 박스 안 · `Continue` 화면 안 |
+| T1 · T2 · T3 (Spec §21.2) | e2e 프레임 기록: 출발 화면 비-busy 프레임 0 · 알림/Toast 프레임 0 · 시트 없는 Home 프레임 0. Mock 응답이 즉시라 이동이 탭과 같은 프레임 안에 끝난다(Home 경로 출발 화면 기록 프레임 0 · 세션 화면 첫 프레임 7 · 서재 2) — "위반 프레임 0" 으로 판정 |
+| T4 (권고, 필수 아님) | **하지 않음** — 세션 화면 Detail 은 `staleTime: Infinity` 라 시작 쪽 값을 캐시에 넣으면 그 화면이 재조회하지 않는다. 일반 경로와 같은 Spinner 프레임을 유지했다 |
+
+Mock 시간 기준 (발견 · 처리): 브라우저 Mock 의 서버 시계는 고정 epoch 라 `ready` 활성 세션의 `readyAt` 을 서버 시계로 만들면 기기 녹음 상태 머신이 10분 방치(`D4-45`)로 즉시 정리해 Home 으로 돌아갔다(e2e 첫 실행 실패로 발견). `create` 가 seed 할 때 **요청 본문 `readyAt`(= 기기의 지금) 기준 2분 전**으로 만든다 — 실제 서버(서버 시계 ≈ 기기 시계)와 같은 결과. `getDetail` 이 먼저 seed 하는 경우는 기존대로 서버 시계.
+
+## H4-6. ⑤ 측정판 보강 (AC-4-154 · 155, `D4-144`)
+
+`/__dev/ui/recording-measure` 에 섹션 1개 (`SessionStartMeasure`) — ⑧ `녹음 시작 지연 1회 (n/5)` · ⑧ 기록 지우기 · ⑨ `판정 스트림 관측`.
+
+- **A (AC-4-154)**: 회차마다 **새 제품 `createWebRecorderAdapter`** → `start({ timesliceMs: 1000 })` → 첫 청크(상한 5s) → `stop` · `dispose`. 탭 = 버튼 `click` 이벤트 `timeStamp`, 끝점 = `performance.now()` (같은 시간축). 두 이벤트는 측정 중에만 `MediaRecorder.prototype.start` 를 감싸 **제품이 만든 그 인스턴스에** `start` · 첫 `dataavailable` 리스너를 붙여 잰다 → 별도 `MediaRecorder` 0 · **어댑터·환경 코드 변경 0**(관찰 콜백을 추가하지 않았다 — Plan §13.5-⑤ 의 선택지 중 제품 코드를 건드리지 않는 쪽, 임의 판단으로 보고). 5회 표 + 끝점별 중위값 · UA · 첫 청크 `mimeType` · timeslice 표시. 탭→start 에는 `getUserMedia` 열기가 포함된다(세션 녹음 시작과 같은 경로 — 판정이 연 스트림은 판정 뒤 놓이므로 녹음 시작이 다시 연다). 화면 안내: 권한을 먼저 허용해 프롬프트 시간이 섞이지 않게.
+- **B (AC-4-155)**: 측정 전용 `createSessionRecorderEnvironment({ platform: createWebRecordingPlatform, … })` 의 **실제 `resolveSessionMode`** 를 호출(앱이 Mock 모드여도 Web 플랫폼 — 판정은 `clients` 를 쓰지 않는다). 그 동안만 `navigator.mediaDevices.getUserMedia` 를 감싸 반환 스트림을 모으고 `finally` 에서 원복 → 반환 직후 · +1s 트랙 `kind:readyState` · 판정 결과 · 원복 여부 표시 + OS 표시등 육안 확인 안내. ⚠️ 권한이 이미 허용/차단이면 판정은 **스트림을 열지 않는다**(`checkPermission` 만) — 그때 화면이 "판정이 마이크를 열지 않았다 — 권한을 '묻기'로 되돌린 뒤" 를 안내한다. `NV-4B-3` 실측은 권한 '묻기' 상태에서 해야 한다(사용자 절차 메모).
+- 🔒 `console` 0(e2e 단정) · 트랙 `label`(장치 이름) 미표시 · Production 제외(`assert:no-mocks` 통과 · `apps/web/dist` grep `measure-start-latency`·`watchedStart`·`watchedGetUserMedia` 0).
+- unit `dev/__tests__/latency-core.test.ts` 6건 — 실제 `createWebRecorderAdapter` + 가짜 환경(prototype `start` 를 가진 가짜 네이티브 레코더): 두 끝점 55 / 1025ms · MIME · prototype 원복 · 스트림 해제 / 상한 → `null` / 감싸기가 원래 `start` 를 같은 대상·인자로 부름 / 중위값 / 판정 관측 · 실패해도 원복. e2e `recording-measure.spec.ts` 1건 — Chromium 가짜 마이크(`--use-fake-device-for-media-stream`, 이 파일만 `test.use`)로 5회 표 · 중위값 · ⑨ 판정 `recorded` · 원복 · 320 가로 넘침 0 · console 0.
+
+## H4-7. 추가·수정한 테스트
+
+| 종류 | 파일 | 수 |
+|---|---|---|
+| unit | `apps/web/__tests__/session-start-blocked.test.tsx` (신규) | 14 |
+| unit | `apps/web/src/dev/__tests__/latency-core.test.ts` (신규) | 6 |
+| unit | `apps/web/src/mocks/__tests__/MockSessionApi.test.ts` (key 목록 +2 · 신규 5) | +5 |
+| e2e | `e2e/session-start-blocked.spec.ts` (신규, 프레임 기록 T1~T5) | 8 |
+| e2e | `e2e/scrollbar-classic.spec.ts` (신규, project `chromium-classic-scrollbar`) | 16 |
+| e2e | `e2e/recording-measure.spec.ts` (신규, 가짜 마이크) | 1 |
+| e2e | `session-notices` · `session-complete` · `session-regression` — Toast 대기 7개 테스트를 주입 clock 으로 (단정 변경 0) | 0 |
+
+테스트 수: unit **2488 → 2513** (171 → 173 files) · e2e **531 → 556** (24 → 26 files, project 2).
+
+## H4-8. 검증 (전부 이 세션 실행, Playwright 단독 — 다른 Playwright 프로세스 0, 포트 4319 만 사용 · 5173/5174 미접촉)
+
+| 명령 | 결과 |
+|---|---|
+| `pnpm typecheck` | 통과 |
+| `pnpm lint` | 통과 |
+| `pnpm lint:boundaries` | 위반 0 (794 modules, 3019 dependencies) |
+| `pnpm format:check` | 통과 |
+| `pnpm test` | **2513 passed / 173 files** |
+| `pnpm build` | 통과 (500 kB chunk 경고는 기존과 같다) |
+| `pnpm assert:no-mocks` | MOCK · DEV sentinel · `haru-dev-` · sharp 흔적 0 · 추가 grep `apps/web/dist` 에 `measure-start-latency` · `watchedStart` · `watchedGetUserMedia` 0 |
+| P12x `--repeat-each=50` (수정 후, trace `retain-on-failure`) | **50 passed (9.7m)** — Toast 잔존 0 · 심장박동 40~41 · visibility 변화 0 (`.omc/s4h4/p12-final-50.log`). ⚠️ 수정 전에도 0/69 였으므로 이 50회는 "환경이 조용할 때 재현 0" 이상을 증명하지 않는다 — 안정화의 근거는 H4-2 의 대기 방식(주입 clock)이다 |
+| `pnpm test:e2e` 단독 1회차 (14일 테스트 변환 전) | **556 passed (12.4m)** · 실패 0 |
+| `pnpm test:e2e` 단독 2회차 (최종 코드) | **556 passed (12.3m)** · 실패 0 (`.omc/s4h4/e2e-run2.log`) |
+| `pnpm test:e2e` 단독 3회차 (최종 코드, 2회차에 이어) | **556 passed (12.3m)** · 실패 0 (`.omc/s4h4/e2e-run3.log`) → **연속 2회 통과** (AC-4-103) |
+| `e2e/__screenshots__` | 변경 0 (`git status` = 기존 미추적 `session-exceptions.spec.ts/` 뿐) — baseline 재생성 0 |
+| 실시계 Toast 대기 grep (AC-4-156 ④) | `e2e/*.ts` 의 `toHaveCount(0, { timeout` 0 · Toast `{ timeout` 0 (신규 spec 의 Toast 단정은 즉시 표시 확인뿐) |
+| `apps/api` · `supabase` | 없음 (`ls` → No such file) |
+
+## H4-9. `BACKEND_INTEGRATION_PENDING` (Plan §13.5-⑧ 그대로)
+
+- 기존 AC-4-35 · 36 서버 부분 — `SESSION_ALREADY_ACTIVE` · `ONBOARDING_INCOMPLETE` 서버 판정 (`BACKEND_HANDOFF` · `ERROR_CODES`)
+- **`P4B-BIP-07`** — 탭·기기가 사라져 끝나지 않은 `recording` · `paused` 세션이 새 세션 생성을 무기한 막지 않도록 서버 정리 규칙 (업로드 지연 48h · 14일 `D4-29` 와 충돌 금지)
+- **`P4B-BIP-08`** — 세션 endpoint 가 `ONBOARDING_INCOMPLETE` 를 낸 시점에 `GET /v1/me` 의 `onboardingStatus` 도 `completed` 가 아닐 것 (Frontend 는 `me` 로 이동 지점을 정한다 — 어긋나면 안내만 하고 멈춘다)
+- 신규 추가 0
+
+## H4-10. 결정 필요 · 임의 판단 (승인 필요)
+
+1. **측정판 A 의 관찰 방식** — Plan §13.5-⑤ 는 "어댑터가 `start` 시각을 내지 않으면 관찰 전용 선택 콜백 1개 추가" 를 적었다. 콜백을 추가하지 않고 **측정 중에만 `MediaRecorder.prototype.start` 를 감싸** 제품 인스턴스에 리스너를 붙였다(제품 코드 변경 0 · 별도 `MediaRecorder` 0 · 원복 unit). 콜백 방식을 원하면 바꾼다.
+2. **`NV-4B-3` 실측 절차** — 권한이 이미 허용이면 `resolveSessionMode` 는 스트림을 열지 않는다(제품 동작 — `checkPermission` 만). 마이크 표시등을 관찰하려면 사이트 권한을 "묻기" 로 되돌린 뒤 ⑨ 를 눌러야 한다 → QA 리포트 §6 `NV-4B-3` 절차에 이 전제를 더해야 한다(stage-qa-agent).
+3. **Mock `ready` 활성 세션의 시각 기준** — 요청 본문 `readyAt` 기준 2분 전 (H4-5). 서버 시계를 쓰면 브라우저 Mock 에서 즉시 방치 정리되어 재현이 불가했다.
+4. **QA-4B-003 범위** — QA 가 실패를 본 2개 테스트 외에 같은 대기 방식의 5개 테스트도 함께 바꿨다(e2e 실시계 Toast 대기 전부, 단정 변경 0). 재현 조건(01시대 유휴)을 이 세션에서 만들지 못했다 — 판정은 QA 기록 재분석 + 메커니즘 근거다. 실기기·일반 창 확인(Plan §13.5-③ 4단계)은 `D4-143` 목록 추가를 권고한다.
+5. **T4 캐시 미적용** (권고 항목) — H4-5 사유.
+6. 이 단위는 **design-agent Visual Gap**(Spec §21.3 매트릭스 · §21.2 프레임 · 320 클래식 Home 버블 보조 줄 픽셀 확인)이 남아 있다 (CLAUDE.md 최우선 규칙 5).
+
+## H4-11 VG-H4-09 — 버블 보조 줄 말줄임 (`D4-147`, 2026-11-07, development-agent)
+
+- **변경**: `packages/ui/src/bubble/SpeechBubble.css` 한 곳. 오른쪽 padding 을 컴포넌트 지역 변수 `--haru-bubble-padding-end`(기본 `--bubble-padding-x`, dismissible = `--icon-button-size + --bubble-dismiss-inset`)로 한 곳에서 정하고, `.haru-bubble__hint` 에 `margin-inline-end: calc(-1 * 그 값)` + `overflow: hidden` + `text-overflow: ellipsis` (`nowrap` 유지, `Text` 1줄 말줄임과 같은 조합). → 보조 줄 박스 끝 = **버블 가장자리**, 넘칠 때만 말줄임. 새 토큰 0 · arbitrary 값 0. 근거 주석 `D4-147` · `VG-H4-09` · `R-SHADOW-1` 점검.
+- **실측 (Home, 수정 전 → 후)** — 보조 줄 `clientWidth`/`scrollWidth`:
+  | 환경 | 버블 L–R | 전 | 후 | 렌더 픽셀 diff (전체 프레임) |
+  |---|---|---|---|---|
+  | 클래식 320×568 | 39–281 | 186/228, 잉크 x281=139·x282=202 (버블 밖) | 226/228 → `…` 말줄임, 잉크 끝 ≈x277, x281~ 배경 | 80px (x269–282 · y115–122, 말줄임 자리만) |
+  | 오버레이 320×568 · 320×852 | 39–296 | 201/228 | 241/241 (안 잘림) | **0** |
+  | 오버레이·클래식 393×852 · 600×800, 클래식 320×852 | — | — | 안 잘림 | **0** |
+- **테스트**: `e2e/scrollbar-classic.spec.ts` (클래식 320×568 — 박스 끝 ≤ 버블 끝 281 · overflow hidden · 말줄임 걸림 · 버블 바로 바깥 4px 띠를 글자 투명 토글과 비교해 동일 = 잉크 0), `e2e/home.spec.ts` (오버레이 320 — `scrollWidth ≤ clientWidth` · 글자 끝 ≤ 296 · 전문 일치). 수정 전 CSS 로 두 테스트 모두 **실패 확인**(칸 기준 단순 `overflow: hidden` 도 home 테스트에서 실패한다).
+- **검증**: typecheck · lint · lint:boundaries(위반 0) · format:check · build · assert:no-mocks 통과 · `pnpm test` 2513/173 · `playwright test` 단독(포트 4319) **558 passed (12.3m)** · `e2e/__screenshots__` 변경 0 (기존 미추적 `session-exceptions.spec.ts/` 뿐, `--update-snapshots` 미사용).
+- **참고 (승인 필요 아님, 관찰)**: 클래식 320 의 말줄임 `…` 끝 점이 버블 오른쪽 아래 radius 22 곡선 근처에 놓인다(잉크는 버블 안). design-agent Visual Gap 에서 육안 확인 권고.
+
+## H4-12 U-2 — 자르는 끝을 곡선 안쪽으로 (`D4-148`, 2026-11-07, development-agent)
+
+- **변경**: `packages/ui/src/bubble/SpeechBubble.css` `.haru-bubble__hint` 한 줄 — `margin-inline-end: calc(-1 * var(--haru-bubble-padding-end) + var(--space-2))` (명세 `docs/design/stage-4b-visual-gap-h4.md` §3.1). 기존 토큰 `--space-2`(8)만 사용 · 신규 토큰 0 · arbitrary 값 0. 근거 주석에 `D4-148` · `U-2` 추가(`D4-147` 문단의 "버블 가장자리" → "클립 끝"). `overflow: hidden` · `text-overflow: ellipsis` · `nowrap` 그대로. `R-SHADOW-1`: 박스 안 그림자 요소 없음.
+- **실측 (테스트 단정)**: 오버레이 320×568 — 버블 R 296 · 보조 줄 박스 R **288** · 문구 끝 283 ≤ 288(여유 5) · `scrollWidth ≤ clientWidth`(말줄임 없음) · 전문 일치. 클래식 320×568 — 버블 R 281 · 박스 R **273** · 말줄임 걸림(`scrollWidth > clientWidth`) · 박스 끝 오른쪽 띠 x273–284 에 보조 줄 잉크 0(글자 투명 토글 비교 동일).
+- **테스트 (기존 2건 갱신, 새 파일 0)**: `e2e/home.spec.ts` "320 에서 버블 보조 줄이 말줄임 없이 전부 보인다" — `hintRight === bubbleRight − 8 === 288` · `textRight ≤ hintRight` 추가, 제목에 `D4-148` 병기. `e2e/scrollbar-classic.spec.ts` — `hintRight === bubbleRight − 8 === 273` 단정, 잉크 띠 `x = hintRight`, `width = bubbleRight − hintRight + 4`. **현행 `D4-147` CSS 에서 두 테스트 실패 확인** (288 기대 / 296 수신 · 273 기대 / 281 수신) → 변경 후 통과.
+- **검증**: typecheck · lint · lint:boundaries · build · format:check · assert:no-mocks 통과 · `pnpm test` 2513/173 · `playwright test` 단독(포트 4319 재사용) **557 passed / 1 failed (12.3m)** · `e2e/__screenshots__` 변경 0 (미추적 `session-exceptions.spec.ts/` 기존분뿐, `--update-snapshots` 미사용).
+- **실패 1건 — U-2 무관 (원인 미조치, 보고)**: `e2e/recording-measure.spec.ts:25` 측정판 ⑧⑨ — `expect(logged).toStrictEqual([])` 에 Chromium 콘솔 경고 *"inter-latin-wght-normal.woff2 was preloaded using link preload but not used within a few seconds"* 1건이 잡힘. 단독 재실행 4회 모두 재현, **`D4-147` CSS 로 되돌려도 동일 실패**(A/B) → 이번 변경과 무관. H4-11 실행(558 passed) 이후 생긴 환경/선행 변경 요인으로 보이며 범위 밖이라 수정하지 않았다 (QA 판단 필요).
+
+## H4-13 OBS-4B-9 — 측정판 콘솔 단정을 측정판 출력으로 좁힌다 (`D4-149`, 2026-11-07, development-agent)
+
+- **변경 (테스트만, 제품 코드 0)**: `e2e/recording-measure.spec.ts` `fromMeasureBoard(message, page.url())`. 기존 제외(`[vite]` · React DevTools 안내)에 더해 **스크립트 위치가 없는 브라우저 발신 메시지** = `location()` 이 `url === 문서 URL && lineNumber 0 && columnNumber 0` 인 것만 제외. 문구 매칭이 아니라 발신 위치 기준이며, `url: ''` 은 제외하지 않는다(좁히지 않음). 근거 주석에 `D4-149` · `OBS-4B-9` 와 실측값 기록.
+- **기준 근거 (실측, 임시 프로브 spec — 삭제함)**: preload 경고 `{type: warning, url: 'http://127.0.0.1:4319/__dev/ui/recording-measure', line 0, column 0}` ↔ Vite `/@vite/client:882` · React DevTools `node_modules/.vite/deps/react-dom_client.js:15804` — 스크립트 메시지는 모듈 URL + 실제 줄 번호를 갖는다.
+- **재현 (QA 절차)**: development-agent 가 4319 에 dev 서버를 직접 띄움 → 수정 전 spec **통과** → `pnpm --filter @haru/design-tokens run build` (1회, 서버 실행 중) → 수정 전 spec **실패**(preload 경고 1건) → 수정 후 **3/3 통과** (매 회 같은 프로브가 경고 발생을 함께 확인).
+- **약화하지 않았다는 증명**: `RecordingMeasurePage` 함수 본문에 `console.warn('OBS-4B-9 TEMP …')` 임시 주입 → 수정된 spec **실패**(`"warning: OBS-4B-9 TEMP injected measure-board output"` 수신) → 백업본으로 원복(`cmp` 동일, 문자열 0건) → 통과. 실험 뒤 내 dev 서버(PID 87918/87961)만 종료, 4319 LISTEN 0. 5173/5174 미접촉(단 design-tokens 재빌드 1회 + `pnpm build` 1회가 5174 에 HMR 될 수 있음).
+- **검증**: typecheck · lint · lint:boundaries(794 modules, violations 0) · build · format:check · assert:no-mocks 통과 · `pnpm test` 2513 passed · `playwright test` 단독(Playwright 자체 서버 4319, 다른 Playwright 프로세스 0) **558 passed (13.3m)** · `e2e/__screenshots__` 변경 0(미추적 `session-exceptions.spec.ts/` 기존분뿐) · `apps/api` · `supabase` 미생성. stage-qa-agent `OBS-4B-9` 재검증 요청.
+
+## H4-14 QA-4B-005 — `openReady` 대기를 단계별로 나눈다 (`D4-150`, 2026-11-08, development-agent)
+
+- **변경 (테스트만, 제품 코드 0)**: `apps/web/__tests__/session-recording.test.tsx` · `session-prompts.test.tsx` 의 `openReady`, `session-exceptions.test.tsx` 의 `startFromHome`(같은 절차, `openReady` 가 호출) — Reading Context 확인 뒤 기본 1000ms `findByRole('button', { name: copy.record.start })` 한 번이던 대기를 세 단계로 나눴다: ① `waitFor` 경로 `/^\/session\/[^/]+$/`(세션 생성 mutation → 이동) ② `waitFor` `.haru-session:not(.haru-session--pending)` 존재(상세 query pending Spinner 종료) ③ 기존 `findByRole(Start recording)`. 세 파일에 같은 코드·근거 주석(`QA-4B-005` · `D4-150` · 실측 964ms). 공용화 안 함.
+- **근거**: QA §R2-9.2 — 확인 → 녹음 버튼 지연 유휴 85~155ms · 부하 284~964ms, 25/25 도달(멈춤 0), 매번 pending Spinner 를 거침. 지연이 생성·이동·상세 query 에 걸쳐 있으므로 단계마다 기본 창을 따로 주면 한 창에 몰리지 않는다.
+- **약화 아님**: 기존 단언(녹음 버튼 등장)은 그대로 마지막에 남고, 앞의 두 단계는 단언을 **추가**한 것이다. timeout 값 변경 · retry · skip · `.only` · 전역 설정 변경 0.
+- **검증**: 세 파일 `vitest run` 3 files / 73 passed · `pnpm typecheck` 통과 · `pnpm lint` exit 0 · prettier check 통과 · `pnpm test` 173 files / 2513 passed · **부하 재현 절차**(`yes > /dev/null` ×8 + `apps/web` 전체 `vitest run` 3회) **3/3 통과** (109 files / 1703 passed, 62.3s · 64.0s · 63.3s). Playwright 미실행(지시). `apps/api` · `supabase` 미생성. stage-qa-agent `QA-4B-005` 같은 부하 절차로 재검증 요청.
+
+## H4-15 QA-4B-006 — 같은 유형 대기 전수 수정 (`D4-153`, 2026-11-08, development-agent)
+
+### H4-15-1. "같은 유형" 기준
+
+한 번의 기본 1000ms `findBy*` / `waitFor` 가 **아래 단계 중 둘 이상을 순서대로** 거쳐야 도달하는 대상을 기다리는 곳.
+
+| 단계 | 관찰 지점 (끼워 넣는 중간 대기) |
+|---|---|
+| ⓐ Route Guard 판정 — 로그인 상태 진입 시 `me` 조회 동안 Guard Spinner(`appCopy.guard.loadingLabel`) | Guard Spinner 소멸 (`waitForGuard`) |
+| ⓑ 화면 마운트 + 화면 query (서재 overview · 오늘 카드 · 동의 문서 · 세션 상세 …) | 원래 단언 / 세션 화면은 `.haru-session:not(.haru-session--pending)` (`D4-150` ②) |
+| ⓒ mutation 과 그것이 일으키는 이동 — `D4-150` ① 선례대로 **한 단계** | 경로 (`pathname`) |
+| ⓓ mutation 뒤에 이어지는 **조회** (열린 세션 Detail · `me` 재조회) | 요청 로그에 그 조회가 찍힘 |
+
+- `QA-4B-006` 자체(`library-entry-screens:73`) = ⓐ + ⓑ. 로그 DOM 이 Guard Spinner 상태였다.
+- **제외(단일 단계)**: 이미 마운트된 화면 안의 query 하나 · mutation 하나의 결과 · mutation → 이동(경로 단언) · 시트/다이얼로그 동기 열림 · Layout TopBar/탭바(Guard 밖이라 동기) · **미인증 진입**(세션이 `null` 로 `render()` 의 act 안에서 정해져 Guard 가 동기 판정) · 이미 단계별로 나뉜 곳.
+- **제외(과도 프레임)**: 단계 **사이**의 Loading 프레임을 잡는 테스트(`library-screen` Loading Skeleton · `home-stage3` `loading`). RTL 은 대기마다 macrotask 1회를 비우므로 중간 대기를 끼우면 잡으려던 프레임이 지나간다 → 그대로 둠.
+
+### H4-15-2. 대상 (14개 파일, 테스트만)
+
+| 파일 | 수정 |
+|---|---|
+| `library-entry-screens` | `renderAt` 끝에 ⓐ — 진입 테스트 12건 전부 (`:73` 포함) |
+| `library-screen` | `renderLibrary` 끝에 ⓐ (Loading 테스트는 도우미 미사용 → 제외) |
+| `library-sheets` | `renderLibrary` 의 shelves 대기 앞에 ⓐ |
+| `home-settings` | `/settings` 진입 7건에 ⓐ (Home TopBar·탭 이동·`SettingsMenu` 직접 렌더는 제외) |
+| `home-stage3` | `waitForTrack` 앞에 ⓐ + 트랙을 거치지 않는 데이터 진입 10건(서재 섹션 · 버블 · 주간 칩 · empty/error/offline · 캐시 · `session-already-active`)에 ⓐ. 탭바 4건·`loading` 은 제외 |
+| `consent-screens` | `renderSignedIn` 끝에 ⓐ · 동의 기록 → 온보딩 경로 5곳에 ⓓ(`POST /v1/consents` **뒤의** `GET /v1/me`) · 가입 → 동의 경로 앞에 ⓓ(`GET /v1/me`) |
+| `onboarding-screens` | `renderApp` 에서 `signIn: true` 일 때만 ⓐ (Trial 은 동기 판정) |
+| `session-start-blocked` | `confirmFromHome` · `startFromLibrary` 앞에 ⓐ · `ready` 이동 2건에 ⓑ(pending 종료) · `SESSION_ALREADY_ACTIVE`/Detail 실패 5건에 ⓓ(Detail 요청) · `ONBOARDING_INCOMPLETE` 5곳에 ⓓ(`me` 재조회 수) |
+| `session-ready` | `firstStartButton` 앞에 ⓐ · `startFromHome`·서재 시작 경로 뒤 ⓑ · 캐시 배너 · 서재 진입 앞에 ⓐ |
+| `session-permission` | `openReadingContext` · `openBookSheet` 앞에 ⓐ (경로 → `.haru-record` 는 이미 2단계 — 제외) |
+| `session-notices` | `mount` 의 트랙 대기 앞에 ⓐ |
+| `session-recording` | `openReady` 트랙 대기 앞에 ⓐ (`H4-14` 는 확인 뒤만 나눴다) · 재진입 `reenter` · 직접 진입 → 홈 2건 · 오류 화면 진입 2건에 ⓐ |
+| `session-prompts` | `openReady` 트랙 대기 앞에 ⓐ |
+| `session-exceptions` | `waitForHome` 앞에 ⓐ · `openConversation` 링크 이동 뒤 경로 → ⓑ · 복구 후 마운트 1건에 ⓐ |
+
+- 세션 파일의 `waitForGuard` 는 `.haru-session` 밖의 `Loading` 상태만 센다 — 세션 화면 pending Spinner 도 이름이 `Loading` 이라 ⓐ 와 ⓑ 를 다시 한 창에 묶지 않기 위해서다.
+- 도우미는 파일마다 같은 코드·근거 주석(`QA-4B-006` · `D4-153`)으로 둔다 (`H4-14` 와 같이 공용화 안 함).
+
+### H4-15-3. 제외한 파일
+
+| 파일 | 사유 |
+|---|---|
+| `src/app/__tests__/router.test.tsx` · `__tests__/auth-screens.test.tsx` | 미인증 — Guard 가 `render()` act 안에서 판정. 이후 대기는 mutation 하나 또는 mutation → 이동 |
+| `src/app/guards/__tests__/guard-integration.test.tsx` | 대기 대상이 Guard 판정 결과 자체(경로 · `<p>`) — 화면 마운트 없음, 단일 단계 |
+| `src/app/providers/__tests__/providers.test.tsx` | Mock 모듈 동적 import 1단계 |
+| `sessionRecorderEnvironment.test.ts` · `upload-queue.test.ts` · `usePushPermission.test.tsx` · `useHealth.test.tsx` | 화면·이동 없음, 단일 비동기 작업 |
+| `packages/**` | `findBy*`/`waitFor` 없음 |
+
+### H4-15-4. 약화 아님
+
+- 원래 단언은 전부 그대로 마지막에 남는다. 추가한 것은 중간 단계 단언뿐이다. 중간 단언 일부는 기존 최종 단언과 같은 값을 **먼저** 기다린다(예: `count(ME) - before === 1` 을 기다린 뒤 기존 `toBe(1)` 그대로).
+- timeout 값 · retry · skip · `.only` · 전역 설정 변경 0 (diff 의 `timeout` 일치는 주석뿐). Product Code 0 — 변경 파일 = `apps/web/__tests__/*.test.tsx` 14개.
+
+### H4-15-5. 검증 (참고용 — QA 재검증 대상)
+
+- 변경 파일 = `apps/web/__tests__` 14개뿐(QA 리포트 이후 mtime 기준, `apps` · `packages` 전체) · `apps/api` · `supabase` 미생성.
+- `pnpm typecheck` 통과 · `pnpm lint` exit 0 · 14파일 prettier · eslint 통과 · `pnpm test` **173 files / 2513 passed**.
+- 부하 절차(`yes > /dev/null` ×8 + `apps/web` 전체 `vitest run`) **5/5 통과** — 각 109 files / 1703 passed, 64~71s. `yes` 잔여 0. Playwright 미실행(지시).
+- stage-qa-agent 에 `QA-4B-006` 같은 부하 절차 재검증 요청.

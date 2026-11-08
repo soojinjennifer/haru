@@ -1,0 +1,11 @@
+10c10
+< import { settle } from './support/gallery';
+---
+> import { settle } from '../../../../../e2e/support/gallery';
+43a44,49
+>   // QA R2-9 주입: 측정판 모듈(RecordingMeasurePage.tsx) 응답 끝에 console.warn 1줄 추가 — 작업 트리는 바꾸지 않는다
+>   await page.route(/\/src\/dev\/recording-measure\/RecordingMeasurePage\.tsx/, async (route) => {
+>     const response = await route.fetch();
+>     const body = await response.text();
+>     await route.fulfill({ response, body: `${body}\nconsole.warn('QA-R2-9 injected measure-board output');\n` });
+>   });

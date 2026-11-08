@@ -1,0 +1,4 @@
+debug | url=http://127.0.0.1:4319/@vite/client line=882 col=8 | doc=http://127.0.0.1:4319/__dev/ui/recording-measure | [vite] connecting...
+debug | url=http://127.0.0.1:4319/@vite/client line=995 col=11 | doc=http://127.0.0.1:4319/__dev/ui/recording-measure | [vite] connected.
+info | url=http://127.0.0.1:4319/node_modules/.vite/deps/react-dom_client.js?v=16bb1bee line=15804 col=48 | doc=http://127.0.0.1:4319/__dev/ui/recording-measure | %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+fonts=Inter:loaded

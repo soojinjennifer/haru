@@ -8,12 +8,12 @@
 
 | 항목 | 값 |
 |---|---|
-| Major Stage | **Stage 4a** — Recording Core (Stage 4 는 `D4-9` 로 **4a Recording Core / 4b Session Screens** 로 분할) |
-| Stage Status | **Stage 4a `COMPLETE` — `PASS (accepted: D4-34, NV-4A-1)`** (QA 2회차 2026-10-18, `docs/qa/stage-4a-qa-report.md` §10). 4b `NOT_STARTED` |
-| Next Step | **`S4-H1` 완료, `S4-H2` 입력 대기** (2026-11-02). H1·H1R·H1F 결정 `D4-86`~`D4-107` 반영 · Orchestrator 재검증 7종 통과(test 2354/162) · e2e agent 단독 461 · Visual Gap `stage-4b-visual-gap-h1.md` §11 신규 Gap 0. **H2 착수 조건: 사용자 AC-4-108 수치(잠금 구간 청크 수 · 재생 여부 · iOS 버전)** — 요청함. 그 뒤 H2 → K2 → 4b QA. 소결정 대기: `VG-H1R-02` 허용 차이 등록 여부 · `Min` 표기 계열(§12.4-②) · T-34~T-43 번호 사후 확인. 문서 대기: `COMPONENT_MAP.md` Sheet 통합 후보(`D4-74`) · Plan §13.2-7(`D4-103`) · approvals §4 `AD-S4-12`~`17`. 후속: `s3-sheet-scrim` 2027-01-01 · `VG-K1S-04` Stage 8 · 실기기·VoiceOver NOT VERIFIED · 간헐 테스트 원인 미확정. F2·G1·G2·K1·H1 미커밋. dev 서버 꺼짐. |
+| Major Stage | **Stage 4b** — Session Screens (Stage 4 는 `D4-9` 로 **4a Recording Core / 4b Session Screens** 로 분할) |
+| Stage Status | **Stage 4a `COMPLETE` — `PASS (accepted: D4-34, NV-4A-1)`** (2026-10-18). **Stage 4b `COMPLETE` — `PASS (accepted: NV-4B-2, NV-4B-3)`** (QA 3회차 2026-11-08, `docs/qa/stage-4b-qa-report.md` §R3-7) |
+| Next Step | **Stage 4b PASS (2026-11-08)** — 실기기 `NV-4B-1`(iOS Safari 26.6, 탭→start 중위 318ms) · `NV-4B-4`(사용자 확인) PASS, `NV-4B-2`·`NV-4B-3` 사용자 수용. `QA-4B-005`(`D4-150`, H4-14) · `QA-4B-006`(`D4-153`, H4-15, 테스트 14파일) 수정 → QA 부하 10회 10/10 · 무부하 2513/2513. 관찰 `OBS-4B-10`(iOS 첫 청크 ≈2.3s) · `OBS-4B-11`. **다음: Stage 4b 미커밋분 커밋(사용자 지시 시) → Stage 5 Plan (plan-agent → design-agent → 승인 체크포인트)**. 네이티브 `S4N-A`~`D` 는 `D4-1` 후속 단계(시점 미정). 5174 = 사용자 기기용 HTTPS 서버 |
 | Queue 파일 | 미생성 — Stage 4 는 Orchestrator 가 작업 단위(`S4-A`~`S4-K`)별로 직접 배분한다 |
 | QA Fix Loop 횟수 | Stage 4a: 1 / 3 → PASS |
-| 마지막 갱신 | **2026-10-14** — Stage 3 `PASS` 종결(5회차 `fe349cb`) 후 칩 통일 3커밋. Stage 4 Plan·Design Spec·Figma 감사·디자이너 요청서·approvals 작성, **결정 `D4-1`~`D4-22`**, PRD 개정 2(`D-24` 절차), `PLANNING.md` 34지점·`API_CONTRACTS.md` Rev 8 갱신. **Stage 4a 착수** |
+| 마지막 갱신 | **2026-11-08** — PRD v1.5 개정 3 + 보완 커밋 `6704b6f`. Stage 4b QA 3회차 `PASS (accepted: NV-4B-2, NV-4B-3)`, 결정 `D4-151`~`D4-153` |
 
 ### 끼어든 작업 — Stage 2 재구성 (2026-10-03 ~ 10-05, 완료)
 

@@ -1,0 +1,125 @@
+ M apps/web/__tests__/session-prompts.test.tsx
+ M apps/web/__tests__/session-recording.test.tsx
+ M apps/web/src/app/providers/ApiClientProvider.tsx
+ M apps/web/src/app/providers/AppProviders.tsx
+ M apps/web/src/app/providers/__tests__/sessionRecorderEnvironment.test.ts
+ M apps/web/src/app/providers/apiClients.ts
+ M apps/web/src/app/providers/sessionRecorderEnvironment.ts
+ M apps/web/src/dev/recording-measure/RecordingMeasurePage.tsx
+ M apps/web/src/entities/activity-card/useSelectActivityOption.ts
+ M apps/web/src/entities/session/index.ts
+ M apps/web/src/entities/session/recordControlState.ts
+ M apps/web/src/entities/session/sessionRecorder.tsx
+ M apps/web/src/entities/session/useCreateSession.ts
+ M apps/web/src/entities/session/useSessionCompletion.ts
+ M apps/web/src/features/activity-card-deck/ui/ActivityCardDeck.tsx
+ M apps/web/src/features/activity-card-deck/ui/ActivityCardOfflineBanner.tsx
+ M apps/web/src/features/activity-card-deck/ui/ReadingContextSheet.tsx
+ M apps/web/src/features/library/BookDetailSheet.tsx
+ M apps/web/src/features/library/StartSessionAction.tsx
+ M apps/web/src/features/recording/index.ts
+ M apps/web/src/features/recording/model/__tests__/controller-support.ts
+ M apps/web/src/features/recording/model/local-records.ts
+ M apps/web/src/features/recording/model/recording-runtime.ts
+ M apps/web/src/features/recording/model/upload-queue.ts
+ M apps/web/src/features/storytime-session/copy.ts
+ M apps/web/src/features/storytime-session/index.ts
+ M apps/web/src/features/storytime-session/storytime-session.css
+ M apps/web/src/features/storytime-session/ui/SessionActionBar.tsx
+ M apps/web/src/features/storytime-session/ui/SessionCompleteScreen.tsx
+ M apps/web/src/features/storytime-session/ui/StorytimeSessionScreen.tsx
+ M apps/web/src/mocks/__tests__/MockRecorderAdapter.test.ts
+ M apps/web/src/mocks/__tests__/MockSessionApi.test.ts
+ M apps/web/src/mocks/__tests__/recorder-scenarios.test.ts
+ M apps/web/src/mocks/fixtures/local-recordings.ts
+ M apps/web/src/mocks/fixtures/sessions.ts
+ M apps/web/src/mocks/index.ts
+ M apps/web/src/mocks/me/MockMeApi.ts
+ M apps/web/src/mocks/onboarding/onboardingState.ts
+ M apps/web/src/mocks/platform/MockRecorderAdapter.ts
+ M apps/web/src/mocks/platform/mockRecordingPlatform.ts
+ M apps/web/src/mocks/recorder/localStoreScenarios.ts
+ M apps/web/src/mocks/recorder/recorderScenarios.ts
+ M apps/web/src/mocks/sessions/MockSessionApi.ts
+ M apps/web/src/pages/home/HomeTopBar.tsx
+ M apps/web/src/shared/copy/error-copy.ts
+ M apps/web/src/test/harness.tsx
+ M docs/API_CONTRACTS.md
+ M docs/DESIGN_TOKEN_MAP.md
+ M docs/decisions/stage-4-approvals.md
+ M docs/design/stage-4b-design-spec.md
+ M docs/plans/stage-4b-plan.md
+ M docs/qa/stage-4b-handoff.md
+ M docs/workflow/WORKFLOW_STATE.md
+ M e2e/home.spec.ts
+ M e2e/session-complete.spec.ts
+ M packages/design-tokens/__tests__/fonts.test.ts
+ M packages/design-tokens/__tests__/token-tiers.test.ts
+ M packages/design-tokens/src/component/index.css
+ M packages/ui/src/bubble/SpeechBubble.css
+ M packages/ui/src/carousel/PromptCarousel.css
+ M packages/ui/src/feedback/Toast.css
+ M packages/ui/src/layout/AppColumn.css
+ M packages/ui/src/sheet/Sheet.css
+ M packages/ui/src/sheet/Sheet.tsx
+ M packages/ui/src/sheet/__tests__/Sheet.test.tsx
+ M playwright.config.ts
+?? apps/web/__tests__/session-exceptions.test.tsx
+?? apps/web/__tests__/session-notices.test.tsx
+?? apps/web/__tests__/session-permission.test.tsx
+?? apps/web/__tests__/session-start-blocked.test.tsx
+?? apps/web/__tests__/stage4-motion-guards.test.ts
+?? apps/web/src/dev/__tests__/latency-core.test.ts
+?? apps/web/src/dev/recording-measure/latency-core.ts
+?? apps/web/src/features/recording/model/__tests__/recording-notices.test.ts
+?? apps/web/src/features/recording/model/recording-notices.ts
+?? apps/web/src/features/storytime-session/ui/MicPermissionSheet.tsx
+?? apps/web/src/features/storytime-session/ui/RecordingNoticeToasts.tsx
+?? apps/web/src/features/storytime-session/ui/RetentionNoticeBanner.tsx
+?? apps/web/src/features/storytime-session/ui/SessionNoticeSlot.tsx
+?? apps/web/src/features/storytime-session/ui/__tests__/useSessionToast.test.tsx
+?? apps/web/src/features/storytime-session/ui/useSessionToast.ts
+?? apps/web/src/mocks/__tests__/device-seed.test.ts
+?? apps/web/src/mocks/recorder/deviceSeed.ts
+?? apps/web/src/shared/lib/__tests__/date-format.test.ts
+?? apps/web/src/shared/lib/__tests__/focus.test.ts
+?? apps/web/src/shared/lib/date-format.ts
+?? apps/web/src/shared/lib/focus.ts
+?? docs/design/stage-4b-visual-gap-final.md
+?? docs/design/stage-4b-visual-gap-h2.md
+?? docs/design/stage-4b-visual-gap-h2r.md
+?? docs/design/stage-4b-visual-gap-h3.md
+?? docs/design/stage-4b-visual-gap-h4.md
+?? docs/qa/evidence/stage-4b/figma/sbs-complete.png
+?? docs/qa/evidence/stage-4b/figma/sbs-prompts.png
+?? docs/qa/evidence/stage-4b/figma/sbs-recording.png
+?? docs/qa/evidence/stage-4b/flake-run1/error-context.md
+?? docs/qa/evidence/stage-4b/flake-run1/frames.png
+?? docs/qa/evidence/stage-4b/flake-run1/trace.zip
+?? docs/qa/evidence/stage-4b/flake-run2/error-context.md
+?? docs/qa/evidence/stage-4b/flake-run2/frames.png
+?? docs/qa/evidence/stage-4b/flake-run2/trace.zip
+?? docs/qa/evidence/stage-4b/flake-solo/error-context.md
+?? docs/qa/evidence/stage-4b/flake-solo/trace.zip
+?? docs/qa/evidence/stage-4b/qa-4b-scrollbar.config.ts
+?? docs/qa/evidence/stage-4b/qa-4b.config.ts
+?? docs/qa/evidence/stage-4b/qa-4b.probe.spec.ts
+?? docs/qa/evidence/stage-4b/qa-p7-already-active.png
+?? docs/qa/evidence/stage-4b/qa-p8-onboarding-incomplete.png
+?? docs/qa/evidence/stage-4b/qa-unit/ac-4-124.probe.test.tsx
+?? docs/qa/evidence/stage-4b/qa-unit/qa.vitest.config.mts
+?? docs/qa/evidence/stage-4b/r2-9/git-status-before.txt
+?? docs/qa/evidence/stage-4b/r2/qa-4b-r2.config.ts
+?? docs/qa/evidence/stage-4b/r2/qa-4b-r2.probe.spec.ts
+?? docs/qa/stage-4b-qa-report.md
+?? e2e/__screenshots__/darwin/session-exceptions.spec.ts/s4-session-background-notice.png
+?? e2e/__screenshots__/darwin/session-exceptions.spec.ts/s4-session-mic-sheet-conversation.png
+?? e2e/__screenshots__/darwin/session-exceptions.spec.ts/s4-session-mic-sheet.png
+?? e2e/prompt-drawer-close.spec.ts
+?? e2e/recording-measure.spec.ts
+?? e2e/scrollbar-classic.spec.ts
+?? e2e/session-exceptions.spec.ts
+?? e2e/session-notices.spec.ts
+?? e2e/session-regression.spec.ts
+?? e2e/session-start-blocked.spec.ts
+?? e2e/support/clock.ts

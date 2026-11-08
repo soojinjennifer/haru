@@ -19,6 +19,9 @@ Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (**Rev 8: Stage 4 승�
 > **Rev 8.7 (2026-10-27, development-agent — Stage 4b `S4-F1R` 구현 반영)** — 설계 변경 없음. Rev 8.6 설계대로 `packages/contracts/src/sessions/session.ts` `SessionSummarySchema.reminderBubble: SessionBubbleCopySchema` (required · nullable · `.max` 없음) 구현 + 단위 테스트(`src/__tests__/sessions.test.ts`). Mock: `MOCK_READY_REMINDER_BUBBLE`(`Ready when you are!`) · §5.4 `session-greeting:reminder-missing` 구현. 상세 `docs/qa/stage-4b-handoff.md` `S4-F1R`.
 > **Rev 8.9 (2026-11-01, plan-agent — 사용자 결정 `D4-87`·`D4-88` 반영, 설계 변경 · APPROVED (2026-11-02, user) — `D4-97`, 미결 `N4B-19`·`N4B-20`·`N4B-22` 는 `D4-94`·`D4-95`·`D4-98` 로 해소)** — **contract 필드 2건 추가**: `SessionBubbleCopy.subtext`(`.nullable().optional()`) · `SessionDetail.completionBubble`(required + nullable). 반영 지점: §3.2 스케치 · **§3.2.3 신설** · §4 Stage 4 `GET /v1/sessions/:sessionId` 행 · §5.4 `session-completion` 그룹 등재. Error code 0 · enum 0 · 전이표 0 · endpoint 0. 실제 `packages/contracts`·Mock 반영은 development-agent (`stage-4b-plan.md` §13.2 `S4-H1R`).
 > **Rev 8.10 (2026-11-02, development-agent — Stage 4b `S4-H1R` 구현 반영)** — 설계 변경 없음. Rev 8.9 설계대로 `packages/contracts/src/sessions/session.ts` `SessionBubbleCopySchema.subtext`(`.nullable().optional()`) · `SessionDetailSchema.completionBubble`(required · nullable) 구현 + 단위 테스트. Mock: `MOCK_COMPLETION_BUBBLE.subtext` · `MOCK_COMPLETION_BUBBLE_NO_SUBTEXT` · `toDetail` 완료 계열 한정 · §5.4 `session-completion` 3 key(`mocks/sessions/sessionFixtureScenarios.ts`). 상세 `docs/qa/stage-4b-handoff.md` `S4-H1R`.
+> **Rev 8.11 (2026-11-04, development-agent — Stage 4b `S4-H2R` · `S4-H3` 구현 반영)** — 설계 변경 없음 · **contracts 변경 0** · error code 0 · endpoint 0. 반영 지점: §5.4 `recorder` 그룹 key **4건 추가**(`mic-permission-blocked` · `mic-unavailable` · `mic-permission-revoked` — `S4-H2R`, `local-retention-notice` — `S4-H3`, 4b Plan §12 제안 key 그대로, `D4-119`) · `mic-permission-denied` 설명 갱신(Start Session 판정 경로, `D4-112`) · `crash-recovered` · `local-retention-exceeded` · `upload-stalled-48h` 에 **브라우저 기기 seed**(`D4-123`) 명시 · 업로드·보관 안내 화면(48h · 7일 · 14일)의 Mock 재현 경로. 상세 `docs/qa/stage-4b-handoff.md` `S4-H2R` · `S4-H3`.
+> **Rev 8.12 (2026-11-05, plan-agent — 4b QA `OBS-4B-3` 처리, 이미 승인된 계획 변경의 문서 반영)** — 설계 변경 없음 · **contracts 변경 0** · error code 0 · endpoint 0. §3.2 에 4b Plan §13.3-⑧ **C-1**(`CreateSessionRequest.mode` 결정 주체 문단, `D4-112`·`D4-119`) · **C-3**(`P4B-BIP-04`·`05`) + 4b Plan §10 **`P4B-BIP-01`** 을 Handoff 표로 등재. 4b Plan 개정 1.6 `S4-H4` 의 신규 Mock key 2건·`P4B-BIP-07`·`08` 은 **미승인 제안**이라 이번 Rev 에 넣지 않았다(`CP-15` 승인 후).
+> **Rev 8.13 (2026-11-07, development-agent — Stage 4b `S4-H4` 구현 반영)** — 설계 변경 없음 · **contracts 변경 0** · error code 0 · endpoint 0. 반영 지점: §5.3 `sessions` 행 · §5.4 Catalogue — **신규 key 2건 구현 확정** `session-already-active-ready`(진행 중 세션 = `ready`) · `session-already-active-paused`(= `paused`) (4b Plan §13.5-⑦ · `D4-145` CP-15 ⓐ) + `onboarding-incomplete`(sessions) **개정 구현**: 세션 endpoint 가 `ONBOARDING_INCOMPLETE` 를 낸 뒤 같은 Mock 세계의 `GET /v1/me` 가 `onboardingStatus='in_progress'` (NB-16 · `P4B-BIP-08`). Mock 위치 `apps/web/src/mocks/sessions/MockSessionApi.ts` · `mocks/onboarding/onboardingState.ts`(`markServerIncomplete`) · `mocks/me/MockMeApi.ts`. Frontend 처리(시작 경로의 상태별 분기)는 `entities/session/useCreateSession.ts` — 상세 `docs/qa/stage-4b-handoff.md` `S4-H4`.
 Reflects: `docs/decisions/stage-0-approvals.md` #7 · #8 · #13 · #14 · #15 · #16 · #17 · #19 · #27 · C-1~C-10 · C-12 · C-13 · C-15 · C-16 · C-18 (Rev 5) · #33 · C-19 (Rev 6)
 Decision log: `docs/decisions/stage-0-approvals.md` + **`docs/decisions/stage-3-approvals.md` (Stage 3 — §3 · §6 · §6.1 · §7 · §7.1 · §8 · §8.1~§8.6)** — 이 문서와 다르면 결정 기록이 우선한다. 라벨: `CONFIRMED (사용자 결정 YYYY-MM-DD, #id)` · `RECOMMENDED` · `NEEDS DECISION (법무, L-xx)`.
 Based on: PRD v1.4, `docs/ARCHITECTURE.md` (DRAFT 2026-09-14), `docs/DATA_MODEL.md` (DRAFT 2026-09-14), design-agent `docs/FIGMA_SCREEN_MAP.md` · `docs/COMPONENT_MAP.md` (DRAFT 2026-09-14) — Rev 2: Figma 대비 gap §6 추가
@@ -331,6 +334,16 @@ export const SessionTransitionRequestSchema = z.object({
   completedReason: CompletedReasonSchema.optional(),
 }).refine(v => v.to !== 'completed' || v.completedReason !== undefined, { path: ['completedReason'] });
 ```
+
+> ⭐ **Rev 8.12 — `CreateSessionRequest.mode` 결정 주체** (4b Plan §13.3-⑧ C-1, `D4-112` · `D4-119` CP-8, schema 변경 0): Frontend 가 세션 생성 **직전** 마이크 권한 확인 결과로 `mode` 를 정한다 — 허용 = `recorded`, 거부·차단·장치 없음 = `conversation_only`. `conversation_only` 도 `recorded` 와 **같은 책 id**(`activityCardOptionId`+`bookId` / `childBookId`)를 보낸다(refine 이 허용). **생성 후 모드를 바꾸는 계약은 없다** — ready 에서 거부되면 세션을 닫고 새로 시작한다.
+
+**Backend Handoff — Create Session (구현 아님 · BACKEND_INTEGRATION_PENDING, Rev 8.12 — 4b Plan §10 · §13.3-⑨ 의 `OBS-4B-3` 누락분 등재)**:
+
+| ID | 요구 | Handoff 문서 |
+|---|---|---|
+| **`P4B-BIP-01`** | `SessionSummary.book` 을 Activity Card(`activityCardOptionId`+`bookId`) · 서재(`bookId`) · `childBookId` **세 경로 모두**에서 채운다 — 세션 화면 책 칩(AC-4-126)이 이 값만 쓴다 | `BACKEND_HANDOFF` |
+| **`P4B-BIP-04`** | 서버는 클라이언트가 보낸 `mode` 를 그대로 받아들인다(마이크 권한은 서버가 검증할 수 없다) · `conversation_only` 세션에 업로드 시도 시 `RECORDING_NOT_ALLOWED_FOR_MODE`(기존 code) | `BACKEND_HANDOFF` |
+| **`P4B-BIP-05`** | `conversation_only` 세션의 `bubble` · `completionBubble`(`subtext` 포함) 생성 문구가 **녹음·녹음 시간을 언급하지 않는다** · 책이 연결되면 같은 책 Prompt 를 제공한다 | `BACKEND_HANDOFF` · `ANALYSIS_PIPELINE_REQUIREMENTS`(검수 템플릿) |
 
 #### 3.2.1 ⭐ `SessionSummary.bubble` — 렌더 지점과 부재 시 거동 (Rev 8: `D4-20`·`D4-21`·`D4-22`)
 
@@ -1129,7 +1142,7 @@ apps/web/src/
 | home / activity-cards | 3 | `success`, `loading`, `empty`, `error`, `retry` | `offline-cached-card`, `conversation-only-option`, `reread-option`, `books-exhausted`, `session-already-active` |
 | library / books / gift-requests / **saved-books** | 3 | `success`, `loading`, `empty`, `error`, `retry` | `gift-pending`, `gift-duplicate`, `book-already-owned`, `user-entered-book`, **`book-saved`**, **`no-reason`** |
 | notifications / push-devices | 3 | `success`, `loading`, `error`, `retry` | `push-permission-denied` |
-| sessions (create / transitions) | 4 | `success`, `loading`, `error`, `retry` | `invalid-transition`, `session-already-active`, `onboarding-incomplete`, `consent-missing`, `mic-permission-denied`, `recording-interrupted`, `auto-timeout`, `crash-recovered`, `abandoned` |
+| sessions (create / transitions) | 4 | `success`, `loading`, `error`, `retry` | `invalid-transition`, `session-already-active`, `session-already-active-ready` (Rev 8.13), `session-already-active-paused` (Rev 8.13), `onboarding-incomplete`, `consent-missing`, `mic-permission-denied`, `recording-interrupted`, `auto-timeout`, `crash-recovered`, `abandoned` |
 | recordings (upload init / tokens / complete) | 4 | `success`, `loading`, `error`, `retry` | **`recording-upload-success`**, **`recording-upload-failure`**, `upload-retry`, `upload-token-expired`, `recording-incomplete`, `offline-queued`, `upload-stalled-48h`, `recording-deleted` (upload-tokens) |
 | reflections | 5 | `success`, `loading`, `empty`(skip), `error`, `retry` | `reflection-already-submitted`, `invalid-transition` (completed 이전 제출) |
 | analysis / short feedback | 5 | `success`, `loading`, `error`, `retry` | **`analysis-pending`**, **`analysis-completed`**, **`analysis-failed`**, `analysis-low-quality`, `analysis-not-available`, `recording-deleted` (skipped) |
@@ -1167,7 +1180,7 @@ apps/web/src/
 | `draft-resume` | — | `OnboardingState.currentStep = n` (중도 이탈 복귀) | onboarding | 2 | — |
 | `persona-fallback` | — | 페르소나 생성 실패(`PROVIDER_UNAVAILABLE`) → fallback 페르소나로 200 | onboarding submit, children profile | 2 | — |
 | `child-limit-reached` | — | `CHILD_LIMIT_REACHED` | onboarding submit | 2 | — |
-| `onboarding-incomplete` | — | `Me.onboardingStatus != completed` → Route Guard가 `/onboarding/:step` 으로 이동, 홈·세션 endpoint는 `ONBOARDING_INCOMPLETE` | me, home, activity-cards, sessions (Route Guard) | 2 | — |
+| `onboarding-incomplete` | — | `Me.onboardingStatus != completed` → Route Guard가 `/onboarding/:step` 으로 이동, 홈·세션 endpoint는 `ONBOARDING_INCOMPLETE`. **(Rev 8.13, `S4-H4`)** `sessions` 그룹: 오류를 낸 **뒤** 같은 Mock 세계의 `GET /v1/me` 가 `in_progress` (서버 상태 일관 — `P4B-BIP-08`). Frontend 는 `me` 를 이전 값 유지한 채 재조회 1건 → 기존 Route Guard 이동, `me` 가 여전히 `completed` 면 기존 문구만 (NB-16) | me, home, activity-cards, sessions (Route Guard) | 2 | — |
 | `vpc-pending` | — | **RECOMMENDED (C-3 슬롯)** — 동의 기록 후 `Me.parentVerification.status='pending'` → Route Guard가 VPC 단계 슬롯에 머묾. 방식 결정(법무 L-01) 후 동작 조정 | me, onboarding (Route Guard) | 2 | — |
 | `vpc-failed` | — | **RECOMMENDED (C-3 슬롯)** — VPC 검증 실패 또는 거절 → `Me.parentVerification.status='failed'`, 실패 안내·재시도 경로 표시, 온보딩 진입 차단 (아동 데이터 쓰기 없음). 기본 scenario는 `success`(통과). 방식 결정(법무 L-01) 후 동작 조정 | me, onboarding (Route Guard) | 2 | — |
 | `capability-all-missing` | — | **RECOMMENDED (C-8)** — 한 역량의 문항이 모두 `not_observed` 인 submit 응답 (해당 역량 `score: null`) → 프로필·다이아몬드 표시 검증. 처리 규칙은 Stage 2 Plan | onboarding submit, children profile | 2 | — |
@@ -1176,6 +1189,8 @@ apps/web/src/
 | `reread-option` | — | 카드 옵션에 `kind=reread_book` 포함 | activity-cards | 3 | — |
 | `books-exhausted` | — | 재독·대화 전용 대체 카드만 반환 | activity-cards | 3 | — |
 | `session-already-active` | — | `HomeSummary.activeSession` 존재 / `POST /v1/sessions` → `SESSION_ALREADY_ACTIVE` | home, sessions | 3 | `active-session-exists` |
+| `session-already-active-ready` | — | **(Rev 8.13, `S4-H4` 구현 확정)** `POST /v1/sessions` → `SESSION_ALREADY_ACTIVE{details.sessionId}`, 그 세션 Detail = `ready`(`recorded`, 요청 `readyAt` 기준 2분 전 준비). Frontend 는 그 세션 ready 화면으로 이동(일반 시작과 같은 push, 생성 재요청 0 — `D4-145` CP-15 ⓐ · `D4-146`) | sessions | 4 | — |
+| `session-already-active-paused` | — | **(Rev 8.13, `S4-H4` 구현 확정)** 위와 같고 Detail = `paused`. `recording` 과 같은 분기 — 기존 `SESSION_ALREADY_ACTIVE` 안내만, 이동 0 (서버 정리 규칙 `P4B-BIP-07`) | sessions | 4 | — |
 | `gift-pending` | — | 증정 신청 `gift_pending`·배송 상태 표시 | library, gift-requests | 3 | — |
 | `gift-duplicate` | — | `GIFT_REQUEST_DUPLICATE` | gift-requests | 3 | — |
 | `book-already-owned` | — | `BOOK_ALREADY_OWNED`(409) — `/library/add` 중복 등록 안내 (Design Spec §7.2 `InlineAlert tone=info`). Library 2라운드-2 에서 추가 | library (add book) | 3 | — |
@@ -1192,17 +1207,21 @@ apps/web/src/
 | `paged` | — | `nextCursor` 가 있는 2페이지 — "See all" 시트의 추가 로드 (`L-OPEN-21`) | library (list) | 3 | — |
 | `push-permission-denied` | — | platform mock: OS push 권한 거부 | push-devices (platform adapter) | 3 | `os-permission-denied` |
 | `invalid-transition` | — | `SESSION_INVALID_TRANSITION` → 서버(Mock) 상태 재동기화 | sessions, reflections (completed 이전 제출) | 4 | — |
-| `mic-permission-denied` | — | RecorderAdapter mock 권한 거부 → 권한 안내·대화만 하기 | sessions (RecorderAdapter mock) | 4 | — |
+| `mic-permission-denied` | — | RecorderAdapter mock 권한 **미정**(`prompt`) → **Start Session 판정의 OS 프롬프트에서 거부** → 처음부터 `mode=conversation_only` 로 생성 · 세션 화면 마이크 시트 자동 1회 (Rev 8.11 — `D4-112` · `D4-119` CP-8 · CP-10, AC-4-63 재정의. 이전 설명 "세션 안 Record 탭 거부"는 `mic-permission-revoked` 로 옮겼다) | sessions (RecorderAdapter mock 그룹 `recorder`) | 4 | — |
+| **`mic-permission-blocked`** ⭐ Rev 8.11 | — | 권한이 **이미 거부**됨(`checkPermission()` = `denied`) → 프롬프트 0 → `mode=conversation_only` (AC-4-145 ④) | sessions (RecorderAdapter mock 그룹 `recorder`) | 4 | — |
+| **`mic-unavailable`** ⭐ Rev 8.11 | — | 녹음 **장치 없음**·미지원(`checkPermission()` = `unavailable`) → 프롬프트 0 → `mode=conversation_only` · 거부와 같은 시트·문구 (AC-4-145 ⑤, `D4-120` Q16) | sessions (RecorderAdapter mock 그룹 `recorder`) | 4 | — |
+| **`mic-permission-revoked`** ⭐ Rev 8.11 | — | Start Session 때는 허용(`granted`, 프롬프트 0 → `recorded`) → 세션 화면 Record 탭 `start()` = `permission_denied` → 마이크 시트(녹음 세션 문단) · 모드 전환·생성 요청 0 · 이후 권한 `denied` (AC-4-148) | sessions (RecorderAdapter mock 그룹 `recorder`) | 4 | — |
 | `auto-timeout` | — | 누적 30분 도달 → `completed(auto_timeout)` (clock 주입) | sessions (RecorderAdapter mock) | 4 | — |
-| `crash-recovered` | — | 미완료 로컬 녹음 발견 → `completed(recovered_after_crash)` → 업로드 | sessions, recordings (LocalRecordingStore mock) | 4 | — |
+| `crash-recovered` | — | 미완료 로컬 녹음 발견 → `completed(recovered_after_crash)` → 업로드 → **앱 시작 Toast 1회**(`D4-117`). ⭐ Rev 8.11: **브라우저에서도 재현**(`D4-123`) — 앱 조립이 런타임 시작 전에 기기 seed(`seedCrashedRecording`) + Mock 서버 세션 `recording`(고정 id `MOCK_DEVICE_SEED_SESSION_IDS.crashed`)을 넣는다 (`apps/web/src/mocks/recorder/deviceSeed.ts`) | sessions, recordings (LocalRecordingStore mock) | 4 | — |
 | `recording-interrupted` | — | RecorderAdapter mock 인터럽션(전화 수신 / 오디오 route 변경 / 백그라운드 전환) → 일시정지·재개 안내, 로컬 청크 보존 | sessions (RecorderAdapter mock) | 4 | — |
 | `abandoned` | — | ready 10분 경과 → `abandoned` (상태 CONFIRMED #16) | sessions | 4 | — |
 | `upload-retry` | — | 업로드 1회 이상 실패 후 재시도 성공 | recordings | 4 | `upload-retry-success` |
 | `upload-token-expired` | — | `UPLOAD_TOKEN_EXPIRED` → 토큰 재발급 후 성공 | recordings | 4 | — |
 | `recording-incomplete` | — | complete 시 `RECORDING_INCOMPLETE` | recordings | 4 | — |
 | `offline-queued` | — | 오프라인 녹음 완료 → 큐 대기 → 복구 후 업로드 | recordings | 4 | — |
-| `upload-stalled-48h` | — | 업로드 실패 48h 경과 (clock 주입) → 안내 | recordings | 4 | `stalled-48h` |
-| **`local-retention-exceeded`** ⭐ Rev 8.3 | — | **기기 로컬 미업로드 녹음 보관 상한 초과** (`D4-29`, 2026-10-15) — 녹음 시작(첫 part) 후 **14일** 지난 미업로드 로컬 녹음을 **로컬에서 삭제**하고 신호를 낸다(`retention_expired`). **7일** 시점 안내 신호(`retention_notice`, 1회)는 key 없이 주입 clock 으로 재현한다. 서버 요청 없음 — 로컬 저장소 seed(`apps/web/src/mocks/fixtures/local-recordings.ts` `seedStaleRecording`). 안내 **화면**은 `S4-H2` | sessions (RecorderAdapter mock 그룹 `recorder` · LocalRecordingStore seed) | 4 | — |
+| `upload-stalled-48h` | — | 업로드 실패 48h 경과 (clock 주입) → 안내. ⭐ Rev 8.11 (`S4-H3`): 안내 = **앱 수준 `Toast neutral` + `Try again`**(큐 즉시 처리 1회 · 오프라인이면 요청 0 + 오프라인 안내) — 녹음당 1회(`stalledNoticeAtMs` 저장 → 재시작 후 0). **브라우저 기기 seed**(`D4-123`): 48h + 1분 전에 적재된 미확정 업로드 1건(`seedStalledUpload` — 완료 녹음 + 큐 항목) + Mock 서버 세션 `completed`(`MOCK_DEVICE_SEED_SESSION_IDS.stalled`). 서버 동작(전송·확정 지속 실패)은 그대로 | recordings | 4 | `stalled-48h` |
+| **`local-retention-exceeded`** ⭐ Rev 8.3 | — | **기기 로컬 미업로드 녹음 보관 상한 초과** (`D4-29`, 2026-10-15) — 녹음 시작(첫 part) 후 **14일** 지난 미업로드 로컬 녹음을 **로컬에서 삭제**하고 신호를 낸다(`retention_expired`). **7일** 시점 안내는 Rev 8.11 부터 `local-retention-notice`(아래)로도 재현한다. 서버 요청 없음 — 로컬 저장소 seed(`apps/web/src/mocks/fixtures/local-recordings.ts` `seedStaleRecording`). 안내 **화면**(Rev 8.11, `S4-H3`) = **앱 시작 `Toast neutral` 1회**(action 없음 — 14일 → 48h → 크래시 복구 순서로 한 번에 1개, `D4-120` Q14). 브라우저 기기 seed(`D4-123`) — 서버 세션 없음 | sessions (RecorderAdapter mock 그룹 `recorder` · LocalRecordingStore seed) | 4 | — |
+| **`local-retention-notice`** ⭐ Rev 8.11 | — | **7일** 넘은 미업로드 로컬 녹음 1건(7일 + 1분 전, `seedNoticeRecording`) → 앱 시작 보관 정리가 `retention_notice` → **Home 7일 보관 배너**(`InlineAlert warning banner` · 제목 한 문장(절대 날짜 `Nov 17`) + 닫기 · `Try again` 없음 — `D4-119` · `D4-120` Q10~Q12). 오프라인 캐시 배너와 같은 슬롯, 오프라인 우선(Q11). 닫기 기록은 로컬 레코드(`retentionDismissedAtMs`). 큐 항목·서버 세션 없음(배너가 업로드로 곧바로 사라지지 않게) — 업로드 시 사라짐은 단위 테스트(주입 clock). 브라우저 기기 seed(`D4-123`) | sessions (RecorderAdapter mock 그룹 `recorder` · LocalRecordingStore seed) | 4 | — |
 | **`recording-discarded`** ⭐ Rev 8 | — | **사용자 `Discard`** — `POST /v1/sessions/:id/transitions` `to=`**`abandoned`** 확정 응답 → 클라이언트가 **업로드 큐를 취소하고 로컬 청크를 삭제**한다. 서버 업로드 없음. 재조회 시 `uploadStatus=`**`deleted`** (§3.9). ⛔ **폐기 사유 필드 없음** · 신규 error code 0 · 신규 enum 값 0 (`D4-13`). **선행 조건이 `D4-13` 으로 풀렸다** — Mock 이 보낼 `to` 값이 **`abandoned`** 로 확정됐다 | sessions, recordings | 4 | — |
 | **`web-background-warning`** ⭐ Rev 8 | — | **Web 백그라운드·탭 비활성 녹음 한계 안내** — `visibilitychange` 로 탭이 비활성되거나 화면이 잠겼을 때 **청크 수신이 중단될 수 있음**을 사용자에게 알린다. ⭐ **`D4-4` 로 필수가 됐다**(네이티브가 Stage 4 에서 빠진 대가로 **Web 한계를 측정·기록·안내**하는 것이 요구사항이 되었다 — Plan AC-4-70 · AC-4-108). 실제 중단 여부·조건은 `S4-A` ⑥ 실측으로 채운다 | sessions (RecorderAdapter mock) | 4 | — |
 | `reflection-already-submitted` | — | `REFLECTION_ALREADY_SUBMITTED` / 멱등 재제출 동일 응답 | reflections | 5 | `already-submitted` |
@@ -1237,7 +1256,7 @@ apps/web/src/
 > | 항목 | 구현 |
 > |---|---|
 > | **메서드 단위 override** (조합 표기 — 새 key 아님) | `?scenario=<group>.<method>:<key>` — 예: `library.savebook:error`(목록 성공 + 저장만 실패, AC-4-87) · `sessions.transition:error` · `recordings.uploadpart:offline`. 메서드 이름은 **소문자**. 한 계층 안 우선순위 **메서드 > 그룹 > wildcard**, 계층 우선순위(URL > panel > env)는 그대로. 구현 `apps/web/src/mocks/scenarios/` |
-> | 그룹 이름 | `sessions` · `recordings`(`MockRecordingApi` + `MockUploadTransport` 공유) · `notifications` · **`recorder`**(RecorderAdapter mock 재현 계획 — `mic-permission-denied` · `recording-interrupted` · `web-background-warning` · `auto-timeout` · `crash-recovered`) |
+> | 그룹 이름 | `sessions` · `recordings`(`MockRecordingApi` + `MockUploadTransport` 공유) · `notifications` · **`recorder`**(RecorderAdapter mock 재현 계획 — `mic-permission-denied` · `recording-interrupted` · `web-background-warning` · `auto-timeout` · `crash-recovered` · Rev 8.11 `mic-permission-blocked` · `mic-unavailable` · `mic-permission-revoked` · `local-retention-notice`) |
 > | **인터럽션 3종 구분** | key 를 쪼개지 않는다(위 Rev 8 판단 유지). 원인은 **메서드 자리**로 고른다: `recorder.visibilitychange:` · `recorder.devicechange:` · `recorder.track-ended:recording-interrupted`. 그룹 지정은 3종 모두 |
 > | **`web-background-warning`** | ⭐ **`D4-26` (사용자 결정 2026-10-14)** — **조건 없는 안내**. Mock 은 녹음 중 탭이 1회 숨겨졌다 돌아오는 신호만 낸다(녹음은 계속). 중단 조건·시간 같은 **측정값을 담지 않는다** (AC-4-108 `NOT VERIFIED`). 측정 후 `apps/web/src/mocks/recorder/recorderScenarios.ts` 의 이 key 하나만 고친다. 사용자 문구는 feature copy 모듈(`S4-F`) 소관 |
 > | **폐기 전이 실패 분기** | **별도 key 를 만들지 않는다** — `sessions.transition:error` / `:retry` / `:offline` 메서드 override 로 재현한다 (로컬 보존 검증은 `S4-E`) |
@@ -1283,6 +1302,14 @@ apps/web/src/
 >
 > `subtext: ''`·key 없음은 schema·컴포넌트 단위 테스트로 판정한다 — key 를 늘리지 않는다.
 >
+> ✅ **구현 반영 (Rev 8.11, Stage 4b `S4-H2R` · `S4-H3`, 2026-11-04)** — 설계 변경 없음 · contracts 변경 0.
+>
+> | 항목 | 구현 |
+> |---|---|
+> | 권한 판정 key (`S4-H2R`) | `apps/web/src/mocks/recorder/recorderScenarios.ts` — `initialPermission`(`checkPermission()` 처음 값) · `permission`(`requestPermission()` 결과) · `revokedOnStart`. 권한 상태는 Mock 플랫폼 하나에 하나(판정 녹음기와 세션 녹음기가 공유 — `mocks/platform/mockRecordingPlatform.ts`) |
+> | 브라우저 기기 seed (`D4-123`) | `apps/web/src/mocks/recorder/deviceSeed.ts` `applyRecordingDeviceSeed` — 앱 조립(`app/providers/apiClients.ts`, `mock` 모드만)이 `SessionRecorderEnvironment` 의 `seedDevice` 로 **런타임 시작 전 1회** 부른다. `recorder` · `recordings` 두 그룹이라 함께 고를 수 있다(예: `?scenario=recorder:local-retention-exceeded,recordings:upload-stalled-48h` = 14일 → 48h 순차 Toast). 세션 id 는 고정 uuid `MOCK_DEVICE_SEED_SESSION_IDS`(`mocks/fixtures/sessions.ts`) |
+> | 안내 상태 | 클라이언트 전용(contracts 아님) — `features/recording/model/recording-notices.ts` `RecordingNoticeCenter`(48h · 14일 · 크래시 복구 Toast 큐 + 7일 배너 파생). 업로드 진행·성공·`RECORDING_INCOMPLETE` 자동 재시도 중 안내 0(`D4-119` CP-12 · CP-14) |
+
 > ✅ **구현 반영 (Rev 8.7, Stage 4b `S4-F1R`, 2026-10-27)** — 위 `reminder-missing` 등재 그대로.
 >
 > | 항목 | 구현 |
