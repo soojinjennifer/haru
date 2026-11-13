@@ -4,6 +4,10 @@ Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (Rev: #33 · C-19 반�
 Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` — page `8:2` section `17:367` HARU Components, `17:368` iOS 26 Components, page `16:2` 화면 instance (2026-09-14 확인), PRD v1.4, `docs/FIGMA_SCREEN_MAP.md`, `docs/decisions/stage-0-approvals.md` (기존 문서보다 우선), `.claude/rules/frontend.md` (Frontend-only 개정본 §1·§5); Scope: **Frontend-only — CONFIRMED (사용자, 2026-09-14)**
 Author: design-agent (2026-09-14)
 
+> **갱신 2026-11-09 (design-agent, Stage 5 `S5-C` Visual Gap)** — Figma 에 없는 피드백·분석 상태 화면 `/session/:sessionId/feedback`(`C13-S5-1`, Spec `docs/design/stage-5-design-spec.md` §2.3 · `D5-4`) 구현을 등재하고, 승인된 Spec §1·§4 에 따라 `29:62` 의 route 를 한 개로(`/reflection` 없음), `AnalysisStatusCard` 를 **만들지 않음**(기존 InlineAlert·ErrorState·버블 재사용)으로 정정했다. 새 결정 없음. 근거 `docs/design/stage-5-visual-gap-s5c.md`.
+>
+> **갱신 2026-11-10 (design-agent, `S5-C` VG 재검토)** — `D5-10` 으로 추가된 Shared UI 선택 prop `announce` 를 `ErrorState` · `InlineAlert` 행에 등재 (기본값 동작 불변). 근거 `docs/design/stage-5-visual-gap-s5c.md` §8.
+
 **2026-09-23 갱신 (design-agent)** — Stage 1 구현으로 확정된 2건만 반영했다 (새 결정 없음): **PageIndicator `interactive` variant 폐기 → 표시 전용** (`S1-G-1`), **BottomTabBar 탭 아이콘 Lucide 글리프 확정** `book` · `chart-no-axes-column-increasing` (`S1-D2-5`). 근거: `docs/decisions/stage-1-approvals.md` §8 (2026-09-21, user) · `docs/qa/stage-1-handoff.md` §10. 상세 명세는 `docs/design/stage-1-design-spec.md` §4.19 · §8.1.
 
 라벨: `CONFIRMED (사용자 결정 2026-09-14, #id)` = 사용자 결정 · `CONFIRMED` = PRD·Figma 확정 · `가값 (P-xx)` = 승인 로그 §4 가값 · `D-xx` = 승인 로그 §3 수용 예외 · `RECOMMENDED` = design-agent 제안 (사용자 미결정 세부) · `NEEDS DECISION` = 미결정. 검증 표기: [S] screenshot, [DC] design context, [M] metadata 이름만.
@@ -66,15 +70,15 @@ Author: design-agent (2026-09-14)
 | **DividerWithLabel** | `179:1839–1841` [S] | — | `label` | `179:1820` | 2 | |
 | **TextLink** | "Log in", "Forgot password?", "See all", "Create an account" | — | `href`/`onPress`, `tone` | Auth, 서재 | 2 | Figma raw 링크색 대비 미달 (3.16:1, DESIGN_TOKEN_MAP §6.3) → `--color-fg-link` |
 | **SpeechBubble** (시각만) | `Bubble 88:721` 꼬리·radius 22·glass-strong [S][DC] | tail: top · bottom-right; align | `tail`, `align`, `children` | Domain CharacterBubble 이 사용 | 1 | 문구 규칙은 Domain 에서 |
-| **StarRating** | `91:693` + `Icon shape=star 117:879` [DC] | filled · empty | `value`, `max`, `onChange`, `readOnly`, `label` | `29:62` | 5 | 별 대비 1.64:1 → `가값 (P-02)`, 30px 터치 |
+| **StarRating** | `91:693` — 별 = `91:694` 자체 vector 30×30 [DC] (~~`117:879`~~ 는 25×24 다른 심볼 — Stage 5 Spec M-1) | filled · empty · readOnly · disabled | `value`, `max`, `onChange`, `readOnly`, `disabled`, `aria-labelledby` | `29:62` | 5 — **구현됨** `packages/ui/src/rating` | 채움 `#D0CCA1` · 빈 `#D6DEDC`(`T5-1`) · 대비 `가값 (P-02)` · 히트 38×44 (`N5-19`) |
 | **StatTile** | `163:2545/2548`, `110:790–803` [DC] | — | `value`, `unit`, `label` | `31:102`, `110:522` | 7 | |
 | **Carousel** | `This Week's Shelf 113:1993` 가로 스크롤 + PageIndicator [S], `113:1991/1992` | — | `items`, `itemWidth`, `snap`, `label` | 서재 2섹션 | 3 | **Stage 3 신규 (28 → 31)** — `CONFIRMED (D-14, 2026-10-02)`. `AppColumn` 안쪽 `overflow-*` 금지의 **유일한 조건부 예외** (그림자 보호 `padding-block`/`margin-block` 구조가 승인 조건, stage-3-approvals §6). 명세 §4.2 |
 | **SwipeDeck** | 설문 카드 스택 `179:1781–1783`, 덱 dots `26:21` | stack depth | `items`, `index`, `onIndexChange`, `renderItem`, `prevLabel`, `nextLabel` | `179:1770`, 홈 덱 | 2 | 제스처 전용 금지 — 버튼 대체 조작 필수 (WCAG 2.5.1). 제스처 라이브러리 도입은 승인 필요 |
 | **Toggle** | `iOS 26/Toggle 17:113` [S] | on · off (+ pressed · focus-visible · disabled) | `checked`, `onChange`, `label` | **push on/off 1곳** (`/settings/notifications`). 리마인더 토글은 `D-18` 로 Out of Scope | 3 | **Stage 3 신규 (28 → 31)** — `CONFIRMED (D-14, 2026-10-02)`. **사용처가 1곳이어도 3종 유지 확정** (`CONFIRMED (approvals §9.2, 2026-10-03)`) — `D-14` 원칙은 사용처 개수 조건이 아니며, **사용처 0건**이 될 때 제외한다. **iOS kit 복제 금지, HARU 토큰으로 구현**. 치수 3종(`--toggle-track-w/h`, `--toggle-knob-size`) = **`가값 (P-20)`** — `provisional` 주석, 디자이너 값 도착 시 값만 교체 (`§8.5 ⑤`). 명세 §4.5 |
-| **Spinner / Skeleton** | **Figma 누락** → design-agent 명세 (#22) | — | `size`, `label` / `shape`, `lines` | 전 데이터 화면 | 1 | 공통 상태 CONFIRMED (사용자 결정 2026-09-14, #22), 화면 `가값 (P-10)`. 프로토타입 `haru-dot` (점 3개 1.2s) 참고 가능, motion `가값 (P-07)` |
+| **Spinner / Skeleton** | **Figma 누락** → design-agent 명세 (#22) | — | `size`, `label`, `decorative`, `announce` / `shape`, `lines` | 전 데이터 화면 | 1 | 공통 상태 CONFIRMED (사용자 결정 2026-09-14, #22), 화면 `가값 (P-10)`. 프로토타입 `haru-dot` (점 3개 1.2s) 참고 가능, motion `가값 (P-07)`. **`announce`** (Spinner) = `'auto'`(기본, `role=status` + `aria-live=polite`) · **`'none'`**(role · `aria-live` 없음, 라벨은 접근성 트리에 남음 — 바깥 컨테이너가 이미 `aria-live` 를 가질 때만, 2026-11-10 `D5-12`). `decorative` 가 우선. 사용처: 피드백 화면 state slot (`S5-C`) |
 | **EmptyState** | **Figma 누락** → design-agent 명세 (#22) | — | `illustration`, `title`, `description`, `action` | Home skeleton 안내(**Stage 2**, #33), 서재·리포트 | 1 | #22, `가값 (P-10)`. 기존 토큰·컴포넌트만 사용 |
-| **ErrorState** (+Retry) | **Figma 누락** → design-agent 명세 (#22) | — | `title`, `description`, `onRetry`, `retrying` | 전 데이터 화면 | 1 | #22, `가값 (P-10)` |
-| **InlineAlert / Banner** | **Figma 누락** → design-agent 명세 (#22) | tone: info · success · warning · error · offline | `tone`, `title`, `description`, `action`, `onDismiss` | 오프라인·업로드·동의 | 1 | #22, `가값 (P-10)`. status 색 `가값 (P-04)`, offline tone = neutral surface (TOKEN_MAP §4) |
+| **ErrorState** (+Retry) | **Figma 누락** → design-agent 명세 (#22) | — | `title`, `description`, `onRetry`, `retrying`, `announce` | 전 데이터 화면 | 1 | #22, `가값 (P-10)`. **`announce`** = `'alert'`(기본, `role=alert`) · `'status'` · **`'none'`**(role 없음 — 바깥 컨테이너가 이미 `aria-live` 를 가질 때만, 2026-11-10 `D5-10`). 사용처: 피드백 화면 state slot (`S5-C`) |
+| **InlineAlert / Banner** | **Figma 누락** → design-agent 명세 (#22) | tone: info · success · warning · error · offline | `tone`, `title`, `description`, `action`, `onDismiss`, `announce` | 오프라인·업로드·동의 | 1 | #22, `가값 (P-10)`. status 색 `가값 (P-04)`, offline tone = neutral surface (TOKEN_MAP §4). **`announce`** = `'auto'`(기본 — tone 별 기존 role: error·warning = `alert`, 그 외 = `status` + `aria-live=polite`) · **`'none'`**(role · `aria-live` 없음 — 바깥 컨테이너가 이미 `aria-live` 를 가질 때만, 2026-11-10 `D5-10`). 사용처: 피드백 화면 state slot (`S5-C`) |
 | **Toast** | **Figma 누락** → design-agent 명세 (#22) | — | `tone`, `message`, `duration`, `action` | 저장·복사·재시도 | 1 | #22, `가값 (P-10)`. `aria-live`, z-index `가값 (P-06)` |
 | **Dialog / ConfirmDialog** | **Figma 누락** → design-agent 명세 (#22) (iOS `misc/alert-overlay` 색만) | — | `open`, `title`, `description`, `confirmLabel`, `cancelLabel`, `destructive`, `onConfirm` | 로그아웃 확인(S2 — RECOMMENDED, PRD·Figma·결정 로그 근거 없음)·녹음 폐기(S4)·삭제·탈퇴(S8) | 1 | #22, `가값 (P-10)`. scrim `가값 (P-05)` |
 
@@ -130,7 +134,7 @@ Author: design-agent (2026-09-14)
 | **ReportArchiveCard** | report | `110:844–861` [S] | ready · generating(누락) · not-eligible(누락) | `period`, `summary`, `progress`, `pdfStatus`, `onOpen`, `onDownload` | `110:522` | 7 | |
 | **HighlightClipPlayer** | report | **Figma 누락** | playing · paused · expired · error | `clip`, `expiresAt` | 리포트 상세 | 7 | FR-18. **Figma 누락** — design source decided per stage (C-13). 만료 표시 기간은 OAQ-13 |
 | **UploadStatusBadge** | recording | **Figma 누락** | local_only · queued · uploading · uploaded · failed_retrying · stalled_48h | `status`, `lastAttemptAt` | 세션 완료, 설정 데이터 관리(S8) | 4 | 별도 upload status 모델 CONFIRMED (사용자 결정 2026-09-14, #16) — 값 목록은 ARCHITECTURE §10.5 기준. 디자인 소스 C-13 |
-| **AnalysisStatusCard** | session | **Figma 누락** | pending · analyzed · excluded_low_quality · failed | `outcome`, `shortFeedback` | 피드백 | 5 | `analysisOutcome` 모델 CONFIRMED (사용자 결정 2026-09-14, #16) — 값은 ARCHITECTURE §10 / API_CONTRACTS §2 기준 (OAQ-17 의존 값 `skipped_audio_deleted` 는 결정 전 제외, `skipped_consent_revoked` 는 C-4 로 제거). 디자인 소스 C-13 |
+| ~~**AnalysisStatusCard**~~ → **ShortFeedbackBubble** | analysis (`entities/analysis`) | **Figma 누락** — 표면은 버블 `88:929` 재사용 | text 있음 · (text null → 렌더 안 함, 호출자 판단) | `text` | 피드백 | 5 — **구현됨** (`S5-C`) | **별도 상태 카드를 만들지 않는다** (Stage 5 Spec §4, `D5-4`): 상태 표면 = 기존 `InlineAlert`·`ErrorState`·`Spinner`, 피드백 = `SessionCompleteBubble`(`subtext=null`) 래핑. 문구는 API `shortFeedback.text` 만. 이하 원 기록: `analysisOutcome` 모델 CONFIRMED (사용자 결정 2026-09-14, #16) — 값은 ARCHITECTURE §10 / API_CONTRACTS §2 기준 (OAQ-17 의존 값 `skipped_audio_deleted` 는 결정 전 제외, `skipped_consent_revoked` 는 C-4 로 제거). 디자인 소스 C-13 |
 
 ---
 
@@ -156,8 +160,8 @@ Author: design-agent (2026-09-14)
 | MicPermissionGate / ConversationOnlyMode | recording | — | CharacterMedallion, Surface, Button | PermissionService | 4 | **Figma 누락** — design source decided per stage (C-13) |
 | UploadQueueNotice / RecoveryNotice | recording | — | InlineAlert, UploadStatusBadge | UploadQueue, 크래시 복구 | 4 | **Figma 누락** — design source decided per stage (C-13) |
 | SessionCompleteView | storytime-session | `29:62` 상단 | AttendanceStickerChip, CharacterMedallion, CharacterBubble | completionBubble, stickerAward | 4 | celebrate 모션 누락 |
-| ReflectionForm | reflection | `91:691` | StarRating, Chip, TextField/TextArea, Button | ReflectionFormDefinition, SubmitReflection(멱등) | 5 | 자유 후기 카드·skip 누락 |
-| ShortFeedbackView | short-feedback | — | AnalysisStatusCard, CharacterBubble | SessionAnalysisStatus 폴링 | 5 | **Figma 누락** — design source decided per stage (C-13) |
+| ReflectionCard (~~ReflectionForm~~) | reflection | `91:691` | StarRating, Chip(`select`), TextInput, Button | ReflectionFormDefinition, SubmitReflection(멱등) | 5 — **구현됨** (`S5-B`) | 완료 화면 footer slot. 자유 후기 2번째 카드 없음·Skip 없음 = Figma V.2 (`N5-02` · `N5-06`). 칩 줄 사이 hit = 중간선 분할 (`D5-6`, `useChipRowSplit`) |
+| SessionFeedbackScreen + AnalysisStatusView (~~ShortFeedbackView~~) | session-feedback | — (`29:62` 상단 골격 재사용) | IconButton(glass close), Text h1, CharacterMedallion + 링, ShortFeedbackBubble, InlineAlert(info), ErrorState, Spinner | `useSessionAnalysis` 폴링 15s · `failed` 60s · 종착 정지 (`N5-14`) + 세션 상세 1회(녹음 삭제 판별) | 5 — **구현됨** (`S5-C`, route `/session/:sessionId/feedback`) | **Figma 누락** — `C13-S5-1` design-agent 명세 (Stage 5 Spec §2.3). VG `docs/design/stage-5-visual-gap-s5c.md` |
 | GrowthReportOverview | growth-report | `31:102`, `110:522` (탭바 제외) | StatTile, WeeklyReadingChart, CapabilityProgressRow, NotableQuoteCard, ReportArchiveCard, SelectTrigger | ReportOverview, 발행 기준 진행도(녹음 세션 3회 + 누적 1시간, 저품질 제외, 첫 세션 완료일부터 28일 주기 — #17) | 7 | 탭 표시 라벨 **Progress** (#15, D-02). IA 결정 (M-10 — 미결정) |
 | ReportDetailView, ReportPdfAction | growth-report, report-pdf | `110:854` Download PDF 만 | CapabilityDiamondChart(overlay), PersonaCard, HighlightClipPlayer, Button | ReportDetail, ReportPdfStatus | 7 | **Figma 누락** — design source decided per stage (C-13) |
 | SettingsMenu | settings | `26:44` 진입 아이콘만 | ListGroup, ListRow, ConfirmDialog | me | **2 → 3 → 6 → 8 확장** | 목록: Stage 2 **로그아웃** → Stage 3 **알림 행**(목적지는 `D-18` 로 **push 권한 블록만**) → Stage 6 **전체 설정**(아이 프로필 수정·설문 재응답·발전 역량 변경 등) → Stage 8 **데이터 관리·탈퇴** (+ 동의 이력 보기 = **선택 기능 (C-19)**) — CONFIRMED (사용자 결정 2026-09-14, C-16·C-19). 목록 화면 **Figma 누락** — design source decided per stage (C-13) |
@@ -243,7 +247,7 @@ Author: design-agent (2026-09-14)
 | UploadStatusBadge, Offline Banner, Recovery notice | Domain / Shared | NFR 오프라인·안정성, §13 | 4 | |
 | 30분 자동 종료 / 10분 리마인드 안내 | Feature | FR-09, §13 | 4 | |
 | 자유 후기 카드(TextArea), Skip | Feature | FR-12 | 5 | |
-| AnalysisStatusCard, ShortFeedback, 저품질 안내 | Domain / Feature | FR-13, FR-14, §13 | 5 | |
+| ~~AnalysisStatusCard~~, ShortFeedback, 저품질 안내 | Domain / Feature | FR-13, FR-14, §13 | 5 | **해소 (2026-11-09)** — `C13-S5-1` 명세로 구현 (`ShortFeedbackBubble` + `AnalysisStatusView`). 상태 카드 신규 컴포넌트 없음 |
 | Report eligibility progress, delayed notice | Domain | FR-16, §13 | 7 | |
 | HighlightClipPlayer (+expired) | Domain | FR-18 | 7 | |
 | PDF 생성 상태 / 공유 | Feature | FR-17 | 7 | |

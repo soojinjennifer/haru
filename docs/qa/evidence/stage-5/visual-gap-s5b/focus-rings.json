@@ -1,0 +1,83 @@
+[
+  {
+    "name": "1 star",
+    "outline": "none 3px off 0px",
+    "shadow": "none",
+    "clipL": 90,
+    "clipR": 242,
+    "clipT": 54,
+    "clipB": 218
+  },
+  {
+    "name": "Engaged",
+    "outline": "solid 2px off 2px",
+    "shadow": "none",
+    "clipL": 34.15625,
+    "clipR": 251.125,
+    "clipT": 94,
+    "clipB": 167
+  },
+  {
+    "name": "Big feelings",
+    "outline": "solid 2px off 2px",
+    "shadow": "none",
+    "clipL": 117.875,
+    "clipR": 150.421875,
+    "clipT": 94,
+    "clipB": 167
+  },
+  {
+    "name": "Ask Questions",
+    "outline": "solid 2px off 2px",
+    "shadow": "none",
+    "clipL": 218.578125,
+    "clipR": 34.171875,
+    "clipT": 94,
+    "clipB": 167
+  },
+  {
+    "name": "Stay Focus",
+    "outline": "solid 2px off 2px",
+    "shadow": "none",
+    "clipL": 84.109375,
+    "clipR": 188.203125,
+    "clipT": 134,
+    "clipB": 127
+  },
+  {
+    "name": "Tricky today",
+    "outline": "solid 2px off 2px",
+    "shadow": "none",
+    "clipL": 180.796875,
+    "clipR": 84.109375,
+    "clipT": 134,
+    "clipB": 127
+  },
+  {
+    "name": "Anything to talk about this time? (optional)",
+    "outline": "solid 2px off 2px",
+    "shadow": "none",
+    "clipL": 16,
+    "clipR": 16,
+    "clipT": 181,
+    "clipB": 73
+  },
+  {
+    "name": "Save",
+    "outline": "solid 2px off 2px",
+    "shadow": "color(srgb 0.368627 0.45098 0.439216 / 0.08) 0px 2px 4px 0px",
+    "clipL": 16,
+    "clipR": 16,
+    "clipT": 235,
+    "clipB": 14
+  },
+  {
+    "name": "Session CompleteAttendance stickerYou read together todayStorytime success! Emma did wonderfully.14 min together · sticker earnedHow was storytime with Nova?EngagedBig feelingsAsk QuestionsStay FocusTricky todayChoose stars, a tag, or add a note to save.Savescenario\n    \n  \n\nRecording submitted",
+    "outline": "none 3px off 0px",
+    "shadow": "none",
+    "clipL": -11.5,
+    "clipR": -11.5,
+    "clipT": -465,
+    "clipB": -85
+  }
+]

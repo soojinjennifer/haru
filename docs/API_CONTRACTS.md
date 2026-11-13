@@ -1,6 +1,6 @@
 # HARU API Contracts
 
-Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (**Rev 8: Stage 4 승인 결정 `D4-1`~`D4-22` 반영, 2026-10-13 plan-agent** · 최신 **Rev 8.9**: `D4-87`·`D4-88` 설계 변경, 2026-11-01 plan-agent · **APPROVED (2026-11-02, user, `D4-97`)**)
+Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (**Rev 8: Stage 4 승인 결정 `D4-1`~`D4-22` 반영, 2026-10-13 plan-agent** · 최신 **Rev 8.9**: `D4-87`·`D4-88` 설계 변경, 2026-11-01 plan-agent · **APPROVED (2026-11-02, user, `D4-97`)** · 최신 구현 반영 **Rev 9**: Stage 5 `S5-A`, 2026-11-08 development-agent — 설계 근거 = 승인된 Stage 5 Plan §7 · `D5-4`)
 
 > **Rev 8 (2026-10-13, plan-agent — Stage 4 Plan 승인 후 적용)** — `docs/plans/stage-4-plan.md` §7.5 의 **18 지점**을 반영했다 (목록 20건 중 무효 2건 제외).
 > 적용 지점: §2.2(enum 수 정정 `P4-FIX-3` + Stage 4 신규 2종) · **§3.1 전이표 2행 추가(12 → 14 — `D4-13`)** · §3.2(`SessionSummary.bubble` 렌더 지점·null 거동·길이 요구 — `D4-20`·`D4-21`·`D4-22` / `SessionTransitionRequest.to='abandoned'` 세 경로 주석 / `StickerAward` / `readingContext`) · §3.3(`partNo`·`mimeType` = `S4-A` spike 확정 대기) · **§3.9 `RecordingStatus` 신설** · §4 Stage 3·4 표(이월 표기 · 네이티브 후속 단계 주석) · §5.1.1(`RecorderAdapter`·`recordingApi`·`UploadTransport`) · **§5.4 신규 scenario key 2건** · **§6 `G-08`·`G-09` Resolved**.
@@ -22,6 +22,7 @@ Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (**Rev 8: Stage 4 승�
 > **Rev 8.11 (2026-11-04, development-agent — Stage 4b `S4-H2R` · `S4-H3` 구현 반영)** — 설계 변경 없음 · **contracts 변경 0** · error code 0 · endpoint 0. 반영 지점: §5.4 `recorder` 그룹 key **4건 추가**(`mic-permission-blocked` · `mic-unavailable` · `mic-permission-revoked` — `S4-H2R`, `local-retention-notice` — `S4-H3`, 4b Plan §12 제안 key 그대로, `D4-119`) · `mic-permission-denied` 설명 갱신(Start Session 판정 경로, `D4-112`) · `crash-recovered` · `local-retention-exceeded` · `upload-stalled-48h` 에 **브라우저 기기 seed**(`D4-123`) 명시 · 업로드·보관 안내 화면(48h · 7일 · 14일)의 Mock 재현 경로. 상세 `docs/qa/stage-4b-handoff.md` `S4-H2R` · `S4-H3`.
 > **Rev 8.12 (2026-11-05, plan-agent — 4b QA `OBS-4B-3` 처리, 이미 승인된 계획 변경의 문서 반영)** — 설계 변경 없음 · **contracts 변경 0** · error code 0 · endpoint 0. §3.2 에 4b Plan §13.3-⑧ **C-1**(`CreateSessionRequest.mode` 결정 주체 문단, `D4-112`·`D4-119`) · **C-3**(`P4B-BIP-04`·`05`) + 4b Plan §10 **`P4B-BIP-01`** 을 Handoff 표로 등재. 4b Plan 개정 1.6 `S4-H4` 의 신규 Mock key 2건·`P4B-BIP-07`·`08` 은 **미승인 제안**이라 이번 Rev 에 넣지 않았다(`CP-15` 승인 후).
 > **Rev 8.13 (2026-11-07, development-agent — Stage 4b `S4-H4` 구현 반영)** — 설계 변경 없음 · **contracts 변경 0** · error code 0 · endpoint 0. 반영 지점: §5.3 `sessions` 행 · §5.4 Catalogue — **신규 key 2건 구현 확정** `session-already-active-ready`(진행 중 세션 = `ready`) · `session-already-active-paused`(= `paused`) (4b Plan §13.5-⑦ · `D4-145` CP-15 ⓐ) + `onboarding-incomplete`(sessions) **개정 구현**: 세션 endpoint 가 `ONBOARDING_INCOMPLETE` 를 낸 뒤 같은 Mock 세계의 `GET /v1/me` 가 `onboardingStatus='in_progress'` (NB-16 · `P4B-BIP-08`). Mock 위치 `apps/web/src/mocks/sessions/MockSessionApi.ts` · `mocks/onboarding/onboardingState.ts`(`markServerIncomplete`) · `mocks/me/MockMeApi.ts`. Frontend 처리(시작 경로의 상태별 분기)는 `entities/session/useCreateSession.ts` — 상세 `docs/qa/stage-4b-handoff.md` `S4-H4`.
+> **Rev 9 (2026-11-08, development-agent — Stage 5 `S5-A` 구현 반영, 근거: 승인된 `docs/plans/stage-5-plan.md` §7 C-1~C-12 · §8 · 사용자 결정 `D5-4` "전부 권고안대로 승인")** — **contracts 변경**: enum **+1** `ReflectionCheckKey`(`N5-01` ⓐ, 36종) · 신규 `reflections/reflection.ts`(`SubmitReflectionRequestSchema` · `ReflectionSchema`) · `analysis/status.ts`(`SessionAnalysisStatusSchema` — ⛔ `metricsPreview` **제거** `N5-11` ⓐ) · `highlight-clips/clip.ts`(`HighlightClipSummarySchema` · `SignedMediaUrlSchema` — schema 만, API 메서드 0 `N5-22`) · **`SessionDetail.reflection`**(required + nullable, C-4 · `C4-OPEN-6` 이행). ⛔ **`GET /v1/reflection-form` 삭제** (`N5-03` ⓐ). error code **신규 0** (29종). `AnalysisOutcome` **변경 0** (`N5-12` ⓐ — OAQ-17 Resolved). 반영 지점: §2.2 · §3.2 · **§3.10 · §3.11 · §3.12 신설** · §4 Stage 4·5 표 · §5.3 · §5.4(`reflections` · `analysis` 그룹 구현, 신규 key `analysis-pending-then-completed` · `analysis-feedback-missing` · `session-completion:reflection-submitted`) · §6 `G-06` Resolved. Plan 과 다르게 한 점: ① `SessionAnalysisStatus.sessionStatus` 를 완료 계열 4값(`AnalysisSessionStatusSchema`)으로 좁혔다 — 완료 전·`abandoned` 는 응답이 아니라 `ANALYSIS_NOT_AVAILABLE`(§1.2 "분석 전") 이므로 ② `note` 는 trim 후 **1~500자 또는 `null`**(공백만 = 거부, 클라이언트가 `null` 로 정규화) ③ `ReflectionSchema` 도 빈 회고를 거부한다. 상세 `docs/qa/stage-5-handoff.md` `H5-1`.
 Reflects: `docs/decisions/stage-0-approvals.md` #7 · #8 · #13 · #14 · #15 · #16 · #17 · #19 · #27 · C-1~C-10 · C-12 · C-13 · C-15 · C-16 · C-18 (Rev 5) · #33 · C-19 (Rev 6)
 Decision log: `docs/decisions/stage-0-approvals.md` + **`docs/decisions/stage-3-approvals.md` (Stage 3 — §3 · §6 · §6.1 · §7 · §7.1 · §8 · §8.1~§8.6)** — 이 문서와 다르면 결정 기록이 우선한다. 라벨: `CONFIRMED (사용자 결정 YYYY-MM-DD, #id)` · `RECOMMENDED` · `NEEDS DECISION (법무, L-xx)`.
 Based on: PRD v1.4, `docs/ARCHITECTURE.md` (DRAFT 2026-09-14), `docs/DATA_MODEL.md` (DRAFT 2026-09-14), design-agent `docs/FIGMA_SCREEN_MAP.md` · `docs/COMPONENT_MAP.md` (DRAFT 2026-09-14) — Rev 2: Figma 대비 gap §6 추가
@@ -175,6 +176,7 @@ Author: plan-agent (2026-09-14)
 | `NotificationKind` | `session_invite, short_feedback_ready, report_published, report_deferred_encourage, upload_failed_48h, report_delayed` | FR-08/13/16, §13 |
 | `ConsentSource` (Stage 2) | `signup_email, signup_oauth, settings, reconsent` | `docs/DATA_MODEL.md` §5 `consent_events.source` — **RECOMMENDED** (Stage 2 Plan §7.1 · §18-④) |
 | `OnboardingStatus` (Stage 2) | `not_started, in_progress, completed` | `docs/DATA_MODEL.md` §5 `caregiver_profiles.onboarding_status` — **RECOMMENDED**. 프로필 결과 확인 상태는 값으로 두지 않는다 (D-6) |
+| `ReflectionCheckKey` (Stage 5) | `engaged, big_feelings, asked_questions, stayed_focused, tricky_today` | **CONFIRMED (`D5-4`, `N5-01` ⓐ)** — PRD §7.6 체크 5종 ↔ Figma `91:710`~`714` 칩 1:1 (아이 반응↔`Engaged` · 감정 표현↔`Big feelings` · 질문 여부↔`Ask Questions` · 집중 시간↔`Stay Focus` · 어려웠던 점↔`Tricky today`). on/off — 제출 값 = 선택된 키 배열. 라벨은 copy 모듈 (`N5-20` ⓐ). `enums/reflection-check.ts` — **구현됨 (Rev 9)**. 스냅샷 **35 → 36 종** |
 | `Plan` (Stage 2) | `free` | PRD §7.1 "가입 완료 시 Free 플랜 자동 부여" — **RECOMMENDED**. 유료 플랜은 FR-26 (P2) |
 
 ---
@@ -262,7 +264,7 @@ export const READY_ABANDON_SECONDS = 10 * 60;  // §13
 > | `SessionTransitionRequest.to` | `ClientSessionTransitionTargetSchema = SessionStatusSchema.extract([...4값])` — **새 enum 값이 아니라 `SessionStatus` 부분집합**이다 |
 > | `occurredAt` | **필수** (`OccurredAtSchema`) — 스케치와 같다 |
 > | `CreateSessionRequest.customTime` | `TimeOfDaySchema.optional()` + **`createCustomTimeRefine()` 재사용**. 팩토리의 입력 타입을 `ReadingContext \| null` 로 넓혔다 (판정 로직 불변) |
-> | `SessionDetail` | `SessionSummary` + `recording: RecordingStatus \| null` + `sticker: StickerAward \| null` + `completionBubble: SessionBubbleCopy`(Rev 8.9, 구현 Rev 8.10 — §3.2.3). `reflection` 없음 (Stage 5) |
+> | `SessionDetail` | `SessionSummary` + `recording: RecordingStatus \| null` + `sticker: StickerAward \| null` + `completionBubble: SessionBubbleCopy`(Rev 8.9, 구현 Rev 8.10 — §3.2.3) + ⭐ **`reflection: Reflection \| null`**(Rev 9 — §3.10, required + nullable. 완료 계열이 아니면 항상 `null`) |
 > | `SessionTransitionResult` | `{ session, completionBubble?: SessionBubbleCopy, stickerAward?: StickerAward \| null }` |
 > | `ListSessions` | `CursorPageRequestSchema.extend({ status?: SessionStatus })` · `paginated(SessionSummarySchema)` |
 >
@@ -271,7 +273,7 @@ export const READY_ABANDON_SECONDS = 10 * 60;  // §13
 > | 파일 | 담는 것 |
 > |---|---|
 > | `sessions/create-session.ts` | `CreateSessionRequestSchema` (+ `customTime?`) · `CreateSessionResponseSchema` |
-> | `sessions/session.ts` | `SessionSummarySchema` · ⭐ **`SessionBubbleCopySchema`**(아래) · `SessionDetailSchema`(summary + **`RecordingStatus`**(§3.9) + `sticker?`; `reflection?` 는 **Stage 5** — `C4-OPEN-6`) |
+> | `sessions/session.ts` | `SessionSummarySchema` · ⭐ **`SessionBubbleCopySchema`**(아래) · `SessionDetailSchema`(summary + **`RecordingStatus`**(§3.9) + `sticker?`; `reflection` 은 **Stage 5 에서 구현됨** — Rev 9, §3.10) |
 > | `sessions/transition.ts` | `SessionTransitionRequestSchema` · `SessionTransitionResultSchema`(`session`·`completionBubble?`·`stickerAward?`) · **`StickerAwardSchema`** (§3.2.1) |
 > | `sessions/list.ts` | `ListSessionsRequestSchema`(cursor + `status?`) · `paginated(SessionSummarySchema)` — `C4-OPEN-4` **만든다**(RECOMMENDED) |
 >
@@ -869,6 +871,68 @@ export const RecordingStatusSchema = z.object({
 | **폐기된 녹음** | `Discard`(`D4-13`) 후 조회하면 `uploadStatus = 'deleted'` — **신규 값 0건**이다. ⛔ **사유는 담기지 않는다** (`N4-30` 이연) |
 | ⏳ **검토 후보 2건 (이 문서가 확정하지 않는다)** | ① **`sessionStatus`** — `invalid-transition` 시 클라이언트가 **서버 상태로 되돌아올 기준**이 필요한데, 현재는 `GET /v1/sessions/:sessionId` 를 따로 불러야 한다. ② **업로드 진행률**(`uploadedParts` 등) — `partCount` 만으로는 *"몇 개가 올라갔는지"* 를 서버 기준으로 알 수 없다. **둘 다 development-agent 가 `S4-C`/`S4-E` 에서 실제 필요 여부를 판정**하고, 넣기로 하면 **이 절과 Plan §7.2 를 함께 갱신**한다 |
 
+### 3.10 ⭐ Reflection — 세션 회고 (Rev 9, Stage 5 `S5-A` 구현)
+
+근거: Stage 5 Plan §7 C-1~C-6 · `D5-4` (PF5-1~6 = Figma). 파일 `packages/contracts/src/reflections/reflection.ts` · `enums/reflection-check.ts`.
+
+```ts
+// POST /v1/sessions/:sessionId/reflection   (Idempotency-Key 필수)
+SubmitReflectionRequest = {
+  rating: int 1..5 | null,                 // Figma 91:693 별 5개
+  checks: ReflectionCheckKey[],            // 선택된 칩 키, 중복 금지 (N5-01 ⓐ)
+  note: string(trim, 1..500) | null,       // 한 칸 (N5-02 ⓐ · N5-16). 공백만 = 거부 → 클라이언트가 null 로 정규화
+}  // refine: 셋 다 비면 거부 (N5-05 ⓐ) — `hasReflectionContent()` 를 Save 활성 조건과 공유
+Reflection = { id, sessionId, rating, checks, note, submittedAt }   // 같은 refine
+SessionDetail.reflection: Reflection | null                          // required + nullable (C-4)
+```
+
+| 규칙 | 내용 |
+|---|---|
+| ⛔ 두지 않는 필드 | `revisitTopics[]` · `freeNote` · `skipped` — 건너뛰기 = **요청 없음** (`N5-06` ⓐ). 섞여 오면 parse 가 버린다 |
+| 허용 상태 | 완료 계열 `completed` · `analyzing` · `analyzed` · `failed`, 두 mode 모두. 그 밖 → `SESSION_INVALID_TRANSITION` (`details.from` = 서버 상태) |
+| 세션당 1건 | 이미 있으면 `REFLECTION_ALREADY_SUBMITTED`. 수정 API 없음 (`N5-08` ⓐ — 재진입 읽기 전용) |
+| 멱등 | 같은 key + 같은 body → 최초 응답 재생 · 같은 key + 다른 body → `IDEMPOTENCY_KEY_REUSED`. 클라이언트는 **body 단위로 key** 를 관리한다 (`useSubmitReflection`, Plan `R5-04`) |
+| 오류 | `REFLECTION_ALREADY_SUBMITTED` · `SESSION_INVALID_TRANSITION` · `VALIDATION_FAILED` · `IDEMPOTENCY_KEY_REUSED` · `RESOURCE_NOT_FOUND` |
+| Privacy | `note` = 아동 관련 자유 텍스트 — 클라이언트 디스크 저장 0 (`N5-17`), 서버 AI 전송 전 PII redaction · 로그 원문 금지 (`P5-BIP-05`) |
+| 폼 정의 | ⛔ `GET /v1/reflection-form` · `ReflectionFormDefinition` **없음** (`N5-03` ⓐ) — 칩 목록 = enum, 라벨 = feature copy 모듈 |
+| Handoff | `P5-BIP-01`~`05` (저장·멱등 · 허용 상태 서버 강제 · 추천 신호 · 서재 평점 집계 · redaction) |
+
+### 3.11 ⭐ SessionAnalysisStatus — 분석 상태 · 짧은 피드백 (Rev 9, Stage 5 `S5-A` 구현)
+
+근거: Stage 5 Plan §7 C-7 · C-8 · C-11 · C-12 · `D5-4`. 파일 `packages/contracts/src/analysis/status.ts`.
+
+```ts
+// GET /v1/sessions/:sessionId/analysis
+SessionAnalysisStatus = {
+  sessionId,
+  sessionStatus: 'completed' | 'analyzing' | 'analyzed' | 'failed',   // AnalysisSessionStatusSchema (SessionStatus 부분집합)
+  mode: SessionMode,
+  outcome: AnalysisOutcome | null,                                       // refine: outcome ≠ null ⇒ sessionStatus = analyzed
+  shortFeedback: { text: string | null, templateId?: string } | null,    // ShortFeedbackSchema — 응답 값 그대로 표시
+}
+```
+
+| 규칙 | 내용 |
+|---|---|
+| ⛔ 제거 | `metricsPreview{emotionWordCount, newWords[]}` (`N5-11` ⓐ) — 아이 발화 파생 값은 Frontend 로 오지 않는다. 전사·발화·지표 필드 0 |
+| 오류 | `ANALYSIS_NOT_AVAILABLE` (`conversation_only` 세션 — 시나리오 무관, 완료 전 · `abandoned` 세션) · `RESOURCE_NOT_FOUND` · `FORBIDDEN` |
+| 표시 상태 매핑 (ARCHITECTURE §10.2) | pending = `analyzing` · analyzed = `analyzed`+`full` · low-quality = `analyzed`+`excluded_low_quality` · failed = `failed`(worker 재시도 중, 사용자 재시도 없음 `N5-15` ⓐ) · not-available = `ANALYSIS_NOT_AVAILABLE` |
+| ⭐ 녹음 삭제 세션 (`OAQ-17` → `N5-12` ⓐ **Resolved**) | enum 변경 0 — 서버는 `sessionStatus='completed'` 그대로, Frontend 는 `SessionDetail.recording.uploadStatus ∈ {deleted, expired}` 로 "녹음 없음" 을 판별해 not-available 과 같은 표시 상태(문구만 사유) |
+| 민감 발화 (`N5-13`) | 세션 단위 outcome 신설 없음 — 서버가 중립 처리한 `shortFeedback.text` 만 표시 |
+| 피드백 문구 | `text: null` = 텍스트 줄 미렌더. Frontend 조립·보간·대체 문구 0. `.max()` 없음 (1~2줄은 생성 측 요구 `P5-BIP-09`) |
+| 폴링 (`N5-14`) | 15초 · `failed` 60초 · 종착(`analyzed` · `ANALYSIS_NOT_AVAILABLE` · `RESOURCE_NOT_FOUND` · `FORBIDDEN`) 정지 · 화면이 보일 때만 — `apps/web/src/entities/analysis/analysisPolling.ts` |
+| `NotificationKind` | 변경 0 (`short_feedback_ready` 기존, payload = `sessionId` 만 — `P5-BIP-10`) |
+| Handoff | `P5-BIP-06`~`13` · `15` · `16` |
+
+### 3.12 ⭐ HighlightClipSummary · SignedMediaUrl (Rev 9 — schema 만)
+
+근거: Stage 5 Plan §7 C-9 · `N5-22`. 파일 `packages/contracts/src/highlight-clips/clip.ts`. **API Client 메서드 · 호출자 0** — fixture(`apps/web/src/mocks/fixtures/highlight-clips.ts`) + parse 테스트만. 재생 UI · `GET /v1/highlight-clips/:clipId/playback-url` 은 Stage 7.
+
+```ts
+HighlightClipSummary = { id, sessionId, durationSeconds: int ≥ 1 /* 10~15 는 추출 가이드 */, expiresAt: datetime | null /* OAQ-13 */ }
+SignedMediaUrl = { url: url, expiresAt: datetime }
+```
+
 ---
 
 ## 4. Endpoint Groups by Stage
@@ -985,7 +1049,7 @@ Home 상단 설정 아이콘(`26:44`) → 설정 목록. Stage 2는 `/` Home ske
 | Method | Path | Request | Response | Key errors | PRD |
 |---|---|---|---|---|---|
 | POST | `/v1/sessions` (IK) | `CreateSession` (§3.2) | `CreateSession` | ONBOARDING_INCOMPLETE, SESSION_ALREADY_ACTIVE | FR-09, FR-10 (시작 버블) |
-| GET | `/v1/sessions/:sessionId` | — | `SessionDetail` (summary + recording upload status + reflection? + sticker? + ⭐ completionBubble — Rev 8.9, §3.2.3) | RESOURCE_NOT_FOUND | FR-09 |
+| GET | `/v1/sessions/:sessionId` | — | `SessionDetail` (summary + recording upload status + sticker? + ⭐ completionBubble — Rev 8.9, §3.2.3 + ⭐ **reflection** — Rev 9, §3.10) | RESOURCE_NOT_FOUND | FR-09 |
 | POST | `/v1/sessions/:sessionId/transitions` (IK, CG when to=recording) | `SessionTransition` (§3.2) | `SessionTransitionResult` (session, completionBubble?, stickerAward?) | SESSION_INVALID_TRANSITION, CONSENT_REQUIRED, SESSION_MAX_DURATION_EXCEEDED | FR-09, FR-10 (종료 버블), FR-19, §13 |
 | POST | `/v1/sessions/:sessionId/recordings` (IK, CG) | `RecordingUploadInit` (§3.3) | `RecordingUploadInit` | CONSENT_REQUIRED, RECORDING_NOT_ALLOWED_FOR_MODE, SESSION_INVALID_TRANSITION | FR-14, NFR 오프라인 |
 | POST | `/v1/recordings/:recordingId/upload-tokens` (IK, CG) | `RefreshUploadTokens` (partNos) | `RecordingUploadInit` | RECORDING_DELETED | NFR 오프라인 (토큰 만료) |
@@ -1010,9 +1074,11 @@ Home 상단 설정 아이콘(`26:44`) → 설정 목록. Stage 2는 `/` Home ske
 
 | Method | Path | Request | Response | Key errors | PRD |
 |---|---|---|---|---|---|
-| GET | `/v1/reflection-form` | — | `ReflectionFormDefinition` (check items & options, template copy) | — | FR-12 (선택지 운영 관리) |
-| POST | `/v1/sessions/:sessionId/reflection` (IK) | `SubmitReflection` (rating?, checks, revisitTopics[], freeNote?, skipped) | `Reflection` | REFLECTION_ALREADY_SUBMITTED, SESSION_INVALID_TRANSITION(completed 이전) | FR-12, §7.6 |
-| GET | `/v1/sessions/:sessionId/analysis` | — | `SessionAnalysisStatus` (sessionStatus, outcome, shortFeedback?{text}, metricsPreview?{emotionWordCount, newWords[]}) | ANALYSIS_NOT_AVAILABLE | FR-13, FR-14, §13 STT 저품질 안내 |
+| ~~GET~~ | ~~`/v1/reflection-form`~~ | — | ⛔ **삭제 (Rev 9, `N5-03` ⓐ)** — 칩 = `ReflectionCheckKey` enum + copy 모듈 | — | — |
+| POST | `/v1/sessions/:sessionId/reflection` (IK) | `SubmitReflectionRequest` (rating \| null, checks: ReflectionCheckKey[], note \| null — §3.10) | `Reflection` | REFLECTION_ALREADY_SUBMITTED, SESSION_INVALID_TRANSITION(완료 계열 이전), VALIDATION_FAILED, IDEMPOTENCY_KEY_REUSED | FR-12, §7.6 |
+| GET | `/v1/sessions/:sessionId/analysis` | — | `SessionAnalysisStatus` (sessionId, sessionStatus, mode, outcome, shortFeedback{text \| null} \| null — §3.11. ⛔ `metricsPreview` 제거 `N5-11`) | ANALYSIS_NOT_AVAILABLE, RESOURCE_NOT_FOUND, FORBIDDEN | FR-13, FR-14, §13 STT 저품질 안내 |
+
+> ✅ **구현 (Rev 9, `S5-A`)**: API Client `reflectionApi.submit` (`apps/web/src/shared/api/reflection-api.ts`) · `analysisApi.getStatus` (`analysis-api.ts`) · Http 골격 `HttpReflectionApi` · `HttpAnalysisApi` · Mock `apps/web/src/mocks/reflections/MockReflectionApi.ts` · `mocks/analysis/MockAnalysisApi.ts` · hook `entities/reflection/useSubmitReflection` · `entities/analysis/useSessionAnalysis`. 하이라이트 클립 메서드는 Stage 7 (`N5-22`).
 
 분석 Worker 내부 데이터(`AnalysisJobPayload`, `SttResult`, `SessionMetrics`, `CapabilitySignal`, `HighlightClipCandidate`)는 **contracts에 정의하지 않는다** — Frontend 비노출, Backend Handoff 요구사항으로 `docs/ANALYSIS_PIPELINE_REQUIREMENTS.md` 에 문서화한다.
 
@@ -1144,8 +1210,8 @@ apps/web/src/
 | notifications / push-devices | 3 | `success`, `loading`, `error`, `retry` | `push-permission-denied` |
 | sessions (create / transitions) | 4 | `success`, `loading`, `error`, `retry` | `invalid-transition`, `session-already-active`, `session-already-active-ready` (Rev 8.13), `session-already-active-paused` (Rev 8.13), `onboarding-incomplete`, `consent-missing`, `mic-permission-denied`, `recording-interrupted`, `auto-timeout`, `crash-recovered`, `abandoned` |
 | recordings (upload init / tokens / complete) | 4 | `success`, `loading`, `error`, `retry` | **`recording-upload-success`**, **`recording-upload-failure`**, `upload-retry`, `upload-token-expired`, `recording-incomplete`, `offline-queued`, `upload-stalled-48h`, `recording-deleted` (upload-tokens) |
-| reflections | 5 | `success`, `loading`, `empty`(skip), `error`, `retry` | `reflection-already-submitted`, `invalid-transition` (completed 이전 제출) |
-| analysis / short feedback | 5 | `success`, `loading`, `error`, `retry` | **`analysis-pending`**, **`analysis-completed`**, **`analysis-failed`**, `analysis-low-quality`, `analysis-not-available`, `recording-deleted` (skipped) |
+| reflections | 5 | `success`, `loading`, `error`, `retry`, `offline` — ⛔ `empty`(skip) **제외** (Rev 9, `N5-06` ⓐ: 건너뛰기 = 요청 없음) | `reflection-already-submitted`, `invalid-transition` (완료 계열 이전 제출 — 1회차) · 재진입 = `session-completion:reflection-submitted` |
+| analysis / short feedback | 5 | `success`, `loading`, `error`, `retry`, `offline` | **`analysis-pending`**, **`analysis-completed`**, **`analysis-failed`**, `analysis-low-quality`, `analysis-not-available`, `recording-deleted` (`completed` + Detail `uploadStatus=deleted`, `N5-12` ⓐ), 🆕 `analysis-pending-then-completed`, 🆕 `analysis-feedback-missing` (Rev 9) |
 | profile update / recommendation (필드 확장) | 6 | `success`, `loading`, `empty`, `error`, `retry` | `cold-to-warm`, `persona-changed`, `difficulty-lowered` |
 | reports / highlight clips / PDF | 7 | `success`, `loading`, `empty`, `error`, `retry` | **`report-eligible`**, **`report-not-eligible`**, `report-deferred`, `report-delayed`, `pdf-generating`, `clip-expired`, `share-cancelled`, `recording-deleted` (highlight clips) |
 | data management / deletion / account / consent history (이월 — C-15) | 8 | `success`, `loading`, `empty`, `error`, `retry` | `deletion-processing`, `deletion-already-requested`, `recording-deleted` |
@@ -1162,7 +1228,7 @@ apps/web/src/
 |---|---|---|---|---|---|
 | `success` | SUCCESS | contracts schema를 통과하는 성공 fixture 응답 | 전체 | 1 | `default` |
 | `loading` | LOADING | 성공 응답을 지연(예 1.5–3s)시켜 Loading/Skeleton·버튼 loading 검증 | 전체 | 1 | `slow` |
-| `empty` | EMPTY | 목록 `items: []` / 표시할 내용 없음 (회고 skip 포함) | home, activity-cards, library, gift-requests, sessions 목록, reflections, reports, data management | 1 | — |
+| `empty` | EMPTY | 목록 `items: []` / 표시할 내용 없음 | home, activity-cards, library, gift-requests, sessions 목록, reports, data management — ⛔ reflections 제외 (Rev 9, `N5-06` ⓐ) | 1 | — |
 | `error` | ERROR | contracts Error Envelope 반환 (기본 `INTERNAL_ERROR`, endpoint별 code 지정 가능) | 전체 | 1 | — |
 | `retry` | RETRY | 첫 요청 `error` → 재시도 시 `success` (입력 보존·재시도 UX 검증) | 전체 | 1 | — |
 | `recording-upload-success` | recording upload success | init → part 업로드 → complete 성공 → `uploadStatus=uploaded`, 세션 `analyzing` | recordings | 4 | `upload-success` |
@@ -1302,6 +1368,23 @@ apps/web/src/
 >
 > `subtext: ''`·key 없음은 schema·컴포넌트 단위 테스트로 판정한다 — key 를 늘리지 않는다.
 >
+> ✅ **구현 반영 (Rev 9, Stage 5 `S5-A`, 2026-11-08)** — Plan §8 그룹 3개. 전환: `?scenario=<group>:<key>` (메서드 단위 `reflections.submit:` · `analysis.getstatus:`).
+>
+> | group | key | Mock 동작 |
+> |---|---|---|
+> | `reflections` (`mocks/reflections/MockReflectionApi.ts`) | `success` · `loading` · `error` · `retry` · `offline` | 공통. `success` = 완료 계열 세션에 저장 → 이후 `SessionDetail.reflection` |
+> | | `reflection-already-submitted` | `REFLECTION_ALREADY_SUBMITTED` (같은 key 의 성공 replay 는 최초 응답) |
+> | | `invalid-transition` | 1회차 `SESSION_INVALID_TRANSITION`(`details.from`) → 2회차부터 상태 규칙 (오프라인 Submit 이 Outbox 에 남은 경우) |
+> | `analysis` (`mocks/analysis/MockAnalysisApi.ts` · `analysisScenarios.ts`) | `success` · `loading` · `retry` | **실제 Mock 상태** — `analyzing` 세션은 조회 1·2번째 `analyzing`, 3번째에 worker 전이(`canTransition(…, 'worker')`) → `analyzed`+`full`+피드백. 결정적(조회 횟수) |
+> | | `error` · `offline` | 공통 |
+> | | `analysis-pending` · `analysis-completed` · `analysis-failed` · `analysis-low-quality` · `analysis-feedback-missing` | 표시 override (Plan §8 표). 서버 상태는 바꾸지 않고 `GET /v1/sessions/:id` 의 `status` · `analysisOutcome` 에도 같은 값을 겹친다 |
+> | | `recording-deleted` | `completed` + `outcome/shortFeedback = null` · Detail `recording.uploadStatus='deleted'` (녹음 레코드가 없으면 고정 id `MOCK_DELETED_RECORDING_ID`) |
+> | | `analysis-not-available` | `ANALYSIS_NOT_AVAILABLE` |
+> | | 🆕 `analysis-pending-then-completed` | 1·2번째 조회 `analyzing` → 3번째부터 `analyzed`+`full` (폴링 종료 검증) |
+> | | 🆕 `analysis-feedback-missing` | `analyzed`+`full`+`shortFeedback.text = null` (텍스트 줄 미렌더) |
+> | | (공통 규칙) | `conversation_only` = 시나리오 무관 `ANALYSIS_NOT_AVAILABLE` · 완료 전 세션 = `ANALYSIS_NOT_AVAILABLE` · override 는 녹음 세션 + 완료 계열에만 |
+> | `session-completion` | 🆕 `reflection-submitted` | 완료 버블 = `success`. 완료 계열 세션에 제출된 회고(별 4 · `engaged` · `asked_questions` · 메모 — `mocks/fixtures/reflections.ts` `MOCK_SUBMITTED_REFLECTION_INPUT`)가 있다 → 재진입 읽기 전용 · 재제출 `REFLECTION_ALREADY_SUBMITTED` |
+>
 > ✅ **구현 반영 (Rev 8.11, Stage 4b `S4-H2R` · `S4-H3`, 2026-11-04)** — 설계 변경 없음 · contracts 변경 0.
 >
 > | 항목 | 구현 |
@@ -1340,7 +1423,7 @@ apps/web/src/
 | G-03 | **Prompt 단계·페이지 태그** PRE / POST / P.6 | `139:2410–2412`, `163:2648`, `145:1132`, `88:960` | **추가 완료** — `Prompt` = `text`, `kind`, **`phase: 'pre' \| 'post' \| null` (optional)**, **`pageRef: string \| null` (optional)** — §3.6 | 반영 완료. 과거 후보 `'during'`·`pageRef: number` 는 **채택하지 않음** | **CONFIRMED (2026-10-02, §8 · §8.1 D-8; M-29 해소)** — Figma 기준 채택, Plan 권장안 기각. Backend: `phase` 판정 = `P3-BIP-13`, `pageRef` 책별 페이지 앵커 데이터 = `P3-BIP-14` (**콘텐츠 제작 범위** — 큐레이션 20권 페이지 메타 필요) |
 | G-04 | **책 저장 / My Saved, 책 평점, 읽기 진행** ("Save to my shelf", "Rated 4.5", "Reading now · 3 of 5 nights", "Last read Tue · 12 min") | `86:245`, `86:372`, `145:1157`, `109:511`, `145:1141–1152` | 없음 (PRD FR-20 범위 밖) | `LibraryBook.saved` + `PUT/DELETE /v1/children/:childId/library/books/:id/saved`; `LibraryBook.averageRating` (회고 별점 집계인지 정의 필요); reading plan 모델(`targetNights`, `nightsRead`, `lastReadAt`) | **부분 재채택 (2026-10-05, approvals §12.8 `A-9`)** — ① **책 저장(`★ Save`)은 채택한다**: Figma `I86:438;86:383;117:973` 에 `Button/White 87×45 ★ Save` 가 실제로 있고(최우선 규칙 3), 사용자 결정은 *"현재 카드를 Library 의 favorites 에 저장한다"* 다 → 설계 **§3.7**. `D-7` 의 `★ Save` 제외 부분과 `AD-S3-8` 은 **무효**. 경로는 §3.7 의 `PUT/DELETE /v1/children/:childId/saved-books` 로 **변경**한다(이 열의 과거 안 `…/library/books/:id/saved` 는 저장 시 행이 아직 없을 수 있어 성립하지 않는다). ② **평점(`averageRating`) · reading plan 은 그대로 미채택** — `D-7` 의 그 부분은 유효하다 (2026-10-01, §7 D-7; M-14). 서재는 FR-20·FR-22 의 4기능 + 저장 축 |
 | G-05 | **덱 카드별 역량** | `163:2648` — 3장이 각각 Self-Direction / Emotion / Intrinsic Motivation | **(b) 채택** — `ActivityCard.options[].capability` **추가**, 카드 단위 `targetCapability` 는 **삭제**(D-22, 2026-10-03 §9) (§3.6) | 반영 완료. §8.3 순환 스케줄 규칙 변경은 **추천 엔진 Backend 요구**(`P3-BIP-02`) | **CONFIRMED (2026-09-29, §3 D-5; M-31 해소)** — Figma 우선 적용, PRD §7.4·§8.3 은 **PRD 수정 대상 §5-2**. `" Day"` suffix 폐기(N-3), "Emotion Day Day"(M-13) 오타 미복제 |
-| G-06 | **회고 칩 정의** | `91:710–714` Engaged / Big feelings / Ask Questions / Stay Focus / Tricky today (on/off) + 별점 `91:693` + 한 줄 입력 `91:716` | `ReflectionFormDefinition` 은 이름만 정의, `SubmitReflection.checks` 값 형태·선택지 미정 | PRD 체크 5종 ↔ 칩 1:1 매핑 후보 (아이 반응↔Engaged, 감정 표현↔Big feelings, 질문 여부↔Ask Questions, 집중 시간↔Stay Focus, 어려웠던 점↔Tricky today). 칩 = boolean인지 항목별 선택지인지, 문구, 자유 후기 별도 카드 여부 결정 후 `ReflectionCheckKey` enum + `checks: Record<ReflectionCheckKey, boolean>` 확정 | NEEDS DECISION (M-15) |
+| G-06 | **회고 칩 정의** | `91:710–714` Engaged / Big feelings / Ask Questions / Stay Focus / Tricky today (on/off) + 별점 `91:693` + 한 줄 입력 `91:716` | `ReflectionFormDefinition` 은 이름만 정의, `SubmitReflection.checks` 값 형태·선택지 미정 | PRD 체크 5종 ↔ 칩 1:1 매핑 후보 (아이 반응↔Engaged, 감정 표현↔Big feelings, 질문 여부↔Ask Questions, 집중 시간↔Stay Focus, 어려웠던 점↔Tricky today). 칩 = boolean인지 항목별 선택지인지, 문구, 자유 후기 별도 카드 여부 결정 후 `ReflectionCheckKey` enum + `checks: Record<ReflectionCheckKey, boolean>` 확정 | ✅ **Resolved (Rev 9, `D5-4` — `N5-01` ⓐ · `N5-02` ⓐ · `N5-20` ⓐ; M-15 해소)** — `ReflectionCheckKey` enum 5값 + `checks` = **선택된 키 배열**(Record 아님) · 입력 한 칸 `note` · 라벨 = Figma 문자열 그대로(copy 모듈) · 두 번째 카드 없음 · `ReflectionFormDefinition` 삭제 (§3.10) |
 | G-07 | **Prompt 노출 시점** | 모든 카드 변형이 책 선택 전 Prompt 노출 (`163:2648`, `86:438`, `86:512/545`) | **`options[].promptPreview: Prompt[]` 추가** (선택 전 노출). `SelectActivityOption` 응답의 `promptSet` 은 그대로 유지 — §3.6 | 반영 완료. **길이 상한 없음**(N-2 + **D-21**: `.min(1)` 만, `.max(3)` 없음, Frontend 가 `slice` 하지 않는다 — 표시 개수 3은 cutoff) | **CONFIRMED (2026-09-29 §3 D-4 + 2026-10-01 §6.1 N-2; M-09 해소)** — Figma 우선 적용, PRD FR-07·§7.4·§8.2 는 **PRD 수정 대상 §5-1 · §6.2-4** |
 | G-08 | **세션 준비 버블에 Prompt 목록** ("Try this prompt !") | `139:2803` (선언 **329×269** @ (34,336) · pill 간격 **6** · 세로 padding 위 **14** / 아래 **13**) | ⭐ **버블 하나가 둘 다 담는다** — **제목 줄 = `SessionSummary.bubble`**(검수 템플릿 인사) · **pill = `prompts`**. 두 값은 **출처가 다르고 섞이지 않는다**. 상세 = **§3.2.1** | ⛔ **종전 "PRD §7.5(자동 제시 금지) 기준 현 계약 유지" 를 뒤집는다.** Figma 기하를 그대로 구현한다(329 폭 · pill 5개 · 간격 6). 인사 없으면 **제목 줄 미렌더**(`D4-22`, 높이 28px 단축) · 인사는 **1줄 clamp** 상한 **≤240px**(`D4-21`) · ⛔ `Try this prompt !` 는 **Figma placeholder** 이며 제품 코드에 넣지 않는다 | ⭐ **Resolved — Figma 채택 (사용자 결정 2026-10-13, `D4-14` + `D4-20`·`D4-21`·`D4-22`; M-25 해소)** — `CLAUDE.md` Source of Truth(PRD ↔ Figma 충돌 시 **Figma 우선, 지점별 사용자 승인**)대로 처리했다. ⚠️ **PRD 수정 대상 8건** = `stage-4-approvals.md` **§6.2 (8~15)**. ⚠️ 되살아난 미결 2건: **`S4F-01`**(Prompt 개수 n 가변 시 높이 정책 — `D-21` 상한 없음) · **`S4F-02`**(pill 본문이 Figma 자체에서 38px 를 2줄로 넘친다) |
 | G-09 | **녹음 Discard / Submit** | `163:1618`(`Discard`, 면 `--grays/gray-2` **`#aeaeb2`**) · `163:1620`(`Submit`) — ⭐ 2026-10-13 Figma 갱신으로 **둘 다 `285:1445` "After_record" 의 자식**이 되어 **용도가 확정**됐다 | ⭐ **둘 다 채택.** `Submit` → Toast(`Recording submitted`) → **`1c Complete & Feedback`** · `Discard` → **확인 다이얼로그**(`D4-17`) → **홈 복귀**. 전이표에 **`recording → abandoned` · `paused → abandoned` 2행 추가**(행 수 **12 → 14**) — §3.1 | ⭐ **이 절이 적어 둔 후보 "완료 전 폐기 = `abandoned` + 로컬 삭제, 서버 업로드 없음" 이 바로 채택된 안(안 A)이다** — 후보 표기를 **확정 서술로 바꾼다**. ⛔ `SessionStatus` 신규 값 **없음**(`discarded` 미채택) · **`AbandonedReason` 만들지 않는다** · `CompletedReason`·error code 신규 **0**. ⛔ **`recordingApi.abort()` 없음** — 서버가 part 를 스스로 정리(`P4-BIP-21`, §5.1.1) | ⭐ **Resolved — 안 A (사용자 결정 2026-10-13, `D4-12` + `D4-13`; M-26 부분 해소)**. ⚠️ **방치와 사용자 폐기를 구분할 수 없다** — 사유 값 추가는 별도 결정(`N4-30`, 이연). M-26 잔여 = `C13-1`·`C13-14` 디자이너 Figma 대기 + `N4-27`(paused 재개 경로) |

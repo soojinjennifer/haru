@@ -1,0 +1,141 @@
+{
+  "gap": 7,
+  "rowCount": 3,
+  "rows": [
+    [
+      "Engaged",
+      "Big feelings"
+    ],
+    [
+      "Ask Questions",
+      "Stay Focus"
+    ],
+    [
+      "Tricky today"
+    ]
+  ],
+  "extents": [
+    {
+      "name": "Engaged",
+      "boxTop": 563,
+      "boxBottom": 596,
+      "hitTop": 556.75,
+      "hitBottom": 598.5,
+      "hitH": 41.75,
+      "centerOffsetTop": 22.75,
+      "centerOffsetBottom": 19,
+      "follows": null
+    },
+    {
+      "name": "Big feelings",
+      "boxTop": 563,
+      "boxBottom": 594,
+      "hitTop": 555.75,
+      "hitBottom": 598.5,
+      "hitH": 42.75,
+      "centerOffsetTop": 22.75,
+      "centerOffsetBottom": 20,
+      "follows": null
+    },
+    {
+      "name": "Ask Questions",
+      "boxTop": 603,
+      "boxBottom": 636,
+      "hitTop": 598.75,
+      "hitBottom": 638.5,
+      "hitH": 39.75,
+      "centerOffsetTop": 20.75,
+      "centerOffsetBottom": 19,
+      "follows": ""
+    },
+    {
+      "name": "Stay Focus",
+      "boxTop": 603,
+      "boxBottom": 634,
+      "hitTop": 598.75,
+      "hitBottom": 640.25,
+      "hitH": 41.5,
+      "centerOffsetTop": 19.75,
+      "centerOffsetBottom": 21.75,
+      "follows": ""
+    },
+    {
+      "name": "Tricky today",
+      "boxTop": 643,
+      "boxBottom": 676,
+      "hitTop": 638.75,
+      "hitBottom": 681.25,
+      "hitH": 42.5,
+      "centerOffsetTop": 20.75,
+      "centerOffsetBottom": 21.75,
+      "follows": ""
+    }
+  ],
+  "pairs": [
+    {
+      "rowPair": "0->1",
+      "upper": "Engaged",
+      "lower": "Ask Questions",
+      "upperBottom": 596,
+      "lowerTop": 603,
+      "midline": 599.5,
+      "geometricMid": 599.5,
+      "switchAt": 598.75,
+      "switchMinusMidline": -0.75,
+      "at_mid_minus1": "Engaged",
+      "at_mid_plus1": "Ask Questions"
+    },
+    {
+      "rowPair": "0->1",
+      "upper": "Big feelings",
+      "lower": "Ask Questions",
+      "upperBottom": 594,
+      "lowerTop": 603,
+      "midline": 599.5,
+      "geometricMid": 599.5,
+      "switchAt": 598.75,
+      "switchMinusMidline": -0.75,
+      "at_mid_minus1": "Big feelings",
+      "at_mid_plus1": "Ask Questions"
+    },
+    {
+      "rowPair": "0->1",
+      "upper": "Big feelings",
+      "lower": "Stay Focus",
+      "upperBottom": 594,
+      "lowerTop": 603,
+      "midline": 599.5,
+      "geometricMid": 599.5,
+      "switchAt": 598.75,
+      "switchMinusMidline": -0.75,
+      "at_mid_minus1": "Big feelings",
+      "at_mid_plus1": "Stay Focus"
+    },
+    {
+      "rowPair": "1->2",
+      "upper": "Ask Questions",
+      "lower": "Tricky today",
+      "upperBottom": 636,
+      "lowerTop": 643,
+      "midline": 639.5,
+      "geometricMid": 639.5,
+      "switchAt": 638.75,
+      "switchMinusMidline": -0.75,
+      "at_mid_minus1": "Ask Questions",
+      "at_mid_plus1": "Tricky today"
+    },
+    {
+      "rowPair": "1->2",
+      "upper": "Stay Focus",
+      "lower": "Tricky today",
+      "upperBottom": 634,
+      "lowerTop": 643,
+      "midline": 639.5,
+      "geometricMid": 639.5,
+      "switchAt": 638.75,
+      "switchMinusMidline": -0.75,
+      "at_mid_minus1": "Stay Focus",
+      "at_mid_plus1": "Tricky today"
+    }
+  ]
+}

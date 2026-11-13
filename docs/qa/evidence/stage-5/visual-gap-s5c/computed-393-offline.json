@@ -1,0 +1,89 @@
+{
+  "viewport": [
+    393,
+    852
+  ],
+  "state": "offline",
+  "h1": {
+    "box": {
+      "x": 139.44,
+      "y": 19,
+      "w": 114.13,
+      "h": 20
+    },
+    "text": "Storytime notes",
+    "css": {
+      "font-size": "15px",
+      "font-weight": "590",
+      "line-height": "20px",
+      "color": "rgb(74, 95, 92)"
+    }
+  },
+  "close": {
+    "box": {
+      "x": 331,
+      "y": 10,
+      "w": 38,
+      "h": 38
+    },
+    "label": "Close"
+  },
+  "ring": {
+    "box": {
+      "x": 121.5,
+      "y": 116,
+      "w": 150,
+      "h": 150
+    },
+    "css": {
+      "background-color": "rgba(255, 255, 255, 0.5)",
+      "box-shadow": "color(srgb 0.368627 0.45098 0.439216 / 0.08) 0px 6px 4px 0px, rgba(255, 255, 255, 0.9) 0px 1.5px 0px 0px inset, color(srgb 0.368627 0.45098 0.439216 / 0.05) 0px -1px 0px 0px inset"
+    }
+  },
+  "avatar": {
+    "x": 128.5,
+    "y": 123,
+    "w": 136,
+    "h": 136
+  },
+  "sticker": 0,
+  "slot": {
+    "x": 24,
+    "y": 266,
+    "w": 345,
+    "h": 263
+  },
+  "bubble": null,
+  "alerts": [],
+  "errorState": null,
+  "buttons": [
+    {
+      "name": "Try again",
+      "box": {
+        "x": 48,
+        "y": 460,
+        "w": 297,
+        "h": 45
+      }
+    }
+  ],
+  "live": [
+    {
+      "tag": "DIV",
+      "cls": "haru-session-feedback__state",
+      "role": null,
+      "live": "polite",
+      "atomic": null
+    },
+    {
+      "tag": "DIV",
+      "cls": "haru-state haru-state--offline",
+      "role": "alert",
+      "live": null,
+      "atomic": null
+    }
+  ],
+  "scroll": [
+    0
+  ]
+}

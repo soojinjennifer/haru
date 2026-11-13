@@ -1,0 +1,25 @@
+{
+  "cardBox": {
+    "x": 327,
+    "y": 440,
+    "width": 370,
+    "height": 302
+  },
+  "saveInView": true,
+  "cardM": {
+    "docOverflowX": 0,
+    "viewportOverflowX": 0,
+    "column": {
+      "x": 272,
+      "w": 480
+    }
+  },
+  "fbM": {
+    "docOverflowX": 0,
+    "viewportOverflowX": 0,
+    "column": {
+      "x": 272,
+      "w": 480
+    }
+  }
+}

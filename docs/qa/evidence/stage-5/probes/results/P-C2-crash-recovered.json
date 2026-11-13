@@ -1,0 +1,19 @@
+{
+  "visible": true,
+  "url": "http://127.0.0.1:4319/",
+  "ops": [
+    "POST /v1/sessions/:sessionId/transitions",
+    "POST /v1/sessions/:sessionId/recordings",
+    "TUS PATCH",
+    "POST /v1/recordings/:recordingId/complete",
+    "AuthGateway.signInWithEmail",
+    "GET /v1/me",
+    "GET /v1/children/:childId/home",
+    "GET /v1/children/:childId/activity-cards/today",
+    "GET /v1/children/:childId/home",
+    "GET /v1/children/:childId/activity-cards/today",
+    "GET /v1/sessions/:sessionId",
+    "GET /v1/sessions/:sessionId",
+    "POST /v1/sessions/:sessionId/reflection"
+  ]
+}

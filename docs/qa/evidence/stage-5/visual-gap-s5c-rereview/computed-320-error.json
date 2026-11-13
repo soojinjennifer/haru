@@ -1,0 +1,109 @@
+{
+  "viewport": [
+    320,
+    568
+  ],
+  "state": "error",
+  "h1": {
+    "box": {
+      "x": 102.94,
+      "y": 19,
+      "w": 114.13,
+      "h": 20
+    },
+    "text": "Storytime notes",
+    "css": {
+      "font-size": "15px",
+      "font-weight": "590",
+      "line-height": "20px",
+      "color": "rgb(74, 95, 92)"
+    }
+  },
+  "close": {
+    "box": {
+      "x": 258,
+      "y": 10,
+      "w": 38,
+      "h": 38
+    },
+    "label": "Close"
+  },
+  "ring": {
+    "box": {
+      "x": 85,
+      "y": 116,
+      "w": 150,
+      "h": 150
+    },
+    "css": {
+      "background-color": "rgba(255, 255, 255, 0.5)",
+      "box-shadow": "color(srgb 0.368627 0.45098 0.439216 / 0.08) 0px 6px 4px 0px, rgba(255, 255, 255, 0.9) 0px 1.5px 0px 0px inset, color(srgb 0.368627 0.45098 0.439216 / 0.05) 0px -1px 0px 0px inset"
+    }
+  },
+  "avatar": {
+    "x": 92,
+    "y": 123,
+    "w": 136,
+    "h": 136
+  },
+  "sticker": 0,
+  "slot": {
+    "x": 24,
+    "y": 266,
+    "w": 272,
+    "h": 243
+  },
+  "bubble": null,
+  "alerts": [],
+  "errorState": null,
+  "buttons": [
+    {
+      "name": "Try again",
+      "box": {
+        "x": 48,
+        "y": 440,
+        "w": 224,
+        "h": 45
+      }
+    }
+  ],
+  "live": [
+    {
+      "tag": "DIV",
+      "cls": "haru-session-feedback__state",
+      "role": null,
+      "live": "polite",
+      "atomic": null
+    }
+  ],
+  "slotAttrs": {
+    "live": "polite",
+    "role": null,
+    "atomic": null
+  },
+  "innerLiveCount": 0,
+  "innerRoleCount": 0,
+  "innerRoles": [],
+  "wrapperCss": {
+    "display": "flex",
+    "flex-direction": "column",
+    "justify-content": "normal",
+    "align-items": "normal",
+    "inline-size": "272px"
+  },
+  "wrapperBox": {
+    "x": 24,
+    "y": 282,
+    "w": 272,
+    "h": 227
+  },
+  "surface": {
+    "x": 24,
+    "y": 282,
+    "w": 272,
+    "h": 227
+  },
+  "scroll": [
+    0
+  ]
+}

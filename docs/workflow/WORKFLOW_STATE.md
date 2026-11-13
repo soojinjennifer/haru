@@ -8,12 +8,12 @@
 
 | 항목 | 값 |
 |---|---|
-| Major Stage | **Stage 4b** — Session Screens (Stage 4 는 `D4-9` 로 **4a Recording Core / 4b Session Screens** 로 분할) |
-| Stage Status | **Stage 4a `COMPLETE` — `PASS (accepted: D4-34, NV-4A-1)`** (2026-10-18). **Stage 4b `COMPLETE` — `PASS (accepted: NV-4B-2, NV-4B-3)`** (QA 3회차 2026-11-08, `docs/qa/stage-4b-qa-report.md` §R3-7) |
-| Next Step | **Stage 4b PASS (2026-11-08)** — 실기기 `NV-4B-1`(iOS Safari 26.6, 탭→start 중위 318ms) · `NV-4B-4`(사용자 확인) PASS, `NV-4B-2`·`NV-4B-3` 사용자 수용. `QA-4B-005`(`D4-150`, H4-14) · `QA-4B-006`(`D4-153`, H4-15, 테스트 14파일) 수정 → QA 부하 10회 10/10 · 무부하 2513/2513. 관찰 `OBS-4B-10`(iOS 첫 청크 ≈2.3s) · `OBS-4B-11`. **다음: Stage 4b 미커밋분 커밋(사용자 지시 시) → Stage 5 Plan (plan-agent → design-agent → 승인 체크포인트)**. 네이티브 `S4N-A`~`D` 는 `D4-1` 후속 단계(시점 미정). 5174 = 사용자 기기용 HTTPS 서버 |
+| Major Stage | **Stage 5** — Reflection + Async Analysis Status + Short Feedback (Frontend) |
+| Stage Status | **Stage 5 `INCOMPLETE`** (QA 재검증 2026-11-12, `docs/qa/stage-5-qa-report.md` §10) — FAIL 0, 남은 항목 = 실기기 `QA-5-003`(iOS 입력칸 확대, `D5-13` 반영 후 재확인) · `QA-5-004`(VoiceOver). 이전: Stage 4a `PASS (accepted: D4-34, NV-4A-1)` · Stage 4b `PASS (accepted: NV-4B-2, NV-4B-3)` |
+| Next Step | ⭐ **사용자 실기기 확인 `QA-5-003`·`QA-5-004` (또는 항목별 수용) → Stage 5 Verdict `PASS` 기록 → 사용자 지시 시 Stage 6.** 구현 S5-A~S5-D 완료, 결정 `D5-1`~`D5-15`, 허용 차이 `AD-S5-1`~`4`, 가값 `P-28`·`P-29`. 남은 Low: `QA-5-005`(`session-regression.spec.ts` 의 `height >= 796` 주석). 관찰 `OBS-5-5`(baseline 3종 7~98px 드리프트, 원인 미상 — Stage 8 회귀 점검). 온보딩 fixture 이름은 Nova 유지. 5174 = 사용자 기기용 HTTPS 서버 |
 | Queue 파일 | 미생성 — Stage 4 는 Orchestrator 가 작업 단위(`S4-A`~`S4-K`)별로 직접 배분한다 |
 | QA Fix Loop 횟수 | Stage 4a: 1 / 3 → PASS |
-| 마지막 갱신 | **2026-11-08** — PRD v1.5 개정 3 + 보완 커밋 `6704b6f`. Stage 4b QA 3회차 `PASS (accepted: NV-4B-2, NV-4B-3)`, 결정 `D4-151`~`D4-153` |
+| 마지막 갱신 | **2026-11-13** — Stage 5 구현·QA 재검증 커밋. 이전: 2026-11-08 Stage 5 Plan/Spec 승인(`D5-4`) |
 
 ### 끼어든 작업 — Stage 2 재구성 (2026-10-03 ~ 10-05, 완료)
 
@@ -186,7 +186,7 @@ Stage 3 착수 전에 사용자 지시로 **Stage 2 온보딩 설문을 재구�
 | 3 | Home · Activity Card · Library · Recommendation | **`COMPLETE`** (Verdict **`PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`** — 5회차 2026-10-10, 커밋 `fe349cb`). 이후 칩 통일 3커밋(`e640f52`·`7628e6b`·`2c638b3`)은 **QA 6회차를 돌지 않았다** |
 | 4a | Storytime Session · **Recording Core** (contracts · Mock · RecordingController · LocalRecordingStore · UploadQueue · Stage 3 이월) | **`COMPLETE` — `PASS (accepted: D4-34, NV-4A-1)`** (2026-10-18, QA 2회차) |
 | 4b | **Session Screens** (`recording`·`paused` 배치 · 완료 화면 · 예외 안내 UI · Prompt Drawer) | `BLOCKED` — 디자이너 Figma 2건(`C13-1` 잔여·`C13-14`) + ⛔ `N4-10`. AC ≈ 38 |
-| 5 | Reflection · Async Analysis · Short Feedback | `NOT_STARTED` — ⛔ **4a `PASS` 로 시작하지 않는다**(`D4-9`): Stage 5 회고 카드 `91:691` 이 완료 화면과 **같은 프레임 `29:62`** 라서 4b 를 건너뛰면 빈 상단 위에 카드를 얹게 된다 |
+| 5 | Reflection · Async Analysis · Short Feedback | **`PLAN_DRAFT`** (2026-11-08) — `docs/plans/stage-5-plan.md` · AC-5-01~56 · 작업 단위 `S5-A`~`S5-D`(+조건부 `S5-E`) · PENDING 예상 AC 4 / Handoff 16. 다음 = design-agent → 승인 체크포인트. (`D4-9` 조건 = 4b PASS 충족) |
 | 6 | Personalization · Profile Update · Recommendation Loop | `NOT_STARTED` |
 | 7 | 4-Week Report · History · Highlight Audio · PDF UX | `NOT_STARTED` |
 | 8 | Final QA · 이월 기능 · Mock 프리뷰 배포 · Backend Handoff → **STOP** | `NOT_STARTED` |

@@ -1,0 +1,23 @@
+{
+  "before": {
+    "slotAriaLive": "polite",
+    "slotRole": null,
+    "liveInsideScreen": [
+      "div.haru-session-feedback__state|role=|live=polite"
+    ],
+    "anyRoleInsideSlot": 0,
+    "liveInsideSlot": 0,
+    "slotText": "We're preparing today's notesThey're usually ready by tomorrow. You can close this screen."
+  },
+  "after": {
+    "slotAriaLive": "polite",
+    "slotRole": null,
+    "liveInsideScreen": [
+      "div.haru-session-feedback__state|role=|live=polite"
+    ],
+    "anyRoleInsideSlot": 0,
+    "liveInsideSlot": 0,
+    "slotText": "Today brought lots of feeling words, and a new one — proud."
+  },
+  "sameNode": true
+}

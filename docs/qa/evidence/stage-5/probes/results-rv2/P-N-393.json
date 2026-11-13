@@ -1,0 +1,17 @@
+{
+  "A_vs_noopStyle": {
+    "count": 0,
+    "maxDelta": 0,
+    "clusters": []
+  },
+  "A_vs_sameText": {
+    "count": 0,
+    "maxDelta": 0,
+    "clusters": []
+  },
+  "A_vs_sameText_ge6": {
+    "count": 0,
+    "maxDelta": 0,
+    "clusters": []
+  }
+}

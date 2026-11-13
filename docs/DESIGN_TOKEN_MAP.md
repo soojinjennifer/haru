@@ -163,7 +163,7 @@ HARU 화면에서 **사용 확인된 것은 `backgrounds/primary`(= white), `bac
 | `--color-selected-bg` / `--color-selected-fg` | `bg-selected` | = action-primary / `--haru-white` | Chip·Radio 선택 | 흰 라벨 = D-01 범위 |
 | `--color-indicator-active` / `-inactive` | `bg-indicator-active` / `bg-indicator-inactive` | `--haru-ink-600` / `--haru-ink-600-a30` | PageIndicator | |
 | `--color-progress-fill` / `-track` | `bg-progress-fill` / `bg-progress-track` | `--haru-palette-teal` / `--haru-ink-600-a12` | ProgressBar | fill vs track 1.73–1.94 ✗ → **`가값 (P-02)`** (현재 Figma 값, 디자이너 대기) |
-| `--color-rating-filled` / `-empty` | `text-rating-filled` / `text-rating-empty` | `--haru-palette-yellow` / `--haru-ink-600-a18` | StarRating | 1.64 ✗ → **`가값 (P-02)`**, 숫자 라벨 병행 |
+| `--color-rating-filled` / `-empty` | `text-rating-filled` / `text-rating-empty` | `--haru-palette-yellow` / **`--haru-mist-300` (`#d6dedc`)** — Stage 5 `T5-1` (`D5-4`, Figma `91:702` 빈 별 fill. 이전 값 `--haru-ink-600-a18`) | StarRating | 채움 1.56~1.61 · 빈 1.31~1.34 ✗ → **`가값 (P-02)`**, SR 은 `aria-checked` 보완 (Stage 5 Spec §9.2) |
 | `--color-scrim` | `bg-scrim` | 이름 CONFIRMED (#10) — 값 §4 | Sheet·Dialog 뒤 | **`가값 (P-05)`** |
 | `--color-focus-ring` | `ring-focus` | 이름 CONFIRMED (#10) — `--haru-ink-700` | 포커스 | **`가값 (P-03)`** — 6.81 on white, 3.28 on teal ✓(3:1) |
 | `--color-status-{info,success,warning,error}-{bg,fg,border}` | `bg-status-error` 등 | 이름 CONFIRMED (#10) — 값 §4 | 알림·에러 | **`가값 (P-04)`** (Figma 없음) |
@@ -232,7 +232,7 @@ HARU 화면에서 **사용 확인된 것은 `backgrounds/primary`(= white), `bac
 |---|---|---|
 | 9 (`163:2798`), 10 (`163:2567` 차트 값, "Tap to recording"), 10.5 (요일) | `caption-2` 11 | 11px 미만 금지 |
 | 11 (Tab 라벨), 11.5 (입력 라벨 `76:430`, eyebrow `179:1786`) | `caption-2` 11 | |
-| 11.8 (PromptPill `139:2753`), 12, 12.5 (칩 `90:611`, 동의 문구) | `caption-1` 12 | PromptPill 은 부모가 소리 내 읽는 문장 → `footnote` 13 권장 (RECOMMENDED, Stage 3 design spec 에서 사용자 확인) |
+| 11.8 (PromptPill `139:2753`), 12, 12.5 (칩 `90:611`, 동의 문구) | `caption-1` 12 — ⚠️ 예외: `Chip` **`select`** 변형(회고 카드 칩)은 **12.5 정확값** (`--chip-select-label-size`, Stage 5 `VG5B-1` ⓑ — §9) | PromptPill 은 부모가 소리 내 읽는 문장 → `footnote` 13 권장 (RECOMMENDED, Stage 3 design spec 에서 사용자 확인) |
 | 13, 13.5 | `footnote` 13 | |
 | 14 (`29:84`), 14.5 (설문 옵션) | `subheadline` 15 | 신규 `callout-sm` 14 는 만들지 않음 (#10-②) |
 | 15 (`29:75`, 버블 `50:172`) | `subheadline` 15 | |
@@ -602,3 +602,9 @@ design-agent 는 Figma 를 수정하지 않는다. 아래 표는 디자이너 �
 | T-43 | `--haru-gray-6` | Primitive | `#f2f2f7` | 4b §5.3 · `D4-73`·`D4-76` |
 | T-43 | `--color-carousel-arrow` | Semantic | `var(--haru-palette-mint)` | 4b §5.3 · `D4-73`·`D4-76` |
 | T-43 | `--color-carousel-arrow-disabled` | Semantic | `var(--haru-gray-6)` | 4b §5.3 · `D4-73`·`D4-76` |
+
+## 9. Stage 5 토큰 추가 (S5-B 후속, 2026-11-09)
+
+| ID | 토큰 | Tier | 값 | 근거 |
+|---|---|---|---|---|
+| `VG5B-1` ⓑ | `--chip-select-label-size` | Component | `12.5px` | Figma `90:611`/`90:617` · `91:710`~`714` 라벨 12.5 (`docs/design/stage-5-visual-gap-s5b.md` §2, 사용자 결정). **`Chip variant="select"` 만** 쓴다 — `outline`/`filled`/`glass` 는 `--chip-label-size`(caption-1 12 흡수) 그대로. §3.3 흡수 규칙의 예외이며 신규 텍스트 스타일이 아니라 Tier 3 크기다 (선례 `--attendance-sticker-title-size` 14, `D4-90`) |

@@ -1,0 +1,10 @@
+{
+  "slotAriaLive": "polite",
+  "slotRole": null,
+  "liveInsideScreen": [
+    "div.haru-session-feedback__state|role=|live=polite"
+  ],
+  "anyRoleInsideSlot": 0,
+  "liveInsideSlot": 0,
+  "slotText": "This one is taking a little longerNo need to do anything — we'll keep working on it."
+}

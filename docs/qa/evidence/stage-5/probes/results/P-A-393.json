@@ -1,0 +1,128 @@
+[
+  {
+    "k": 1,
+    "role": "radio",
+    "name": "1 star",
+    "checked": "false",
+    "focusVisible": true,
+    "outline": "solid 2px rgb(74, 95, 92)",
+    "outlineOffset": "2px",
+    "box": {
+      "x": 101.5,
+      "y": 519,
+      "w": 38,
+      "h": 30
+    },
+    "ringPixelsBySide": {
+      "top": 100,
+      "bottom": 100,
+      "left": 60,
+      "right": 60
+    }
+  },
+  {
+    "k": 2,
+    "role": "radio",
+    "name": "1 star",
+    "checked": "true",
+    "focusVisible": true,
+    "outline": "solid 2px rgb(74, 95, 92)",
+    "outlineOffset": "2px",
+    "box": {
+      "x": 101.5,
+      "y": 519,
+      "w": 38,
+      "h": 30
+    },
+    "ringPixelsBySide": {
+      "top": 100,
+      "bottom": 100,
+      "left": 60,
+      "right": 60
+    }
+  },
+  {
+    "k": 3,
+    "role": "radio",
+    "name": "2 stars",
+    "checked": "true",
+    "focusVisible": true,
+    "outline": "solid 2px rgb(74, 95, 92)",
+    "outlineOffset": "2px",
+    "box": {
+      "x": 139.5,
+      "y": 519,
+      "w": 38,
+      "h": 30
+    },
+    "ringPixelsBySide": {
+      "top": 100,
+      "bottom": 100,
+      "left": 60,
+      "right": 60
+    }
+  },
+  {
+    "k": 4,
+    "role": "radio",
+    "name": "3 stars",
+    "checked": "true",
+    "focusVisible": true,
+    "outline": "solid 2px rgb(74, 95, 92)",
+    "outlineOffset": "2px",
+    "box": {
+      "x": 177.5,
+      "y": 519,
+      "w": 38,
+      "h": 30
+    },
+    "ringPixelsBySide": {
+      "top": 100,
+      "bottom": 100,
+      "left": 60,
+      "right": 60
+    }
+  },
+  {
+    "k": 5,
+    "role": "radio",
+    "name": "4 stars",
+    "checked": "true",
+    "focusVisible": true,
+    "outline": "solid 2px rgb(74, 95, 92)",
+    "outlineOffset": "2px",
+    "box": {
+      "x": 215.5,
+      "y": 519,
+      "w": 38,
+      "h": 30
+    },
+    "ringPixelsBySide": {
+      "top": 100,
+      "bottom": 100,
+      "left": 60,
+      "right": 60
+    }
+  },
+  {
+    "k": 6,
+    "role": "radio",
+    "name": "5 stars",
+    "checked": "true",
+    "focusVisible": true,
+    "outline": "solid 2px rgb(74, 95, 92)",
+    "outlineOffset": "2px",
+    "box": {
+      "x": 253.5,
+      "y": 519,
+      "w": 38,
+      "h": 30
+    },
+    "ringPixelsBySide": {
+      "top": 100,
+      "bottom": 100,
+      "left": 60,
+      "right": 60
+    }
+  }
+]
