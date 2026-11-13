@@ -1,12 +1,12 @@
 # Stage 5 QA Report — Reflection + Async Analysis Status + Short Feedback (Frontend)
 
-Status: **QA 2회차 재검증 (stage-qa-agent, 2026-11-11 16:0x – 2026-11-12 07:4x KST)** — 1회차 기록은 아래 §1~§9 그대로 두고, 2회차 결과는 **§10** 에 둔다. Stage Verdict 는 §10 이 최신이다 · Product Code 수정 0 · 커밋 0
+Status: **QA 2회차 재검증 (stage-qa-agent, 2026-11-11 16:0x – 2026-11-12 07:4x KST)** — 1회차 기록은 아래 §1~§9 그대로 두고, 2회차 결과는 **§10** 에 둔다. Stage Verdict 최종은 **§11** `PASS (accepted: QA-5-003, QA-5-004)` (2026-11-14) · Product Code 수정 0 · 커밋 0
 
 ## 1. Summary
 
 | 항목 | 내용 |
 |---|---|
-| Stage Verdict | **(2회차 최신, §10) `INCOMPLETE`** — `FAIL` 0 · `NOT VERIFIED` 2 (`QA-5-003` · `QA-5-004`) · `QA-5-001`·`002` 닫힘. 1회차: `INCOMPLETE` — `FAIL` 0 · `NOT VERIFIED` 2 (`QA-5-003` AC-5-33 · `QA-5-004` AC-5-49 스크린리더) |
+| Stage Verdict | **(최종, §11) `PASS (accepted: QA-5-003, QA-5-004)`** (2026-11-14, 사용자 항목별 수용). 2회차(§10): `INCOMPLETE` — `FAIL` 0 · `NOT VERIFIED` 2 (`QA-5-003` · `QA-5-004`) · `QA-5-001`·`002` 닫힘. 1회차: `INCOMPLETE` — `FAIL` 0 · `NOT VERIFIED` 2 (`QA-5-003` AC-5-33 · `QA-5-004` AC-5-49 스크린리더) |
 | 대상 | `main` @ `fd8748d` + 미커밋 Stage 5 작업 트리 (`S5-A`~`S5-D`, handoff `H5-1`~`H5-6`) |
 | 기준 | Plan `docs/plans/stage-5-plan.md` · Spec `docs/design/stage-5-design-spec.md` (둘 다 `APPROVED`, `D5-4`) · 결정 `D5-1`~`D5-12` · 가값 `P-28`·`P-29` · 허용 차이 `AD-S5-1` · VG `stage-5-visual-gap-s5b.md` · `-s5c.md` §8 |
 | AC 집계 (56) | `PASS` 51 · `NOT VERIFIED` 1 (AC-5-33) · AC-5-49 = `PASS`(자동 부분) + `NOT VERIFIED`(SR 부분) · `BACKEND_INTEGRATION_PENDING` 4 (AC-5-53~56) |
@@ -324,3 +324,14 @@ Suspected area: e2e/session-regression.spec.ts expectColumn (development-agent �
 
 - 단위 190 files · 2717 tests (1회차 대비 +1 file · +2 tests = `viewport-meta.test.ts`).
 - Playwright 641 passed (1회차 대비 +4 = `reflection-title-overflow.spec.ts`). Stage 1~4 spec 전부 포함. baseline 변경 = 작업 트리 기준 `s4-session-complete.png`(이름 클러스터 1) — 이번 QA 실행은 baseline 을 쓰지 않았다.
+
+## 11. 최종 Stage Verdict — 사용자 항목별 수용 (2026-11-14)
+
+| 항목 | 내용 |
+|---|---|
+| Stage Verdict | **`PASS (accepted: QA-5-003, QA-5-004)`** |
+| 근거 | `.claude/rules/qa.md` §2 — `INCOMPLETE`(FAIL 0) 의 잔여 `NOT VERIFIED` 2건을 사용자가 **항목별로 명시 수용**했다 (2026-11-14). 사용자 발화: *"accepted"* (QA-5-004 VoiceOver 확인 안내에 대한 답) → 확인 질문 *"QA-5-003도 수용할까요?"* 에 *"QA-5-003도 수용"* |
+| 수용 항목 | `QA-5-003` — AC-5-33 iOS Safari 소프트 키보드 + `D5-13` 확대 방지 실기기 재확인 (§10.6) · `QA-5-004` — AC-5-49 스크린리더(VoiceOver) 낭독 (§6 · §10.6) |
+| 판정 변경 | AC-5-33 = `NOT VERIFIED (accepted: QA-5-003)` · AC-5-49 SR 부분 = `NOT VERIFIED (accepted: QA-5-004)`. 실기기 확인은 수행되지 않았다 — 결함이 없다는 증거가 아니다. Stage 8 Final QA(접근성·실기기) 때 §6·§10.6 절차로 다시 확인할 것을 권한다 |
+| 남은 것 (판정 영향 없음) | `QA-5-005` Low(`session-regression.spec.ts` `height >= 796` 주석·조건) · `OBS-5-5` baseline 3장 드리프트 · `OBS-5-6` Spec §13 머리 상태 표기 · `OBS-5-7` 온보딩 fixture `Nova` · 가값 `P-28`·`P-29` · PENDING `P5-BIP-01`~`16` (Stage 8 Handoff) |
+| 다음 Stage | Stage 6 — **사용자 지시 시에만** 시작 |

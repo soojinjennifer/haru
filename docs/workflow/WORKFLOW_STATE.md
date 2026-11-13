@@ -9,11 +9,11 @@
 | 항목 | 값 |
 |---|---|
 | Major Stage | **Stage 5** — Reflection + Async Analysis Status + Short Feedback (Frontend) |
-| Stage Status | **Stage 5 `INCOMPLETE`** (QA 재검증 2026-11-12, `docs/qa/stage-5-qa-report.md` §10) — FAIL 0, 남은 항목 = 실기기 `QA-5-003`(iOS 입력칸 확대, `D5-13` 반영 후 재확인) · `QA-5-004`(VoiceOver). 이전: Stage 4a `PASS (accepted: D4-34, NV-4A-1)` · Stage 4b `PASS (accepted: NV-4B-2, NV-4B-3)` |
-| Next Step | ⭐ **사용자 실기기 확인 `QA-5-003`·`QA-5-004` (또는 항목별 수용) → Stage 5 Verdict `PASS` 기록 → 사용자 지시 시 Stage 6.** 구현 S5-A~S5-D 완료, 결정 `D5-1`~`D5-15`, 허용 차이 `AD-S5-1`~`4`, 가값 `P-28`·`P-29`. 남은 Low: `QA-5-005`(`session-regression.spec.ts` 의 `height >= 796` 주석). 관찰 `OBS-5-5`(baseline 3종 7~98px 드리프트, 원인 미상 — Stage 8 회귀 점검). 온보딩 fixture 이름은 Nova 유지. 5174 = 사용자 기기용 HTTPS 서버 |
+| Stage Status | **Stage 5 `PASS (accepted: QA-5-003, QA-5-004)`** (2026-11-14, 사용자 항목별 수용 — `docs/qa/stage-5-qa-report.md` §11). FAIL 0. 이전: Stage 4a `PASS (accepted: D4-34, NV-4A-1)` · Stage 4b `PASS (accepted: NV-4B-2, NV-4B-3)` |
+| Next Step | ⭐ **사용자 지시 대기 — Stage 6 은 지시 시에만 시작** (plan-agent → design-agent → 승인 체크포인트). Stage 5 결정 `D5-1`~`D5-15`, 허용 차이 `AD-S5-1`~`4`, 가값 `P-28`·`P-29`. 실기기 미확인 수용분(`QA-5-003` iOS 입력칸 확대 · `QA-5-004` VoiceOver)은 Stage 8 Final QA 에서 재확인 권장. 남은 Low: `QA-5-005`(`session-regression.spec.ts` 의 `height >= 796` 주석). 관찰 `OBS-5-5`(baseline 3종 드리프트 — Stage 8). 온보딩 fixture 이름 Nova 유지. 5174 = 사용자 기기용 HTTPS 서버 |
 | Queue 파일 | 미생성 — Stage 4 는 Orchestrator 가 작업 단위(`S4-A`~`S4-K`)별로 직접 배분한다 |
 | QA Fix Loop 횟수 | Stage 4a: 1 / 3 → PASS |
-| 마지막 갱신 | **2026-11-13** — Stage 5 구현·QA 재검증 커밋. 이전: 2026-11-08 Stage 5 Plan/Spec 승인(`D5-4`) |
+| 마지막 갱신 | **2026-11-14** — Stage 5 `PASS (accepted: QA-5-003, QA-5-004)` 기록. 이전: 2026-11-13 Stage 5 구현·QA 재검증 커밋 |
 
 ### 끼어든 작업 — Stage 2 재구성 (2026-10-03 ~ 10-05, 완료)
 

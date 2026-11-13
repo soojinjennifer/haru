@@ -27,8 +27,8 @@ Author: plan-agent (2026-09-14)
 | 2 | Auth + Consent + Onboarding + Child Profile (Frontend) | Mock | **완료 — `PASS`** (`stage-2-qa-report.md` 2회차). 온보딩 설문 4단계 재구성은 별도 `PASS` (`stage-2-rework-qa-report.md` §R-0, 3회차) |
 | 3 | Home + Activity Card + Library + Book Selection + Recommendation (Frontend) | Mock | **완료 — `PASS (accepted: QA-3-001, QA-3-002, QA-3-003, AC-3L-24, NV-1, NV-2)`** (`stage-3-qa-report.md` §12, 3회차 · 2026-10-09). 결정 기록 `stage-3-approvals.md` §28 |
 | **4a** | **Storytime Recording Core** — contracts·Mock·RecordingController·`RecorderAdapter`(Web)·LocalRecordingStore·SessionOutbox·UploadQueue + Stage 3 이월. **Web 녹음까지** — 네이티브(Capacitor 셸 `apps/mobile`·녹음 플러그인·Auth/Push Adapter·portrait lock)는 **분리된 후속 단계** (`D4-1`, 2026-10-12 — **Stage 0 #7 변경**) | Upload Contract + Mock | ✅ **COMPLETE — `PASS (accepted: D4-34, NV-4A-1)`** (QA 2회차 2026-10-18, `docs/qa/stage-4a-qa-report.md` §10). AC 64건: PASS 62 · accepted 2 (AC-4-81 화면 부분 `D4-34` · AC-4-108 미측정 `NV-4A-1`). 4b 로 이동: AC-4-86·104·110·123·124. ⛔ **4a `PASS` 로 Stage 5 를 시작하지 않는다** (`D4-9`) |
-| **4b** | **Storytime Session Screens** — 세션 화면(ready / recording / paused)·Prompt Drawer·완료 화면·출석 스티커·예외 안내 UI | Mock | 시작 전 — Plan·Design Spec 은 **4a 와 함께 승인**됐다 (2026-10-13). ⛔ 남은 ⛔ 차단 **1건** = `N4-10`(대화 전용 세션 흐름 최소안). 4a 완료 후 착수 |
-| 5 | Reflection + Async Analysis Status + Short Feedback (Frontend) | Analysis Mock | 시작 전 |
+| **4b** | **Storytime Session Screens** — 세션 화면(ready / recording / paused)·Prompt Drawer·완료 화면·출석 스티커·예외 안내 UI | Mock | ✅ **COMPLETE — `PASS (accepted: NV-4B-2, NV-4B-3)`** (QA 3회차 2026-11-08, `docs/qa/stage-4b-qa-report.md` §R3-7) |
+| 5 | Reflection + Async Analysis Status + Short Feedback (Frontend) | Analysis Mock | ✅ **COMPLETE — `PASS (accepted: QA-5-003, QA-5-004)`** (2026-11-14, `docs/qa/stage-5-qa-report.md` §11). 결정 `D5-1`~`D5-15` (`stage-5-approvals.md`) |
 | 6 | Personalization + Profile Update + Recommendation Loop (Frontend) | Recommendation Mock | 시작 전 |
 | 7 | 4-Week Report + History + Highlight Audio + PDF UX (Frontend) | Report Mock | 시작 전 |
 | 8 | Frontend Final QA + Accessibility + Responsive + Regression + 이월 기능(필수: 데이터 관리·탈퇴, C-15 / 선택: 동의 이력 보기, C-19) + Mock 데모 웹 프리뷰 배포(C-18) + Backend Handoff Package | Handoff 문서 7종 → **STOP** | 시작 전 |
@@ -263,6 +263,9 @@ FR ID가 없는 화면 요구사항:
 - **Blocking decisions**: ⭐ **2026-10-13 재집계** — ⛔ **4a = 0건** (Plan·Design Spec **승인 완료**) · ⛔ **4b = 1건** (`N4-10` 대화 전용 세션 흐름 최소안) · ⚠️ 작업 단위 선행 6건 (`N4-04`·`N4-09`·`N4-20` → 4a / `N4-27`·`N4-31` → `S4-F` / `N4-28` → `S4-G`) → ⭐ **2026-10-18: 4a 3건 해소**(`D4-25`·`D4-29`·`D4-31`) — 남은 선행은 4b 뿐. **해소됨**: OAQ-10(`D4-1`) · `N4-25`(`D4-13`) · `N4-26`(`D4-17`·`D4-18`) · `N4-29`(`D4-16`) · `N4-32`(`D4-20`) · M-25(`D4-14`). **잔여**: ~~OAQ-11(`N4-09`)~~ → `D4-29` 해소 · OAQ-16(`N4-10`). (Session 상태 모델 #16 은 `D4-13` 로 **전이표 2행 확장** — §10 #16 변경 기록)
 
 ### Stage 5 — Reflection + Async Analysis Status + Short Feedback (Frontend)
+
+> ✅ **진행 상태 (2026-11-14)** — **Stage 5 완료 — `PASS (accepted: QA-5-003, QA-5-004)`** (`docs/qa/stage-5-qa-report.md` §11). 실기기 미확인 수용분(iOS 입력칸 확대 · VoiceOver)은 Stage 8 Final QA 재확인 대상.
+
 - **Goal**: 완료 → 회고 → 분석 상태 → 짧은 성장 피드백 흐름을 Mock으로 검증.
 - **In Scope**: FR-12, FR-13, FR-14(분석 상태), FR-18(계약·fixture), §13 STT 저품질·민감 발화 표시, NFR 24h pending UX·생성 문구 표시 규칙.
 - **Deliverables**
