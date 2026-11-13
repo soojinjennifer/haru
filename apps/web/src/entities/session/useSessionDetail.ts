@@ -26,12 +26,20 @@ export interface UseSessionDetailResult {
   refetch: () => void;
 }
 
-export function useSessionDetail(sessionId: string): UseSessionDetailResult {
+/**
+ * @param options.enabled `false` 면 요청 0 (기본 `true`). 피드백 화면은 분석 응답이 `completed` 일 때만 녹음 상태를
+ *   보려고 상세를 조회한다 (Stage 5 `S5-C`, `N5-12` ⓐ).
+ */
+export function useSessionDetail(
+  sessionId: string,
+  options: { enabled?: boolean } = {},
+): UseSessionDetailResult {
   const { sessions } = useApiClients();
 
   const result = useQuery({
     queryKey: sessionKeys.detail(sessionId),
     queryFn: ({ signal }) => sessions.getDetail({ sessionId }, { signal }),
+    enabled: options.enabled ?? true,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     staleTime: Number.POSITIVE_INFINITY,

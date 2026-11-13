@@ -73,6 +73,27 @@
   --chip-padding-x: var(--space-3);
   --chip-padding-y: var(--space-2);
   --chip-label-size: var(--text-caption-1); /* Figma 12.5 → 12 흡수 (§3.5) */
+  /*
+   * `select` 변형 (Stage 5 `T5-11` · `N5-27`, Figma `90:626` Select) — 미선택(`90:624` Transparent)에만 1px border
+   * (border-box 33 = 31 + 1×2). 선택(`90:625` Green)은 border 없음 = 31. 기존 변형(온보딩 칩)은 쓰지 않는다.
+   */
+  --chip-select-border-width: 1px;
+  /*
+   * `select` 라벨 크기 = Figma 선언 12.5 (`90:611`/`90:617` · `91:710`~`714`, Stage 5 `VG5B-1` ⓑ 사용자 결정 2026-11-08).
+   * `--chip-label-size`(12 흡수, §3.5)는 기존 `outline`/`filled`/`glass` 칩 그대로다 — `select` 변형만 이 값을 쓴다.
+   * 선례: `--attendance-sticker-title-size` 14 (`D4-90`, Tier 3 raw 크기).
+   */
+  --chip-select-label-size: 12.5px;
+
+  /* ===== StarRating — Figma `91:693` (Stage 5 `T5-9`) =================== */
+  --rating-star-size: 30px; /* `91:694` frame 30×30 */
+  --rating-star-gap: var(--space-2); /* `91:693` gap 8 */
+
+  /* ===== TextInput — Figma `91:715` (Stage 5 `T5-10`) ===================
+   * Spec 표기 `--text-input-height` 를 `--input-*` 로 바꿨다 — `--text-*` 는 타이포 스타일 네임스페이스라
+   * gallery Typography 목록(`v8-typography`)·Tailwind `text-*` 와 충돌한다. */
+  --input-height: 40px; /* 12 + line 16 + 12 */
+  --input-padding-x: var(--space-3-5); /* 14 */
 
   /* ===== TextField — Figma `76:417` ====================================== */
   /* accepted deviation: S1-G-2 (field row 42 < touch 44, approvals §8) */
@@ -360,6 +381,26 @@
   --session-complete-bubble-delay: 120ms;
   --session-complete-sticker-delay: 0ms; /* Toast 퇴장 직후 재생 — Spec §6.4 240 변경 (`D4-105`) */
   /* 출석 스티커 `29:79` — 10 + 44 + 12 + 171 + 20 = 257 · 10 + 44 + 10 = 64 */
+  /*
+   * 회고 카드 `91:691` (Stage 5 `S5-B`, Spec §0.2 · §2.1 · `T5-2`~`T5-8`). 카드는 버블 뒤 **흐름** 배치다 (`N5-29`).
+   */
+  --reflection-card-radius: 30px; /* `N5-28` — card(28)로 흡수하지 않는다 */
+  --reflection-card-width: 370px;
+  --reflection-card-gutter: 11px; /* `29:62` x 11 */
+  /*
+   * 버블 박스 bottom → 카드 top. **렌더 실측** (2026-11-08, Playwright 393×852 · 기본 fixture `completionBubble`):
+   * 버블 래퍼 bottom 375.625 (= 본체 렌더 bottom, Figma 431.63 − 56) → 카드 top 465 (= Figma 521 − 56).
+   * Figma 의 53 은 버블 **선언** 박스(468) 기준이라 쓰지 않는다 (Spec §2.1 · M-7).
+   */
+  --reflection-card-offset: 89.375px;
+  /*
+   * 카드 아래 여백 — Figma 29(852 − 823) → `--space-3` 12 (`D5-15` · 허용 차이 `AD-S5-3`, Spec §13).
+   * Figma 29 는 웹 852 에서 보이지 않는다(상태바 56 없음 → 실제 빈 공간 85). 스크롤 끝에서만 보인다.
+   * 하한 = 카드 그림자 `--shadow-bubble` 아래 번짐 10 (`R-SHADOW-1`, Spec §9.3) — 여유 2.
+   */
+  --reflection-card-bottom-gap: var(--space-3);
+  --reflection-card-title-line: 20px; /* `91:692` Bold 17 / normal(20) — headline 줄 22 를 쓰면 302 → 304 */
+  --reflection-chip-gap: 7px; /* `91:709` gap 7 (가로·세로) */
   --attendance-sticker-width: 257px;
   --attendance-sticker-height: 64px;
   --attendance-sticker-pad-start: var(--space-2-5);

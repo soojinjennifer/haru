@@ -33,6 +33,10 @@
  * - 녹음 확정(`complete`)이 이미 있으면 `completed` 직후 `analyzing` 으로 옮긴다 (actor `server`)
  * - `SessionDetail.completionBubble` 은 **완료 계열에서만** 값을 낸다 (`API_CONTRACTS.md` §3.2.3). 레코드는
  *   생성 시점부터 값을 들고 있지만 — 전이 응답과 같은 값을 쓰기 위해서다 — 비완료 세션에는 `null` 이다
+ * - ⭐ Stage 5 — `SessionDetail.reflection` 은 레코드의 회고(`MockReflectionApi` 가 저장)다. 없으면 `null`.
+ *   `session-completion:reflection-submitted` 는 완료 계열 세션에 제출된 회고를 만들어 둔다 (AC-5-30).
+ *   `analysis:*` 표시 override(`analysisScenarios.ts`)는 Detail 의 `status` · `analysisOutcome` · `recording` 에도
+ *   같이 겹친다 — 분석 조회와 세션 상세가 모순되지 않는다 (`recording-deleted` = `N5-12` ⓐ).
  *
  * **`Idempotency-Key`**: `create` · `transition` 은 키를 보관·재생한다. 판정이 scenario 분기보다
  * **앞**이다 — 한 번 성공한 요청은 그 뒤 scenario 가 무엇이든 같은 응답이다 (AC-4-37).
@@ -62,7 +66,7 @@ import { parseRequest, parseResponse, type Timer } from '../../shared/api/helper
 import type { ApiRequestOptions } from '../../shared/api/health-api';
 import type { ApiMutationOptions } from '../../shared/api/options';
 import type { SessionApi } from '../../shared/api/session-api';
-import { createFixedClock, shiftedIso, type Clock } from '../../shared/lib/clock';
+import { createFixedClock, type Clock } from '../../shared/lib/clock';
 import type { IdFactory } from '../../shared/lib/idFactory';
 import {
   createMockFailure,
@@ -73,22 +77,26 @@ import {
 import { idempotencyFingerprint, type IdempotencyLedger } from '../common/idempotency';
 import { MOCK_ACTIVE_SESSION_ID } from '../fixtures/home';
 import { MOCK_CHILD_ID } from '../fixtures/me';
+import { analysisScenarioGroup, resolveAnalysisOverlay } from '../analysis/analysisScenarios';
+import { MOCK_DELETED_RECORDING_ID } from '../fixtures/analysis';
 import {
   createActiveSessionFixture,
   createReadySessionFixture,
-  createSessionHistoryFixture,
   createStickerAwardFixture,
   MOCK_COMPLETION_BUBBLE_NO_SUBTEXT,
-  MOCK_HISTORY_RECORDING_IDS,
-  MOCK_RAW_AUDIO_RETENTION_MS,
   resolveSessionBook,
 } from '../fixtures/sessions';
 import type { MockOnboardingState } from '../onboarding/onboardingState';
 import type { RequestLog } from '../request-log';
-import { resolveReadySessionShape } from './sessionFixtureScenarios';
+import {
+  materializeSubmittedReflection,
+  resolveReadySessionShape,
+} from './sessionFixtureScenarios';
+import { ensureSessionHistory } from './sessionHistory';
 import { beginScenarioCall, type ScenarioGroupDefinition, type ScenarioStore } from '../scenarios';
 
 import {
+  COMPLETION_STATUSES,
   findActiveSession,
   markRecordingDeleted,
   type MockSessionRecord,
@@ -122,14 +130,6 @@ export const sessionScenarioGroup: ScenarioGroupDefinition<SessionScenarioKey> =
 
 /** 세션 화면 진입 지연 (Catalogue §5.4 "1.5–3s"). 실제 대기는 주입 timer 가 정한다. */
 export const SESSION_LOADING_DELAY_MS = 1_500;
-
-/** `SessionDetail.completionBubble` 이 값을 갖는 상태 (§3.2.3). */
-const COMPLETION_STATUSES: ReadonlySet<SessionStatus> = new Set([
-  'completed',
-  'analyzing',
-  'analyzed',
-  'failed',
-]);
 
 const CREATE_OPERATION = 'POST /v1/sessions';
 const DETAIL_OPERATION = 'GET /v1/sessions/:sessionId';
@@ -167,33 +167,9 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
   const { fail } = failure;
   const group = sessionScenarioGroup.group;
 
-  /** 지난 세션 fixture 를 최초 1회 넣는다 (목록 `success` · 상세 조회가 같은 값을 본다). */
+  /** 지난 세션 fixture 를 최초 1회 넣는다 (회고·분석 Mock 과 공유 — `sessionHistory.ts`). */
   function seedHistory(): void {
-    if (state.seeded) return;
-    state.seeded = true;
-
-    createSessionHistoryFixture(clock).forEach((summary, index) => {
-      const recordingId = MOCK_HISTORY_RECORDING_IDS[index] ?? null;
-      state.sessions.set(summary.id, {
-        summary,
-        childId: MOCK_CHILD_ID,
-        clientSessionKey: null,
-        sticker: null,
-        // `sticker: null` — `subtext` 가 `sticker earned` 를 말하면 응답이 스스로 모순된다 (§3.2.3).
-        completionBubble: MOCK_COMPLETION_BUBBLE_NO_SUBTEXT,
-        recordingId,
-      });
-      if (recordingId !== null) {
-        state.recordings.set(recordingId, {
-          recordingId,
-          sessionId: summary.id,
-          parts: new Map(),
-          uploadStatus: 'uploaded',
-          expiresAt: shiftedIso(clock, MOCK_RAW_AUDIO_RETENTION_MS),
-          deletedAt: null,
-        });
-      }
-    });
+    ensureSessionHistory(state, clock);
   }
 
   /** `session-already-active*` 의 진행 중 세션 — 복귀 경로가 조회할 수 있어야 한다. */
@@ -215,6 +191,8 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
       sticker: null,
       completionBubble: MOCK_COMPLETION_BUBBLE_NO_SUBTEXT,
       recordingId: null,
+      reflection: null,
+      shortFeedback: null,
     };
     state.sessions.set(MOCK_ACTIVE_SESSION_ID, record);
     return record;
@@ -236,27 +214,49 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
   }
 
   function toDetail(record: MockSessionRecord, operation: string): SessionDetail {
+    materializeSubmittedReflection(store, record, idFactory, clock);
+
     const recording =
       record.recordingId === null ? undefined : state.recordings.get(record.recordingId);
+    // Stage 5 — 분석 표시 override 를 상세에도 겹친다 (조회 횟수는 세지 않는다 — 분석 조회만 센다).
+    const overlay = resolveAnalysisOverlay(
+      store.resolve(analysisScenarioGroup, 'getStatus'),
+      record,
+      state.analysisReads.get(record.summary.id) ?? 0,
+    );
+
+    const recordingStatus =
+      overlay?.recordingDeleted === true
+        ? {
+            recordingId: recording?.recordingId ?? MOCK_DELETED_RECORDING_ID,
+            uploadStatus: 'deleted' as const,
+            partCount: recording?.parts.size ?? 0,
+            expiresAt: null,
+            deletedAt: recording?.deletedAt ?? clock.nowIso(),
+          }
+        : recording === undefined
+          ? null
+          : {
+              recordingId: recording.recordingId,
+              uploadStatus: recording.uploadStatus,
+              partCount: recording.parts.size,
+              expiresAt: recording.expiresAt,
+              deletedAt: recording.deletedAt,
+            };
 
     return parseResponse(
       SessionDetailSchema,
       {
         ...record.summary,
-        recording:
-          recording === undefined
-            ? null
-            : {
-                recordingId: recording.recordingId,
-                uploadStatus: recording.uploadStatus,
-                partCount: recording.parts.size,
-                expiresAt: recording.expiresAt,
-                deletedAt: recording.deletedAt,
-              },
+        ...(overlay === undefined
+          ? {}
+          : { status: overlay.sessionStatus, analysisOutcome: overlay.outcome }),
+        recording: recordingStatus,
         sticker: record.sticker,
         completionBubble: COMPLETION_STATUSES.has(record.summary.status)
           ? record.completionBubble
           : null,
+        reflection: COMPLETION_STATUSES.has(record.summary.status) ? record.reflection : null,
       },
       { operation, direction: 'response' },
     );
@@ -412,6 +412,8 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
           sticker: null,
           completionBubble: shape.completionBubble,
           recordingId: null,
+          reflection: null,
+          shortFeedback: null,
         });
 
         const response = parseResponse(

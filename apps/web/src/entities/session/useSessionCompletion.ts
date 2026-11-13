@@ -17,6 +17,7 @@
  */
 import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
+  Reflection,
   SessionBubbleCopy,
   SessionStatus,
   SessionTransitionResult,
@@ -70,6 +71,11 @@ export function selectCompletionBubble(
 export interface UseSessionCompletionResult {
   sticker: StickerAward | null;
   bubble: SessionCompletionBubble | null;
+  /**
+   * 이미 제출된 회고 (Stage 5 `N5-08` ⓐ — 재진입 읽기 전용). 세션 상세 캐시에서 읽는다 — 전이 응답 경로는 상세를
+   * 조회하지 않으므로 방금 끝난 세션은 `null` 이다 (회고는 완료 이후에만 생긴다).
+   */
+  reflection: Reflection | null;
   /** 끝난 적 없는 세션의 직접 진입 — 화면은 홈으로 돌려보낸다 (`D4-91` · `D4-113`). */
   leave: boolean;
   isPending: boolean;
@@ -100,6 +106,7 @@ export function useSessionCompletion(sessionId: string): UseSessionCompletionRes
     bubble: selectCompletionBubble(
       fromTransition ? remembered.completionBubble : detail.data?.completionBubble,
     ),
+    reflection: detail.data?.reflection ?? null,
     leave: !fromTransition && detail.data !== undefined && NOT_COMPLETED.has(detail.data.status),
     isPending: !fromTransition && detail.isPending,
     isError: !fromTransition && detail.isError,

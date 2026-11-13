@@ -24,6 +24,7 @@ export * from './prompt-phase.js';
 export * from './push-platform.js';
 export * from './reading-context.js';
 export * from './recording-container.js';
+export * from './reflection-check.js';
 export * from './report.js';
 export * from './session-mode.js';
 export * from './session-status.js';

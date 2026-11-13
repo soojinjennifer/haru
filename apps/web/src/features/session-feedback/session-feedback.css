@@ -1,0 +1,115 @@
+/*
+ * 피드백 · 분석 상태 화면 — Figma 없음 (`C13-S5-1`, Stage 5 Spec §2.3). 완료 화면(`29:62` 상단,
+ * `features/storytime-session/storytime-session.css` `.haru-session-complete`)과 **같은 토큰·같은 좌표**다.
+ * 다른 feature 의 클래스를 빌려 쓰지 않고 토큰으로 같은 기하를 만든다 (feature 간 결합 0).
+ *
+ * | 요소 | 기하 |
+ * |---|---|
+ * | 닫기 38 | 절대 배치 — `--session-top-row-offset`(10) · 우 gutter (완료 화면과 같다) |
+ * | 제목 | 상단 + `--session-complete-title-offset` |
+ * | 링 150 | 제목 bottom + title-gap + 스티커 자리(`--attendance-sticker-height`) + ring-gap — 스티커는 그리지 않고 자리만 (Spec §11) |
+ * | 버블 | ring bottom + `--session-complete-bubble-offset` + tail overhang (완료 화면 버블과 같다) |
+ * | InlineAlert · ErrorState · Spinner | 앞 요소 bottom + `--space-4` · 폭 = 컨테이너(앱 컬럼 − 2×`--space-6`) |
+ *
+ * `R-SHADOW-1`: 새 `overflow` 없음. 클립 선은 `AppShell` 뷰포트 = 화면 가장자리뿐이다.
+ */
+.haru-session-feedback {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  padding-block-start: var(--session-complete-title-offset);
+}
+
+/* 닫기 줄 — 자기 높이(10 + 38)가 Toast inset 띠다 (`useToastTopBarInset`, 완료 화면과 같다). */
+.haru-session-feedback__close {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  padding-block-start: var(--session-top-row-offset);
+}
+
+/* 닫기 X = HARU 전용 15×15 글리프 박스 (완료 화면 `.haru-session-complete__close` 와 같은 T-30 토큰). */
+.haru-session-feedback__close .haru-icon-button .haru-icon {
+  inline-size: var(--icon-button-icon-size-close);
+  block-size: var(--icon-button-icon-size-close);
+}
+
+.haru-session-feedback__medallion {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: var(--session-complete-ring-size);
+  block-size: var(--session-complete-ring-size);
+  margin-block-start: calc(
+    var(--session-complete-title-gap) + var(--attendance-sticker-height) +
+      var(--session-complete-ring-gap)
+  );
+}
+
+.haru-session-feedback__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-color: var(--color-surface-medallion-ring);
+  box-shadow: var(--shadow-bubble);
+}
+
+.haru-session-feedback__medallion .haru-character-medallion {
+  position: relative;
+}
+
+.haru-session-feedback__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  inline-size: 100%;
+}
+
+.haru-session-feedback__bubble {
+  inline-size: 100%;
+  padding-block-start: calc(
+    var(--session-complete-bubble-offset) + var(--bubble-tail-session-overhang)
+  );
+}
+
+.haru-session-feedback__alert,
+.haru-session-feedback__loading {
+  display: flex;
+  inline-size: 100%;
+  margin-block-start: var(--space-4);
+}
+
+/*
+ * `D5-9` (`VG5C-1`) — 카드(InlineAlert · ErrorState)는 **항상 컨테이너 폭**(393 → 345 · 320 → 272).
+ * 세로 flex 의 기본 `align-items: stretch` 로 자식이 폭을 채운다. 가로 flex + `justify-content: center`
+ * 는 `ErrorState` 의 `Surface` 를 내용 폭으로 줄여(shrink-to-fit) 문구 길이에 따라 폭이 출렁였다.
+ */
+.haru-session-feedback__alert {
+  flex-direction: column;
+}
+
+/* Spinner 는 자기 크기 그대로 가운데. */
+.haru-session-feedback__loading {
+  justify-content: center;
+}
+
+/*
+ * 버블 등장 — 완료 화면 C-2 enter 와 같은 값 (Spec §6 "완료 화면 버블 등장 모션 재사용"). 폴링으로 결과가 도착했을
+ * 때만(`data-entrance='play'`) — 처음부터 결과가 있으면 정지 상태다. reduced-motion 이면 `animation` 자체가 없다.
+ */
+@keyframes haru-session-feedback-enter {
+  from {
+    opacity: 0;
+    translate: 0 var(--session-complete-enter-shift);
+    scale: var(--session-complete-enter-scale);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .haru-session-feedback__bubble[data-entrance='play'] {
+    animation: haru-session-feedback-enter var(--motion-duration-base) var(--motion-ease-spring)
+      both;
+  }
+}

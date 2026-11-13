@@ -41,6 +41,12 @@ export interface InlineAlertProps {
    * 주지 않으면 제목에 `id` 를 붙이지 않는다 (기존 호출의 DOM 은 그대로다).
    */
   titleId?: string;
+  /**
+   * 자체 live role (`alert` / `status` + `aria-live`). 기본 `auto` = tone 에 따른 기존 동작 그대로.
+   * `none` = role · `aria-live` 를 붙이지 않는다 — 바깥 컨테이너가 이미 `aria-live` 를 가진 경우에만 쓴다
+   * (중첩 live region 이중 낭독 방지, `D5-10` / `VG5C-2`).
+   */
+  announce?: 'auto' | 'none';
 }
 
 /**
@@ -59,14 +65,16 @@ export function InlineAlert({
   onDismiss,
   dismissLabel,
   titleId,
+  announce = 'auto',
 }: InlineAlertProps) {
-  const role = tone === 'error' || tone === 'warning' ? 'alert' : 'status';
+  const role =
+    announce === 'none' ? undefined : tone === 'error' || tone === 'warning' ? 'alert' : 'status';
 
   return (
     <div
       className={cx('haru-alert', `haru-alert--${tone}`, `haru-alert--${placement}`)}
       role={role}
-      aria-live={role === 'alert' ? undefined : 'polite'}
+      aria-live={role === 'status' ? 'polite' : undefined}
     >
       <span className="haru-alert__icon" aria-hidden="true">
         {icon ?? <Icon name={TONE_ICON[tone]} size="md" decorative />}

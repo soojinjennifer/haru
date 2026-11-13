@@ -83,6 +83,44 @@
   }
 }
 
+/*
+ * `select` — Figma `90:626` Select (Stage 5 Spec §3.2). 미선택 `90:624` Transparent: border 1px `stroke` →
+ * border-box 33 (= 31 + 1×2). 선택 `90:625` Green: border 없음 → 31. 라벨 Medium(510).
+ * `box-shadow` 경계(outline 변형)와 달리 **실제 border** 라 높이·폭이 Figma 와 같다 (`N5-27`).
+ */
+.haru-chip--select {
+  background-color: transparent;
+  /* provisional: P-02 — 미선택 칩 경계 (docs/decisions/stage-0-approvals.md §4) */
+  border: var(--chip-select-border-width) solid var(--color-border-subtle);
+  color: var(--color-action-secondary-fg);
+  /* Figma 12.5 그대로 (`VG5B-1` ⓑ) — 다른 변형은 `--chip-label-size` 12 흡수 유지. */
+  font-size: var(--chip-select-label-size);
+  font-weight: var(--font-weight-medium);
+}
+
+.haru-chip--select.haru-chip--selected {
+  border: 0;
+}
+
+/* 터치 타깃 — border 두께만큼 hit slop 기준이 바뀌지 않게 border box 기준으로 44 를 맞춘다. */
+.haru-chip--select::before {
+  inset-inline: calc(-1 * var(--chip-select-border-width));
+  inset-block: calc(
+    (var(--chip-height) + 2 * var(--chip-select-border-width) - var(--size-touch-min)) / 2 -
+      var(--chip-select-border-width)
+  );
+}
+
+.haru-chip--select.haru-chip--selected::before {
+  inset-inline: 0;
+  inset-block: calc((var(--chip-height) - var(--size-touch-min)) / 2);
+}
+
+/* 읽기 전용 — 모습 그대로, 누름 효과만 없다. */
+.haru-chip--readonly {
+  cursor: default;
+}
+
 /* ===== selected — 색 + check 아이콘 이중 표시 ============================= */
 .haru-chip--selected {
   background-color: var(--color-selected-bg);
@@ -93,12 +131,12 @@
 
 /* ===== hover / pressed ==================================================== */
 @media (hover: hover) and (pointer: fine) {
-  .haru-chip:hover:not(:disabled) {
+  .haru-chip:hover:not(:disabled):not(.haru-chip--readonly) {
     box-shadow: var(--shadow-glass-raised);
   }
 }
 
-.haru-chip:active:not(:disabled) {
+.haru-chip:active:not(:disabled):not(.haru-chip--readonly) {
   /* Design Spec §9.1 — press scale .97 (모션 규격값, 대응 토큰 없음) */
   transform: scale(0.97);
   transition-duration: var(--motion-duration-instant);
@@ -113,7 +151,7 @@
 
 /* ===== reduced motion (§9.2) ============================================== */
 @media (prefers-reduced-motion: reduce) {
-  .haru-chip:active:not(:disabled) {
+  .haru-chip:active:not(:disabled):not(.haru-chip--readonly) {
     transform: none;
   }
 }

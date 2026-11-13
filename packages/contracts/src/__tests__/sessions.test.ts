@@ -381,7 +381,7 @@ describe('SessionTransitionResult · SessionDetail', () => {
     ).toBe(true);
   });
 
-  it('SessionDetail = summary + recording(§3.9) + sticker, reflection 은 없다 (C4-OPEN-6)', () => {
+  it('SessionDetail = summary + recording(§3.9) + sticker + completionBubble + reflection (Stage 5 C-4)', () => {
     const detail = {
       ...SUMMARY,
       status: 'analyzing',
@@ -393,6 +393,14 @@ describe('SessionTransitionResult · SessionDetail', () => {
       },
       sticker: STICKER,
       completionBubble: { text: 'What a lovely read.', subtext: '14 min together' },
+      reflection: {
+        id: RECORDING_ID,
+        sessionId: SUMMARY.id,
+        rating: 4,
+        checks: ['engaged'],
+        note: null,
+        submittedAt: '2026-10-14T09:30:00Z',
+      },
     };
     expect(SessionDetailSchema.safeParse(detail).success).toBe(true);
     expect(
@@ -401,15 +409,35 @@ describe('SessionTransitionResult · SessionDetail', () => {
         recording: null,
         sticker: null,
         completionBubble: null,
+        reflection: null,
       }).success,
     ).toBe(true);
-    expect(Object.keys(SessionDetailSchema.shape)).not.toContain('reflection');
+    expect(Object.keys(SessionDetailSchema.shape)).toContain('reflection');
   });
 
   it('`completionBubble` 은 필수 key 다 (`D4-88`) — 누락 거부 · `null` 통과', () => {
-    const base = { ...SUMMARY, recording: null, sticker: null };
+    const base = { ...SUMMARY, recording: null, sticker: null, reflection: null };
     expect(SessionDetailSchema.safeParse(base).success).toBe(false);
     expect(SessionDetailSchema.safeParse({ ...base, completionBubble: null }).success).toBe(true);
+  });
+
+  it('`reflection` 은 필수 key 다 (Stage 5 C-4, AC-5-05) — 누락 거부 · `null` 통과 · 빈 회고 거부', () => {
+    const base = { ...SUMMARY, recording: null, sticker: null, completionBubble: null };
+    expect(SessionDetailSchema.safeParse(base).success).toBe(false);
+    expect(SessionDetailSchema.safeParse({ ...base, reflection: null }).success).toBe(true);
+    expect(
+      SessionDetailSchema.safeParse({
+        ...base,
+        reflection: {
+          id: RECORDING_ID,
+          sessionId: SUMMARY.id,
+          rating: null,
+          checks: [],
+          note: null,
+          submittedAt: '2026-10-14T09:30:00Z',
+        },
+      }).success,
+    ).toBe(false);
   });
 });
 

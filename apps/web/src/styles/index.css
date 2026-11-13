@@ -31,6 +31,8 @@
 @import '../features/activity-card-deck/activity-card-deck.css';
 @import '../features/library/library.css';
 @import '../features/storytime-session/storytime-session.css';
+@import '../features/reflection/reflection.css';
+@import '../features/session-feedback/session-feedback.css';
 @import '../features/session-prompts/session-prompts.css';
 
 /*

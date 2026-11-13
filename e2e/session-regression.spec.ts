@@ -353,7 +353,12 @@ test.describe('AC-4-97 — 터치 타깃 ≥ 44 (실제 hit-test · 세션 상�
     await page.clock.install();
     await startSession(page);
     await submitToComplete(page);
-    const results = await probeTouchTargets(page, SESSION);
+    // Stage 5: 완료 화면 아래에 회고 카드가 들어왔다 — 카드의 터치 타깃은 `reflection-card.spec.ts` 가 따로 잰다.
+    // 여기 범위는 Stage 4 완료 화면(카드 밖) 그대로다.
+    const results = await probeTouchTargets(
+      page,
+      '.haru-session-complete > :not(.haru-reflection-card)',
+    );
     record(results);
     expect(results.map((row) => row.name)).toContain('button · Close session');
     expect(failures(results)).toStrictEqual([]);
@@ -665,10 +670,23 @@ test.describe('AC-4-100 — 세션 화면 computed `overflow` (`R-SHADOW-1` · `
       '852 recording+popup+notice': [...LIVE].sort(),
       '700 recording+popup': [...LIVE, '.haru-session-prompts__list auto/auto'].sort(),
       '568 recording+popup': [...LIVE, '.haru-session-prompts__list auto/auto'].sort(),
+      /*
+       * Stage 5 `S5-B` 회고 카드 3건 + `D5-15` 제목 1건 (근거: `features/reflection/reflection.css` 머리 주석 · `e2e/reflection-card.spec.ts`
+       * `R-SHADOW-1` 양축 프로브):
+       *  - 카드 clip — Figma `91:691` `overflow: clip` 선언 그대로 (`Save` 그림자 8px 절단도 Figma 와 같다)
+       *  - `.haru-text-input` clip — `<input>` UA 기본값, 그림자 없음
+       *  - 카드 `.haru-visually-hidden` — SR 전용 문구 (`Save` 비활성 이유)
+       *  - 제목 hidden — 2줄 말줄임 clamp (`D5-15` · `AD-S5-4`, Spec §13), 글자만 · 그림자 요소 없음
+       *    (`e2e/reflection-title-overflow.spec.ts`)
+       */
       '852 complete': [
         ...BASE,
         '.haru-attendance-sticker__message hidden/hidden',
         '.haru-attendance-sticker__title hidden/hidden',
+        '.haru-reflection-card .haru-visually-hidden hidden/hidden',
+        '.haru-reflection-card clip/clip',
+        '.haru-reflection-card__title hidden/hidden',
+        '.haru-text-input clip/clip',
       ].sort(),
     });
   });

@@ -20,8 +20,12 @@ export interface ErrorStateProps {
   tone?: ErrorStateTone;
   /** Stage 1 에서는 아이콘만 쓴다. 일러스트 슬롯은 열어만 둔다 (§4.10). */
   illustration?: ReactNode;
-  /** 화면 전체 실패는 `alert`, 부분 실패는 `status` (§4.10). */
-  announce?: 'alert' | 'status';
+  /**
+   * 화면 전체 실패는 `alert`, 부분 실패는 `status` (§4.10).
+   * `none` = 자체 live role 을 끈다 — 바깥 컨테이너가 이미 `aria-live` 를 가진 경우에만 쓴다
+   * (중첩 live region 이중 낭독 방지, `D5-10` / `VG5C-2`). 기본값 `alert` 는 그대로다.
+   */
+  announce?: 'alert' | 'status' | 'none';
   /** 제목 heading 레벨 — 문서 구조에 맞춘다. */
   titleAs?: 'h1' | 'h2' | 'h3';
 }
@@ -44,7 +48,10 @@ export function ErrorState({
 }: ErrorStateProps) {
   return (
     <Surface fill="strong" radius="card" padding="6">
-      <div className={cx('haru-state', `haru-state--${tone}`)} role={announce}>
+      <div
+        className={cx('haru-state', `haru-state--${tone}`)}
+        role={announce === 'none' ? undefined : announce}
+      >
         <span className="haru-state__badge" aria-hidden="true">
           {illustration ?? (
             <Icon name={tone === 'offline' ? 'wifi-off' : 'triangle-alert'} size="lg" decorative />

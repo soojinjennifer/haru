@@ -16,6 +16,7 @@
  *
  * | `session-completion` | `success` | 완료 버블 = 주 문구 + `subtext` (`MOCK_COMPLETION_BUBBLE`) |
  * | | `subtext-missing` · `bubble-missing` | `subtext: null` · `completionBubble: null` (`D4-87`, §5.4) |
+ * | | `reflection-submitted` | 완료 버블은 `success` 와 같고, 완료 계열 세션에 **이미 제출된 회고**가 있다 — 재진입 읽기 전용 (Stage 5 `N5-08` ⓐ, AC-5-30) |
  *
  * 완료 버블 값은 세션 레코드에 담겨 **전이 응답과 Detail 이 공유**한다 (`API_CONTRACTS.md` §3.2.3).
  *
@@ -26,6 +27,10 @@
  * 결정적이다 — 시간·난수 없음.
  */
 import type { BookSummary, SessionBubbleCopy } from '@haru/contracts';
+
+import type { Clock } from '../../shared/lib/clock';
+import type { IdFactory } from '../../shared/lib/idFactory';
+import { createReflectionFixture, MOCK_SUBMITTED_REFLECTION_INPUT } from '../fixtures/reflections';
 
 import {
   MOCK_COMPLETION_BUBBLE,
@@ -40,6 +45,8 @@ import {
   type SessionPromptCount,
 } from '../fixtures/sessions';
 import type { ScenarioGroupDefinition, ScenarioStore } from '../scenarios';
+
+import { COMPLETION_STATUSES, type MockSessionRecord } from './sessionState';
 
 export const SESSION_FIXTURE_SCENARIO_KEYS = [
   'success',
@@ -81,6 +88,7 @@ export const SESSION_COMPLETION_SCENARIO_KEYS = [
   'success',
   'subtext-missing',
   'bubble-missing',
+  'reflection-submitted',
 ] as const;
 
 export type SessionCompletionScenarioKey = (typeof SESSION_COMPLETION_SCENARIO_KEYS)[number];
@@ -128,6 +136,7 @@ const COMPLETION: Record<SessionCompletionScenarioKey, SessionBubbleCopy> = {
   success: MOCK_COMPLETION_BUBBLE,
   'subtext-missing': MOCK_COMPLETION_BUBBLE_NO_SUBTEXT,
   'bubble-missing': null,
+  'reflection-submitted': MOCK_COMPLETION_BUBBLE,
 };
 
 export interface ReadySessionShape {
@@ -150,4 +159,30 @@ export function resolveReadySessionShape(store: ScenarioStore): ReadySessionShap
     reminderBubble: greetingKey === 'reminder-missing' ? null : MOCK_READY_REMINDER_BUBBLE,
     completionBubble: COMPLETION[store.resolve(sessionCompletionScenarioGroup)],
   };
+}
+
+/**
+ * `session-completion:reflection-submitted` — 완료 계열 세션에 회고가 없으면 **한 번** 만들어 레코드에 남긴다.
+ *
+ * 세션 상세(`GET /v1/sessions/:id`)와 회고 제출(`POST …/reflection`)이 같은 레코드를 보므로, 이 key 에서는
+ * 재진입 카드가 읽기 전용이고 다시 제출하면 `REFLECTION_ALREADY_SUBMITTED` 다 (서버 상태와 일관).
+ * id · 시각은 주입 값이다 (결정성).
+ */
+export function materializeSubmittedReflection(
+  store: ScenarioStore,
+  record: MockSessionRecord,
+  idFactory: IdFactory,
+  clock: Clock,
+): void {
+  if (record.reflection !== null) return;
+  if (!COMPLETION_STATUSES.has(record.summary.status)) return;
+  if (store.resolve(sessionCompletionScenarioGroup) !== 'reflection-submitted') return;
+
+  record.reflection = createReflectionFixture({
+    id: idFactory.next(),
+    sessionId: record.summary.id,
+    submittedAt: clock.nowIso(),
+    ...MOCK_SUBMITTED_REFLECTION_INPUT,
+    checks: [...MOCK_SUBMITTED_REFLECTION_INPUT.checks],
+  });
 }

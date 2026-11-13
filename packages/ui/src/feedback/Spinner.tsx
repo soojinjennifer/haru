@@ -15,6 +15,12 @@ export interface SpinnerProps {
    * `role="status"` 대신 `aria-hidden` 으로 렌더해 중복 안내를 막는다 (§4.9).
    */
   decorative?: boolean;
+  /**
+   * `'auto'`(기본) = `role="status"` + `aria-live="polite"` 그대로. `'none'` = role · aria-live 를 붙이지 않는다 —
+   * 부모가 이미 live region 일 때 중첩을 막는다 (Stage 5 `D5-12`, `InlineAlert` · `ErrorState` `announce` 와 같은 방식).
+   * `decorative` 와 달리 라벨 텍스트는 접근성 트리에 남는다 (부모 live region 이 읽는다). `decorative` 가 우선한다.
+   */
+  announce?: 'auto' | 'none';
 }
 
 /**
@@ -28,10 +34,13 @@ export function Spinner({
   tone = 'default',
   label = 'Loading',
   decorative = false,
+  announce = 'auto',
 }: SpinnerProps) {
   const a11yProps = decorative
     ? ({ 'aria-hidden': true } as const)
-    : ({ role: 'status', 'aria-live': 'polite' } as const);
+    : announce === 'none'
+      ? {}
+      : ({ role: 'status', 'aria-live': 'polite' } as const);
 
   return (
     <span

@@ -244,6 +244,8 @@ const EXPECTED: Record<string, Coverage> = {
   'haru-record-pulse': 'reduce-animation-none',
   'haru-session-complete-ring': 'no-preference-only',
   'haru-session-complete-enter': 'no-preference-only',
+  // Stage 5 `S5-C` 피드백 화면 — 완료 화면 C-2 enter 재사용 (Spec §6)
+  'haru-session-feedback-enter': 'no-preference-only',
   // 세션 화면에 함께 뜨는 공용 UI (Toast · 시트 · 다이얼로그 · 배너/공지 슬롯 · scrim)
   'haru-toast-in': 'reduce-keyframes',
   'haru-toast-out': 'opacity-only',

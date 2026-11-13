@@ -31,7 +31,7 @@ import {
   OnboardingStartPage,
   OnboardingStepPage,
 } from '../pages/onboarding';
-import { SessionCompletePage, StorytimeSessionPage } from '../pages/session';
+import { SessionCompletePage, SessionFeedbackPage, StorytimeSessionPage } from '../pages/session';
 import { SettingsPage, SettingsTopBar } from '../pages/settings';
 import { ROUTES } from '../shared/config/routes';
 
@@ -323,6 +323,15 @@ export function AppRoutes() {
           element={
             <RouteGuard>
               <SessionCompletePage />
+            </RouteGuard>
+          }
+        />
+        {/* 피드백 · 분석 상태 (`S5-C`, Figma 없음 — `C13-S5-1` Spec §2.3). deep link 전용 (`N5-10` ⓐ) */}
+        <Route
+          path={ROUTES.sessionFeedback}
+          element={
+            <RouteGuard>
+              <SessionFeedbackPage />
             </RouteGuard>
           }
         />

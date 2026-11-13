@@ -3,6 +3,7 @@ import type { ComponentType } from 'react';
 import { CarouselNext } from './CarouselNext';
 import { CarouselPrevious } from './CarouselPrevious';
 import { FlipToBack } from './FlipToBack';
+import { RatingStar } from './RatingStar';
 import { RecordMic } from './RecordMic';
 import { RecordMicOff } from './RecordMicOff';
 import { RecordPause } from './RecordPause';
@@ -42,6 +43,9 @@ import { TabCenterHome } from './TabCenterHome';
  *
  * Stage 4b `S4-H1`(완료 화면 `29:62`)에서 **1건 추가** — Figma 는 채움, Lucide `thumbs-up` 은 외곽선이다.
  *  - `sticker-thumb` — 출석 스티커 타일 엄지 20×20 (`90:602`)
+ *
+ * Stage 5 `S5-B`(회고 카드 `91:691`)에서 **1건 추가** — Lucide `star` 는 외곽선이고 `117:879` 와도 도형이 다르다.
+ *  - `rating-star` — 별점 30×30 (`91:694`, Stage 5 Spec §3.1 · M-1)
  */
 export const HARU_ICONS = {
   'haru:tab-center-home': TabCenterHome,
@@ -55,6 +59,7 @@ export const HARU_ICONS = {
   'haru:carousel-previous': CarouselPrevious,
   'haru:carousel-next': CarouselNext,
   'haru:sticker-thumb': StickerThumb,
+  'haru:rating-star': RatingStar,
 } satisfies Record<`haru:${string}`, ComponentType>;
 
 export type HaruIconName = keyof typeof HARU_ICONS;

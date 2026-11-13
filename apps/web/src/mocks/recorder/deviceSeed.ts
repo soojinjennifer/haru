@@ -73,6 +73,8 @@ function putServerSession(
     sticker: null,
     completionBubble: MOCK_COMPLETION_BUBBLE_NO_SUBTEXT,
     recordingId: null,
+    reflection: null,
+    shortFeedback: null,
   });
 }
 

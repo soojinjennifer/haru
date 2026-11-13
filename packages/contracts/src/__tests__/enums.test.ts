@@ -30,6 +30,7 @@ import {
   PushPlatformSchema,
   ReadingContextSchema,
   RecordingContainerSchema,
+  ReflectionCheckKeySchema,
   ReportEligibilitySchema,
   ReportStatusSchema,
   SURVEY_ANSWER_VALUES,
@@ -49,7 +50,9 @@ import {
  * `LibraryFilter`(쿼리 축) · `BookSource` 신설. `GiftRequestStatus` 는 **이미 존재**해 신규가
  * 아니다 — 전수 대조가 "enum 신규" 로 잘못 적은 것을 `L-OPEN` 정정에서 바로잡았다)
  * → Stage 4 `S4-B` 로 **35종**: `PushPlatform`(이월 `QA-3-001`) · `StickerType`(`C4-OPEN-5`) ·
- * `RecordingContainer`(`D4-23`) 신설. **기존 32종의 값은 하나도 늘지 않았다** (AC-4-06 · `R4-16`).
+ * `RecordingContainer`(`D4-23`) 신설. **기존 32종의 값은 하나도 늘지 않았다** (AC-4-06 · `R4-16`)
+ * → Stage 5 `S5-A` 로 **36종**: `ReflectionCheckKey`(`N5-01` ⓐ, `D5-4`) 신설. `AnalysisOutcome` 은 그대로다
+ * (`N5-12` ⓐ — OAQ-17 enum 변경 없음, AC-5-03).
  * 값·순서를 바꾸려면 문서를 함께 갱신한다.
  */
 interface EnumSnapshot {
@@ -267,11 +270,17 @@ const ENUM_SNAPSHOTS: readonly EnumSnapshot[] = [
     options: RecordingContainerSchema.options,
     expected: ['webm', 'mp4'],
   },
+  // Stage 5 `S5-A` (`N5-01` ⓐ · `N5-20` — PRD 5종 ↔ Figma 칩 5종 1:1)
+  {
+    name: 'ReflectionCheckKey',
+    options: ReflectionCheckKeySchema.options,
+    expected: ['engaged', 'big_feelings', 'asked_questions', 'stayed_focused', 'tricky_today'],
+  },
 ];
 
 describe('enums — API_CONTRACTS §2 값 스냅샷', () => {
-  it('Stage 4 S4-B 까지 확정된 enum 은 35 종이다 (Library 1라운드 32 + Stage 4 신규 3)', () => {
-    expect(ENUM_SNAPSHOTS).toHaveLength(35);
+  it('Stage 5 S5-A 까지 확정된 enum 은 36 종이다 (Stage 4 35 + Stage 5 신규 1)', () => {
+    expect(ENUM_SNAPSHOTS).toHaveLength(36);
   });
 
   /*
@@ -300,7 +309,7 @@ describe('enums — 결정으로 제외된 값이 존재하지 않는다', () =>
     expect(ConsentActionSchema.safeParse('revoked').success).toBe(false);
   });
 
-  it('AnalysisOutcome 에 skipped_* 값이 없다 (#16, C-4)', () => {
+  it('AnalysisOutcome 에 skipped_* 값이 없다 (#16, C-4 · Stage 5 `N5-12` ⓐ — OAQ-17 enum 변경 없음)', () => {
     expect(AnalysisOutcomeSchema.safeParse('skipped_audio_deleted').success).toBe(false);
     expect(AnalysisOutcomeSchema.safeParse('skipped_consent_revoked').success).toBe(false);
   });

@@ -1,5 +1,6 @@
 /**
  * Stage 4b `S4-H1` · `S4-H1R` — 완료 화면 `29:62` y 0~468 (Stage 4 Spec §2.7 · §2.8, AC-4-57~61 · 104 · 107 · 139~144).
+ * Stage 5 `S5-B` — 같은 프레임 y 521~823 에 회고 카드가 들어왔다. AC-4-61 · 104 는 AC-5-18 · 19 로 승계됐다 (`N5-21`).
  *
  * 좌표 규칙: **Web y = Figma y − 56** (상태바는 OS 영역). 기대값은 `get_metadata(29:62)` 노드 좌표와
  * `get_design_context(29:62)` 선언값이다. 버블 본체 top = 324(tail 꼭짓점) + 22.627 − 12 = 334.627.
@@ -265,7 +266,12 @@ test.describe('393×852 — Figma `29:62` 대조', () => {
     expect(body).not.toMatch(/Day \d/);
   });
 
-  test('AC-4-61 · 104: y 468 아래 렌더 요소 0 · 회고 카드 0 · 전이 응답이 있으면 재조회 0', async ({
+  /*
+   * AC-4-61 · 104 *"y 468 아래 렌더 요소 0 · 회고 카드 0"* 은 **Stage 4 한정** 기록이었다 — Stage 5 에서
+   * **AC-5-18 · 19 로 승계(superseded)** 됐다 (Stage 5 Plan §5.4 R-2, `N5-21`). 위쪽(y 0~468) 좌표 불변은 이 파일의
+   * `기하` 테스트가 그대로 단정하고, 카드 기하는 `reflection-card.spec.ts` 가 단정한다.
+   */
+  test('AC-5-18 · 19 (supersedes AC-4-61 · 104): 카드는 Figma y 521 부터 · 그 위 Stage 4 요소만 · 재조회 0', async ({
     page,
   }) => {
     const sessionId = await startSession(page);
@@ -276,17 +282,21 @@ test.describe('393×852 — Figma `29:62` 대조', () => {
     await page.getByRole('button', { name: 'Submit' }).click();
     await expect(page).toHaveURL(new RegExp(`/session/${sessionId}/complete$`));
     await settleImages(page);
+    const card = await box(page, '.haru-reflection-card');
+    expect(card.y).toBeCloseTo(521 - FIGMA_TOP, 1);
+    // 카드 밖에서 y 468 아래로 내려가는 요소 0 — 위쪽 Stage 4 요소가 카드 쪽으로 밀리거나 늘어나지 않았다.
     const below = await page.evaluate((limit) => {
       const root = document.querySelector('main');
       if (root === null) return ['no main'];
       return [...root.querySelectorAll('*')]
+        .filter((element) => element.closest('.haru-reflection-card') === null)
+        .filter((element) => !element.classList.contains('haru-session-complete'))
         .filter((element) => element.getBoundingClientRect().bottom > limit)
         .map((element) => element.className.toString());
     }, 468 - FIGMA_TOP);
     expect(below).toEqual([]);
-    await expect(page.getByText('How was storytime')).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Save' })).toHaveCount(0);
-    // 전이 응답이 있으면 완료 화면은 다시 조회하지 않는다.
+    await expect(page.getByRole('heading', { level: 2, name: /How was storytime/ })).toHaveCount(1);
+    // 전이 응답이 있으면 완료 화면(+ 카드)은 다시 조회하지 않는다.
     expect(await detailReads()).toBe(before);
   });
 

@@ -24,6 +24,9 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
       'activity-cards': 'success',
       library: 'success',
       books: 'success',
+      'session-completion': 'success',
+      reflections: 'success',
+      analysis: 'success',
       __states: 'success',
     });
   });
@@ -54,6 +57,10 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
       'activity-cards': 'error',
       library: 'error',
       books: 'error',
+      // `session-completion` 에는 `error` 가 없다 — 그룹 기본값으로 떨어진다.
+      'session-completion': 'success',
+      reflections: 'error',
+      analysis: 'error',
       __states: 'error',
     });
   });
@@ -69,6 +76,9 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
       'activity-cards': 'success',
       library: 'success',
       books: 'success',
+      'session-completion': 'success',
+      reflections: 'success',
+      analysis: 'success',
       __states: 'empty',
     });
   });
@@ -103,6 +113,9 @@ describe('serializeSelection / withGroupKey', () => {
       'activity-cards': 'books-exhausted',
       library: 'retry',
       books: 'no-reason',
+      'session-completion': 'reflection-submitted',
+      reflections: 'invalid-transition',
+      analysis: 'analysis-pending',
       __states: 'error',
     };
     const restored = resolveSelection(DEV_SCENARIO_GROUPS, {
@@ -229,13 +242,36 @@ describe('DEV_SCENARIO_GROUPS — Catalogue 준수 (AC-1-40)', () => {
     'no-reason',
   ];
 
-  it('패널이 다루는 그룹은 health · home · activity-cards · library · books · __states 다', () => {
+  /**
+   * Stage 4b 완료 화면 + Stage 5 (AC-5-16, Plan §5.4 R-8) — 전부 `API_CONTRACTS.md` §5.4 등재 key.
+   * 회고 그룹에는 `empty` 가 없다 (`N5-06` ⓐ — 건너뛰기 = 요청 없음).
+   */
+  const CATALOGUE_STAGE_4_5 = [
+    'subtext-missing',
+    'bubble-missing',
+    'reflection-submitted',
+    'reflection-already-submitted',
+    'invalid-transition',
+    'analysis-pending',
+    'analysis-completed',
+    'analysis-failed',
+    'analysis-low-quality',
+    'analysis-not-available',
+    'recording-deleted',
+    'analysis-pending-then-completed',
+    'analysis-feedback-missing',
+  ];
+
+  it('패널이 다루는 그룹은 health · home · activity-cards · library · books · session-completion · reflections · analysis · __states 다', () => {
     expect(DEV_SCENARIO_GROUPS.map((group) => group.group)).toStrictEqual([
       'health',
       'home',
       'activity-cards',
       'library',
       'books',
+      'session-completion',
+      'reflections',
+      'analysis',
       '__states',
     ]);
   });
@@ -243,7 +279,7 @@ describe('DEV_SCENARIO_GROUPS — Catalogue 준수 (AC-1-40)', () => {
   it('모든 key 가 Catalogue machine key 다 (deprecated alias 없음)', () => {
     for (const group of DEV_SCENARIO_GROUPS) {
       for (const key of group.keys) {
-        expect([...CATALOGUE_COMMON, ...CATALOGUE_STAGE_3]).toContain(key);
+        expect([...CATALOGUE_COMMON, ...CATALOGUE_STAGE_3, ...CATALOGUE_STAGE_4_5]).toContain(key);
       }
     }
   });

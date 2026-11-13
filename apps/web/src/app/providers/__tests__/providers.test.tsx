@@ -73,6 +73,12 @@ const stubClients: ApiClients = {
     registerPushDevice: () => Promise.reject(new Error('not used in this test')),
     deletePushDevice: () => Promise.reject(new Error('not used in this test')),
   },
+  reflections: {
+    submit: () => Promise.reject(new Error('not used in this test')),
+  },
+  analysis: {
+    getStatus: () => Promise.reject(new Error('not used in this test')),
+  },
 };
 
 function Probe() {

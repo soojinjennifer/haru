@@ -283,6 +283,18 @@ const SCENARIO_GROUPS = [
   { group: 'me', note: 'Guard 입력 (`vpc-pending` · `vpc-failed` · `onboarding-incomplete`)' },
   { group: 'onboarding', note: '온보딩 (`draft-resume` · `persona-fallback` · 아래 4종)' },
   { group: 'books', note: '책 목록 (`empty` 있음)' },
+  {
+    group: 'session-completion',
+    note: '완료 화면 (`subtext-missing` · `bubble-missing` · `reflection-submitted` — Stage 5 재진입)',
+  },
+  {
+    group: 'reflections',
+    note: '회고 저장 (`reflection-already-submitted` · `invalid-transition` · 공통 5종 — `empty` 없음)',
+  },
+  {
+    group: 'analysis',
+    note: '분석 상태 (`analysis-pending` · `-completed` · `-failed` … — 피드백 화면 `S5-C`)',
+  },
   { group: 'health', note: 'Scenario Panel 의 기본 그룹' },
 ] as const;
 
@@ -327,6 +339,157 @@ const ONBOARDING_SCENARIOS: readonly BoundScenario[] = [
   },
 ];
 
+/**
+ * Stage 5 회고 카드 — 완료 화면 하단 (`S5-B`, AC-5-16 · Plan §5.4 R-8). 지난 세션(`analyzed`)으로 직접 진입한다 —
+ * 새로고침은 Mock 인증을 지우므로 **로그인한 뒤** 이 목록에서 누른다.
+ */
+const REFLECTION_SESSION_PATH = '/session/77777777-7777-4777-8777-000000000001/complete';
+
+const REFLECTION_SCENARIOS: readonly BoundScenario[] = [
+  {
+    param: 'reflections:success',
+    path: REFLECTION_SESSION_PATH,
+    label: 'reflection — 빈 카드 → 저장',
+    note: 'S0 → S1 → 저장 Toast + 홈 (`N5-07`).',
+  },
+  {
+    param: 'reflections:loading',
+    path: REFLECTION_SESSION_PATH,
+    label: 'reflection — 저장 중',
+    note: 'S2 — Save loading · 입력 잠금.',
+  },
+  {
+    param: 'reflections:error',
+    path: REFLECTION_SESSION_PATH,
+    label: 'reflection — 저장 실패',
+    note: 'S3 — 오류 Toast · 입력 보존.',
+  },
+  {
+    param: 'reflections:retry',
+    path: REFLECTION_SESSION_PATH,
+    label: 'reflection — Retry',
+    note: '1회 실패(오류 Toast · 입력 보존) 후 다시 누르면 저장 — 같은 body 는 같은 Idempotency-Key.',
+  },
+  {
+    param: 'reflections:offline',
+    path: REFLECTION_SESSION_PATH,
+    label: 'reflection — 오프라인',
+    note: 'S4 — 회고 전용 오프라인 Toast · 입력 보존.',
+  },
+  {
+    param: 'reflections:invalid-transition',
+    path: REFLECTION_SESSION_PATH,
+    label: 'reflection — 서버 완료 전',
+    note: '첫 시도만 `SESSION_INVALID_TRANSITION` — 다시 누르면 저장된다.',
+  },
+  {
+    param: 'reflections:reflection-already-submitted',
+    path: REFLECTION_SESSION_PATH,
+    label: 'reflection — 이미 저장됨(서버)',
+    note: '`REFLECTION_ALREADY_SUBMITTED` → 안내 Toast + 홈.',
+  },
+  {
+    param: 'session-completion:reflection-submitted',
+    path: REFLECTION_SESSION_PATH,
+    label: 'reflection — 재진입 읽기 전용',
+    note: 'S6 — 제출값 표시 · Save 비활성 (`N5-08`).',
+  },
+];
+
+/**
+ * Stage 5 피드백 · 분석 상태 화면 (`S5-C`, `C13-S5-1` Spec §2.3). **deep link 전용**(`N5-10` ⓐ) — 앱 안 진입점이
+ * 없으므로 여기서 직접 연다. 지난 세션(`analyzing` — 기본 `success` 는 3번째 조회에 `analyzed`)으로 진입한다.
+ * 새로고침은 Mock 인증을 지우므로 **로그인한 뒤** 이 목록에서 누른다.
+ */
+const FEEDBACK_SESSION_PATH = '/session/77777777-7777-4777-8777-000000000002/feedback';
+
+const FEEDBACK_SCENARIOS: readonly BoundScenario[] = [
+  {
+    param: 'analysis:success',
+    path: FEEDBACK_SESSION_PATH,
+    label: 'feedback — 기본',
+    note: 'pending → 폴링 15초 → 피드백.',
+  },
+  {
+    param: 'analysis:loading',
+    path: FEEDBACK_SESSION_PATH,
+    label: 'feedback — Loading',
+    note: 'Spinner.',
+  },
+  {
+    param: 'analysis:analysis-pending',
+    path: FEEDBACK_SESSION_PATH,
+    label: 'feedback — pending',
+    note: '준비 중 안내.',
+  },
+  {
+    param: 'analysis:analysis-completed',
+    path: FEEDBACK_SESSION_PATH,
+    label: 'feedback — analyzed',
+    note: '버블 = 응답 문구.',
+  },
+  {
+    param: 'analysis:analysis-feedback-missing',
+    path: FEEDBACK_SESSION_PATH,
+    label: 'feedback — text null',
+    note: 'state slot 비움 (AC-5-37).',
+  },
+  {
+    param: 'analysis:analysis-low-quality',
+    path: FEEDBACK_SESSION_PATH,
+    label: 'feedback — low-quality',
+    note: '버블 + 조용한 곳 안내.',
+  },
+  {
+    param: 'analysis:analysis-failed',
+    path: FEEDBACK_SESSION_PATH,
+    label: 'feedback — failed',
+    note: '재시도 버튼 없음 · 60초 폴링.',
+  },
+  {
+    param: 'analysis:analysis-not-available',
+    path: FEEDBACK_SESSION_PATH,
+    label: 'feedback — 대화 전용',
+    note: '`ANALYSIS_NOT_AVAILABLE`.',
+  },
+  {
+    param: 'analysis:recording-deleted',
+    path: FEEDBACK_SESSION_PATH,
+    label: 'feedback — 녹음 없음',
+    note: '`N5-12` ⓐ — 폴링 정지.',
+  },
+  {
+    param: 'analysis:analysis-pending-then-completed',
+    path: FEEDBACK_SESSION_PATH,
+    label: 'feedback — pending → completed',
+    note: '폴링 종료 확인.',
+  },
+  {
+    param: 'analysis:error',
+    path: FEEDBACK_SESSION_PATH,
+    label: 'feedback — Error',
+    note: 'Try again.',
+  },
+  {
+    param: 'analysis:retry',
+    path: FEEDBACK_SESSION_PATH,
+    label: 'feedback — Retry',
+    note: '1회 실패 후 성공.',
+  },
+  {
+    param: 'analysis:offline',
+    path: FEEDBACK_SESSION_PATH,
+    label: 'feedback — Offline',
+    note: 'Try again.',
+  },
+  {
+    param: 'analysis:success',
+    path: '/session/99999999-9999-4999-8999-999999999999/feedback',
+    label: 'feedback — 없는 세션',
+    note: '`RESOURCE_NOT_FOUND` → Go home (AC-5-42).',
+  },
+];
+
 /* ===== 아직 없는 화면 (링크 없음) ========================================== */
 
 const PENDING_SCREENS = [
@@ -343,7 +506,6 @@ const PENDING_SCREENS = [
     note: 'Stage 3.',
   },
   { label: 'Storytime Session · 녹음 · Prompt Drawer · 업로드 UX', note: 'Stage 4.' },
-  { label: 'Reflection · 분석 상태 · 짧은 피드백', note: 'Stage 5.' },
   { label: '개인화 · 프로필 수정 · 추천 루프', note: 'Stage 6.' },
   { label: '4주 리포트 · History · 하이라이트 오디오 · PDF', note: 'Stage 7.' },
   { label: '데이터 관리 · 탈퇴 (동의 이력 보기는 선택)', note: 'Stage 8 (C-15 · C-19).' },
@@ -431,6 +593,36 @@ export default function DevScreens() {
           <ul className="haru-dev-screens__list">
             {ONBOARDING_SCENARIOS.map((item) => (
               <li className="haru-dev-screens__item" key={item.param}>
+                <Link className="haru-dev-screens__link" to={withScenario(item.path, item.param)}>
+                  {item.label}
+                </Link>
+                <p className="haru-dev-screens__path haru-dev-mono">
+                  {item.path}?{SCENARIO_PARAM}={item.param}
+                </p>
+                <p className="haru-dev-screens__hint">{item.note}</p>
+              </li>
+            ))}
+          </ul>
+
+          <h3 className="haru-dev-subhead">Stage 5 회고 카드 — 완료 화면 하단</h3>
+          <ul className="haru-dev-screens__list">
+            {REFLECTION_SCENARIOS.map((item) => (
+              <li className="haru-dev-screens__item" key={item.param}>
+                <Link className="haru-dev-screens__link" to={withScenario(item.path, item.param)}>
+                  {item.label}
+                </Link>
+                <p className="haru-dev-screens__path haru-dev-mono">
+                  {item.path}?{SCENARIO_PARAM}={item.param}
+                </p>
+                <p className="haru-dev-screens__hint">{item.note}</p>
+              </li>
+            ))}
+          </ul>
+
+          <h3 className="haru-dev-subhead">Stage 5 피드백 · 분석 상태 — deep link 전용</h3>
+          <ul className="haru-dev-screens__list">
+            {FEEDBACK_SCENARIOS.map((item) => (
+              <li className="haru-dev-screens__item" key={`${item.path}?${item.param}`}>
                 <Link className="haru-dev-screens__link" to={withScenario(item.path, item.param)}>
                   {item.label}
                 </Link>

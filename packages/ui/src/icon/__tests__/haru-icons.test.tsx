@@ -18,6 +18,7 @@ const SVG_FILES: Record<keyof typeof HARU_ICONS, string> = {
   'haru:carousel-previous': '../haru/carousel-previous.svg',
   'haru:carousel-next': '../haru/carousel-next.svg',
   'haru:sticker-thumb': '../haru/sticker-thumb.svg',
+  'haru:rating-star': '../haru/rating-star.svg',
 };
 
 /**
@@ -39,6 +40,7 @@ const COLOR_SOURCES: Record<keyof typeof HARU_ICONS, readonly string[]> = {
   'haru:carousel-previous': ['currentColor'],
   'haru:carousel-next': ['currentColor'],
   'haru:sticker-thumb': ['currentColor'],
+  'haru:rating-star': ['currentColor'],
 };
 
 function readSvg(relative: string): string {
@@ -50,7 +52,7 @@ function pathData(markup: string): string[] {
 }
 
 describe('HARU 전용 SVG (Design Spec §8.2 · §8.3)', () => {
-  it('export 대상은 Stage 1 의 1건 + Stage 3 Home 재구현 2건 + Visual Gap 3차 1건 + Stage 4 2건 + Stage 4b 5건이다', () => {
+  it('export 대상은 Stage 1 의 1건 + Stage 3 Home 재구현 2건 + Visual Gap 3차 1건 + Stage 4 2건 + Stage 4b 5건 + Stage 5 1건이다', () => {
     expect(Object.keys(HARU_ICONS)).toEqual([
       'haru:tab-center-home',
       'haru:flip-to-back',
@@ -69,6 +71,8 @@ describe('HARU 전용 SVG (Design Spec §8.2 · §8.3)', () => {
       'haru:carousel-next',
       // Stage 4b `S4-H1` — 출석 스티커 엄지 (채움, Lucide 외곽선과 도형이 다르다).
       'haru:sticker-thumb',
+      // Stage 5 `S5-B` — 회고 카드 별 30×30 (`91:694`, `117:879` 와 다른 글리프).
+      'haru:rating-star',
     ]);
   });
 

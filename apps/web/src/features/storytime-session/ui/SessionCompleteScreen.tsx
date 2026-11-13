@@ -1,9 +1,11 @@
 /**
- * 완료 화면 — Figma `29:62` **y 0~468** (Stage 4 Spec §2.7, AC-4-57~61 · 104 · 107).
+ * 완료 화면 — Figma `29:62` (Stage 4 Spec §2.7 = y 0~468 · Stage 5 Spec §2.1 = y 521~823 회고 카드).
  *
- * ⚠ **`y 468` 아래가 비어 있는 것은 의도다** (AC-4-104, `D4-43`, Spec §2.8). 같은 프레임의 y 521~823 은 Stage 5
- * 회고 카드 `91:691` 이고 그 사이 53 은 Figma 자체의 빈 간격이다. 채우려고 요소를 넣거나 재배치하지 않는다 —
- * Figma 에 없는 것을 만들게 되고(최우선 규칙 2), Stage 5 에서 위쪽을 다시 옮겨야 한다.
+ * 하단 `footer` 슬롯 (Stage 5 Plan §5.4 R-1): y 521~823 은 회고 카드 `91:691` 이고, 조립은 Page 가 한다
+ * (`features/reflection` — feature 간 import 금지). **본체 상태에서만** 그린다 (로딩·오류·이탈 화면에는 없다).
+ * 슬롯은 버블 **뒤 흐름**에 둔다 (`N5-29`) — 위쪽(y 0~468)의 요소·좌표는 바꾸지 않는다 (AC-5-19).
+ * Stage 4 의 *"y 468 아래는 의도적 공백"*(AC-4-61 · 104, `D4-43`)은 Stage 4 한정 기록이었고 AC-5-18 · 19 로
+ * 승계됐다 (`N5-21`).
  *
  * 스크롤: 세션 화면과 뷰포트(`AppShell`)를 공유해 `scrollTop` 이 승계되므로 진입 시 맨 위로 돌린다
  * (`VG-K1S-02` — 627 이하에서는 스크롤해야 `Submit` 을 누를 수 있어 항상 재현된다).
@@ -26,7 +28,7 @@ import {
   useScrollContainerRef,
   useToastTopBarInset,
 } from '@haru/ui';
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 
 import { CharacterMedallion } from '../../../entities/character';
@@ -43,6 +45,8 @@ import { useStickerEntrance } from './useStickerEntrance';
 
 export interface SessionCompleteScreenProps {
   sessionId: string;
+  /** 버블 아래 슬롯 — 회고 카드 (Stage 5 `S5-B`). 본체 상태에서만 렌더한다. */
+  footer?: ReactNode;
 }
 
 function scrollToTop(viewport: HTMLElement): void {
@@ -74,7 +78,7 @@ function CompleteCloseBar() {
   );
 }
 
-export function SessionCompleteScreen({ sessionId }: SessionCompleteScreenProps) {
+export function SessionCompleteScreen({ sessionId, footer }: SessionCompleteScreenProps) {
   const scrollContainerRef = useScrollContainerRef();
   useLayoutEffect(() => {
     const viewport = scrollContainerRef?.current;
@@ -124,6 +128,7 @@ export function SessionCompleteScreen({ sessionId }: SessionCompleteScreenProps)
           />
         </div>
       )}
+      {footer}
     </div>
   );
 }

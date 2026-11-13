@@ -24,10 +24,11 @@ describe('Tier 1 — Primitive (Design Spec §3.1)', () => {
    * 마지막 1종은 칩 아이콘 대비 교정(사용자 결정 2026-10-10 ②)에서 추가됐다 — Figma palette
    * 밖의 값이므로 허용 차이 등록 대상이고, 그래서 **개수가 늘면 눈에 걸리도록** 여기서 센다.
    * 35 = + **`--haru-gray-6`** (Stage 4b `S4-G2` — Drawer 캐러셀 화살표 비활성 fill `#f2f2f7`, `86:324`).
+   * 36 = + **`--haru-mist-300`** (Stage 5 `T5-1` — Figma 빈 별 fill `#d6dedc`, `91:702`, `D5-4`).
    */
-  it('palette 색 35개 + status 8개 — 30 + white a82 · a85 + yellow-700 + gray-2 · gray-6', () => {
+  it('palette 색 36개 + status 8개 — 30 + white a82 · a85 + yellow-700 + gray-2 · gray-6 + mist-300', () => {
     const colors = primitives.filter((d) => d.file === 'src/primitive/color.css');
-    expect(colors.filter((d) => !d.name.startsWith('--haru-status-'))).toHaveLength(35);
+    expect(colors.filter((d) => !d.name.startsWith('--haru-status-'))).toHaveLength(36);
     expect(colors.filter((d) => d.name.startsWith('--haru-status-'))).toHaveLength(8);
   });
 
@@ -267,10 +268,27 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
    *
    * Stage 4b `S4-H1`(완료 화면 `29:62`)에서 **19종 추가** → 258 (Stage 4 Spec §2.7 · §6.4).
    *  배치 5 · 버블 폭 · 모션 5 · 출석 스티커 8.
+   *
+   * Stage 5 `S5-B`(회고 카드 `91:691`)에서 **12종 추가** → 273 (Stage 5 Spec §5.2 `T5-2`~`T5-11`, `D5-4`).
+   *  카드 7(`T5-2`~`T5-8`) · 별 2(`T5-9`) · 입력 2(`T5-10` + padding) · Chip select border 1(`T5-11`).
+   * `S5-B` 후속 `VG5B-1` ⓑ(사용자 결정 2026-11-08)에서 **1종 추가** → 274. Chip `select` 라벨 12.5 (Figma `90:611`).
    */
-  it('Tier 3 토큰 261개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset + Library 1라운드 + 표지 그림자 자리 + 세션 ready + S4-F1R + S4-F2 + S4-G1 + S4-G2 + S4-K1 + S4-H1 + S4-H1R)', () => {
+  it('Tier 3 토큰 274개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset + Library 1라운드 + 표지 그림자 자리 + 세션 ready + S4-F1R + S4-F2 + S4-G1 + S4-G2 + S4-K1 + S4-H1 + S4-H1R + S5-B)', () => {
     expect(components.map((d) => d.name).sort()).toEqual(
       [
+        '--reflection-card-radius',
+        '--reflection-card-width',
+        '--reflection-card-gutter',
+        '--reflection-card-offset',
+        '--reflection-card-bottom-gap',
+        '--reflection-card-title-line',
+        '--reflection-chip-gap',
+        '--rating-star-size',
+        '--rating-star-gap',
+        '--input-height',
+        '--input-padding-x',
+        '--chip-select-border-width',
+        '--chip-select-label-size',
         '--session-complete-title-offset',
         '--session-complete-title-gap',
         '--session-complete-ring-gap',

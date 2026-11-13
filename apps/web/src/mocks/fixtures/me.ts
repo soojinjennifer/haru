@@ -34,7 +34,8 @@ export const MOCK_TIMEZONE = 'America/Los_Angeles';
  * Stage 3 의 아동 범위 endpoint(`…/home` · `…/activity-cards/today`)가 이 id 를 쓴다.
  */
 export const MOCK_CHILD_ID = '44444444-4444-4444-8444-444444444444';
-export const MOCK_CHILD_FIRST_NAME = 'Nova';
+/** Figma `91:692` · `88:929` 예시 이름과 같다 (`D5-14`) — 완료 버블 `Emma did wonderfully.` 와 회고 카드 제목이 일치. */
+export const MOCK_CHILD_FIRST_NAME = 'Emma';
 
 /**
  * 현재 정책상 필수 동의 — Mock 기준값. 화면은 이 값을 하드코딩하지 않는다 (AC-2-10).

@@ -82,6 +82,11 @@
   --haru-mist-100: #dbeee7;
   --haru-mist-200: #d3e3de;
   --haru-dusk-200: #c7c9d7;
+  /*
+   * Stage 5 `T5-1` (`D5-4`) — Figma 빈 별 fill `#D6DEDC` (`91:702` SVG 원문, 변수 미바인딩 raw 값).
+   * mist-200 보다 어둡다. 사용처 = `--color-rating-empty` 하나.
+   */
+  --haru-mist-300: #d6dedc;
   --haru-paper-100: #f0eee6;
 
   /* --- Status primitive (Figma 에 값 없음 — design-agent 제안) -------------- */

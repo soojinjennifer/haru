@@ -9,10 +9,13 @@
  * EmptyState 는 이 그룹으로 확인한다 (Plan §8.1 · §8.2).
  */
 import { activityScenarioGroup } from '../../mocks/activities/MockActivityApi';
+import { analysisScenarioGroup } from '../../mocks/analysis/analysisScenarios';
 import { booksScenarioGroup } from '../../mocks/books/MockBooksApi';
 import { healthScenarioGroup } from '../../mocks/health/MockHealthApi';
 import { homeScenarioGroup } from '../../mocks/home/MockHomeApi';
 import { libraryScenarioGroup } from '../../mocks/library/MockLibraryApi';
+import { reflectionScenarioGroup } from '../../mocks/reflections/MockReflectionApi';
+import { sessionCompletionScenarioGroup } from '../../mocks/sessions/sessionFixtureScenarios';
 import type { ScenarioGroupDefinition } from '../../mocks/scenarios';
 
 export const STATES_SCENARIO_KEYS = [
@@ -42,5 +45,9 @@ export const DEV_SCENARIO_GROUPS: readonly ScenarioGroupDefinition<string>[] = [
   libraryScenarioGroup,
   // Library 2라운드-3 — 책 상세 prompts (`no-reason` 포함, API_CONTRACTS §5.4)
   booksScenarioGroup,
+  // Stage 5 (AC-5-16, Plan §5.4 R-8) — 회고 제출 · 재진입(`reflection-submitted`) · 분석 상태 (API_CONTRACTS §5.4)
+  sessionCompletionScenarioGroup,
+  reflectionScenarioGroup,
+  analysisScenarioGroup,
   statesScenarioGroup,
 ];

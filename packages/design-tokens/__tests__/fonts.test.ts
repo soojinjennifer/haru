@@ -156,7 +156,9 @@ describe('빌드 산출물 — CSS Variable export (AC-1-11)', () => {
     // Stage 4b `S4-G2` 에서 19종 추가 → 236 (Drawer `88:960` — Sheet floating 8 · 캐러셀 6 · 코칭 노트 5, `D4-71` 로 pill 폭 삭제).
     // Stage 4b `S4-K1` 에서 1종 추가 → 237 (짧은 세로 — 메달리온 링 compact, `D4-58` CP-7).
     // `S4-K1` 후속에서 2종 추가 → 239 (ready 버블 아래 14.4 · stage 하한 205, `D4-78` · `D4-81`). `S4-H1` 19종 → 258. `S4-H1R` 3종 → 261 (보조 줄 19 · 스티커 제목 14/17). `S4-G2MF` 1종 → 262 (floating 닫힘 그림자 번짐 28, `D4-139`).
-    expect(manifest.counts['component']).toBe(262);
+    // Stage 5 `S5-B` 12종 → 274 (회고 카드 7 · 별 2 · 입력 2 · Chip select border 1 — `T5-2`~`T5-11`, `D5-4`).
+    // `S5-B` 후속 `VG5B-1` ⓑ 1종 → 275 (`--chip-select-label-size` 12.5).
+    expect(manifest.counts['component']).toBe(275);
     // 2026-09-22 가값 승인 (stage-1-approvals §9) 후 남은 항목 = P-01 · P-02 · P-04 · P-05 · P-16.
     // Stage 3 에서 P-23(--color-prompt-tag-fg) 신설 (stage-3-approvals §9.2 ⑫).
     // Library 1라운드: **P-05 해제**(scrim 이 Figma 실측값이 되었다 — `L-NEW-09`) ·

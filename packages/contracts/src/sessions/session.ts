@@ -11,6 +11,7 @@ import { SessionStatusSchema } from '../enums/session-status.js';
 import { StickerTypeSchema } from '../enums/sticker.js';
 import { PromptSchema } from '../prompts/prompt.js';
 import { RecordingStatusSchema } from '../recordings/status.js';
+import { ReflectionSchema } from '../reflections/reflection.js';
 import { MAX_RECORDED_SECONDS } from '../rules/recording-limits.js';
 
 /**
@@ -106,12 +107,14 @@ export type SessionSummary = z.infer<typeof SessionSummarySchema>;
  * - `completionBubble` — 재진입 시 완료 버블 (`D4-88`, §3.2.3). 완료 계열(`completed` · `analyzing` ·
  *   `analyzed` · `failed`) = 전이 때 고른 값 그대로(또는 `null`), 그 밖의 상태 = `null`.
  *   key 는 필수다 — `sticker` 와 같다. 오프라인 제출은 전이 응답이 없어 이 필드로 해결되지 않는다.
- * - `reflection` 은 Stage 5 에서 추가한다 (`C4-OPEN-6`).
+ * - `reflection` — 이 세션의 회고 (Stage 5 `C4-OPEN-6` 이행, Plan §7 C-4 · `D5-4`). 없으면 `null`.
+ *   key 는 필수다 — 재진입 시 회고 카드를 읽기 전용으로 그릴지 판정한다 (`N5-08` ⓐ). 완료 계열이 아니면 항상 `null`.
  */
 export const SessionDetailSchema = SessionSummarySchema.extend({
   recording: RecordingStatusSchema.nullable(),
   sticker: StickerAwardSchema.nullable(),
   completionBubble: SessionBubbleCopySchema,
+  reflection: ReflectionSchema.nullable(),
 });
 
 export type SessionDetail = z.infer<typeof SessionDetailSchema>;

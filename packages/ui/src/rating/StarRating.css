@@ -1,0 +1,64 @@
+/*
+ * StarRating — Stage 5 Design Spec §3.1 (Figma `91:693`)
+ *
+ * 행 높이 = 별 30 (Figma 330×30). 별 버튼 폭 = 30 + 간격 8 = 38 → 이웃 글리프 간격 8, 겹침 0.
+ * 버튼 5개 폭 190 을 가운데 정렬하면 첫 글리프 x 가 Figma 와 같다 ((330 − 190) / 2 + 4 = 74).
+ */
+
+.haru-star-rating {
+  display: flex;
+  justify-content: center;
+  block-size: var(--rating-star-size);
+}
+
+.haru-star-rating__star {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: calc(var(--rating-star-size) + var(--rating-star-gap));
+  block-size: var(--rating-star-size);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-rating-empty);
+  cursor: pointer;
+  transition: color var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+/*
+ * 터치 타깃 — 세로 44 (위·아래 7, 카드 gap 14 안). 가로는 38 이 최대다 (간격 8 안에서 겹침 0).
+ * provisional: P-29 (가로 38 < 44, docs/decisions/stage-5-approvals.md D5-4)
+ */
+.haru-star-rating__star::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block: calc((var(--rating-star-size) - var(--size-touch-min)) / 2);
+}
+
+.haru-star-rating__star[data-filled='true'] {
+  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-rating-filled);
+}
+
+.haru-star-rating__glyph {
+  display: inline-flex;
+  inline-size: var(--rating-star-size);
+  block-size: var(--rating-star-size);
+}
+
+.haru-star-rating__glyph > svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.haru-star-rating--locked .haru-star-rating__star {
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .haru-star-rating__star {
+    transition: none;
+  }
+}

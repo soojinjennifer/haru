@@ -44,8 +44,12 @@ const CONFIRMED = [
  * `P-25` = 세션 `Discard` 흰 라벨 on `#aeaeb2` 2.211:1 — `Button` `neutral` 변형 (Stage 4 `D4-16`).
  *   4b `S4-F2`: `RecordControl` `permission-denied` 흰 글리프·라벨 on 같은 회색 — **범위 확장**
  *   (`S4B-Q6`, `D4-58` NB-6).
+ *
+ * Stage 5 `D5-4` 신규 2건:
+ * `P-28` = 회고 입력 placeholder `#9aabaa` 13px 대비 2.28~2.35 — `TextInput` (Spec §9.2 · `N5-32`).
+ * `P-29` = 별 히트 가로 38 < 44 (간격 8 안에서 겹침 0 이 최대) — `StarRating` (Spec M-5 · `N5-19`).
  */
-const REMAINING = ['P-01', 'P-02', 'P-04', 'P-16', 'P-17', 'P-24', 'P-25'];
+const REMAINING = ['P-01', 'P-02', 'P-04', 'P-16', 'P-17', 'P-24', 'P-25', 'P-28', 'P-29'];
 
 const MARKER_RE = /provisional:\s*(P-\d{2})/g;
 
@@ -89,7 +93,16 @@ describe('packages/ui CSS 의 provisional 주석 (approvals §9)', () => {
     );
   });
 
-  it('남아 있는 항목은 디자이너 대기 7건 안에만 있다', () => {
+  it('Stage 5 가값 P-28 · P-29 가 TextInput · StarRating CSS 에 등록되어 있다 (D5-4)', () => {
+    expect(markers.filter((marker) => marker.item === 'P-28').map((marker) => marker.file)).toEqual(
+      ['field/TextInput.css'],
+    );
+    expect(markers.filter((marker) => marker.item === 'P-29').map((marker) => marker.file)).toEqual(
+      ['rating/StarRating.css'],
+    );
+  });
+
+  it('남아 있는 항목은 디자이너 대기 9건 안에만 있다', () => {
     const items = [...new Set(markers.map((marker) => marker.item))].sort();
     expect(items.filter((item) => !REMAINING.includes(item))).toEqual([]);
   });

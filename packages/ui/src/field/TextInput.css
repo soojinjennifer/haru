@@ -1,0 +1,38 @@
+/*
+ * TextInput — Stage 5 Design Spec §3.3 (Figma `91:715`)
+ *
+ * 330×40 · border 1px `rgba(94,115,112,.18)` (= `--color-border-subtle`) · radius 16 · padding 14 / 12 · 면 없음.
+ * placeholder Regular 13 / 줄 16 · `#9aabaa`.
+ */
+
+.haru-text-input {
+  box-sizing: border-box;
+  inline-size: 100%;
+  block-size: var(--input-height);
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--input-padding-x);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-field);
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-footnote);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--text-caption-1--line-height);
+  color: var(--color-fg-primary);
+}
+
+.haru-text-input::placeholder {
+  /* provisional: P-28 (placeholder #9aabaa 13px 대비 2.28~2.35, docs/decisions/stage-5-approvals.md D5-4) */
+  color: var(--color-fg-tertiary);
+  opacity: 1;
+}
+
+.haru-text-input:focus {
+  outline: none;
+}
+
+.haru-text-input:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}

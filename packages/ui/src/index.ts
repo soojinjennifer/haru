@@ -21,6 +21,10 @@ export type { FieldGroupProps } from './field/FieldGroup';
 export { TextField } from './field/TextField';
 export type { TextFieldProps, TextFieldTrailingAction, TextFieldType } from './field/TextField';
 
+/* Stage 5 `S5-B` — 라벨 없는 한 줄 입력 (Figma `91:715`, Stage 5 Spec §3.3) */
+export { TextInput } from './field/TextInput';
+export type { TextInputProps } from './field/TextInput';
+
 export { SelectTrigger } from './field/SelectTrigger';
 export type { SelectTriggerOption, SelectTriggerProps } from './field/SelectTrigger';
 
@@ -44,6 +48,10 @@ export type {
 
 export { Chip } from './chip/Chip';
 export type { ChipProps, ChipVariant } from './chip/Chip';
+
+/* Stage 5 `S5-B` — 별점 (Figma `91:693`, Stage 5 Spec §3.1) */
+export { StarRating } from './rating/StarRating';
+export type { StarRatingProps } from './rating/StarRating';
 
 export { Tag } from './tag/Tag';
 export type { TagProps, TagSize, TagTone } from './tag/Tag';

@@ -2,6 +2,7 @@
 import type { ApiClients } from '../types';
 
 import { createHttpActivityApi } from './HttpActivityApi';
+import { createHttpAnalysisApi } from './HttpAnalysisApi';
 import { createHttpBooksApi } from './HttpBooksApi';
 import { createHttpConsentApi } from './HttpConsentApi';
 import { createHttpHealthApi } from './HttpHealthApi';
@@ -11,6 +12,7 @@ import { createHttpMeApi } from './HttpMeApi';
 import { createHttpNotificationApi } from './HttpNotificationApi';
 import { createHttpOnboardingApi } from './HttpOnboardingApi';
 import { createHttpRecordingApi } from './HttpRecordingApi';
+import { createHttpReflectionApi } from './HttpReflectionApi';
 import { createHttpSessionApi } from './HttpSessionApi';
 import { createHttpClient, type HttpClientOptions } from './httpClient';
 import { createTusUploadTransport } from './TusUploadTransport';
@@ -49,6 +51,8 @@ export {
   pushDevicePath,
 } from './HttpNotificationApi';
 export { createTusUploadTransport, TUS_VERSION } from './TusUploadTransport';
+export { createHttpReflectionApi, sessionReflectionPath } from './HttpReflectionApi';
+export { createHttpAnalysisApi, sessionAnalysisPath } from './HttpAnalysisApi';
 
 export function createHttpApiClients(options: HttpClientOptions): ApiClients {
   const client = createHttpClient(options);
@@ -68,5 +72,7 @@ export function createHttpApiClients(options: HttpClientOptions): ApiClients {
       options.fetchImpl === undefined ? {} : { fetchImpl: options.fetchImpl },
     ),
     notifications: createHttpNotificationApi(client),
+    reflections: createHttpReflectionApi(client),
+    analysis: createHttpAnalysisApi(client),
   };
 }

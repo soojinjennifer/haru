@@ -78,6 +78,12 @@ export const ROUTES = {
    * 경로는 `FIGMA_SCREEN_MAP.md` RECOMMENDED 값 그대로. 화면 본체는 `S4-H1` 이 채운다.
    */
   sessionComplete: '/session/:sessionId/complete',
+  /**
+   * 피드백 · 분석 상태 화면 (Stage 5 `S5-C`, Figma 없음 — `C13-S5-1` design-agent 명세 Spec §2.3).
+   * **deep link 전용**이다 — 앱 안에 이 경로로 가는 진입점이 없다 (`N5-10` ⓐ). push `short_feedback_ready` 의
+   * 도착 URL 이다 (`P5-BIP-10`).
+   */
+  sessionFeedback: '/session/:sessionId/feedback',
 
   notFound: '*',
 } as const;
@@ -109,4 +115,9 @@ export function sessionPath(sessionId: string): string {
 /** `/session/:sessionId/complete` 의 실제 경로. */
 export function sessionCompletePath(sessionId: string): string {
   return ROUTES.sessionComplete.replace(':sessionId', encodeURIComponent(sessionId));
+}
+
+/** `/session/:sessionId/feedback` 의 실제 경로 (deep link 도착 URL). */
+export function sessionFeedbackPath(sessionId: string): string {
+  return ROUTES.sessionFeedback.replace(':sessionId', encodeURIComponent(sessionId));
 }

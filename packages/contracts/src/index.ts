@@ -14,9 +14,12 @@
  * Stage 4 범위: `sessions` · `recordings` · `notifications`(이월 `QA-3-001`) ·
  * `enums` +3(`PushPlatform` · `StickerType` · `RecordingContainer`(`D4-23`)) ·
  * `SESSION_TRANSITIONS` 12 → 14 행(`D4-13`).
- * 나머지 도메인 schema(analysis · reports · data-management)는 해당 Stage 에서 추가한다.
+ * Stage 5 범위: `reflections` · `analysis` · `highlight-clips`(schema 만, `N5-22`) ·
+ * `enums` +1(`ReflectionCheckKey`, `N5-01`) · `SessionDetail.reflection`.
+ * 나머지 도메인 schema(reports · data-management)는 해당 Stage 에서 추가한다.
  */
 export * from './activity/index.js';
+export * from './analysis/index.js';
 export * from './auth/index.js';
 export * from './books/index.js';
 export * from './children/index.js';
@@ -24,6 +27,7 @@ export * from './common/index.js';
 export * from './consent/index.js';
 export * from './enums/index.js';
 export * from './health/index.js';
+export * from './highlight-clips/index.js';
 export * from './home/index.js';
 export * from './library/index.js';
 export * from './me/index.js';
@@ -31,5 +35,6 @@ export * from './notifications/index.js';
 export * from './onboarding/index.js';
 export * from './prompts/index.js';
 export * from './recordings/index.js';
+export * from './reflections/index.js';
 export * from './rules/index.js';
 export * from './sessions/index.js';

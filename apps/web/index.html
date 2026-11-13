@@ -2,7 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!--
+      `maximum-scale=1` — D5-13 (QA-5-003 실기기): 회고 카드 입력칸 13px(Figma `--text-footnote`) 포커스 때
+      iOS Safari 가 화면을 확대하고 되돌리지 않았다. iOS 는 두 손가락 확대를 유지하고, Android Chrome 은
+      확대가 막힌다 → 허용 차이 AD-S5-2. 값 고정: apps/web/__tests__/viewport-meta.test.ts
+    -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
+    />
     <meta name="color-scheme" content="light" />
     <!--
       Inter woff2 preload 는 `haru:inter-preload` 플러그인(vite.config.ts)이 주입한다.

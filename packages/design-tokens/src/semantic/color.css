@@ -116,8 +116,12 @@
   /* ===== Rating (Stage 5) ================================================ */
   /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
   --color-rating-filled: var(--haru-palette-yellow);
+  /*
+   * Stage 5 `T5-1` (`D5-4`, Spec §5.2 · M-2): ink 18% → Figma 빈 별 단색 `#D6DEDC`.
+   * 대비(면 대비 1.31~1.34)는 여전히 P-02 범위다.
+   */
   /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
-  --color-rating-empty: var(--haru-ink-600-a18);
+  --color-rating-empty: var(--haru-mist-300);
 
   /* ===== Scrim =========================================================== */
   /*

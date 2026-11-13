@@ -13,6 +13,7 @@
  * 빈 stub 은 만들지 않는다.
  */
 import type { ActivityApi } from './activity-api';
+import type { AnalysisApi } from './analysis-api';
 import type { BooksApi } from './books-api';
 import type { ConsentApi } from './consent-api';
 import type { HealthApi } from './health-api';
@@ -22,6 +23,7 @@ import type { MeApi } from './me-api';
 import type { NotificationApi } from './notification-api';
 import type { OnboardingApi } from './onboarding-api';
 import type { RecordingApi } from './recording-api';
+import type { ReflectionApi } from './reflection-api';
 import type { SessionApi } from './session-api';
 import type { UploadTransport } from './upload-transport';
 
@@ -52,4 +54,8 @@ export interface ApiClients {
   readonly uploadTransport: UploadTransport;
   /** Stage 4 (이월 `QA-3-001`) — 알림 설정 · 푸시 기기 등록. */
   readonly notifications: NotificationApi;
+  /** Stage 5 — 세션 회고 제출 (FR-12, `API_CONTRACTS` §3.10). */
+  readonly reflections: ReflectionApi;
+  /** Stage 5 — 분석 상태 · 짧은 피드백 조회 (FR-13 · FR-14, `API_CONTRACTS` §3.11). */
+  readonly analysis: AnalysisApi;
 }

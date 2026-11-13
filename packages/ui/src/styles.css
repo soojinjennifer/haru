@@ -27,12 +27,14 @@
 @import './button/IconButton.css';
 @import './field/FieldGroup.css';
 @import './field/TextField.css';
+@import './field/TextInput.css';
 @import './field/SelectTrigger.css';
 @import './field/Checkbox.css';
 @import './field/CheckboxGroup.css';
 @import './field/RadioGroup.css';
 @import './tag/Tag.css';
 @import './chip/Chip.css';
+@import './rating/StarRating.css';
 @import './progress/ProgressBar.css';
 @import './progress/PageIndicator.css';
 @import './carousel/PromptCarousel.css';

@@ -19,6 +19,7 @@ import type { PushPermissionPort } from '../shared/platform/push-permission';
 
 import { applyActivityCardCacheSeed } from './activities/activityCardCacheSeed';
 import { createMockActivityApi } from './activities/MockActivityApi';
+import { createMockAnalysisApi } from './analysis/MockAnalysisApi';
 import { createMockAuthGateway } from './auth/MockAuthGateway';
 import { createMockBooksApi } from './books/MockBooksApi';
 import { createMockConnectivity, type MockConnectivity } from './common/connectivity';
@@ -36,6 +37,7 @@ import { createMockOnboardingState, type MockOnboardingState } from './onboardin
 import { createMockPushPermissionPort } from './platform/MockPushPermissionPort';
 import { createMockRecordingApi } from './recordings/MockRecordingApi';
 import { createMockUploadTransport } from './recordings/MockUploadTransport';
+import { createMockReflectionApi } from './reflections/MockReflectionApi';
 import { createRequestLog, type RequestLog } from './request-log';
 import {
   createScenarioStoreFrom,
@@ -174,6 +176,9 @@ export function createMockApiClientsBundle(
       recordings: createMockRecordingApi({ ...stage4, idempotency, connectivity }),
       uploadTransport: createMockUploadTransport({ ...stage4, connectivity }),
       notifications: createMockNotificationApi({ ...deps, errorCodes }),
+      // Stage 5 — 세션과 같은 서버 상태 · 같은 `Idempotency-Key` 보관소 (Plan §8)
+      reflections: createMockReflectionApi({ ...stage4, idempotency }),
+      analysis: createMockAnalysisApi(stage4),
     },
   };
 }
@@ -380,6 +385,7 @@ export {
 } from './sessions/MockSessionApi';
 export type { SessionScenarioKey } from './sessions/MockSessionApi';
 export {
+  materializeSubmittedReflection,
   resolveReadySessionShape,
   SESSION_COMPLETION_SCENARIO_KEYS,
   SESSION_FIXTURE_SCENARIO_KEYS,
@@ -394,7 +400,11 @@ export type {
   SessionFixtureScenarioKey,
   SessionGreetingScenarioKey,
 } from './sessions/sessionFixtureScenarios';
-export { createMockSessionState, findActiveSession } from './sessions/sessionState';
+export {
+  COMPLETION_STATUSES,
+  createMockSessionState,
+  findActiveSession,
+} from './sessions/sessionState';
 export type {
   MockRecordingRecord,
   MockSessionRecord,
@@ -451,6 +461,35 @@ export {
   MOCK_STICKER_TITLE,
 } from './fixtures/sessions';
 export { MOCK_UPLOAD_ORIGIN, mockObjectKey } from './fixtures/recordings';
+export {
+  createMockReflectionApi,
+  reflectionScenarioGroup,
+  REFLECTION_SCENARIO_KEYS,
+  REFLECTION_LOADING_DELAY_MS,
+} from './reflections/MockReflectionApi';
+export type { ReflectionScenarioKey } from './reflections/MockReflectionApi';
+export { createMockAnalysisApi } from './analysis/MockAnalysisApi';
+export {
+  analysisScenarioGroup,
+  ANALYSIS_SCENARIO_KEYS,
+  ANALYSIS_LOADING_DELAY_MS,
+  resolveAnalysisOverlay,
+} from './analysis/analysisScenarios';
+export type { AnalysisScenarioKey, AnalysisView } from './analysis/analysisScenarios';
+export {
+  MOCK_ANALYSIS_PENDING_READS,
+  MOCK_DELETED_RECORDING_ID,
+  MOCK_SHORT_FEEDBACK,
+  MOCK_SHORT_FEEDBACK_LOW_QUALITY,
+  MOCK_SHORT_FEEDBACK_MISSING,
+} from './fixtures/analysis';
+export { createReflectionFixture, MOCK_SUBMITTED_REFLECTION_INPUT } from './fixtures/reflections';
+export {
+  createHighlightClipFixtures,
+  createSignedMediaUrlFixture,
+  MOCK_HIGHLIGHT_CLIP_IDS,
+} from './fixtures/highlight-clips';
+export { ensureSessionHistory } from './sessions/sessionHistory';
 export * from './scenarios';
 export {
   createMockRecordingStorage,

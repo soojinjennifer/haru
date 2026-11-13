@@ -208,6 +208,12 @@ describe('세션 만료 2회 실패 → /auth/log-in (AC-2-07)', () => {
       registerPushDevice: () => Promise.reject(new Error('not used')),
       deletePushDevice: () => Promise.reject(new Error('not used')),
     },
+    reflections: {
+      submit: () => Promise.reject(new Error('not used')),
+    },
+    analysis: {
+      getStatus: () => Promise.reject(new Error('not used')),
+    },
   };
 
   function wrapper({ children }: { children: ReactNode }) {

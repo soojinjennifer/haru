@@ -83,3 +83,40 @@ describe('InlineAlert titleId (D4-39)', () => {
     expect(container.querySelectorAll('[id]')).toHaveLength(0);
   });
 });
+
+/*
+ * `D5-10` (`VG5C-2`) — 선택 prop `announce`. 기본 `auto` 는 기존 role 그대로, `none` 은 role ·
+ * `aria-live` 를 붙이지 않는다 (바깥 컨테이너가 live region 인 화면 전용).
+ */
+describe('InlineAlert announce (D5-10)', () => {
+  const tones = ['info', 'success', 'warning', 'error', 'offline'] as const;
+
+  it.each(tones)('default (%s) renders the same role and aria-live as before', (tone) => {
+    const { container } = render(<InlineAlert tone={tone} title="Heads up." />);
+    const root = container.querySelector('.haru-alert');
+    const expected = tone === 'error' || tone === 'warning' ? 'alert' : 'status';
+    expect(root?.getAttribute('role')).toBe(expected);
+    expect(root?.getAttribute('aria-live')).toBe(expected === 'status' ? 'polite' : null);
+  });
+
+  it.each(tones)('announce="auto" (%s) is identical to omitting the prop', (tone) => {
+    const a = render(<InlineAlert tone={tone} title="Same." description="Body." />);
+    const omitted = a.container.innerHTML;
+    a.unmount();
+    const b = render(<InlineAlert tone={tone} title="Same." description="Body." announce="auto" />);
+    expect(b.container.innerHTML).toBe(omitted);
+  });
+
+  it.each(tones)('announce="none" (%s) drops role and aria-live only', (tone) => {
+    const { container } = render(
+      <InlineAlert tone={tone} title="Quiet." description="Body." announce="none" />,
+    );
+    const root = container.querySelector('.haru-alert');
+    expect(root?.hasAttribute('role')).toBe(false);
+    expect(root?.hasAttribute('aria-live')).toBe(false);
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByText('Quiet.')).toBeTruthy();
+    expect(container.querySelector('.haru-alert__icon svg')).toBeTruthy();
+  });
+});

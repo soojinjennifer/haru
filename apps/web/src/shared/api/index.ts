@@ -23,6 +23,8 @@ export type { LibraryApi } from './library-api';
 export type { SessionApi } from './session-api';
 export type { RecordingApi } from './recording-api';
 export type { NotificationApi } from './notification-api';
+export type { ReflectionApi } from './reflection-api';
+export type { AnalysisApi } from './analysis-api';
 export {
   isUploadOffsetConflictError,
   UploadOffsetConflictError,
