@@ -194,6 +194,20 @@ const SECTIONS: readonly ScreenSection[] = [
         access: 'auth',
         note: 'Trial 예외가 아니다 — 로그인하지 않으면 `/auth/welcome` 으로 되돌린다.',
       },
+      {
+        path: '/onboarding/profile',
+        name: '프로필 결과 (온보딩 모드)',
+        stage: 'Stage 6',
+        access: 'auth',
+        note: '`?scenario=children:all-scores-missing` · `scores-partially-missing` · `persona-fallback` · `error` 로 변형을 본다. `Next` → 발전 역량.',
+      },
+      {
+        path: '/onboarding/growth-capability',
+        name: '발전 역량 (온보딩 모드)',
+        stage: 'Stage 6',
+        access: 'auth',
+        note: '`?scenario=children:all-scores-missing`(제안 없음 · CTA 비활성) · `scores-partially-missing`(null 축 선택) · `children.setgrowthcapability:error` / `offline`(저장 실패). 설정 모드 = `/settings/growth-capability`.',
+      },
     ],
   },
   {
@@ -211,9 +225,37 @@ const SECTIONS: readonly ScreenSection[] = [
       {
         path: '/settings',
         name: '설정',
-        stage: 'Stage 2',
+        stage: 'Stage 6',
         access: 'full',
-        note: 'Stage 2 목록은 로그아웃 1행이다.',
+        note: '2그룹 5행 (`C13-S6-1`). 5행 전부 화면이 등록되어 있다.',
+      },
+      {
+        path: '/settings/child/survey',
+        name: '설문 재응답 (진입 · 카드)',
+        stage: 'Stage 6',
+        access: 'full',
+        note: '`S6-C` (`C13-S6-3`). 카드 = `/settings/child/survey/reading-together` 등. `?scenario=children:survey-update-draft`(이어서) · `children:loading` · `children:error` · `children:offline` · 제출만 실패 `children.submitsurveyupdate:error` / `:offline` / `:retry`.',
+      },
+      {
+        path: '/settings/child',
+        name: '아이 정보 수정',
+        stage: 'Stage 6',
+        access: 'full',
+        note: '`?scenario=children:validation-failed` · `children.update:error` · `children.update:offline` · `children:loading` · `children:error`.',
+      },
+      {
+        path: '/settings/profile',
+        name: '프로필 (재방문 모드)',
+        stage: 'Stage 6',
+        access: 'full',
+        note: '설정 목록 `Profile` 행으로 들어온다. `?scenario=children:profile-updated` · `persona-changed`.',
+      },
+      {
+        path: '/settings/growth-capability',
+        name: '발전 역량 (설정 모드)',
+        stage: 'Stage 6',
+        access: 'full',
+        note: '`S6-D` (`C13-S6-4`). 설정 목록 `Growth focus` 행으로 들어온다. `?scenario=children:all-scores-missing`(현재값 없음 · Save 비활성) · `children:loading` · `children:error` · `children:offline` · 저장만 실패 `children.setgrowthcapability:error` / `:offline` / `:retry`.',
       },
     ],
   },
@@ -283,6 +325,14 @@ const SCENARIO_GROUPS = [
   { group: 'me', note: 'Guard 입력 (`vpc-pending` · `vpc-failed` · `onboarding-incomplete`)' },
   { group: 'onboarding', note: '온보딩 (`draft-resume` · `persona-fallback` · 아래 4종)' },
   { group: 'books', note: '책 목록 (`empty` 있음)' },
+  {
+    group: 'activity-cards',
+    note: '오늘의 카드 덱 (Stage 6 `cold-to-warm` · `difficulty-lowered` — Home 카드 `reason` 만 바뀐다)',
+  },
+  {
+    group: 'children',
+    note: '아이 프로필 · 설정 (Stage 6 — `profile-updated` · `persona-changed` · `persona-fallback` · `all-scores-missing` · `scores-partially-missing` · `validation-failed` · `survey-update-draft` · `survey-update-submitted`)',
+  },
   {
     group: 'session-completion',
     note: '완료 화면 (`subtext-missing` · `bubble-missing` · `reflection-submitted` — Stage 5 재진입)',
@@ -493,14 +543,6 @@ const FEEDBACK_SCENARIOS: readonly BoundScenario[] = [
 /* ===== 아직 없는 화면 (링크 없음) ========================================== */
 
 const PENDING_SCREENS = [
-  {
-    label: '`/onboarding/profile` — 프로필 결과',
-    note: 'Stage 2-B · 디자이너 Figma 대기 (approvals §3). route 에 등록되지 않았다.',
-  },
-  {
-    label: '`/onboarding/growth-capability` — 성장 역량 안내',
-    note: 'Stage 2-B · 디자이너 Figma 대기 (approvals §3).',
-  },
   {
     label: 'Home 본문 · Activity Card · Library · 책 선택 · 추천',
     note: 'Stage 3.',

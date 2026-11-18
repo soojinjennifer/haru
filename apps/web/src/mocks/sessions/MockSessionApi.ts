@@ -76,7 +76,8 @@ import {
 } from '../common/delivery';
 import { idempotencyFingerprint, type IdempotencyLedger } from '../common/idempotency';
 import { MOCK_ACTIVE_SESSION_ID } from '../fixtures/home';
-import { MOCK_CHILD_ID } from '../fixtures/me';
+import type { MockChildProfileState } from '../children/childProfileState';
+import { MOCK_CHILD_FIRST_NAME, MOCK_CHILD_ID } from '../fixtures/me';
 import { analysisScenarioGroup, resolveAnalysisOverlay } from '../analysis/analysisScenarios';
 import { MOCK_DELETED_RECORDING_ID } from '../fixtures/analysis';
 import {
@@ -150,6 +151,11 @@ export interface MockSessionApiDeps {
    * 남기면 `GET /v1/me` 가 미완료를 말한다. 없으면(단위 테스트 단독 조립) 남기지 않는다.
    */
   onboardingState?: MockOnboardingState | undefined;
+  /**
+   * Stage 6 — 아이 프로필 서버 상태 (`MockMeApi` · `MockChildrenApi` 와 공유). 완료 버블 문장이 **현재**
+   * 아이 이름을 쓴다 — 아이 정보 수정 뒤 회고 카드 제목과 일치 (AC-6-22 · `QA-6-001`). 없으면 fixture 이름.
+   */
+  childProfileState?: MockChildProfileState | undefined;
 }
 
 /** 진행 중 세션 scenario → 그 세션의 상태 (`S4-H4`). */
@@ -163,6 +169,8 @@ const ACTIVE_SESSION_STATUS: Partial<Record<SessionScenarioKey, 'ready' | 'recor
 export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
   const { store, clock, idFactory, timer, state, idempotency, requestLog, errorCodes } = deps;
   const { onboardingState } = deps;
+  const childFirstName = (): string =>
+    deps.childProfileState?.current()?.child.firstName ?? MOCK_CHILD_FIRST_NAME;
   const failure = createMockFailure(idFactory);
   const { fail } = failure;
   const group = sessionScenarioGroup.group;
@@ -393,7 +401,7 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
         if (book === undefined) return fail('RESOURCE_NOT_FOUND', 'Unknown book.');
 
         // 표시 데이터 모양(인사 · Prompt 개수)은 API 동작과 별개의 scenario 축이다 (`session` · `session-greeting`).
-        const shape = resolveReadySessionShape(store);
+        const shape = resolveReadySessionShape(store, childFirstName());
         const summary = createReadySessionFixture({
           id: idFactory.next(),
           mode: body.mode,

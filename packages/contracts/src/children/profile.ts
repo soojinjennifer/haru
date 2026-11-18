@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { IsoDateTimeSchema } from '../common/datetime.js';
 import { CapabilitySchema } from '../enums/capability.js';
 import { ChildSchema } from './child.js';
 import { PersonaSchema } from './persona.js';
@@ -25,6 +26,14 @@ export const ChildProfileSchema = z.object({
   persona: PersonaSchema,
   /** 현재 선택된 발전 역량. 전 역량 결측이면 `null` 이고 사용자가 직접 고른다 (D-2 ⑤). */
   growthCapability: CapabilitySchema.nullable(),
+  /**
+   * 프로필(스냅샷 또는 페르소나)이 **온보딩 이후 마지막으로 갱신된 시각** — PRD FR-15 · Stage 6 Plan §7 C-3.
+   *
+   * **required + nullable** — 온보딩 직후(갱신 없음)는 `null` 이다. 키 자체가 없는 응답은 거부한다
+   * (AC-6-04). 화면은 이 값이 있을 때만 재방문 프로필에 업데이트 안내를 그린다 (`N6-03` ⓐ · Spec §2.2).
+   * 산출 시점(최신 스냅샷 · 페르소나 생성 시각)은 서버 규칙이다 (`P6-BIP-01` · `02`).
+   */
+  profileUpdatedAt: IsoDateTimeSchema.nullable(),
 });
 
 export type ChildProfile = z.infer<typeof ChildProfileSchema>;

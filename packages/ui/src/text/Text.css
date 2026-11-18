@@ -146,6 +146,11 @@
   font-weight: var(--font-weight-heavy);
 }
 
+/* ===== tracking override (`D6-10` ③) ====================================== */
+.haru-text--tracking-section-label {
+  letter-spacing: var(--section-label-letter-spacing);
+}
+
 /* ===== align ============================================================= */
 .haru-text--align-start {
   text-align: start;

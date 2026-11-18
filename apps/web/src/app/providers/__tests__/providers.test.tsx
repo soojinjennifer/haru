@@ -79,6 +79,14 @@ const stubClients: ApiClients = {
   analysis: {
     getStatus: () => Promise.reject(new Error('not used in this test')),
   },
+  children: {
+    getProfile: () => Promise.reject(new Error('not used in this test')),
+    update: () => Promise.reject(new Error('not used in this test')),
+    setGrowthCapability: () => Promise.reject(new Error('not used in this test')),
+    getSurveyUpdate: () => Promise.reject(new Error('not used in this test')),
+    saveSurveyUpdateStep: () => Promise.reject(new Error('not used in this test')),
+    submitSurveyUpdate: () => Promise.reject(new Error('not used in this test')),
+  },
 };
 
 function Probe() {

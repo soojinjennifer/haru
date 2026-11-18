@@ -16,8 +16,9 @@ import { capabilityCopy } from '../../shared/copy/capability-copy';
 /**
  * 역량 → Tag tone. `packages/ui` 는 역량 enum 을 모르므로(AC-1-25) 이 매핑은 도메인
  * 레이어가 소유한다. 색 자체는 `--color-capability-*`(#19) 다.
+ * Stage 6 다이아몬드 차트(`entities/child-profile`)도 같은 매핑을 쓴다 — 두 벌로 두지 않는다.
  */
-const CAPABILITY_TONE: Readonly<Record<Capability, TagTone>> = {
+export const CAPABILITY_TONE: Readonly<Record<Capability, Exclude<TagTone, 'neutral'>>> = {
   emotion_regulation: 'emotion',
   self_directed_agency: 'agency',
   cognitive_flexibility: 'flexibility',

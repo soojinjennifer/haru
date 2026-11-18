@@ -32,9 +32,11 @@ const TYPO_PRIMITIVES = codeOf(
   read('packages', 'design-tokens', 'src', 'primitive', 'typography.css'),
 );
 const COMPONENT_TOKENS = codeOf(read('packages', 'design-tokens', 'src', 'component', 'index.css'));
-const ONBOARDING_CSS = codeOf(
-  read('apps', 'web', 'src', 'features', 'onboarding-survey', 'onboarding.css'),
-);
+/**
+ * 설문 카드 옵션 규칙 — Stage 6 `R-5`(`N6-06` ⓐ)로 `features/onboarding-survey/onboarding.css` 에서
+ * `entities/survey/survey.css` 로 **이동만** 했다. 단정 내용은 그대로다.
+ */
+const SURVEY_CARD_CSS = codeOf(read('apps', 'web', 'src', 'entities', 'survey', 'survey.css'));
 
 /** `calc(var(--spacing) * n)` 형태의 토큰 값을 px 로 푼다. */
 function spacingMultiple(css: string, token: string): number {
@@ -102,13 +104,13 @@ describe('`S2-FIX-2` — 선택지 행 상하 여백 12', () => {
   });
 
   it('비채점 행 구분선이 행 박스 **바깥**(`::before`)에 그려진다', () => {
-    expect(ONBOARDING_CSS).toMatch(
+    expect(SURVEY_CARD_CSS).toMatch(
       /\.haru-survey-options\s+\.haru-radio-group__option--muted::before\s*\{[^}]*position:\s*absolute;/,
     );
     // 행 안쪽 padding 으로 그리면 세로 중앙이 깨진다 (상 17 / 하 0).
     expect(
       /\.haru-survey-options\s+\.haru-radio-group__option--muted\s*\{([^}]*)\}/.exec(
-        ONBOARDING_CSS,
+        SURVEY_CARD_CSS,
       )?.[1] ?? '',
     ).not.toMatch(/padding-block-start/);
   });
@@ -174,15 +176,8 @@ describe('자동 전진 대기 — 기존 모션 토큰 재사용 (신규 토큰
    * 이 파일은 node 환경이라 `.tsx` 를 포함하는 feature 진입점을 import 할 수 없다
    * (`tsconfig.node.json` 은 `--jsx` 를 켜지 않는다). 그래서 소스 문자열에서 값을 읽는다.
    */
-  const DECK_SOURCE = read(
-    'apps',
-    'web',
-    'src',
-    'features',
-    'onboarding-survey',
-    'ui',
-    'SurveyCardDeck.tsx',
-  );
+  // Stage 6 `R-5`: 덱은 `entities/survey/ui` 로 이동했다 (값 변경 0).
+  const DECK_SOURCE = read('apps', 'web', 'src', 'entities', 'survey', 'ui', 'SurveyCardDeck.tsx');
 
   it('`AUTO_ADVANCE_DELAY_MS` 가 `--motion-duration-slow` 와 같은 값이다', () => {
     const slow = /--motion-duration-slow:\s*(\d+)ms/.exec(MOTION_TOKENS)?.[1];

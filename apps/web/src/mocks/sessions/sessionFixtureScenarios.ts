@@ -14,7 +14,7 @@
  * | | `greeting-tight` · `greeting-long` | 320 에서만 / 두 폭 모두 1줄을 넘는 인사 (`D4-21` clamp 회귀용) |
  * | | `reminder-missing` | 인사는 정상 · `reminderBubble: null` — 5분 리마인드 시각 변화 0 (`D4-59`) |
  *
- * | `session-completion` | `success` | 완료 버블 = 주 문구 + `subtext` (`MOCK_COMPLETION_BUBBLE`) |
+ * | `session-completion` | `success` | 완료 버블 = 주 문구(현재 아이 이름) + `subtext` (`createCompletionBubbleFixture`) |
  * | | `subtext-missing` · `bubble-missing` | `subtext: null` · `completionBubble: null` (`D4-87`, §5.4) |
  * | | `reflection-submitted` | 완료 버블은 `success` 와 같고, 완료 계열 세션에 **이미 제출된 회고**가 있다 — 재진입 읽기 전용 (Stage 5 `N5-08` ⓐ, AC-5-30) |
  *
@@ -32,9 +32,9 @@ import type { Clock } from '../../shared/lib/clock';
 import type { IdFactory } from '../../shared/lib/idFactory';
 import { createReflectionFixture, MOCK_SUBMITTED_REFLECTION_INPUT } from '../fixtures/reflections';
 
+import { MOCK_CHILD_FIRST_NAME } from '../fixtures/me';
 import {
-  MOCK_COMPLETION_BUBBLE,
-  MOCK_COMPLETION_BUBBLE_NO_SUBTEXT,
+  createCompletionBubbleFixture,
   MOCK_READY_BUBBLE,
   MOCK_READY_BUBBLE_EMPTY,
   MOCK_READY_BUBBLE_LONG,
@@ -132,11 +132,18 @@ const GREETING: Record<SessionGreetingScenarioKey, SessionBubbleCopy> = {
   'reminder-missing': MOCK_READY_BUBBLE,
 };
 
-const COMPLETION: Record<SessionCompletionScenarioKey, SessionBubbleCopy> = {
-  success: MOCK_COMPLETION_BUBBLE,
-  'subtext-missing': MOCK_COMPLETION_BUBBLE_NO_SUBTEXT,
-  'bubble-missing': null,
-  'reflection-submitted': MOCK_COMPLETION_BUBBLE,
+/**
+ * 완료 버블 — **현재 아이 이름**으로 만든다 (서버가 완성문을 만든다, `QA-6-001` · AC-6-22).
+ * 이름 = Mock 아이 프로필 서버 상태(`childProfileState`) — `GET /v1/me` 와 같은 출처.
+ */
+const COMPLETION: Record<
+  SessionCompletionScenarioKey,
+  (childFirstName: string) => SessionBubbleCopy
+> = {
+  success: (name) => createCompletionBubbleFixture(name),
+  'subtext-missing': (name) => createCompletionBubbleFixture(name, null),
+  'bubble-missing': () => null,
+  'reflection-submitted': (name) => createCompletionBubbleFixture(name),
 };
 
 export interface ReadySessionShape {
@@ -149,7 +156,11 @@ export interface ReadySessionShape {
 }
 
 /** scenario store 에서 새 ready 세션의 모양을 정한다. */
-export function resolveReadySessionShape(store: ScenarioStore): ReadySessionShape {
+export function resolveReadySessionShape(
+  store: ScenarioStore,
+  /** 아이 프로필 서버 상태의 현재 이름 — 완료 버블 문장에 들어간다 (`QA-6-001`). */
+  childFirstName: string = MOCK_CHILD_FIRST_NAME,
+): ReadySessionShape {
   const greetingKey = store.resolve(sessionGreetingScenarioGroup);
   const sessionKey = store.resolve(sessionFixtureScenarioGroup);
   return {
@@ -157,7 +168,7 @@ export function resolveReadySessionShape(store: ScenarioStore): ReadySessionShap
     book: BOOK[sessionKey],
     bubble: GREETING[greetingKey],
     reminderBubble: greetingKey === 'reminder-missing' ? null : MOCK_READY_REMINDER_BUBBLE,
-    completionBubble: COMPLETION[store.resolve(sessionCompletionScenarioGroup)],
+    completionBubble: COMPLETION[store.resolve(sessionCompletionScenarioGroup)](childFirstName),
   };
 }
 

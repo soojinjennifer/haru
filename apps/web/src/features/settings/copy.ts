@@ -3,8 +3,9 @@
  *
  * - 사용자 노출 언어는 영어다.
  * - 진단·판정·비교 표현을 쓰지 않는다.
- * - Stage 2 의 목록 항목은 **로그아웃 1행**이다. 데이터 관리 · 탈퇴 · 동의 이력은 Stage 8,
- *   알림 설정은 Stage 3, 아이 프로필 수정은 Stage 6 이다 (`C-16`).
+ * - Stage 6 `C13-S6-1` (Spec §2.4 · §10.3, `N6-38`): **2그룹 5행** — `YOUR CHILD`(Profile · Child info ·
+ *   Update survey answers · Growth focus) · `ACCOUNT`(Log out). 알림·데이터 관리·탈퇴·동의 이력 행 없음
+ *   (알림 = `D-18` 디자이너 대기, 데이터 관리·탈퇴 = Stage 8 — `ACCOUNT` 그룹에 붙는다).
  */
 export const settingsCopy = {
   /** TopBar 제목 — Design Spec §2.14. */
@@ -12,8 +13,20 @@ export const settingsCopy = {
   /** Home 헤더의 설정 아이콘 접근성 이름 (Figma `26:44`). */
   entryLabel: 'Settings',
   backLabel: 'Back',
-  /** 1행짜리 목록의 접근성 이름. 화면에 보이는 제목이 따로 없다. */
-  menuLabel: 'Account',
+  /**
+   * 목록 그룹 — 시각 SectionLabel(대문자, Spec §10.3) + `ListGroup` 접근성 이름(Spec §2.4).
+   */
+  groups: {
+    child: { sectionLabel: 'YOUR CHILD', listLabel: 'Your child' },
+    account: { sectionLabel: 'ACCOUNT', listLabel: 'Account' },
+  },
+  /** 그룹 `YOUR CHILD` 의 행 (Spec §10.3). */
+  rows: {
+    profile: 'Profile',
+    childInfo: 'Child info',
+    surveyUpdate: 'Update survey answers',
+    growthFocus: 'Growth focus',
+  },
 
   logOut: {
     /** 목록 행 라벨. 빨간색으로만 구분하지 않는다 — destructive 신호는 Dialog 가 전달한다. */

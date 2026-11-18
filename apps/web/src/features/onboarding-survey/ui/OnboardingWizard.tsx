@@ -25,21 +25,21 @@ import { isHaruApiError } from '../../../shared/api/helpers';
 import { errorCopyForCode } from '../../../shared/copy/error-copy';
 import type { Clock } from '../../../shared/lib/clock';
 import type { OnboardingDraftStore } from '../../../shared/lib/onboarding-draft';
-import { onboardingCopy } from '../copy';
 import {
   cardCountsByStep,
   cardPosition,
   cardsForStep,
+  SurveyCardDeck,
   surveyCards,
+  unansweredCount,
+  useSurveyDeckSession,
   type SurveyCard,
-} from '../model/instrumentView';
+} from '../../../entities/survey';
+import { onboardingCopy } from '../copy';
 import { CARD_STEPS, isCardStep, LAST_STEP, previousStep } from '../model/steps';
-import { unansweredCount } from '../model/surveyAnswers';
-import { useOnboardingSession } from '../model/onboardingSession';
 import { useOnboardingWizard } from '../model/useOnboardingWizard';
 
 import { ChildInfoStep } from './ChildInfoStep';
-import { SurveyCardDeck } from './SurveyCardDeck';
 import { DraftDiscardNotice, TrialNotice } from './OnboardingNotices';
 
 export interface OnboardingWizardProps {
@@ -58,7 +58,7 @@ function stepTitle(step: OnboardingStep): string | undefined {
 export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) {
   const copy = onboardingCopy.wizard;
   const wizard = useOnboardingWizard({ step, store, clock });
-  const session = useOnboardingSession();
+  const session = useSurveyDeckSession();
   const [showErrors, setShowErrors] = useState(false);
 
   /**

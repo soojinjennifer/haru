@@ -2,8 +2,14 @@ import { createElement, type ElementType, type ReactNode } from 'react';
 
 import { cx } from '../lib/cx';
 
-/** Design Spec §4.3 — 그림자 단계. `none` 은 그림자를 쓰지 않는다. */
-export type SurfaceMaterial = 'rest' | 'raised' | 'pressed' | 'none';
+/**
+ * Design Spec §4.3 — 그림자 단계. `none` 은 그림자를 쓰지 않는다.
+ *
+ * `bubble` (Stage 6 Spec §3.4 `T6-9`) — `--shadow-bubble`(drop 1겹 `0 6 4` + inset 2겹). Figma `163:2607`
+ * 데이터 카드 인스턴스가 실제로 렌더하는 그림자다 (`V-10` 선례). 새 값이 아니라 기존 토큰 매핑이다.
+ * 번짐 좌우 4 · 위 0 · 아래 10 이라 스크롤 뷰포트 안 카드에도 inset 이 필요 없다 (`R-SHADOW-1`, Spec §9.5).
+ */
+export type SurfaceMaterial = 'rest' | 'raised' | 'pressed' | 'bubble' | 'none';
 
 /** Design Spec §4.3 — 채움. glass 74% / strong 90% / solid 불투명. */
 export type SurfaceFill = 'glass' | 'strong' | 'solid' | 'subtle' | 'tinted' | 'note' | 'none';

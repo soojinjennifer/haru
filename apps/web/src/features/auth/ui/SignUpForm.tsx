@@ -127,7 +127,7 @@ export function SignUpForm({ onSignedUp, store, clock }: SignUpFormProps) {
     <form className="flex flex-1 flex-col gap-6" onSubmit={handleSubmit} noValidate>
       <div className="flex flex-col gap-2">
         {/* SectionLabel recipe — Design Spec §4.7 (컴포넌트를 만들지 않는다). */}
-        <Text variant="caption-1" tone="secondary" weight="semibold">
+        <Text variant="caption-1" tone="secondary" weight="bold" tracking="section-label">
           {authCopy.signUp.sectionLabel}
         </Text>
         <FieldGroup>
@@ -165,7 +165,7 @@ export function SignUpForm({ onSignedUp, store, clock }: SignUpFormProps) {
 
       {/* `YOUR CHILD` — Figma `179:1739`/`179:1740`. 값은 로컬에만 머문다 (`R-01`). */}
       <div className="flex flex-col gap-2">
-        <Text variant="caption-1" tone="secondary" weight="semibold">
+        <Text variant="caption-1" tone="secondary" weight="bold" tracking="section-label">
           {childCopy.childSection}
         </Text>
         <FieldGroup>

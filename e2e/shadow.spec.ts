@@ -1253,3 +1253,284 @@ test.describe('세션 뷰포트 스크롤 — 컬럼 경계·세로에서 잘리
     });
   }
 });
+
+/*
+ * ───────────────────────────────────────────────────────────────────────────
+ * Stage 6 — 조회 실패 `ErrorState`(Glass Rest 3겹) 그림자 (`VG6-E1-15` · `VG6-E2-13` · `S6-B` 아이 정보 · `S6-C` 재응답 진입·카드)
+ * + 설정 목록 `ListGroup`(`--shadow-bubble`, `S6-B` 신규 행 구성)
+ *
+ * `ErrorState` = `Surface` material 기본 `rest` = `--shadow-glass-rest` — 3번째 겹 `0 28px 56px` 이 좌우로
+ * 거터 24 를 넘어 번진다. 부모는 `AppShell` 스크롤 뷰포트(`overflow-y: auto` → x 도 클리핑 박스)다.
+ * Visual Gap 은 "600 / 1024 에서 클립 선이 앱 컬럼 **안쪽**에 보일 수 있다" 를 의심했다 (R-SHADOW-1 ④).
+ *
+ * 여기서 본다 (393 · 600, `R-SHADOW-1` ⑥ 양축):
+ *  ① 구조 — 카드를 자르는 조상(computed `overflow-x ≠ visible`)은 전부 **뷰포트 폭 이상** (= 클립 선이 화면 가장자리).
+ *  ② 가로 — 카드 좌·우 6px 바깥 픽셀이 그림자 on/off 로 달라진다.
+ *  ③ 컬럼 경계 — 600 에서 **앱 컬럼 바깥 3px**(카드에서 27px) 지점도 그림자 on/off 로 달라진다 → 컬럼 경계 클립 없음.
+ *  ④ 세로 — 카드 아래 16px · 위 6px 바깥 픽셀이 달라진다 (아래 x = 카드 폭 25% — 가운데 TextLink 회피).
+ * 비교는 같은 지점을 `box-shadow: none` 으로 다시 그린 값과 한다 — 배경 그래디언트와 무관하다.
+ */
+const ERROR_STATE_SCREENS = [
+  {
+    name: '`/onboarding/profile` 조회 실패 (VG6-E1-15)',
+    path: '/onboarding/profile',
+    ready: '.haru-profile-view [data-state="error"]',
+  },
+  {
+    name: '`/onboarding/growth-capability` 조회 실패 (VG6-E2-13)',
+    path: '/onboarding/growth-capability',
+    ready: '.haru-growth-focus [data-state="error"]',
+  },
+  {
+    name: '`/settings/child` 조회 실패 (S6-B)',
+    path: '/settings/child',
+    ready: '.haru-child-info-edit [data-state="error"]',
+  },
+  {
+    name: '`/settings/child/survey` 조회 실패 (S6-C 진입)',
+    path: '/settings/child/survey',
+    ready: '.haru-survey-update [data-state="error"]',
+  },
+  {
+    name: '`/settings/child/survey/reading-together` 조회 실패 (S6-C 카드)',
+    path: '/settings/child/survey/reading-together',
+    ready: '.haru-survey-update [data-state="error"]',
+  },
+  {
+    name: '`/settings/growth-capability` 조회 실패 (S6-D)',
+    path: '/settings/growth-capability',
+    ready: '.haru-growth-focus [data-state="error"]',
+  },
+] as const;
+
+const STAGE6_VIEWPORTS = [
+  { width: 393, height: 852 },
+  { width: 600, height: 800 },
+] as const;
+
+async function spaGoto(page: Page, path: string): Promise<void> {
+  await page.evaluate((target) => {
+    window.history.pushState({}, '', target);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, path);
+}
+
+async function logInWithScenario(page: Page, scenario: string): Promise<void> {
+  await page.goto(`/auth/log-in?scenario=${encodeURIComponent(scenario)}`, {
+    waitUntil: 'domcontentloaded',
+  });
+  await page.getByLabel('Email').fill('sam@example.com');
+  await page.getByRole('textbox', { name: 'Password', exact: true }).fill('sunny-evening-8');
+  await page.getByRole('button', { name: 'Log in', exact: true }).click();
+  await expect(page.getByRole('banner').getByText('HARU')).toBeVisible();
+}
+
+/** 카드(`selector` 첫 요소)의 박스 · 가로 클리핑 조상 · 앱 컬럼 박스. */
+async function measureStage6Card(page: Page, selector: string) {
+  return page.evaluate((cardSelector) => {
+    const card = document.querySelector(cardSelector);
+    if (card === null) throw new Error(`카드 없음: ${cardSelector}`);
+    const clippers: { className: string; clientWidth: number }[] = [];
+    for (let node = card.parentElement; node !== null; node = node.parentElement) {
+      if (window.getComputedStyle(node).overflowX !== 'visible') {
+        clippers.push({
+          className: node.getAttribute('class') ?? '',
+          clientWidth: node.clientWidth,
+        });
+      }
+    }
+    // 앱 컬럼 = 스크롤 뷰포트의 자식 `AppColumn` (최대 480, 거터 24 는 그 안쪽 padding).
+    const column = document.querySelector('[data-app-shell-viewport] > *')?.getBoundingClientRect();
+    const rect = card.getBoundingClientRect();
+    return {
+      left: Math.round(rect.left),
+      right: Math.round(rect.right),
+      top: Math.round(rect.top),
+      bottom: Math.round(rect.bottom),
+      width: Math.round(rect.width),
+      columnLeft: Math.round(column?.left ?? 0),
+      clippers,
+      viewportWidth: window.innerWidth,
+    };
+  }, selector);
+}
+
+async function shadowDeltas(
+  page: Page,
+  selector: string,
+  points: readonly { x: number; y: number }[],
+): Promise<number[]> {
+  const before: Rgb[] = [];
+  for (const point of points) before.push(await pixelAt(page, point.x, point.y));
+  const style = await page.addStyleTag({ content: `${selector} { box-shadow: none !important; }` });
+  await settle(page);
+  const deltas: number[] = [];
+  for (const [index, point] of points.entries()) {
+    deltas.push(distance(before[index] as Rgb, await pixelAt(page, point.x, point.y)));
+  }
+  await style.evaluate((node) => {
+    (node as Element).remove();
+  });
+  await settle(page);
+  return deltas;
+}
+
+/**
+ * 컬럼 바깥 3px 지점(카드에서 27px)의 최소 차 — 3번째 겹의 꼬리라 6px 지점보다 옅다.
+ * 실측(2026-11-15, 600): 세 화면 모두 **6**. 컬럼을 일부러 자르면 **0** (아래 대조 테스트). 사이 값 3.
+ */
+const COLUMN_EDGE_MIN_DELTA = 3;
+
+for (const target of ERROR_STATE_SCREENS) {
+  test.describe(`ErrorState 그림자 — ${target.name} (R-SHADOW-1)`, () => {
+    for (const viewport of STAGE6_VIEWPORTS) {
+      test(`${String(viewport.width)}px — 구조 · 가로 · 컬럼 경계 · 세로`, async ({ page }) => {
+        await hideDevPanel(page);
+        await page.setViewportSize(viewport);
+        await logInWithScenario(page, 'children:error');
+        await spaGoto(page, target.path);
+        await expect(page.locator(target.ready)).toBeVisible();
+        await settle(page);
+
+        const selector = `${target.ready} .haru-surface`;
+        const card = await measureStage6Card(page, selector);
+
+        // ① 구조
+        expect(card.clippers.length).toBeGreaterThan(0);
+        for (const clipper of card.clippers) {
+          expect(
+            clipper.clientWidth,
+            `앱 컬럼 안쪽 클리핑: class="${clipper.className}" (${String(clipper.clientWidth)}px)`,
+          ).toBeGreaterThanOrEqual(card.viewportWidth);
+        }
+
+        // ② 가로 · ④ 세로
+        const sideY = Math.round(card.top + (card.bottom - card.top) * 0.9);
+        const points = [
+          { x: card.left - PROBE_OFFSET_PX, y: sideY },
+          { x: card.right + PROBE_OFFSET_PX - 1, y: sideY },
+          {
+            x: Math.round(card.left + card.width * 0.25),
+            y: card.bottom + VERTICAL_PROBE_OFFSET_PX,
+          },
+          { x: Math.round(card.left + card.width * 0.25), y: card.top - PROBE_OFFSET_PX },
+        ];
+        const columnEdge = card.columnLeft > 3 ? { x: card.columnLeft - 3, y: sideY } : null;
+        const deltas = await shadowDeltas(page, selector, [
+          ...points,
+          ...(columnEdge === null ? [] : [columnEdge]),
+        ]);
+        test.info().annotations.push({
+          type: 'shadow-deltas',
+          description: JSON.stringify({ card, deltas }),
+        });
+
+        const [left, right, below, above, edge] = deltas;
+        expect(left, '왼쪽 6px').toBeGreaterThanOrEqual(MIN_SHADOW_DELTA);
+        expect(right, '오른쪽 6px').toBeGreaterThanOrEqual(MIN_SHADOW_DELTA);
+        expect(below, '아래 16px').toBeGreaterThanOrEqual(MIN_SHADOW_DELTA);
+        expect(above, '위 6px').toBeGreaterThan(0);
+        // ③ 600 — 앱 컬럼 바깥에서도 그림자가 보인다 (컬럼 경계에 클립 선 없음)
+        if (viewport.width >= 600) {
+          expect(columnEdge, '600 에는 컬럼 바깥 여백이 있다').not.toBeNull();
+          expect(edge ?? 0, `컬럼 바깥 3px (x=${String(columnEdge?.x)})`).toBeGreaterThanOrEqual(
+            COLUMN_EDGE_MIN_DELTA,
+          );
+        }
+      });
+    }
+  });
+}
+
+/*
+ * 대조 — 프로브가 실제로 문다 (R-SHADOW-1 선례: "보정 없음이면 전면 절단된다").
+ * 앱 컬럼에 `overflow-x: clip` 을 주입하면 컬럼 바깥 3px 지점의 그림자가 사라져야 한다.
+ */
+test('ErrorState 컬럼 경계 프로브 대조 — 컬럼을 자르면 차 0 (600)', async ({ page }) => {
+  await hideDevPanel(page);
+  await page.setViewportSize({ width: 600, height: 800 });
+  await logInWithScenario(page, 'children:error');
+  await spaGoto(page, '/onboarding/profile');
+  const ready = '.haru-profile-view [data-state="error"]';
+  await expect(page.locator(ready)).toBeVisible();
+  await page.addStyleTag({ content: '[data-app-shell-viewport] > * { overflow-x: clip; }' });
+  await settle(page);
+
+  const selector = `${ready} .haru-surface`;
+  const card = await measureStage6Card(page, selector);
+  const sideY = Math.round(card.top + (card.bottom - card.top) * 0.9);
+  const [edge] = await shadowDeltas(page, selector, [{ x: card.columnLeft - 3, y: sideY }]);
+  expect(edge).toBeLessThan(COLUMN_EDGE_MIN_DELTA);
+});
+
+test.describe('설정 목록 ListGroup 그림자 (S6-B · `--shadow-bubble`)', () => {
+  for (const viewport of STAGE6_VIEWPORTS) {
+    test(`${String(viewport.width)}px — 구조 · 가로 · 그룹 사이 세로`, async ({ page }) => {
+      await hideDevPanel(page);
+      await page.setViewportSize(viewport);
+      await logInWithScenario(page, 'children:success');
+      await page.getByRole('button', { name: 'Settings' }).click();
+      await expect(page).toHaveURL(/\/settings$/);
+      await expect(page.getByRole('list', { name: 'Your child' })).toBeVisible();
+      await settle(page);
+
+      const selector = '.haru-list-group';
+      const card = await measureStage6Card(page, selector);
+      for (const clipper of card.clippers) {
+        expect(clipper.clientWidth).toBeGreaterThanOrEqual(card.viewportWidth);
+      }
+
+      // `--shadow-bubble` = 좌우 4 · 아래 10 (Spec §9.5) — 좌우 2px · 아래 4px 지점
+      const sideY = Math.round(card.top + (card.bottom - card.top) * 0.9);
+      const deltas = await shadowDeltas(page, selector, [
+        { x: card.left - 2, y: sideY },
+        { x: card.right + 1, y: sideY },
+        { x: Math.round(card.left + card.width * 0.5), y: card.bottom + 4 },
+      ]);
+      test.info().annotations.push({
+        type: 'shadow-deltas',
+        description: JSON.stringify({ card, deltas }),
+      });
+      for (const delta of deltas) expect(delta).toBeGreaterThanOrEqual(MIN_SHADOW_DELTA / 4);
+    });
+  }
+});
+
+/*
+ * `S6-D` — 발전 역량 설정 모드의 차트 카드(ProfileCard = `Surface material="bubble"`, `--shadow-bubble` 1겹).
+ * Spec §9.5: 번짐 좌우 4 · 아래 10 → 거터 24 · 섹션 간격 20 안에 들어가 inset 불필요, 새 overflow 0.
+ * 설정 목록 ListGroup 과 같은 그림자라 같은 지점(좌우 2px · 아래 4px)을 본다.
+ */
+test.describe('발전 역량 설정 모드 차트 카드 그림자 (S6-D · `--shadow-bubble`)', () => {
+  for (const viewport of STAGE6_VIEWPORTS) {
+    test(`${String(viewport.width)}px — 구조 · 가로 · 아래`, async ({ page }) => {
+      await hideDevPanel(page);
+      await page.setViewportSize(viewport);
+      await logInWithScenario(page, 'children:success');
+      await page.getByRole('button', { name: 'Settings' }).click();
+      await page.getByRole('button', { name: 'Growth focus' }).click();
+      await expect(page).toHaveURL(/\/settings\/growth-capability$/);
+      await expect(page.locator('.haru-growth-focus [data-state="ready"]')).toBeVisible();
+      await settle(page);
+
+      const selector = '.haru-growth-focus [data-state="ready"] .haru-surface';
+      const card = await measureStage6Card(page, selector);
+      expect(card.clippers.length).toBeGreaterThan(0);
+      for (const clipper of card.clippers) {
+        expect(clipper.clientWidth).toBeGreaterThanOrEqual(card.viewportWidth);
+      }
+
+      const sideY = Math.round(card.top + (card.bottom - card.top) * 0.9);
+      const deltas = await shadowDeltas(page, selector, [
+        { x: card.left - 2, y: sideY },
+        { x: card.right + 1, y: sideY },
+        { x: Math.round(card.left + card.width * 0.5), y: card.bottom + 4 },
+      ]);
+      test.info().annotations.push({
+        type: 'shadow-deltas',
+        description: JSON.stringify({ card, deltas }),
+      });
+      for (const delta of deltas) expect(delta).toBeGreaterThanOrEqual(MIN_SHADOW_DELTA / 4);
+    });
+  }
+});

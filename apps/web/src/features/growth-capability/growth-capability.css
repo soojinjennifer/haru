@@ -1,0 +1,35 @@
+/*
+ * 발전 역량 화면 — Stage 6 Spec §3.6 Loading (Figma 없음 → 명세).
+ *
+ * 구성: 제목 text 2 → 차트 block → 행 block ×4 (행 높이 44 = `--radio-row-height`).
+ * 차트 자리 높이 = 차트 높이 = 2h + 2·(축 라벨 줄 + label-gap) — `DiamondChart.css` 가운데 트랙과 같은 식
+ * (`features/child-profile-view` 의 프로필 Skeleton 과 같은 식이다. feature 간 import 금지라 CSS 를 따로 둔다).
+ * 토큰만 쓴다 (`--chart-diamond-*` = Stage 6 `T6-1`~`T6-3`).
+ *
+ * `R-SHADOW-1`: 새 overflow 0.
+ */
+.haru-growth-focus__chart-skeleton {
+  position: relative;
+  display: flex;
+  padding-block: calc(var(--text-caption-1--line-height) + var(--chart-diamond-label-gap));
+}
+
+.haru-growth-focus__chart-skeleton::before {
+  content: '';
+  inline-size: min(
+    calc(var(--chart-diamond-radius-max) * 2),
+    calc(100% - 2 * (var(--chart-diamond-label-max) + var(--chart-diamond-label-gap)))
+  );
+  aspect-ratio: 1;
+  margin-inline: auto;
+}
+
+.haru-growth-focus__chart-skeleton > .haru-skeleton {
+  position: absolute;
+  inset: 0;
+}
+
+.haru-growth-focus__row-skeleton {
+  display: flex;
+  block-size: var(--radio-row-height);
+}

@@ -833,7 +833,12 @@ describe('제출과 착지 (`AC-2R-02` payload · AC-2-28)', () => {
     expect(readStoredDraft()).toBeNull();
   });
 
-  it('`/onboarding/saved` 의 CTA 는 Home 으로 직결된다', async () => {
+  /*
+   * 승계 기록 (Stage 6 Plan R-7 · R-8, `D6-1`): Stage 2 에서는 이 CTA 가 Home 으로 직결됐다(AC-2-28).
+   * Stage 6 에서 PRD §5.1 ③④ 흐름이 삽입되어 목적지가 프로필 결과(`/onboarding/profile`)로 바뀌었다.
+   * 프로필 → 발전 역량 → Home 구간은 `S6-E2` 가 잇는다.
+   */
+  it('`/onboarding/saved` 의 CTA 는 프로필 결과로 간다 (Stage 6 R-7 — 이전: Home 직결)', async () => {
     await renderApp({
       path: ROUTES.onboarding.saved,
       scenarios: ['me:success'],
@@ -842,7 +847,7 @@ describe('제출과 착지 (`AC-2R-02` payload · AC-2-28)', () => {
     });
 
     fireEvent.click(await screen.findByRole('button', { name: onboardingCopy.saved.cta }));
-    await expectPath(ROUTES.home);
+    await expectPath(ROUTES.onboarding.profile);
   });
 });
 

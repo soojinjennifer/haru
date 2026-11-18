@@ -1,0 +1,221 @@
+/*
+ * DiamondChart — Stage 6 Design Spec §3.1 · §5 · §6 · §11.1 (Figma 없음 → 명세, `D6-8`)
+ *
+ * 크기는 **CSS 한 곳**이 컨테이너 폭 W 에서 정한다 (JS 측정 없음):
+ *   가운데 트랙 = 다이아몬드 대각선 2h = min(2·radius-max, W − 2·(label-max + label-gap))
+ *   좌우 트랙   = 나머지 1fr — 축 라벨이 꼭짓점에서 label-gap 만큼 떨어진다 (grid gap)
+ *   위·아래 행  = 축 라벨 (auto) — 높이 = 2h + 2·(라벨 줄 + gap) (Spec §3.1 높이 식)
+ * 식의 숫자 버전: `diamondGeometry.ts` `diamondHalfDiagonal` (393 → h 86.5 · 320 → 50 · ≥ 480 → 100).
+ *
+ * `R-SHADOW-1`: 그림자 없음. 플롯 SVG 의 `overflow: visible` 은 꼭짓점 흰 테두리·선택 링이 viewBox 끝에서
+ * 잘리지 않게 하는 SVG 기본 클립 해제다 — 스크롤 박스 신설이 아니다 (Spec §9.5).
+ */
+
+.haru-diamond {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    min(
+      calc(var(--chart-diamond-radius-max) * 2),
+      calc(100% - 2 * (var(--chart-diamond-label-max) + var(--chart-diamond-label-gap)))
+    )
+    minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  gap: var(--chart-diamond-label-gap);
+  inline-size: 100%;
+  color: var(--color-action-secondary-fg);
+}
+
+/* ===== 플롯 — 가운데 칸, 정사각 ======================================== */
+.haru-diamond__plot {
+  grid-column: 2;
+  grid-row: 2;
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 1;
+  overflow: visible;
+}
+
+.haru-diamond__area {
+  overflow: visible;
+}
+
+/* 격자 — 외곽 다이아몬드 + 축선. 중간 눈금 링 없음 (숫자 미노출 `N6-29`). */
+.haru-diamond__grid-edge,
+.haru-diamond__axis {
+  stroke: var(--chart-grid-stroke);
+  stroke-width: 1px;
+}
+
+/* 미관찰 축 — 점선 (`P-32`). 회색 비활성 처리 없음 (라벨 색은 다른 축과 같다). */
+.haru-diamond__axis--missing {
+  stroke-dasharray: var(--chart-missing-dash);
+}
+
+/* 면 — teal 30% (`P-31`) + teal 외곽선 2px (`P-30`). 열린 변에는 선이 없다 (기하가 보장). */
+.haru-diamond__area-fill {
+  fill: var(--chart-area-fill);
+  stroke: none;
+}
+
+.haru-diamond__area-stroke {
+  fill: none;
+  stroke: var(--chart-area-stroke);
+  stroke-width: var(--chart-stroke-width);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* 꼭짓점 — 역량색 + 흰 테두리 2 (면·선 위에서 분리). px 고정 반지름. */
+.haru-diamond__vertex {
+  r: calc(var(--chart-vertex-size) / 2);
+  stroke: var(--color-surface-solid);
+  stroke-width: var(--chart-stroke-width);
+}
+
+.haru-diamond__vertex--agency {
+  fill: var(--color-capability-agency-chart);
+}
+
+.haru-diamond__vertex--emotion {
+  fill: var(--color-capability-emotion-chart);
+}
+
+.haru-diamond__vertex--flexibility {
+  fill: var(--color-capability-flexibility-chart);
+}
+
+.haru-diamond__vertex--motivation {
+  fill: var(--color-capability-motivation-chart);
+}
+
+/* 선택 링 — 18 / stroke 2 focus-ring 색 (`T6-8`). */
+.haru-diamond__ring {
+  r: calc(var(--chart-selected-ring) / 2);
+  fill: none;
+  stroke: var(--color-focus-ring);
+  stroke-width: var(--chart-stroke-width);
+  animation: haru-diamond-ring-in var(--motion-duration-fast) var(--motion-ease-standard) both;
+}
+
+/* ===== 첫 표시 모션 — 면·꼭짓점 scale 0.6 → 1 + opacity (Spec §3.1 모션) ===== */
+.haru-diamond__data {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: haru-diamond-enter var(--motion-duration-slow) var(--motion-ease-standard) both;
+}
+
+@keyframes haru-diamond-enter {
+  from {
+    opacity: 0;
+    /* Spec §3.1 — 시작 배율 0.6 (모션 규격값, 대응 토큰 없음 — Surface `.97` 선례) */
+    transform: scale(0.6);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes haru-diamond-ring-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* reduced motion — **즉시 최종 상태** (Spec §3.1 · 구현 메모 3) */
+@media (prefers-reduced-motion: reduce) {
+  .haru-diamond__data,
+  .haru-diamond__ring {
+    animation: none;
+  }
+}
+
+/* ===== 축 라벨 — caption-1 Semibold · ink-600 (카드 위 4.82~4.95 ✅) ===== */
+.haru-diamond__label {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+
+.haru-diamond__label--top,
+.haru-diamond__label--bottom {
+  grid-column: 1 / -1;
+  justify-self: center;
+  align-items: center;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.haru-diamond__label--top {
+  grid-row: 1;
+  align-self: end;
+}
+
+.haru-diamond__label--bottom {
+  grid-row: 3;
+  align-self: start;
+}
+
+/* 좌우 — 최대 폭 64, 2줄 줄바꿈 허용 · 말줄임 0 (Spec §3.1) */
+.haru-diamond__label--left,
+.haru-diamond__label--right {
+  grid-row: 2;
+  align-self: center;
+  max-inline-size: var(--chart-diamond-label-max);
+}
+
+.haru-diamond__label--left {
+  grid-column: 1;
+  justify-self: end;
+  align-items: flex-end;
+  text-align: end;
+}
+
+.haru-diamond__label--right {
+  grid-column: 3;
+  justify-self: start;
+  align-items: flex-start;
+  text-align: start;
+}
+
+/* 미관찰 캡션은 한 줄 — "라벨 아래 2번째 줄" (Spec §3.1). 좌우 라벨 폭이 단어 폭으로 줄어도 캡션이 접히지 않는다. */
+.haru-diamond__label .haru-text--caption-2 {
+  white-space: nowrap;
+}
+
+.haru-diamond__label--selected {
+  color: var(--color-fg-strong);
+}
+
+/* ===== selectable — 축 라벨 = 보조 포인터 단축키 (히트 ≥ 44×44, 레이아웃 변화 0) ===== */
+.haru-diamond--selectable .haru-diamond__label {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.haru-diamond--selectable .haru-diamond__label::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  inline-size: max(100%, var(--size-touch-min));
+  block-size: max(100%, var(--size-touch-min));
+  transform: translate(-50%, -50%);
+}
+
+.haru-diamond--selectable .haru-diamond__label:disabled {
+  cursor: default;
+}

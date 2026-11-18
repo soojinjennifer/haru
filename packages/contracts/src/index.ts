@@ -16,6 +16,8 @@
  * `SESSION_TRANSITIONS` 12 → 14 행(`D4-13`).
  * Stage 5 범위: `reflections` · `analysis` · `highlight-clips`(schema 만, `N5-22`) ·
  * `enums` +1(`ReflectionCheckKey`, `N5-01`) · `SessionDetail.reflection`.
+ * Stage 6 범위: `survey-update`(설문 재응답 3 endpoint) · `children/update-child`(`UpdateChildRequest`) ·
+ * `children/history`(목록 schema 만, `N6-12`) · `CapabilitySnapshotSource` 3값 · `ChildProfile.profileUpdatedAt`.
  * 나머지 도메인 schema(reports · data-management)는 해당 Stage 에서 추가한다.
  */
 export * from './activity/index.js';
@@ -38,3 +40,4 @@ export * from './recordings/index.js';
 export * from './reflections/index.js';
 export * from './rules/index.js';
 export * from './sessions/index.js';
+export * from './survey-update/index.js';

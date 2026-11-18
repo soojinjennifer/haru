@@ -13,15 +13,13 @@
  * 카드 수는 카드 목록 길이에서 온다. `instrument-v2` 로 문항이 바뀌면 화면 코드를 고치지 않고
  * 수치가 따라 바뀐다.
  */
-import { Button, Icon, InfoRow, Surface, Text } from '@haru/ui';
 import { useNavigate } from 'react-router';
 
-import { CharacterMedallion } from '../../../entities/character';
+import { SurveyIntroLayout, surveyCards } from '../../../entities/survey';
 import type { Clock } from '../../../shared/lib/clock';
 import type { OnboardingDraftStore } from '../../../shared/lib/onboarding-draft';
 import { onboardingCopy } from '../copy';
 import { DEFAULT_ONBOARDING_INSTRUMENT } from '../model/defaultInstrument';
-import { surveyCards } from '../model/instrumentView';
 import { CARD_STEPS, FIRST_CARD_STEP, FIRST_STEP, pathForStep } from '../model/steps';
 import { hasAnyAnswers, useOnboardingDraft } from '../model/useOnboardingDraft';
 
@@ -86,45 +84,27 @@ export function OnboardingIntro({ variant, isTrial, store, clock }: OnboardingIn
         ? survey.resume
         : survey.cta;
 
+  /*
+    골격은 `entities/survey` 의 `SurveyIntroLayout` 이다 (Stage 6 `R-5` — 설문 재응답 진입과 공용, DOM 변경 0).
+    온보딩 전용 안내(Draft · Trial)는 InfoRow 와 CTA 사이 블록으로 넘긴다.
+  */
   return (
-    <div className="flex flex-1 flex-col items-center gap-7 pt-6">
-      <CharacterMedallion asset="headphones" size="md" />
-
-      <Surface fill="strong" radius="card" padding="5">
-        <div className="flex flex-col gap-2">
-          <Text variant="title-3" tone="primary" as="h1">
-            {title}
-          </Text>
-          <Text variant="subheadline" tone="secondary">
-            {body}
-          </Text>
-        </div>
-      </Surface>
-
-      <div className="flex w-full flex-col gap-2">
-        <InfoRow icon={<Icon name="clock" decorative />}>{duration}</InfoRow>
-        <InfoRow icon={<Icon name="list-checks" decorative />}>{format}</InfoRow>
-      </div>
-
+    <SurveyIntroLayout
+      title={title}
+      body={body}
+      duration={duration}
+      format={format}
+      ctaLabel={cta}
+      onCta={() => {
+        void navigate(target);
+      }}
+    >
       <div className="w-full">
         <DraftDiscardNotice reason={draft.discarded} onDismiss={draft.dismissDiscardNotice} />
       </div>
       <div className="w-full">
         <TrialNotice isTrial={isTrial} />
       </div>
-
-      <div className="mt-auto w-full pt-8">
-        <Button
-          variant="accent"
-          size="lg"
-          fullWidth
-          onPress={() => {
-            void navigate(target);
-          }}
-        >
-          {cta}
-        </Button>
-      </div>
-    </div>
+    </SurveyIntroLayout>
   );
 }

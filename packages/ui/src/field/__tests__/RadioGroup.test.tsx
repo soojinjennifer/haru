@@ -158,4 +158,37 @@ describe('RadioGroup legendVisuallyHidden (D4-63)', () => {
       false,
     );
   });
+  describe('meta (Stage 6 Spec §3.2)', () => {
+    const withMeta: readonly RadioOption[] = [
+      { value: 'a', label: 'Self-Direction', meta: 'Suggested' },
+      { value: 'b', label: 'Emotion Regulation' },
+    ];
+
+    it('puts meta inside the label so it joins the accessible name', () => {
+      render(
+        <RadioGroup
+          legend="Growth focus"
+          options={withMeta}
+          value="b"
+          onChange={() => {}}
+          name="g"
+        />,
+      );
+      expect(screen.getByRole('radio', { name: 'Self-Direction Suggested' })).toBeTruthy();
+      expect(screen.getByRole('radio', { name: 'Emotion Regulation' })).toBeTruthy();
+      const meta = document.querySelector('.haru-radio-group__meta');
+      expect(meta?.textContent).toBe('Suggested');
+      expect(meta?.closest('label')).not.toBeNull();
+    });
+
+    it('renders nothing extra when no option has meta — DOM unchanged', () => {
+      const { container } = render(
+        <RadioGroup legend="Q" options={options} value={null} onChange={() => {}} name="q" />,
+      );
+      expect(container.querySelectorAll('.haru-radio-group__meta')).toHaveLength(0);
+      for (const label of container.querySelectorAll('label')) {
+        expect(label.childNodes).toHaveLength(2);
+      }
+    });
+  });
 });

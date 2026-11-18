@@ -46,6 +46,11 @@ export interface HttpRequestConfig<T> {
   /** 부작용이 있는 요청에만 붙인다 (API_CONTRACTS §1 Idempotency). */
   idempotencyKey?: string;
   signal?: AbortSignal | undefined;
+  /**
+   * 페이지가 내려가는 중(`pagehide`)에도 전송을 이어 가게 한다 — `fetch` `keepalive`.
+   * best-effort 전용이다(본문 64KB 상한 · 응답을 기다릴 수 없을 수 있다). 기본 `false`.
+   */
+  keepalive?: boolean;
 }
 
 export interface HttpClient {
@@ -133,6 +138,7 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
         method: config.method,
         headers,
         ...(config.body === undefined ? {} : { body: JSON.stringify(config.body) }),
+        ...(config.keepalive === true ? { keepalive: true } : {}),
         signal,
       });
     } catch (cause) {

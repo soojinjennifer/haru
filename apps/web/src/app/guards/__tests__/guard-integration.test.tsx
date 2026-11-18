@@ -214,6 +214,14 @@ describe('세션 만료 2회 실패 → /auth/log-in (AC-2-07)', () => {
     analysis: {
       getStatus: () => Promise.reject(new Error('not used')),
     },
+    children: {
+      getProfile: () => Promise.reject(new Error('not used')),
+      update: () => Promise.reject(new Error('not used')),
+      setGrowthCapability: () => Promise.reject(new Error('not used')),
+      getSurveyUpdate: () => Promise.reject(new Error('not used')),
+      saveSurveyUpdateStep: () => Promise.reject(new Error('not used')),
+      submitSurveyUpdate: () => Promise.reject(new Error('not used')),
+    },
   };
 
   function wrapper({ children }: { children: ReactNode }) {

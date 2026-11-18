@@ -13,7 +13,7 @@ import {
 
 import { DEFAULT_ONBOARDING_INSTRUMENT } from '../defaultInstrument';
 import { buildSubmitRequest } from '../submitRequest';
-import { setSurveyAnswer } from '../surveyAnswers';
+import { setSurveyAnswer } from '../../../../entities/survey';
 
 const instrument = DEFAULT_ONBOARDING_INSTRUMENT;
 const NOW = new Date('2026-09-26T12:00:00Z');

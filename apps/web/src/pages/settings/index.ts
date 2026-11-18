@@ -1,2 +1,11 @@
 export { SettingsPage } from './SettingsPage';
 export { SettingsTopBar } from './SettingsTopBar';
+export { ProfilePage } from './ProfilePage';
+export { ProfileTopBar } from './ProfileTopBar';
+export { ChildInfoEditPage } from './ChildInfoEditPage';
+export { ChildInfoEditTopBar } from './ChildInfoEditTopBar';
+export { SurveyUpdatePage } from './SurveyUpdatePage';
+export { SurveyUpdateStepPage } from './SurveyUpdateStepPage';
+export { SurveyUpdateTopBar } from './SurveyUpdateTopBar';
+export { GrowthCapabilityPage } from './GrowthCapabilityPage';
+export { GrowthCapabilityTopBar } from './GrowthCapabilityTopBar';

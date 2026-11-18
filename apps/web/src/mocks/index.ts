@@ -22,6 +22,11 @@ import { createMockActivityApi } from './activities/MockActivityApi';
 import { createMockAnalysisApi } from './analysis/MockAnalysisApi';
 import { createMockAuthGateway } from './auth/MockAuthGateway';
 import { createMockBooksApi } from './books/MockBooksApi';
+import { createMockChildrenApi } from './children/MockChildrenApi';
+import {
+  createMockChildProfileState,
+  type MockChildProfileState,
+} from './children/childProfileState';
 import { createMockConnectivity, type MockConnectivity } from './common/connectivity';
 import { createMockFailure, type MockErrorCodes } from './common/delivery';
 import { createIdempotencyLedger } from './common/idempotency';
@@ -90,6 +95,11 @@ export interface MockApiClientsOptions extends ScenarioStoreInput {
   /** Stage 4 — `offline-queued` 의 복구 시점. 주지 않으면 **끊김**에서 시작한다. */
   connectivity?: MockConnectivity;
   /**
+   * Stage 6 — `MockChildrenApi`(읽기·쓰기) · `MockOnboardingApi`(제출) · `MockMeApi`(아이 이름)가 공유하는
+   * 아이 프로필 서버 상태. 주지 않으면 번들마다 새로 만든다.
+   */
+  childProfileState?: MockChildProfileState;
+  /**
    * Stage 4 — `error`/`retry` 가 쓸 code (Plan §8.1 "error — code 지정", AC-4-24).
    * 키 = `group` 또는 `group.method`(소문자). 없으면 `INTERNAL_ERROR`.
    */
@@ -116,6 +126,8 @@ export interface MockApiClientsBundle {
   sessionState: MockSessionState;
   /** Stage 4 `offline-queued` 연결 상태 (테스트가 `goOnline()` 으로 복구시킨다). */
   connectivity: MockConnectivity;
+  /** Stage 6 아이 프로필 서버 상태 (테스트가 버전 행 · 스냅샷 행을 관찰한다). */
+  childProfileState: MockChildProfileState;
   /** Mock **서버** 시계 (기본 `MOCK_EPOCH_MS` 고정) — 기기 seed 의 서버 세션 시각 (`D4-123`). */
   clock: Clock;
   /**
@@ -146,6 +158,7 @@ export function createMockApiClientsBundle(
   const onboardingState = options.onboardingState ?? createMockOnboardingState();
   const sessionState = options.sessionState ?? createMockSessionState();
   const connectivity = options.connectivity ?? createMockConnectivity();
+  const childProfileState = options.childProfileState ?? createMockChildProfileState();
   const errorCodes = options.errorCodes;
   // 세션·녹음 endpoint 가 **하나의** `Idempotency-Key` 보관소를 쓴다 (서버도 키 공간이 하나다).
   const idempotency = createIdempotencyLedger(createMockFailure(idFactory));
@@ -159,26 +172,46 @@ export function createMockApiClientsBundle(
     onboardingState,
     sessionState,
     connectivity,
+    childProfileState,
     clock,
     sentinel: __HARU_MOCK_SENTINEL__,
     authGateway: createMockAuthGateway(deps),
     pushPermission: createMockPushPermissionPort({ store }),
     clients: {
       health: createMockHealthApi({ store, clock, idFactory, timer }),
-      me: createMockMeApi({ ...deps, consentState, onboardingState }),
+      me: createMockMeApi({ ...deps, consentState, onboardingState, childProfileState }),
       consents: createMockConsentApi({ ...deps, consentState }),
-      onboarding: createMockOnboardingApi({ ...deps, consentState, onboardingState }),
+      onboarding: createMockOnboardingApi({
+        ...deps,
+        consentState,
+        onboardingState,
+        childProfileState,
+      }),
       books: createMockBooksApi(deps),
       home: createMockHomeApi(deps),
-      activities: createMockActivityApi(deps),
+      // Stage 6 — `cold-to-warm` · `difficulty-lowered` 가 세션·회고 서버 상태를 본다 (Plan §8)
+      activities: createMockActivityApi({ ...deps, sessionState }),
       library: createMockLibraryApi(deps),
-      sessions: createMockSessionApi({ ...stage4, idempotency, onboardingState }),
+      // Stage 6 — 완료 버블이 현재 아이 이름을 쓴다 (`QA-6-001`, AC-6-22)
+      sessions: createMockSessionApi({
+        ...stage4,
+        idempotency,
+        onboardingState,
+        childProfileState,
+      }),
       recordings: createMockRecordingApi({ ...stage4, idempotency, connectivity }),
       uploadTransport: createMockUploadTransport({ ...stage4, connectivity }),
       notifications: createMockNotificationApi({ ...deps, errorCodes }),
       // Stage 5 — 세션과 같은 서버 상태 · 같은 `Idempotency-Key` 보관소 (Plan §8)
       reflections: createMockReflectionApi({ ...stage4, idempotency }),
       analysis: createMockAnalysisApi(stage4),
+      // Stage 6 — 아이 프로필 · 수정 · 발전 역량 · 설문 재응답 (Plan §8 `children`)
+      children: createMockChildrenApi({
+        ...deps,
+        childProfileState,
+        idempotency,
+        errorCodes,
+      }),
     },
   };
 }
@@ -490,6 +523,29 @@ export {
   MOCK_HIGHLIGHT_CLIP_IDS,
 } from './fixtures/highlight-clips';
 export { ensureSessionHistory } from './sessions/sessionHistory';
+export { createMockChildrenApi, CHILDREN_LOADING_DELAY_MS } from './children/MockChildrenApi';
+export {
+  childrenScenarioGroup,
+  CHILDREN_SCENARIO_KEYS,
+  createBaseChildProfileRecord,
+} from './children/childProfileRecords';
+export type { ChildrenScenarioKey } from './children/childProfileRecords';
+export { createMockChildProfileState, toChildProfile } from './children/childProfileState';
+export type {
+  MockChildProfileRecord,
+  MockChildProfileState,
+  MockSurveyResponseRow,
+} from './children/childProfileState';
+export {
+  createCapabilitySnapshotPageFixture,
+  createDefaultSurveyAnswers,
+  createPersonaPageFixture,
+  MOCK_CHANGED_PERSONA_COPY,
+  MOCK_LONG_CHILD_FIRST_NAME,
+  MOCK_SESSION_ANALYSIS_SCORES,
+  MOCK_SURVEY_UPDATE_DRAFT_STEP,
+} from './fixtures/child-profile';
+export { MOCK_FALLBACK_PERSONA_COPY, MOCK_PERSONA_COPY } from './fixtures/profile-result';
 export * from './scenarios';
 export {
   createMockRecordingStorage,

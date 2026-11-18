@@ -1,0 +1,40 @@
+/*
+ * 프로필 결과 화면 — Stage 6 Spec §3.6 Loading (Figma 없음 → 명세).
+ *
+ * 차트 카드 Skeleton 높이 = **차트 높이** = 2h + 2·(축 라벨 줄 + label-gap). `DiamondChart.css` 의 가운데
+ * 트랙과 같은 식으로 정사각 자리를 만들고, Skeleton 면은 그 자리 전체(카드 내부 폭)를 덮는다.
+ * 토큰만 쓴다 (`--chart-diamond-*` = Stage 6 `T6-1`~`T6-3`).
+ *
+ * `R-SHADOW-1`: 새 overflow 0.
+ */
+.haru-profile-view__chart-skeleton {
+  position: relative;
+  display: flex;
+  padding-block: calc(var(--text-caption-1--line-height) + var(--chart-diamond-label-gap));
+}
+
+.haru-profile-view__chart-skeleton::before {
+  content: '';
+  inline-size: min(
+    calc(var(--chart-diamond-radius-max) * 2),
+    calc(100% - 2 * (var(--chart-diamond-label-max) + var(--chart-diamond-label-gap)))
+  );
+  aspect-ratio: 1;
+  margin-inline: auto;
+}
+
+.haru-profile-view__chart-skeleton > .haru-skeleton {
+  position: absolute;
+  inset: 0;
+}
+
+/*
+ * UpdateNote 아이콘 — 첫 줄 정렬 (`S6-G` G-7, `D6-9` ④ `VG6-E2-20`). 상자 높이 = 문장 첫 줄(footnote line-height),
+ * 그 안에서 아이콘을 가운데 둔다. 1줄이면 `items-center` 였을 때와 같은 자리다 — 2줄(320 폭)에서만 달라진다.
+ */
+.haru-update-note__icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  block-size: var(--text-footnote--line-height);
+}

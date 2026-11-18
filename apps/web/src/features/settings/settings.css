@@ -1,0 +1,10 @@
+/*
+ * 설정 목록 (Stage 6 `C13-S6-1`, Spec §2.4) — 이동 행 chevron 색.
+ * Library 진입 행(`.haru-library-entry__chevron`)과 같은 idiom · 같은 토큰이다.
+ */
+.haru-settings-row__chevron {
+  display: inline-flex;
+  align-items: center;
+  /* provisional: P-24 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-tertiary);
+}

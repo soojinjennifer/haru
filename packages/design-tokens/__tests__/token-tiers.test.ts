@@ -272,10 +272,23 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
    * Stage 5 `S5-B`(회고 카드 `91:691`)에서 **12종 추가** → 273 (Stage 5 Spec §5.2 `T5-2`~`T5-11`, `D5-4`).
    *  카드 7(`T5-2`~`T5-8`) · 별 2(`T5-9`) · 입력 2(`T5-10` + padding) · Chip select border 1(`T5-11`).
    * `S5-B` 후속 `VG5B-1` ⓑ(사용자 결정 2026-11-08)에서 **1종 추가** → 274. Chip `select` 라벨 12.5 (Figma `90:611`).
+   *
+   * Stage 6 `S6-E1`(DiamondChart, Stage 6 Spec §5.2 `T6-1`~`T6-3` · `T6-5` 굵기 · `T6-7` · `T6-8`, `D6-8`)에서 **7종 추가** → 281.
+   * Stage 6 `S6-H`(QA 2차 결정 `D6-10` ② ③ — 언어 카드 radius 30 · 섹션 라벨 자간 0.72 · 독서 루틴 라벨 위 7)에서 **3종 추가** → 284.
    */
-  it('Tier 3 토큰 274개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset + Library 1라운드 + 표지 그림자 자리 + 세션 ready + S4-F1R + S4-F2 + S4-G1 + S4-G2 + S4-K1 + S4-H1 + S4-H1R + S5-B)', () => {
+  it('Tier 3 토큰 284개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset + Library 1라운드 + 표지 그림자 자리 + 세션 ready + S4-F1R + S4-F2 + S4-G1 + S4-G2 + S4-K1 + S4-H1 + S4-H1R + S5-B + S6-E1 + S6-H)', () => {
     expect(components.map((d) => d.name).sort()).toEqual(
       [
+        '--choice-card-radius',
+        '--section-label-letter-spacing',
+        '--child-routine-label-offset',
+        '--chart-diamond-radius-max',
+        '--chart-diamond-label-max',
+        '--chart-diamond-label-gap',
+        '--chart-stroke-width',
+        '--chart-missing-dash',
+        '--chart-vertex-size',
+        '--chart-selected-ring',
         '--reflection-card-radius',
         '--reflection-card-width',
         '--reflection-card-gutter',

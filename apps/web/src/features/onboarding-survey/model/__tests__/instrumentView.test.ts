@@ -9,7 +9,7 @@ import { ONBOARDING_CHOICE_QUESTIONS, type ChoiceQuestion } from '@haru/contract
 
 import { onboardingCopy } from '../../copy';
 import { DEFAULT_ONBOARDING_INSTRUMENT } from '../defaultInstrument';
-import { questionsForStep, resolveQuestion } from '../instrumentView';
+import { questionsForStep, resolveQuestion } from '../../../../entities/survey';
 
 function questionOf(id: string): ChoiceQuestion {
   const found = ONBOARDING_CHOICE_QUESTIONS.find((question) => question.questionId === id);

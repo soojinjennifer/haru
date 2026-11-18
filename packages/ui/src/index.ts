@@ -65,6 +65,7 @@ export type {
   TextElement,
   TextProps,
   TextTone,
+  TextTracking,
   TextTruncate,
   TextVariant,
   TextWeight,
@@ -178,6 +179,33 @@ export type { TextLinkProps, TextLinkTone } from './link/TextLink';
 
 export { SectionHeader } from './section/SectionHeader';
 export type { SectionHeaderAction, SectionHeaderProps } from './section/SectionHeader';
+
+/* ===== Stage 6 신규 1종 (Stage 6 Design Spec §3.1 · §3.7, `D6-8`) ================ */
+
+export { DiamondChart } from './chart/DiamondChart';
+export type {
+  DiamondAxis,
+  DiamondChartMode,
+  DiamondChartProps,
+  DiamondTone,
+} from './chart/DiamondChart';
+export {
+  DIAMOND_AXIS_COUNT,
+  diamondAreaPolygons,
+  diamondHalfDiagonal,
+  diamondOutlines,
+  diamondPercent,
+  diamondPointOnAxis,
+  diamondQuadrants,
+  diamondRadiusFraction,
+  diamondVertices,
+} from './chart/diamondGeometry';
+export type {
+  DiamondOutline,
+  DiamondPoint,
+  DiamondSizing,
+  DiamondValues,
+} from './chart/diamondGeometry';
 
 /* 스크롤 컨테이너 context — 결정 D-13 (AppShell 이 ref 를 제공한다). */
 export { ScrollContainerProvider, useScrollContainerRef } from './layout/ScrollContainerContext';

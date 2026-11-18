@@ -16,7 +16,7 @@ export { ActivityOptionCard, optionHeadline } from './ActivityOptionCard';
 export type { ActivityOptionCardCopy, ActivityOptionCardProps } from './ActivityOptionCard';
 export { SaveButton } from './SaveButton';
 export type { SaveButtonCopy, SaveButtonProps } from './SaveButton';
-export { CapabilityBadge } from './CapabilityBadge';
+export { CAPABILITY_TONE, CapabilityBadge } from './CapabilityBadge';
 export type { CapabilityBadgeProps } from './CapabilityBadge';
 export { CoachingNote } from './CoachingNote';
 export type { CoachingNoteProps, CoachingNoteTone } from './CoachingNote';

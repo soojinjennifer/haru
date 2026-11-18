@@ -77,12 +77,63 @@ function toOption(seed: OptionSeed, position: 0 | 1 | 2, saved: boolean): Activi
 }
 
 /**
+ * Stage 6 `cold-to-warm` — warm 단계(세션 4회~) 추천 문장 (Plan §8 · PRD §8.3).
+ * **바뀌는 것은 서버 `reason` 문장뿐**이다 — 책·역량·카드 구조는 cold 와 같다 (Spec §2.8 "UI 영향 없음").
+ * 길이는 cold 문장 범위(60~69자)를 지킨다 — Figma 설명 박스 257×40(2줄)에서 카드 높이가 바뀌지 않게.
+ * 회고·대화 기록을 말할 뿐 진단·판정·비교 표현은 쓰지 않는다 (§8.4).
+ */
+const WARM_DECK: readonly OptionSeed[] = [
+  {
+    kind: 'book',
+    capability: 'emotion_regulation',
+    bookIndex: 0,
+    reason: 'Feelings came up in your last talks, and this one gives them names.',
+  },
+  {
+    kind: 'book',
+    capability: 'cognitive_flexibility',
+    bookIndex: 1,
+    reason: 'Your recent "what if" talks fit a story where plans keep changing.',
+  },
+  {
+    kind: 'book',
+    capability: 'intrinsic_motivation',
+    bookIndex: 2,
+    reason: 'Questions kept coming last time, and these pages leave room for them.',
+  },
+];
+
+/**
+ * Stage 6 `difficulty-lowered` — 직전 회고에 `tricky_today` 가 있으면 다음 today card 는 **더 쉬운 책**이
+ * 첫 장에 오고 그에 맞는 `reason` 이 붙는다 (PLANNING Exit · PRD §7.6). 난이도 배지·라벨은 없다 (`PF6-1`).
+ * 나머지 두 장은 cold 문장 그대로다 (덱의 역량 3종 순환 유지 — `D-5`).
+ */
+const LOWERED_DECK: readonly OptionSeed[] = [
+  {
+    kind: 'book',
+    capability: 'intrinsic_motivation',
+    bookIndex: 2,
+    reason: 'After a tricky night, short pages and a gentle rhythm keep it light.',
+  },
+  BOOK_DECK[0] as OptionSeed,
+  BOOK_DECK[1] as OptionSeed,
+];
+
+/** cold 덱 설명 문장 — warm·하향 문장의 길이 기준 (테스트가 같은 범위를 단정한다). */
+export const COLD_DECK_REASONS: readonly string[] = BOOK_DECK.map((seed) => seed.reason);
+/** Stage 6 에서 추가한 덱 문장 (warm 3 · 하향 1). */
+export const STAGE6_DECK_REASONS: readonly string[] = [
+  ...WARM_DECK.map((seed) => seed.reason),
+  (LOWERED_DECK[0] as OptionSeed).reason,
+];
+
+/**
  * 덱 구성 — scenario key 가 고르는 3장 조합.
  *
  * `conversation-only` 모양은 **폐지**되었다 (approvals §12.12). `books-exhausted` 는
  * 재독 카드 3장으로 "추천할 책 소진"(PRD §13)을 표현한다 — 책 없는 카드를 만들지 않는다.
  */
-export type ActivityDeckShape = 'books' | 'reread' | 'exhausted' | 'saved';
+export type ActivityDeckShape = 'books' | 'reread' | 'exhausted' | 'saved' | 'warm' | 'lowered';
 
 function seedsFor(shape: ActivityDeckShape): readonly OptionSeed[] {
   switch (shape) {
@@ -94,6 +145,10 @@ function seedsFor(shape: ActivityDeckShape): readonly OptionSeed[] {
         { ...REREAD_SEED, capability: 'emotion_regulation', bookIndex: 1 },
         { ...REREAD_SEED, capability: 'intrinsic_motivation', bookIndex: 2 },
       ];
+    case 'warm':
+      return WARM_DECK;
+    case 'lowered':
+      return LOWERED_DECK;
     default:
       return BOOK_DECK;
   }

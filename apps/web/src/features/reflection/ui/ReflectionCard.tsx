@@ -40,8 +40,8 @@ import {
   joinErrorMessage,
   unknownErrorCopy,
 } from '../../../shared/copy/error-copy';
+import { useChipRowSplit } from '../../../shared/hooks/useChipRowSplit';
 import { REFLECTION_CHECK_ORDER, reflectionCopy as copy } from '../copy';
-import { useChipRowSplit } from './useChipRowSplit';
 
 export interface ReflectionCardProps {
   sessionId: string;

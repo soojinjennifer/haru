@@ -17,6 +17,12 @@ export interface RadioOption {
   label: string;
   variant?: RadioOptionVariant;
   disabled?: boolean;
+  /**
+   * 라벨 오른쪽 끝 보조 표시 (Stage 6 Spec §3.2 — 발전 역량 *Suggested* / *Current*).
+   * `<label>` 안에 렌더되어 **접근성 이름에 포함**된다(*"Self-Direction Suggested"*).
+   * 없으면 DOM·레이아웃 변경 0 (`ListRow.meta` 선례).
+   */
+  meta?: string;
 }
 
 export interface RadioGroupProps {
@@ -121,6 +127,13 @@ export function RadioGroup({
                 }}
               />
               <span className="haru-radio-group__label">{option.label}</span>
+              {/* `{' '}` = 접근성 이름의 단어 경계 — flex 안 공백 텍스트는 렌더되지 않는다(레이아웃 0). */}
+              {option.meta === undefined ? null : (
+                <>
+                  {' '}
+                  <span className="haru-radio-group__meta">{option.meta}</span>
+                </>
+              )}
             </label>
           );
         })}

@@ -11,7 +11,7 @@ import {
   setSurveyAnswer,
   surveyAnswerFor,
   unansweredCount,
-} from '../surveyAnswers';
+} from '../../../../entities/survey';
 
 const instrument = DEFAULT_ONBOARDING_INSTRUMENT;
 const codes = instrument.survey.items.map((item) => item.itemCode);

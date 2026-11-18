@@ -15,6 +15,12 @@
  * | `book-saved` | 첫 카드가 **저장된 상태**로 시작한다 (`G-14` 초기 상태 반영) |
  * | `books-exhausted` | 3장 전부 **재독 카드** (§13 "추천할 책 소진" — 책 없는 카드는 폐지) |
  * | `onboarding-incomplete` | `ONBOARDING_INCOMPLETE` |
+ * | `cold-to-warm` | (Stage 6) 완료 계열 세션 수 ≤ 3 → cold 덱, **≥ 4** → warm 덱 (`reason` 문장만 다르다) |
+ * | `difficulty-lowered` | (Stage 6) **가장 최근 완료 세션의 회고**에 `tricky_today` 가 있으면 첫 장 = 더 쉬운 책 + 그 `reason` |
+ *
+ * Stage 6 두 key 는 **세션·회고 서버 상태**(`MockSessionState`)를 읽는다 — 시간이 아니라 기록으로 정해지므로
+ * 결정적이다 (AC-6-12). 회고는 `MockReflectionApi` 가 같은 상태에 남긴다 (Stage 5 연쇄, AC-6-40).
+ * 카드 UI 는 바뀌지 않는다 — 책과 `reason` 만 다르다 (Spec §2.8, `PF6-1`).
  *
  * **결정성**: 같은 key 를 반복 실행하면 같은 3장 구성·같은 문구가 나오고, 선택 응답의
  * `promptSet` 도 같다 (덱·Prompt 가 Playwright baseline 대상이다 — Plan §8.5).
@@ -44,6 +50,8 @@ import {
 import type { ApiRequestOptions } from '../../shared/api/health-api';
 import type { Clock } from '../../shared/lib/clock';
 import type { IdFactory } from '../../shared/lib/idFactory';
+import { ensureSessionHistory } from '../sessions/sessionHistory';
+import { COMPLETION_STATUSES, type MockSessionState } from '../sessions/sessionState';
 import { createActivityCardFixture, type ActivityDeckShape } from '../fixtures/activity-cards';
 import { createPromptSetFixture } from '../fixtures/prompt-sets';
 import type { RequestLog } from '../request-log';
@@ -61,6 +69,8 @@ export const ACTIVITY_SCENARIO_KEYS = [
   'books-exhausted',
   'book-saved',
   'onboarding-incomplete',
+  'cold-to-warm',
+  'difficulty-lowered',
 ] as const;
 
 export type ActivityScenarioKey = (typeof ACTIVITY_SCENARIO_KEYS)[number];
@@ -83,16 +93,68 @@ const DECK_SHAPES: Partial<Record<ActivityScenarioKey, ActivityDeckShape>> = {
   'book-saved': 'saved',
 };
 
+/** warm 단계 시작 = 완료 세션 4회째 (PRD §8.3 "cold: 가입~세션 3회 → warm: 4회~", `P6-BIP-03`). */
+export const MOCK_WARM_MIN_COMPLETED_SESSIONS = 4;
+
 export interface MockActivityApiDeps {
   store: ScenarioStore;
   clock: Clock;
   idFactory: IdFactory;
   timer: Timer;
   requestLog?: RequestLog | undefined;
+  /**
+   * Stage 6 — 세션·회고 서버 상태 (`cold-to-warm` · `difficulty-lowered`). 없으면 두 key 는 cold 덱이다.
+   */
+  sessionState?: MockSessionState | undefined;
+}
+
+/** 완료 계열 세션 — 오래된 것 → 최근 (`completedAt`, 같으면 생성 순서). */
+function completedSessions(state: MockSessionState, clock: Clock) {
+  ensureSessionHistory(state, clock);
+  return [...state.sessions.values()]
+    .map((record, index) => ({ record, index }))
+    .filter(({ record }) => COMPLETION_STATUSES.has(record.summary.status))
+    .sort(
+      (a, b) =>
+        (a.record.summary.completedAt ?? '').localeCompare(b.record.summary.completedAt ?? '') ||
+        a.index - b.index,
+    )
+    .map(({ record }) => record);
+}
+
+/**
+ * Stage 6 key 의 덱 모양 — **서버 기록**으로 정한다 (Plan §8, AC-6-12).
+ * 실제 추천 규칙(cold→warm 전환 · 난이도 하향 · 반영 시점)은 Backend 다 (`P6-BIP-03`·`04`).
+ */
+export function resolveRecommendationShape(
+  scenario: ActivityScenarioKey,
+  state: MockSessionState | undefined,
+  clock: Clock,
+): ActivityDeckShape | undefined {
+  if (state === undefined) return undefined;
+
+  if (scenario === 'cold-to-warm') {
+    return completedSessions(state, clock).length >= MOCK_WARM_MIN_COMPLETED_SESSIONS
+      ? 'warm'
+      : 'books';
+  }
+
+  if (scenario === 'difficulty-lowered') {
+    const latest = completedSessions(state, clock).at(-1);
+    return latest?.reflection?.checks.includes('tricky_today') === true ? 'lowered' : 'books';
+  }
+
+  return undefined;
 }
 
 export function createMockActivityApi(deps: MockActivityApiDeps): ActivityApi {
-  const { store, clock, idFactory, timer, requestLog } = deps;
+  const { store, clock, idFactory, timer, requestLog, sessionState } = deps;
+
+  function shapeFor(scenario: ActivityScenarioKey): ActivityDeckShape {
+    return (
+      resolveRecommendationShape(scenario, sessionState, clock) ?? DECK_SHAPES[scenario] ?? 'books'
+    );
+  }
 
   function fail(code: ErrorCode, message: string): never {
     throw HaruApiError.fromEnvelope(
@@ -115,7 +177,7 @@ export function createMockActivityApi(deps: MockActivityApiDeps): ActivityApi {
 
       const scenario = store.resolve(activityScenarioGroup);
       const attempt = consumeAttempt(store, activityScenarioGroup.group, options.signal);
-      const shape = DECK_SHAPES[scenario] ?? 'books';
+      const shape = shapeFor(scenario);
 
       switch (scenario) {
         case 'loading':
@@ -155,7 +217,7 @@ export function createMockActivityApi(deps: MockActivityApiDeps): ActivityApi {
 
       const scenario = store.resolve(activityScenarioGroup);
       const attempt = consumeAttempt(store, activityScenarioGroup.group, options.signal);
-      const shape = DECK_SHAPES[scenario] ?? 'books';
+      const shape = shapeFor(scenario);
 
       function selection(): ActivityCardSelection {
         const option = card(shape).options.find((item) => item.id === parsed.optionId);

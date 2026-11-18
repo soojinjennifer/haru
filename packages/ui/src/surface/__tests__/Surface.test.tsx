@@ -47,3 +47,29 @@ describe('AppBackground', () => {
     expect(background?.textContent).toBe('');
   });
 });
+
+describe('Surface material="bubble" (Stage 6)', () => {
+  it('material="bubble" 은 `--shadow-bubble` 클래스를 붙인다 (Stage 6 Spec §3.4 `T6-9`)', () => {
+    const { container } = render(
+      <Surface material="bubble" fill="strong" radius="surface" padding="4">
+        Card
+      </Surface>,
+    );
+
+    const surface = container.firstElementChild;
+    expect(surface?.classList.contains('haru-surface--material-bubble')).toBe(true);
+    expect(surface?.classList.contains('haru-surface--material-rest')).toBe(false);
+  });
+
+  it('Surface.css 의 bubble 단계는 `--shadow-bubble` 토큰만 쓴다 (새 값 0)', async () => {
+    const { readFileSync } = await import('node:fs');
+    const path = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const css = readFileSync(
+      path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'Surface.css'),
+      'utf8',
+    );
+    const rule = /\.haru-surface--material-bubble\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+    expect(rule).toMatch(/box-shadow:\s*var\(--shadow-bubble\)/);
+  });
+});

@@ -27,6 +27,7 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
       'session-completion': 'success',
       reflections: 'success',
       analysis: 'success',
+      children: 'success',
       __states: 'success',
     });
   });
@@ -61,6 +62,7 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
       'session-completion': 'success',
       reflections: 'error',
       analysis: 'error',
+      children: 'error',
       __states: 'error',
     });
   });
@@ -79,6 +81,7 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
       'session-completion': 'success',
       reflections: 'success',
       analysis: 'success',
+      children: 'success',
       __states: 'empty',
     });
   });
@@ -116,6 +119,7 @@ describe('serializeSelection / withGroupKey', () => {
       'session-completion': 'reflection-submitted',
       reflections: 'invalid-transition',
       analysis: 'analysis-pending',
+      children: 'survey-update-draft',
       __states: 'error',
     };
     const restored = resolveSelection(DEV_SCENARIO_GROUPS, {
@@ -262,7 +266,23 @@ describe('DEV_SCENARIO_GROUPS — Catalogue 준수 (AC-1-40)', () => {
     'analysis-feedback-missing',
   ];
 
-  it('패널이 다루는 그룹은 health · home · activity-cards · library · books · session-completion · reflections · analysis · __states 다', () => {
+  /**
+   * Stage 6 (AC-6-14, Plan §8) — `children` 그룹 특화 key + `activity-cards` 추천 key 2종. 전부 `API_CONTRACTS.md` §5.4 등재.
+   */
+  const CATALOGUE_STAGE_6 = [
+    'cold-to-warm',
+    'difficulty-lowered',
+    'profile-updated',
+    'persona-changed',
+    'persona-fallback',
+    'all-scores-missing',
+    'scores-partially-missing',
+    'validation-failed',
+    'survey-update-draft',
+    'survey-update-submitted',
+  ];
+
+  it('패널이 다루는 그룹은 health · home · activity-cards · library · books · session-completion · reflections · analysis · children · __states 다', () => {
     expect(DEV_SCENARIO_GROUPS.map((group) => group.group)).toStrictEqual([
       'health',
       'home',
@@ -272,6 +292,7 @@ describe('DEV_SCENARIO_GROUPS — Catalogue 준수 (AC-1-40)', () => {
       'session-completion',
       'reflections',
       'analysis',
+      'children',
       '__states',
     ]);
   });
@@ -279,7 +300,12 @@ describe('DEV_SCENARIO_GROUPS — Catalogue 준수 (AC-1-40)', () => {
   it('모든 key 가 Catalogue machine key 다 (deprecated alias 없음)', () => {
     for (const group of DEV_SCENARIO_GROUPS) {
       for (const key of group.keys) {
-        expect([...CATALOGUE_COMMON, ...CATALOGUE_STAGE_3, ...CATALOGUE_STAGE_4_5]).toContain(key);
+        expect([
+          ...CATALOGUE_COMMON,
+          ...CATALOGUE_STAGE_3,
+          ...CATALOGUE_STAGE_4_5,
+          ...CATALOGUE_STAGE_6,
+        ]).toContain(key);
       }
     }
   });

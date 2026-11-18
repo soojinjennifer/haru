@@ -25,10 +25,24 @@ export const CapabilityScoreSchema = z.object({
 export type CapabilityScore = z.infer<typeof CapabilityScoreSchema>;
 
 /**
- * 역량 스냅샷의 출처. Stage 2 는 온보딩 설문 1종뿐이다.
- * 세션 분석 기반 스냅샷(Stage 6·7)은 해당 Stage 에서 값을 추가한다.
+ * 역량 스냅샷의 출처 — PRD FR-15 · §12.1 "산출 근거(설문/세션)" · Stage 6 Plan §7 C-2 (`N6-08` → `D6-3`).
+ *
+ * | 값 | 의미 |
+ * |---|---|
+ * | `onboarding_survey` | 온보딩 설문 제출로 만든 첫 스냅샷 (Stage 2) |
+ * | `survey_update` | 설정의 **설문 재응답** 제출로 만든 새 스냅샷 (`POST …/survey-update/submit`) |
+ * | `session_analysis` | 세션 분석 누적으로 서버가 갱신한 스냅샷 (갱신 규칙 = `P6-BIP-01`, Backend) |
+ *
+ * 스냅샷은 **불변 행**이다 — 갱신은 새 행을 만든다 (`docs/plans/stage-6-plan.md` §6).
+ * 화면은 이 값으로 업데이트 안내 문구를 **고르기만** 한다 (Spec §2.2 — 생성·가공 아님).
  */
-export const CapabilitySnapshotSourceSchema = z.literal('onboarding_survey');
+export const CAPABILITY_SNAPSHOT_SOURCES = [
+  'onboarding_survey',
+  'survey_update',
+  'session_analysis',
+] as const;
+
+export const CapabilitySnapshotSourceSchema = z.enum(CAPABILITY_SNAPSHOT_SOURCES);
 
 export type CapabilitySnapshotSource = z.infer<typeof CapabilitySnapshotSourceSchema>;
 

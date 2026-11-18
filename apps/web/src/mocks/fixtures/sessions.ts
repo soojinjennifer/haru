@@ -2,7 +2,8 @@
  * Storytime Session fixture — Stage 4 Plan §8 · `docs/API_CONTRACTS.md` §3.2.
  *
  * 규칙
- *  - **가상 데이터만** 담는다 (실제 아동 데이터 금지). 아이 이름을 문구에 넣지 않는다.
+ *  - **가상 데이터만** 담는다 (실제 아동 데이터 금지). 아이 이름은 완료 버블에만 들어가며, 그 이름은
+ *    Mock 아이 프로필 서버 상태가 준다 (`createCompletionBubbleFixture`, `QA-6-001`). ready 인사에는 넣지 않는다.
  *  - 버블·스티커 문구는 **서버가 만든 완성문**을 흉내낸 값이다. 화면은 이 값을 그대로 그린다
  *    (`D4-2` · `D4-20` — Frontend 는 문구를 생성·가공하지 않는다).
  *  - ready 인사(`bubble.text`)는 `D4-21` 길이 요구(≈28자 이내, 아이 이름을 끝에 두지 않음)를 지킨다.
@@ -24,6 +25,7 @@ import { shiftedIso, type Clock } from '../../shared/lib/clock';
 import { MOCK_BOOKS } from './books';
 import { MOCK_ACTIVE_SESSION_ID } from './home';
 import { createLibraryOverviewFixture, findLibraryBook } from './library';
+import { MOCK_CHILD_FIRST_NAME } from './me';
 import { createPromptPreviewFixture } from './prompt-sets';
 import { DECK_BOOKS, findDeckBook } from './saved-books';
 
@@ -42,16 +44,30 @@ export const MOCK_READY_REMINDER_BUBBLE: SessionBubbleCopy = {
   templateId: 'mock-ready-reminder',
 };
 
+/** 완료 버블 보조 줄 — 고정 Mock 값 (세션의 `recordedSeconds` 를 반영하지 않는다, §3.2.3). */
+export const MOCK_COMPLETION_SUBTEXT = '14 min together · sticker earned';
+
 /**
- * 완료 버블 (`88:929` override 문자열 그대로, FR-10 · `D4-87`). `subtext` 는 고정 Mock 값이다 — 세션의
- * `recordedSeconds` 를 반영하지 않는다 (`API_CONTRACTS.md` §3.2.3).
- * `completed` 전이 응답과 완료 계열 `SessionDetail` 이 같은 값을 낸다.
+ * 완료 버블 — **서버가 현재 아이 이름으로 만든 완성문**을 흉내낸다 (`88:929` override 문장 틀, FR-10 ·
+ * `D4-87`). 이름은 호출자(Mock 세션 API)가 **아이 프로필 서버 상태**에서 읽어 넘긴다 — 아이 정보 수정
+ * 뒤 완료 버블과 회고 카드 제목이 같은 이름을 쓴다 (AC-6-22 · `QA-6-001` · `D5-14`).
+ * Frontend 는 이 문장을 만들거나 고치지 않는다 — 응답 값을 그대로 그린다 (`D4-2` · `D4-20`).
  */
-export const MOCK_COMPLETION_BUBBLE = {
-  text: 'Storytime success! Emma did wonderfully.',
-  templateId: 'mock-completion',
-  subtext: '14 min together · sticker earned',
-} as const satisfies SessionBubbleCopy;
+export function createCompletionBubbleFixture(
+  childFirstName: string,
+  subtext: string | null = MOCK_COMPLETION_SUBTEXT,
+): NonNullable<SessionBubbleCopy> {
+  return {
+    text: `Storytime success! ${childFirstName} did wonderfully.`,
+    templateId: 'mock-completion',
+    subtext,
+  };
+}
+
+/**
+ * 기본 이름(`Emma`)의 완료 버블. `completed` 전이 응답과 완료 계열 `SessionDetail` 이 같은 값을 낸다.
+ */
+export const MOCK_COMPLETION_BUBBLE = createCompletionBubbleFixture(MOCK_CHILD_FIRST_NAME);
 
 /**
  * 보조 줄 없는 완료 버블 — `session-completion:subtext-missing` · 스티커 없는 지난 세션 seed.

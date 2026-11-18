@@ -1,8 +1,10 @@
-import { ConfirmDialog, InlineAlert, ListGroup, ListRow } from '@haru/ui';
+import { ConfirmDialog, Icon, InlineAlert, ListGroup, ListRow, Text } from '@haru/ui';
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 
 import type { OnboardingDraftStore } from '../../../shared/lib/onboarding-draft';
 import { settingsCopy } from '../copy';
+import { CHILD_SETTINGS_ROWS } from '../model/menuRows';
 import { useSignOut } from '../model/useSignOut';
 
 export interface SettingsMenuProps {
@@ -11,10 +13,17 @@ export interface SettingsMenuProps {
 }
 
 /**
- * SettingsMenu — Design Spec §2.14 (`C13-12`), 결정 **D-7**.
+ * SettingsMenu — Design Spec §2.14 (`C13-12`), 결정 **D-7** + Stage 6 `C13-S6-1` (Spec §2.4, `N6-38`).
  *
- * Stage 2 의 목록은 **로그아웃 1행**이다. `ListGroup` 은 1행이어도 카드 형태를 유지하므로
- * Stage 3·6·8 에서 행만 추가된다 (`C-16`).
+ * ```
+ * SectionLabel "YOUR CHILD"  →  ListGroup "Your child"  (Profile · Child info · Update survey answers · Growth focus, chevron)
+ * SectionLabel "ACCOUNT"     →  ListGroup "Account"     (Log out — 동작 행, chevron 없음)
+ * ```
+ *
+ * - 행 subtitle 없음 — 목록이 데이터(`GET /profile`)에 의존하지 않는다 → Loading/Error 상태 해당 없음 (AC-6-17 N/A).
+ * - SectionLabel = `ChildInfoStep` 과 같은 recipe(`caption-1 · secondary · bold · tracking section-label`, Figma `248:1159` — `D6-10` ③) — 컴포넌트를 만들지 않는다.
+ * - chevron = Lucide `chevron-right` 16 `--color-fg-tertiary`, 장식 (Library 진입 행과 같은 idiom).
+ * - `R-SHADOW-1`: `ListGroup` 그림자 = `--shadow-bubble`(좌우 4 · 아래 10) ≤ 거터 24 · 그룹 간격 16 → 새 overflow 0.
  *
  * 로그아웃은 **되돌릴 수 없는 로컬 삭제**(이 기기의 온보딩 응답 — 결정 `D-3` 삭제 시점 ②)를
  * 동반하므로 오탭 한 번으로 실행되지 않게 `ConfirmDialog` destructive 를 거친다.
@@ -25,6 +34,7 @@ export interface SettingsMenuProps {
 export function SettingsMenu({ draftStore }: SettingsMenuProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const signOut = useSignOut({ draftStore });
+  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col gap-4 py-6">
@@ -36,14 +46,41 @@ export function SettingsMenu({ draftStore }: SettingsMenuProps) {
         />
       ) : null}
 
-      <ListGroup label={settingsCopy.menuLabel}>
-        <ListRow
-          title={settingsCopy.logOut.rowLabel}
-          onPress={() => {
-            setConfirmOpen(true);
-          }}
-        />
-      </ListGroup>
+      <section className="flex flex-col gap-2">
+        <Text variant="caption-1" tone="secondary" weight="bold" tracking="section-label">
+          {settingsCopy.groups.child.sectionLabel}
+        </Text>
+        <ListGroup label={settingsCopy.groups.child.listLabel}>
+          {CHILD_SETTINGS_ROWS.map((row) => (
+            <ListRow
+              key={row.id}
+              title={row.label}
+              trailing={
+                <span className="haru-settings-row__chevron">
+                  <Icon name="chevron-right" size="sm" tone="inherit" decorative />
+                </span>
+              }
+              onPress={() => {
+                void navigate(row.to);
+              }}
+            />
+          ))}
+        </ListGroup>
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <Text variant="caption-1" tone="secondary" weight="bold" tracking="section-label">
+          {settingsCopy.groups.account.sectionLabel}
+        </Text>
+        <ListGroup label={settingsCopy.groups.account.listLabel}>
+          <ListRow
+            title={settingsCopy.logOut.rowLabel}
+            onPress={() => {
+              setConfirmOpen(true);
+            }}
+          />
+        </ListGroup>
+      </section>
 
       <ConfirmDialog
         open={confirmOpen}

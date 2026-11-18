@@ -15,6 +15,7 @@
 import type { ActivityApi } from './activity-api';
 import type { AnalysisApi } from './analysis-api';
 import type { BooksApi } from './books-api';
+import type { ChildrenApi } from './children-api';
 import type { ConsentApi } from './consent-api';
 import type { HealthApi } from './health-api';
 import type { HomeApi } from './home-api';
@@ -58,4 +59,9 @@ export interface ApiClients {
   readonly reflections: ReflectionApi;
   /** Stage 5 — 분석 상태 · 짧은 피드백 조회 (FR-13 · FR-14, `API_CONTRACTS` §3.11). */
   readonly analysis: AnalysisApi;
+  /**
+   * Stage 6 — 아이 프로필 조회 · 아이 정보 수정 · 발전 역량 · 설문 재응답
+   * (FR-04~06 · FR-15 · §7.8, `API_CONTRACTS` Stage 6 절). 히스토리 목록 메서드는 없다 (`N6-12`).
+   */
+  readonly children: ChildrenApi;
 }

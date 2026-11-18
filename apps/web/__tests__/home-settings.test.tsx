@@ -158,11 +158,16 @@ describe('`/settings` (AC-2-40 · C13-12)', () => {
     expect(screen.getByRole('heading', { level: 1, name: settingsCopy.title })).toBeDefined();
   });
 
-  it('목록 항목이 로그아웃 1행뿐이다', async () => {
+  /*
+   * ⚠ Stage 6 `S6-B` 승계 (R-8 형식) — Stage 2 단정 *"목록 항목이 로그아웃 1행뿐이다"* · *"child profile 행 없음"* 은
+   * **의도된 변경**이다: `C13-S6-1`(Spec §2.4, `N6-38`)이 목록을 2그룹 5행으로 바꿨다. 로그아웃은
+   * `Account` 그룹의 유일한 행으로 남는다(Stage 2 AC 회귀 없음). 새 행 구성은 `__tests__/child-info-edit.test.tsx`.
+   */
+  it('`Account` 그룹은 로그아웃 1행이다 (Stage 6 — 아이 그룹은 별도)', async () => {
     await renderSignedIn(ROUTES.settings);
     await waitForGuard();
 
-    const list = await screen.findByRole('list', { name: settingsCopy.menuLabel });
+    const list = await screen.findByRole('list', { name: settingsCopy.groups.account.listLabel });
     const items = within(list).getAllByRole('listitem');
 
     expect(items).toHaveLength(1);
@@ -171,18 +176,12 @@ describe('`/settings` (AC-2-40 · C13-12)', () => {
     );
   });
 
-  it('데이터 관리 · 탈퇴 · 동의 이력 · 알림 설정 행이 없다 (Stage 3 · 6 · 8)', async () => {
+  it('데이터 관리 · 탈퇴 · 동의 이력 · 알림 설정 행이 없다 (Stage 8 · D-18)', async () => {
     await renderSignedIn(ROUTES.settings);
     await waitForGuard();
-    await screen.findByRole('list', { name: settingsCopy.menuLabel });
+    await screen.findByRole('list', { name: settingsCopy.groups.account.listLabel });
 
-    for (const label of [
-      /delete account/i,
-      /manage data/i,
-      /consent history/i,
-      /notification/i,
-      /child profile/i,
-    ]) {
+    for (const label of [/delete account/i, /manage data/i, /consent history/i, /notification/i]) {
       expect(screen.queryByText(label)).toBeNull();
     }
   });
@@ -322,7 +321,11 @@ describe('문구 규칙 (AC-2-38)', () => {
       homeOverviewCopy.weekSummary.label(0),
       homeOverviewCopy.weekSummary.label(3),
       settingsCopy.title,
-      settingsCopy.menuLabel,
+      settingsCopy.groups.child.sectionLabel,
+      settingsCopy.groups.child.listLabel,
+      settingsCopy.groups.account.sectionLabel,
+      settingsCopy.groups.account.listLabel,
+      ...Object.values(settingsCopy.rows),
       ...Object.values(settingsCopy.logOut),
     ];
 

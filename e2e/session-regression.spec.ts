@@ -552,6 +552,9 @@ const COMPLETE_PARTS = [
   '.haru-session-bubble--complete .haru-bubble',
 ] as const;
 
+/** 개정 AC-4-99 ④ 의 세로 넘침 0 기준 높이 (`D5-15`). 이보다 낮으면 스크롤 허용. */
+const NO_VERTICAL_SCROLL_MIN_HEIGHT = 852;
+
 function expectColumn(probe: LayoutProbe, width: number, height: number, state: string): void {
   const column = Math.min(width, 480);
   expect(probe.column.width, `${state} 컬럼 폭`).toBe(column);
@@ -561,8 +564,15 @@ function expectColumn(probe: LayoutProbe, width: number, height: number, state: 
   expect(probe.docOverflowX, `${state} 문서 가로 넘침`).toBeLessThanOrEqual(0);
   expect(probe.viewportOverflowX, `${state} 뷰포트 가로 넘침`).toBe(0);
   expect(probe.outside, `${state} 컬럼 밖 요소`).toStrictEqual([]);
-  // 세로 축: 796 이상 높이는 스크롤이 없다 (627 이하만 스크롤 — `D4-82`, `session-prompts.spec.ts`)
-  if (height >= 796) expect(probe.viewportOverflowY, `${state} 세로 넘침`).toBe(0);
+  /*
+   * 세로 축 — 개정 AC-4-99 ④ (`D5-15`, 2026-11-11): 320/393/600/1024 × **852** 에서 `firstName` ≤ 40자
+   * 기준 세로 넘침 0. **852 미만은 스크롤을 허용**한다 (예: 320×796 은 넘친다 — Stage 5 Spec §13.2 실측).
+   * 그래서 단정은 852 이상 높이에서만 한다. 852 미만 크기(1024×768 등)를 추가해도 세로는 단정하지 않는다.
+   * (`QA-5-005` 정리 — 이전 주석 "796 이상은 스크롤이 없다" 는 거짓 불변식이었다.)
+   */
+  if (height >= NO_VERTICAL_SCROLL_MIN_HEIGHT) {
+    expect(probe.viewportOverflowY, `${state} 세로 넘침`).toBe(0);
+  }
 }
 
 test.describe('AC-4-99 — 앱 컬럼 480 가운데 · 가로 넘침 0 · 요소 컬럼 안 (세션 · 완료)', () => {

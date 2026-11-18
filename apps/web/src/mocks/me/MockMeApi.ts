@@ -47,6 +47,7 @@ import {
 import type { MeApi } from '../../shared/api/me-api';
 import type { Clock } from '../../shared/lib/clock';
 import type { IdFactory } from '../../shared/lib/idFactory';
+import type { MockChildProfileState } from '../children/childProfileState';
 import type { MockConsentState } from '../consent/consentState';
 import type { MockOnboardingState } from '../onboarding/onboardingState';
 import {
@@ -95,11 +96,18 @@ export interface MockMeApiDeps {
   consentState: MockConsentState;
   /** `MockOnboardingApi` 와 공유하는 온보딩 상태 (제출이 `me` 에 반영되어야 한다). */
   onboardingState: MockOnboardingState;
+  /**
+   * Stage 6 — 아이 프로필 서버 상태. 아이 정보 수정(`PATCH /v1/children/:childId`)·온보딩 제출 뒤
+   * `child.firstName` 이 새 이름을 쓴다 (AC-6-22). 상태가 아직 없으면 fixture 이름(`Emma`).
+   */
+  childProfileState?: MockChildProfileState | undefined;
   requestLog?: RequestLog | undefined;
 }
 
 export function createMockMeApi(deps: MockMeApiDeps): MeApi {
   const { store, clock, idFactory, timer, consentState, onboardingState, requestLog } = deps;
+  const childFirstName = (): string =>
+    deps.childProfileState?.current()?.child.firstName ?? MOCK_CHILD_FIRST_NAME;
 
   /** `PATCH /v1/me` 로 갱신된 보호자 필드 (D-16). 아동 데이터는 여기에 들어오지 않는다. */
   let caregiverPatch: UpdateCaregiverRequest = {};
@@ -170,7 +178,7 @@ export function createMockMeApi(deps: MockMeApiDeps): MeApi {
         분기를 두지 않는다 (AC-2-13 — 아동 데이터가 온보딩 전 구간에 새지 않는다).
       */
       ...(onboardingStatus === 'completed'
-        ? { child: { id: MOCK_CHILD_ID, firstName: MOCK_CHILD_FIRST_NAME } }
+        ? { child: { id: MOCK_CHILD_ID, firstName: childFirstName() } }
         : {}),
     };
 

@@ -11,6 +11,7 @@
 import { activityScenarioGroup } from '../../mocks/activities/MockActivityApi';
 import { analysisScenarioGroup } from '../../mocks/analysis/analysisScenarios';
 import { booksScenarioGroup } from '../../mocks/books/MockBooksApi';
+import { childrenScenarioGroup } from '../../mocks/children/childProfileRecords';
 import { healthScenarioGroup } from '../../mocks/health/MockHealthApi';
 import { homeScenarioGroup } from '../../mocks/home/MockHomeApi';
 import { libraryScenarioGroup } from '../../mocks/library/MockLibraryApi';
@@ -49,5 +50,7 @@ export const DEV_SCENARIO_GROUPS: readonly ScenarioGroupDefinition<string>[] = [
   sessionCompletionScenarioGroup,
   reflectionScenarioGroup,
   analysisScenarioGroup,
+  // Stage 6 (AC-6-14, Plan §8) — 프로필 · 아이 정보 · 발전 역량 · 설문 재응답 (API_CONTRACTS §5.4)
+  childrenScenarioGroup,
   statesScenarioGroup,
 ];

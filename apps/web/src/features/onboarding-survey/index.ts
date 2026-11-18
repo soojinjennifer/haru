@@ -6,16 +6,26 @@ export type { OnboardingWizardProps } from './ui/OnboardingWizard';
 export { OnboardingIntro } from './ui/OnboardingIntro';
 export type { OnboardingIntroProps, OnboardingIntroVariant } from './ui/OnboardingIntro';
 export { OnboardingSaved } from './ui/OnboardingSaved';
-export { OnboardingSessionProvider, useOnboardingSession } from './model/onboardingSession';
-export type { OnboardingSession } from './model/onboardingSession';
-export { SurveyCardDeck, AUTO_ADVANCE_DELAY_MS } from './ui/SurveyCardDeck';
-export type { SurveyCardDeckProps } from './ui/SurveyCardDeck';
-export { ChoiceQuestionCard } from './ui/ChoiceQuestionCard';
-export type { ChoiceQuestionCardProps } from './ui/ChoiceQuestionCard';
-export { FavoriteBooksCard } from './ui/FavoriteBooksCard';
-export type { FavoriteBooksCardProps } from './ui/FavoriteBooksCard';
-export { CapabilityItemCard } from './ui/CapabilityItemCard';
-export type { CapabilityItemCardProps } from './ui/CapabilityItemCard';
+/*
+ * Stage 6 `R-5`(`N6-06` ⓐ): 카드 렌더러 · instrument 해석 · 카드 세션은 `entities/survey` 로 **이동**했다.
+ * 기존 소비자(pages · app · 테스트)가 바뀌지 않도록 같은 이름으로 다시 노출한다.
+ */
+export {
+  SurveyDeckSessionProvider as OnboardingSessionProvider,
+  useSurveyDeckSession as useOnboardingSession,
+  SurveyCardDeck,
+  AUTO_ADVANCE_DELAY_MS,
+  ChoiceQuestionCard,
+  FavoriteBooksCard,
+  CapabilityItemCard,
+} from '../../entities/survey';
+export type {
+  SurveyDeckSession as OnboardingSession,
+  SurveyCardDeckProps,
+  ChoiceQuestionCardProps,
+  FavoriteBooksCardProps,
+  CapabilityItemCardProps,
+} from '../../entities/survey';
 export {
   DEFAULT_ONBOARDING_INSTRUMENT,
   DEFAULT_ONBOARDING_ESTIMATES,
@@ -42,7 +52,7 @@ export {
   questionsForStep,
   resolveQuestion,
   surveyCards,
-} from './model/instrumentView';
+} from '../../entities/survey';
 export type {
   CapabilityItemSurveyCard,
   ChoiceSurveyCard,
@@ -50,7 +60,7 @@ export type {
   ResolvedChoiceOption,
   ResolvedChoiceQuestion,
   SurveyCard,
-} from './model/instrumentView';
+} from '../../entities/survey';
 export {
   ageAccessibleLabel,
   ageTagLabel,
@@ -70,7 +80,7 @@ export {
   setSurveyAnswer,
   surveyAnswerFor,
   unansweredCount,
-} from './model/surveyAnswers';
+} from '../../entities/survey';
 export { buildSubmitRequest } from './model/submitRequest';
 export type { SubmitBuildResult } from './model/submitRequest';
 export { hasAnyAnswers, useOnboardingDraft, DRAFT_DEBOUNCE_MS } from './model/useOnboardingDraft';

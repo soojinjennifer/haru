@@ -11,6 +11,7 @@ import { createMockApiClientsBundle } from '../../../mocks';
 import { ApiClientsProvider } from '../../../shared/api/context';
 import { createImmediateTimer } from '../../../shared/api/helpers';
 import type { ApiClients } from '../../../shared/api/types';
+import { activityCardKeys } from '../../activity-card';
 import { sessionKeys } from '../../session';
 import { useSubmitReflection } from '../useSubmitReflection';
 
@@ -98,6 +99,21 @@ describe('useSubmitReflection', () => {
     expect(onSubmitted).toHaveBeenCalledWith(result.current.reflection);
     // 캐시에 없던 key 는 만들지 않는다
     expect(queryClient.getQueryData(sessionKeys.detail(HISTORY_ANALYZED))).toBeUndefined();
+  });
+
+  it('성공 → 오늘 카드 캐시를 즉시 무효화한다 · 실패는 그대로 (`S6-G` G-10, `QA-6-006`)', async () => {
+    const { wrapper, queryClient } = setup('reflections:retry');
+    const key = activityCardKeys.today('child-1');
+    queryClient.setQueryData(key, { stale: false });
+    const { result } = renderHook(() => useSubmitReflection(HISTORY_ANALYZED), { wrapper });
+
+    act(() => result.current.submit(BODY));
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(queryClient.getQueryState(key)?.isInvalidated).toBe(false);
+
+    act(() => result.current.submit(BODY));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(queryClient.getQueryState(key)?.isInvalidated).toBe(true);
   });
 
   it('입력을 어떤 저장소에도 쓰지 않는다 (`N5-17`)', async () => {

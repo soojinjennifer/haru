@@ -251,6 +251,21 @@
    */
   --color-carousel-arrow: var(--haru-palette-mint);
   --color-carousel-arrow-disabled: var(--haru-gray-6);
+
+  /*
+   * Stage 6 `S6-E1` — DiamondChart 색 (Figma 없음 → Stage 6 Spec §3.1 · §5.2 `T6-4`~`T6-6`, `D6-8`).
+   * `@theme static` 에 둔다 — 아래 `:root` 블록에 두면 Tailwind v4 의 `color-mix()` 폴리필(중첩 `@supports`)이
+   * 이어지는 `:root` 선언들과 한 규칙으로 합쳐져, 그 뒤 선언(`--space-*` · `--material-*` …)이 CSSOM `rule.style`
+   * 밖으로 밀린다 — dev 토큰 갤러리 `v2-material` 이 비어 발견했다 (H6-2). `--color-fg-disabled` 와 같은 자리다.
+   * Tailwind 네임스페이스 밖 이름이라 유틸리티는 생기지 않는다 (`packages/ui` CSS 가 `var()` 로만 쓴다).
+   * 비텍스트 대비 1.25~2.04:1 (목표 3:1) → 가값 `P-30` — 정보는 라벨 텍스트 · SR summary 가 전달한다.
+   */
+  /* provisional: P-31 (docs/design/stage-6-design-spec.md §5.3) */
+  --chart-area-fill: color-mix(in srgb, var(--color-action-primary-bg) 30%, transparent);
+  /* provisional: P-30 (docs/design/stage-6-design-spec.md §5.3) */
+  --chart-area-stroke: var(--color-action-primary-bg);
+  /* provisional: P-30 (docs/design/stage-6-design-spec.md §5.3) */
+  --chart-grid-stroke: var(--color-border-subtle);
 }
 
 :root {

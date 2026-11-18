@@ -16,22 +16,11 @@
  * 카드 수 · 소요 시간 · 단계 수 · 선택 상한은 **전부 함수 슬롯**이다. 값은 instrument ·
  * contracts 상수 · fixture 에서 온다. 이 파일에 숫자를 적지 않는다.
  */
-import type {
-  Capability,
-  ChoiceQuestionId,
-  ReadAloudBehavior,
-  ReadingRoutine,
-  StoryComfort,
-  TopicTag,
-} from '@haru/contracts';
-
+import { surveyCardCopy } from '../../entities/survey';
 import { childCopy } from '../../shared/copy/child-copy';
 
-/** 질문 문구 1건. `description` 은 선택이다. */
-export interface QuestionCopy {
-  prompt: string;
-  description?: string;
-}
+/** 질문 문구 1건 — Stage 6 `R-5` 로 `entities/survey` 가 소유한다 (이름 유지용 재노출). */
+export type { QuestionCopy } from '../../entities/survey';
 
 function plural(count: number, singular: string, pluralForm: string): string {
   return count === 1 ? singular : pluralForm;
@@ -54,8 +43,7 @@ export const onboardingCopy = {
        * Figma `243:1160` "About 1 minutes" — 숫자는 instrument `estimates` 에서 온다 (`R-03`).
        * Figma 의 복수형 오타는 옮기지 않는다 (허용 차이 `AD-S2R-02`).
        */
-      duration: (minutes: number) =>
-        `About ${String(minutes)} ${plural(minutes, 'minute', 'minutes')}`,
+      duration: surveyCardCopy.minutes,
       /** Figma `243:1165` */
       format: 'Input your answers',
       /** Figma `243:1167` */
@@ -99,67 +87,41 @@ export const onboardingCopy = {
 
   /** 위저드 공통 chrome — Design Spec §3.1 · §3.2. */
   wizard: {
-    back: 'Go back',
+    back: surveyCardCopy.deck.back,
     next: 'Next',
     /** Trial 마지막 CTA — 가입으로 이어진다 (§2.12). */
     saveProfile: 'Save profile',
     /** 인증 상태의 마지막 CTA. */
     finish: 'Finish',
-    progressLabel: 'Onboarding progress',
+    progressLabel: surveyCardCopy.deck.progressLabel,
     saveFailedTitle: "We couldn't save that just yet.",
     saveFailedDescription: 'Your answers are still here. We will try again as you continue.',
-    /**
-     * 필수 문항이 남아 전진할 수 없는 이유 (`S2-ONB-1`). 카드 안쪽 옵션 아래 1행이며
-     * 오류 문구가 아니다 — tone 은 secondary 다 (Design Spec §3.2).
-     */
-    requiredBlockedReason: 'Answer this one to move on.',
+    /** 필수 문항 전진 차단 사유 (`S2-ONB-1`) — `entities/survey` 소유 (`R-5`). */
+    requiredBlockedReason: surveyCardCopy.deck.requiredBlockedReason,
   },
 
   /**
    * 단계 제목 — TopBar. 순서·개수는 contracts `OnboardingStep` 이 정한다.
    * `capability_items` 는 `R-13` 으로 **`Capability`** 다 (허용 차이 `AD-S2R-09`).
    */
-  steps: {
-    child_info: 'About your child',
-    reading_together: 'Reading together',
-    books_and_interests: 'Books and interests',
-    growing_together: 'Growing together',
-    capability_items: 'Capability',
-  } as const satisfies Record<string, string>,
+  steps: surveyCardCopy.steps,
 
   /** `About your child` — Design Spec §4 (Figma `248:1159`). 문구는 `shared/copy` 가 소유한다. */
   childInfo: childCopy,
 
   /** 좋아하는 책 카드 — Design Spec §6.3 (검색 없음 — `§11.13`). */
-  books: {
-    /** 카드 문항 (`§11.14` — 기존 섹션 라벨을 그대로 문장으로 쓴다, 문구 창작 0건). */
-    favoritesSection: 'Books your child loves',
-    /** 상한을 말한다. 숫자는 contracts `FAVORITE_BOOKS_MAX` 에서 온다. */
-    favoritesHint: (max: number) => `Up to ${String(max)}.`,
-    /** 상한 도달 시 — favorites 는 **거절**한다 (`§11.15` 의도된 차이). */
-    limitReached: (max: number) => `You can pick up to ${String(max)}.`,
-    /** 입력 행의 추가 액션. */
-    addAction: 'Add',
-    remove: (title: string) => `Remove ${title}`,
-    selectedLabel: 'Books you picked',
-  },
+  books: surveyCardCopy.books,
 
   /** 카드 덱 — Design Spec §3 (Figma `179:1770`). */
   survey: {
-    deckLabel: 'Onboarding questions',
-    prevQuestion: 'Previous question',
-    nextQuestion: 'Next question',
-    /** 카드 안쪽 좌상단 통산 카운터 `n / 16` (`R-02`). 숫자는 파생값이다. */
-    counter: (index: number, total: number) => `${String(index)} / ${String(total)}`,
-    /** 카드가 바뀔 때 `aria-live` 로 읽히는 문구 (Design Spec §14.3). */
-    cardAnnouncement: (stepTitle: string, index: number, total: number) =>
-      `${stepTitle} · ${String(index)} of ${String(total)}`,
-    clearAnswer: 'Clear this answer',
-    /** 비채점 6번째 옵션 그룹 하단 caption — 색·위치 외에 텍스트로도 성격을 전한다. */
-    notScoredCaption: "This one isn't scored.",
-    /** 아직 응답하지 않은 문항이 남았을 때 마지막 카드 CTA 위에 나오는 사유. */
-    remaining: (count: number) =>
-      `${String(count)} ${plural(count, 'question', 'questions')} left.`,
+    deckLabel: surveyCardCopy.deck.deckLabel,
+    prevQuestion: surveyCardCopy.deck.prevQuestion,
+    nextQuestion: surveyCardCopy.deck.nextQuestion,
+    counter: surveyCardCopy.deck.counter,
+    cardAnnouncement: surveyCardCopy.deck.cardAnnouncement,
+    clearAnswer: surveyCardCopy.deck.clearAnswer,
+    notScoredCaption: surveyCardCopy.deck.notScoredCaption,
+    remaining: surveyCardCopy.deck.remaining,
     submitFailedTitle: "We couldn't save the profile yet.",
     childLimit: 'This account already has a child profile.',
   },
@@ -207,77 +169,17 @@ export const onboardingCopy = {
    * 선택형 질문 문구 — **문항 목록·순서는 여기에 없다.** instrument 가 정한다 (구조 제약 ②).
    * 이 표는 id → 문구 매핑일 뿐이며, instrument 가 `prompt` 를 내려주면 그쪽이 우선한다.
    */
-  questions: {
-    'reading_together.story_comfort': {
-      prompt: 'When you read to your child, which kinds of stories tend to go best?',
-    },
-    'reading_together.read_aloud_behavior': {
-      prompt: 'During read-aloud, what does your child usually do?',
-    },
-    'books_and_interests.topic_tags': {
-      prompt: 'What does your child tend to reach for in books?',
-      description: 'Pick up to two.',
-    },
-    /** 질문지 v1.1 Q5 원문 (`§11.11`). 책 제목은 instrument 선택지가 소유한다. */
-    'books_and_interests.owned_books': {
-      prompt: 'Which of these does your child already know well?',
-      description: "Tap any books you've read together more than a few times.",
-    },
-    'growing_together.growth_goals': {
-      prompt: 'What would you like to grow together?',
-      // 최소·최대를 함께 말한다 (`S2-ONB-1`). 복수 선택 그룹은 `role="group"` 이라
-      // `aria-required` 를 쓸 수 없으므로 이 보조 문구가 필수성을 전달한다.
-      description: 'Pick at least one, up to two.',
-    },
-  } as const satisfies Record<ChoiceQuestionId, QuestionCopy>,
+  questions: surveyCardCopy.questions,
 
   /**
    * 선택지 문구 — 코드별 라벨. 질문지 v1.1 의 보호자 노출 문구를 그대로 쓴다.
    * instrument 옵션에 `label` 이 있으면 그쪽이 우선한다 (서버 주도 교체 경로).
    */
-  choiceOptions: {
-    'reading_together.story_comfort': {
-      quiet_gentle: 'Quiet, gentle stories — bedtime-style, slow pace',
-      some_adventure: 'A bit of adventure, but nothing too intense',
-      wild_ride: 'They love a wild ride — big feelings, big action',
-      depends_on_the_day: 'It really depends on the day or their mood',
-    } satisfies Record<StoryComfort, string>,
-    'reading_together.read_aloud_behavior': {
-      sits_and_listens: 'Sits close and listens',
-      points_and_touches: 'Wants to point, touch, turn pages',
-      acts_it_out: "Acts things out, can't sit still",
-      asks_questions: 'Asks lots of questions',
-      moves_but_listens: 'Moves around but is clearly listening',
-    } satisfies Record<ReadAloudBehavior, string>,
-    'books_and_interests.topic_tags': {
-      narrative: "Characters and stories — what happens, who's in it",
-      inquiry: 'How things work, animals, the world around them',
-      artistic: 'Colors, art, things that look beautiful or interesting',
-      social: 'Books with other kids, families, friendships',
-      not_sure_yet: "Honestly not sure yet — they're still figuring it out",
-    } satisfies Record<TopicTag, string>,
-    /**
-     * Q5 는 라벨 표가 **비어 있다** — 선택지가 책 id 이고 제목은 instrument 의 `label` 로
-     * 내려온다 (`§11.11`: 8권 제목은 Mock fixture 소유, 화면·copy 하드코딩 금지).
-     */
-    'books_and_interests.owned_books': {},
-    'growing_together.growth_goals': {
-      emotion_regulation: 'Helping with big feelings — when emotions feel overwhelming',
-      self_directed_agency: 'Building their confidence and sense of “I can do it”',
-      cognitive_flexibility: "Helping them adjust when things change or don't go their way",
-      intrinsic_motivation: 'Sparking their wonder about the world and connection with us',
-    } satisfies Record<Capability, string>,
-  } as const satisfies Record<ChoiceQuestionId, Record<string, string>>,
+  choiceOptions: surveyCardCopy.choiceOptions,
 
   /** enum 라벨 — 값은 contracts, 문구는 `shared/copy/child-copy`. */
   genderOptions: childCopy.genderOptions,
   relationshipOptions: childCopy.relationshipOptions,
   languageOptions: childCopy.languageOptions,
-  readingRoutineOptions: {
-    daily: 'Just about every day',
-    few_times_a_week: 'A few times a week',
-    weekends_only: 'Mostly on weekends',
-    occasionally: 'Every now and then',
-    just_starting: "We're just starting",
-  } as const satisfies Record<ReadingRoutine, string>,
+  readingRoutineOptions: childCopy.readingRoutineOptions,
 } as const;

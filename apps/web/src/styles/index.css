@@ -24,8 +24,10 @@
 @import '../entities/activity-card/activity-card.css';
 @import '../entities/library/library.css';
 @import '../entities/session/session.css';
+@import '../entities/child/child.css';
 @import '../features/auth/auth.css';
 @import '../features/consent/consent.css';
+@import '../entities/survey/survey.css';
 @import '../features/onboarding-survey/onboarding.css';
 @import '../features/home-overview/home-overview.css';
 @import '../features/activity-card-deck/activity-card-deck.css';
@@ -34,6 +36,9 @@
 @import '../features/reflection/reflection.css';
 @import '../features/session-feedback/session-feedback.css';
 @import '../features/session-prompts/session-prompts.css';
+@import '../features/child-profile-view/child-profile-view.css';
+@import '../features/growth-capability/growth-capability.css';
+@import '../features/settings/settings.css';
 
 /*
  * 앱 셸 기본값. 값은 전부 semantic token 이며 리터럴 수치를 쓰지 않는다.

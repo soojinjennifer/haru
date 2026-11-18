@@ -4,6 +4,7 @@ import type { ApiClients } from '../types';
 import { createHttpActivityApi } from './HttpActivityApi';
 import { createHttpAnalysisApi } from './HttpAnalysisApi';
 import { createHttpBooksApi } from './HttpBooksApi';
+import { createHttpChildrenApi } from './HttpChildrenApi';
 import { createHttpConsentApi } from './HttpConsentApi';
 import { createHttpHealthApi } from './HttpHealthApi';
 import { createHttpHomeApi } from './HttpHomeApi';
@@ -53,6 +54,15 @@ export {
 export { createTusUploadTransport, TUS_VERSION } from './TusUploadTransport';
 export { createHttpReflectionApi, sessionReflectionPath } from './HttpReflectionApi';
 export { createHttpAnalysisApi, sessionAnalysisPath } from './HttpAnalysisApi';
+export {
+  childGrowthCapabilityPath,
+  childPath,
+  childProfilePath,
+  createHttpChildrenApi,
+  surveyUpdatePath,
+  surveyUpdateStepPath,
+  surveyUpdateSubmitPath,
+} from './HttpChildrenApi';
 
 export function createHttpApiClients(options: HttpClientOptions): ApiClients {
   const client = createHttpClient(options);
@@ -74,5 +84,6 @@ export function createHttpApiClients(options: HttpClientOptions): ApiClients {
     notifications: createHttpNotificationApi(client),
     reflections: createHttpReflectionApi(client),
     analysis: createHttpAnalysisApi(client),
+    children: createHttpChildrenApi(client),
   };
 }

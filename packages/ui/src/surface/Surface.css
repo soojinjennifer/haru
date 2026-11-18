@@ -144,6 +144,11 @@
   box-shadow: var(--shadow-glass-pressed);
 }
 
+.haru-surface--material-bubble {
+  /* Stage 6 Spec §3.4 `T6-9` — `163:2607` 인스턴스 렌더 (`V-10`) */
+  box-shadow: var(--shadow-bubble);
+}
+
 .haru-surface--material-none {
   box-shadow: none;
 }

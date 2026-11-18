@@ -158,7 +158,9 @@ describe('빌드 산출물 — CSS Variable export (AC-1-11)', () => {
     // `S4-K1` 후속에서 2종 추가 → 239 (ready 버블 아래 14.4 · stage 하한 205, `D4-78` · `D4-81`). `S4-H1` 19종 → 258. `S4-H1R` 3종 → 261 (보조 줄 19 · 스티커 제목 14/17). `S4-G2MF` 1종 → 262 (floating 닫힘 그림자 번짐 28, `D4-139`).
     // Stage 5 `S5-B` 12종 → 274 (회고 카드 7 · 별 2 · 입력 2 · Chip select border 1 — `T5-2`~`T5-11`, `D5-4`).
     // `S5-B` 후속 `VG5B-1` ⓑ 1종 → 275 (`--chip-select-label-size` 12.5).
-    expect(manifest.counts['component']).toBe(275);
+    // Stage 6 `S6-E1` 7종 → 282 (DiamondChart `T6-1`~`T6-3` · `T6-5` 굵기 · `T6-7` · `T6-8` 2, `D6-8`).
+    // Stage 6 `S6-H` 3종 → 285 (`--choice-card-radius` · `--section-label-letter-spacing` · `--child-routine-label-offset`, `D6-10`).
+    expect(manifest.counts['component']).toBe(285);
     // 2026-09-22 가값 승인 (stage-1-approvals §9) 후 남은 항목 = P-01 · P-02 · P-04 · P-05 · P-16.
     // Stage 3 에서 P-23(--color-prompt-tag-fg) 신설 (stage-3-approvals §9.2 ⑫).
     // Library 1라운드: **P-05 해제**(scrim 이 Figma 실측값이 되었다 — `L-NEW-09`) ·
@@ -171,11 +173,17 @@ describe('빌드 산출물 — CSS Variable export (AC-1-11)', () => {
       'P-23',
       'P-24',
       'P-25',
+      'P-30',
+      'P-31',
+      'P-32',
+      'P-33',
     ]);
     // 42 − 1 — `--color-scrim` 의 주석이 사라졌다. `--color-fg-tertiary` 는 P-01 → P-24 로
     // **소속만** 바뀌어 총 개수에 영향이 없다.
     // Stage 4 `S4-F1` +3 → 44: `P-25` 신설 2(`--color-action-neutral-bg`·`-fg`, `D4-16`) +
     // `P-16` 1(`--size-medallion-session` 174, `T-11`).
-    expect(manifest.counts['provisional']).toBe(44);
+    // Stage 6 `S6-E1` +6 → 50: `P-30` 2(`--chart-area-stroke`·`--chart-grid-stroke`) · `P-31` 1 ·
+    // `P-32` 1 · `P-33` 2(`--chart-diamond-radius-max`·`-label-max`) — Stage 6 Spec §5.3 (`D6-8`).
+    expect(manifest.counts['provisional']).toBe(50);
   });
 });

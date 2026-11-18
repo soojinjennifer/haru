@@ -89,6 +89,7 @@ describe('ChildProfile · ProfileResult', () => {
       growingEdges: ['intrinsic_motivation'],
       persona,
       growthCapability: 'intrinsic_motivation',
+      profileUpdatedAt: null,
     });
     expect(profile.strengths).toHaveLength(1);
   });
@@ -102,6 +103,7 @@ describe('ChildProfile · ProfileResult', () => {
         growingEdges: [],
         persona,
         growthCapability: null,
+        profileUpdatedAt: null,
       }).success,
     ).toBe(false);
   });
@@ -115,6 +117,7 @@ describe('ChildProfile · ProfileResult', () => {
         growingEdges: [],
         persona,
         growthCapability: null,
+        profileUpdatedAt: null,
       }).growthCapability,
     ).toBeNull();
 

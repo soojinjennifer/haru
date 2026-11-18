@@ -547,4 +547,32 @@
   --dialog-radius: var(--radius-card);
   --toast-radius: var(--radius-surface);
   --skeleton-radius: var(--radius-control);
+
+  /* ===== Stage 6 `S6-E1` — DiamondChart (Figma 없음 → Stage 6 Spec §3.1 · §5.2 `T6-1`~`T6-8`, `D6-8`) =====
+   * 다이아몬드 반대각선 h = min(radius-max, (W − 2·(label-max + label-gap)) / 2). 값 → 반지름 r(v) = h·v/max.
+   * 면·외곽선·격자 색은 Tier 2 (`semantic/color.css` `--chart-area-*` · `--chart-grid-stroke`). */
+  /* provisional: P-33 (docs/design/stage-6-design-spec.md §5.3) */
+  --chart-diamond-radius-max: 100px;
+  /* provisional: P-33 (docs/design/stage-6-design-spec.md §5.3) */
+  --chart-diamond-label-max: 64px;
+  --chart-diamond-label-gap: var(--space-1-5); /* 6 — 라벨 ↔ 꼭짓점 (`T6-3`) */
+  --chart-stroke-width: 2px; /* 면 외곽선 (`T6-5`) */
+  /* provisional: P-32 (docs/design/stage-6-design-spec.md §5.3) */
+  --chart-missing-dash: 3 4;
+  --chart-vertex-size: 10px; /* `T6-8` */
+  --chart-selected-ring: 18px; /* `T6-8` */
+
+  /* ===== Stage 6 `S6-H` — QA 2차 결정 `D6-10` (Figma 선언값, `get_design_context` 2026-11-18) =====
+   * ② 언어 카드 radius — `244:1314` `rounded-[30px]`. card(28)로 흡수하지 않는다 (`N5-28` 선례 · `VG6-G-02`).
+   *    값은 `--reflection-card-radius`(30, `91:691`)와 같지만 **다른 노드의 다른 의미**라 서로 참조하지 않는다 —
+   *    한쪽 Figma 가 바뀌어도 다른 쪽 렌더가 따라 바뀌지 않게 둔다 (`VG6-G-02` "재사용 비권고").
+   * ③ 섹션 라벨 자간 — `244:1313` AT HOME · `244:1358` Reading routine · `244:1427` YOUR CHILD · `244:1430` ABOUT YOU ·
+   *    `179:1733`/`179:1739` 가입 · `319:1503`/`319:1510`/`319:1540` 프로필 = 전부 Bold 12 · `tracking-[0.72px]`(12 × 6%).
+   * ④ 독서 루틴 라벨 위 여백 — 언어 카드 아래 → 첫 행 = Figma **53** (섹션 gap 18 + 라벨 행 pad 10 + 글자 14 + pad 10 + gap 1).
+   *    HARU: 섹션 gap 20(`AD-S2R-04`) + **7** + caption-1 줄 16 + `space-2-5` 10 = 53. 7 = 글자 중심을 Figma 와 같은 높이
+   *    (카드 아래 +35 = 18 + 10 + 14/2)에 두는 값이다 (20 + 7 + 16/2 = 35). 스케일(짝수)로는 합 17 이 나오지 않는다.
+   */
+  --choice-card-radius: 30px;
+  --section-label-letter-spacing: 0.72px;
+  --child-routine-label-offset: 7px;
 }

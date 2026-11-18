@@ -22,6 +22,7 @@ import type {
   SubmitReflectionRequest,
 } from '@haru/contracts';
 
+import { activityCardKeys } from '../activity-card';
 import { sessionKeys } from '../session';
 import { useApiClients } from '../../shared/api/context';
 import { isHaruApiError, isNetworkError } from '../../shared/api/helpers';
@@ -78,6 +79,9 @@ export function useSubmitReflection(
           current === undefined ? current : { ...current, reflection },
         );
       }
+      // 회고는 다음 추천의 신호다(예: *Tricky today* → 난이도 하향, AC-6-40) — 오늘 카드를 즉시 무효화해 Home 이
+      // 돌아오자마자 다시 받게 한다 (`S6-G` G-10, `D6-9` ④ · `QA-6-006`). 서버 반영 시점은 `P6-BIP-04`.
+      void queryClient.invalidateQueries({ queryKey: activityCardKeys.all });
       callbacks.onSubmitted?.(reflection);
     },
     onError: (error: unknown) => {

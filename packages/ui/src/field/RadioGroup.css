@@ -76,12 +76,39 @@
   color: var(--color-fg-primary);
 }
 
+/*
+ * card 변형 행 라벨 = **Semibold** — Figma Answer card `179:1788`(설문 원본) · `244:1394`(독서 루틴) ·
+ * `320:1493`(발전 역량) 선언값 `SF Pro Semibold` `font-[590]` 14.5 (`D6-10` ① · `VG6-G-07`). Stage 1 §4.17 이 weight 를
+ * 적지 않아 Regular 로 그려지던 누락이다. list 변형(시간 목록 — Figma 없음)은 기존 Regular 그대로 둔다.
+ */
+.haru-radio-group--card .haru-radio-group__label {
+  font-weight: var(--font-weight-semibold);
+}
+
+/*
+ * `meta` (Stage 6 Spec §3.2) — 라벨 오른쪽 끝 caption-1. 미선택 = ink-600(`--color-action-secondary-fg`),
+ * 선택 행 = 선택 라벨과 같은 색. 옵션에 `meta` 가 없으면 이 요소가 없다(기존 baseline 불변).
+ */
+.haru-radio-group__meta {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  color: var(--color-action-secondary-fg);
+}
+
 /* ===== selected — 색 + 원 채움 이중 표시 (§4.17) ========================== */
 .haru-radio-group__option--selected {
   background-color: var(--color-selected-bg);
 }
 
 .haru-radio-group__option--selected .haru-radio-group__label {
+  /* accepted deviation: D-01 (white label on teal = 2.07:1, approvals §3) */
+  color: var(--color-selected-fg);
+}
+
+.haru-radio-group__option--selected .haru-radio-group__meta {
   /* accepted deviation: D-01 (white label on teal = 2.07:1, approvals §3) */
   color: var(--color-selected-fg);
 }
@@ -98,8 +125,23 @@
     background-color: var(--color-surface-tinted);
   }
 
-  .haru-radio-group__option--selected:hover {
+  /*
+    선택 행은 hover 중에도 teal 채움을 유지한다 (`VG6-E2-04`, Stage 6 Visual Gap).
+    위 hover 규칙이 `:hover:not(--disabled)` 로 특이도 (0,3,0) 이라, 예전 복원 규칙
+    `.option--selected:hover` (0,2,0) 는 **항상 졌다** — 선택 행이 hover 색(#dbeee7) + 흰 라벨
+    1.21:1 로 그려졌다 (Stage 1 부터). 같은 `:not()` 을 붙여 (0,3,0) 으로 맞추고 **뒤에** 둔다.
+  */
+  .haru-radio-group__option--selected:hover:not(.haru-radio-group__option--disabled) {
     background-color: var(--color-selected-bg);
+  }
+
+  /*
+    list 변형은 선택 행에 채움이 없다 — 위 복원 규칙이 list 에 teal 을 칠하지 않게, **수정 전과 같은**
+    hover 색(tinted)을 그대로 둔다 (list 변형의 기존 동작 변화 0).
+  */
+  .haru-radio-group--list
+    .haru-radio-group__option--selected:hover:not(.haru-radio-group__option--disabled) {
+    background-color: var(--color-surface-tinted);
   }
 }
 

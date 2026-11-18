@@ -41,3 +41,21 @@ describe('Text', () => {
     expect(container.querySelector('p')?.hasAttribute('for')).toBe(false);
   });
 });
+
+describe('Text tracking (D6-10 ③)', () => {
+  it('adds the section-label tracking modifier only when asked', () => {
+    const { container } = render(
+      <>
+        <Text variant="caption-1" weight="bold" tracking="section-label">
+          AT HOME
+        </Text>
+        <Text variant="caption-1">plain</Text>
+      </>,
+    );
+    const [label, plain] = Array.from(container.querySelectorAll('p'));
+
+    expect(label?.className).toContain('haru-text--tracking-section-label');
+    expect(label?.className).toContain('haru-text--weight-bold');
+    expect(plain?.className).not.toContain('haru-text--tracking');
+  });
+});

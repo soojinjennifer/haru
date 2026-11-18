@@ -64,6 +64,8 @@ import type { OnboardingApi } from '../../shared/api/onboarding-api';
 import type { ApiMutationOptions } from '../../shared/api/options';
 import { clockDate, type Clock } from '../../shared/lib/clock';
 import type { IdFactory } from '../../shared/lib/idFactory';
+import { createChildProfileRecordFromOnboarding } from '../children/childProfileRecords';
+import type { MockChildProfileState } from '../children/childProfileState';
 import type { MockConsentState } from '../consent/consentState';
 import { MOCK_REQUIRED_CONSENT_TYPES } from '../fixtures/consent';
 import {
@@ -130,6 +132,11 @@ export interface MockOnboardingApiDeps {
   onboardingState: MockOnboardingState;
   /** 동의 기록 여부 — 아동 데이터 수신 차단 판정에 쓴다 (AC-2-13). */
   consentState: MockConsentState;
+  /**
+   * Stage 6 — 제출 결과를 아이 프로필 서버 상태로 남긴다. 프로필 결과 화면은 제출 응답이 아니라
+   * `GET /v1/children/:childId/profile` 로 그린다 (`D6-5`) — 같은 서버가 같은 값을 돌려줘야 한다.
+   */
+  childProfileState?: MockChildProfileState | undefined;
   requestLog?: RequestLog | undefined;
 }
 
@@ -302,7 +309,7 @@ export function createMockOnboardingApi(deps: MockOnboardingApiDeps): Onboarding
 
     onboardingState.markSubmitted();
 
-    return parseResponse(
+    const result = parseResponse(
       ProfileResultSchema,
       createProfileResultFixture({
         instrument,
@@ -313,6 +320,14 @@ export function createMockOnboardingApi(deps: MockOnboardingApiDeps): Onboarding
       }),
       { operation: SUBMIT_OPERATION, direction: 'response' },
     );
+
+    // Stage 6 — 같은 서버의 `GET /profile` 이 이 결과를 돌려준다 (R-9: `persona-fallback` ·
+    // `capability-all-missing` 의 화면 확인이 이 경로로 이어진다).
+    deps.childProfileState?.replace(
+      createChildProfileRecordFromOnboarding(result, answers, validated.data.instrument),
+    );
+
+    return result;
   }
 
   return {

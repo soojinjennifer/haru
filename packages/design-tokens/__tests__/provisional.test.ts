@@ -121,6 +121,23 @@ const EXPECTED: Record<string, { file: string; tokens: string[] }[]> = {
       tokens: ['--color-action-neutral-bg', '--color-action-neutral-fg'],
     },
   ],
+  /*
+   * Stage 6 신설 — `D6-8` (Stage 6 Design Spec §5.3). DiamondChart 는 Figma 근거가 없는 명세다.
+   *   `P-30` 차트 비텍스트 대비(면 외곽선 · 격자) · `P-31` 면 채움 알파 30% ·
+   *   `P-32` 미관찰 축 점선 · `P-33` 차트 기하(h 상한 100 · 라벨 폭 64).
+   * 역량 꼭짓점 색(`--color-capability-*-chart`)은 `#19` CONFIRMED 라 `P-30` 주석을 달지 않는다.
+   */
+  'P-30': [
+    { file: 'src/semantic/color.css', tokens: ['--chart-area-stroke', '--chart-grid-stroke'] },
+  ],
+  'P-31': [{ file: 'src/semantic/color.css', tokens: ['--chart-area-fill'] }],
+  'P-32': [{ file: 'src/component/index.css', tokens: ['--chart-missing-dash'] }],
+  'P-33': [
+    {
+      file: 'src/component/index.css',
+      tokens: ['--chart-diamond-radius-max', '--chart-diamond-label-max'],
+    },
+  ],
 };
 
 /**
@@ -188,16 +205,28 @@ const actualPairs = declarations
   .map((d) => `${d.provisional} ${d.file} ${d.name}`)
   .sort();
 
-const REMAINING = ['P-01', 'P-02', 'P-04', 'P-16', 'P-23', 'P-24', 'P-25'];
+const REMAINING = [
+  'P-01',
+  'P-02',
+  'P-04',
+  'P-16',
+  'P-23',
+  'P-24',
+  'P-25',
+  'P-30',
+  'P-31',
+  'P-32',
+  'P-33',
+];
 
 describe('provisional 주석 ↔ 남은 가값 목록 (AC-1-12 · approvals §9)', () => {
-  it('항목이 7건이다 (P-01 · P-02 · P-04 · P-16 · P-23 · P-24 · P-25)', () => {
+  it('항목이 11건이다 (P-01 · P-02 · P-04 · P-16 · P-23 · P-24 · P-25 · P-30 ~ P-33)', () => {
     const items = [...new Set(declarations.map((d) => d.provisional).filter(Boolean))].sort();
     expect(items).toEqual(REMAINING);
-    expect(items).toHaveLength(7);
+    expect(items).toHaveLength(11);
   });
 
-  it('EXPECTED 표 자체가 남은 7 항목만 담는다 (표를 늘려 검사를 우회하지 못한다)', () => {
+  it('EXPECTED 표 자체가 남은 11 항목만 담는다 (표를 늘려 검사를 우회하지 못한다)', () => {
     expect(Object.keys(EXPECTED).sort()).toEqual(REMAINING);
     for (const item of [...CONFIRMED_2026_09_22, ...CONFIRMED_2026_10_06]) {
       expect(EXPECTED[item]).toBeUndefined();

@@ -23,6 +23,12 @@ export type TextTone =
 /** 스타일 기본 weight 를 덮어쓸 때만 쓴다 (§4.1). */
 export type TextWeight = 'regular' | 'medium' | 'semibold' | 'bold' | 'heavy';
 
+/**
+ * 자간 override. `section-label` = 섹션 라벨 자간(Figma Bold 12 · tracking 0.72 — `D6-10` ③,
+ * `--section-label-letter-spacing`). 주지 않으면 스타일 기본 자간이다.
+ */
+export type TextTracking = 'section-label';
+
 /** 의미 태그. 시각 크기(variant)와 heading 레벨을 분리한다 (§4.1). */
 export type TextElement = 'p' | 'span' | 'label' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
@@ -37,6 +43,8 @@ export interface TextProps {
   tone?: TextTone;
   /** 스타일 기본 weight override. */
   weight?: TextWeight;
+  /** 스타일 기본 letter-spacing override. */
+  tracking?: TextTracking;
   as?: TextElement;
   align?: TextAlign;
   truncate?: TextTruncate;
@@ -59,6 +67,7 @@ export function Text({
   variant = 'body',
   tone = 'inherit',
   weight,
+  tracking,
   as = 'p',
   align,
   truncate = 'none',
@@ -76,6 +85,7 @@ export function Text({
         `haru-text--${variant}`,
         `haru-text--tone-${tone}`,
         weight && `haru-text--weight-${weight}`,
+        tracking && `haru-text--tracking-${tracking}`,
         align && `haru-text--align-${align}`,
         truncate !== 'none' && `haru-text--truncate-${truncate}`,
         numeric && 'haru-text--numeric',

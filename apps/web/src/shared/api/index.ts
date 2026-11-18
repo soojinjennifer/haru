@@ -25,6 +25,7 @@ export type { RecordingApi } from './recording-api';
 export type { NotificationApi } from './notification-api';
 export type { ReflectionApi } from './reflection-api';
 export type { AnalysisApi } from './analysis-api';
+export type { ChildrenApi, SurveyUpdateSaveOptions } from './children-api';
 export {
   isUploadOffsetConflictError,
   UploadOffsetConflictError,

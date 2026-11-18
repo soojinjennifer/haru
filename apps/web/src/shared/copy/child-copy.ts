@@ -9,7 +9,12 @@
  *
  * 문구는 진단·판정 표현을 쓰지 않는다. 오류 문구는 "무슨 일이 있었는지 + 다음에 할 수 있는 것" 이다.
  */
-import type { CaregiverRelationship, Gender, LanguageEnvironment } from '@haru/contracts';
+import type {
+  CaregiverRelationship,
+  Gender,
+  LanguageEnvironment,
+  ReadingRoutine,
+} from '@haru/contracts';
 
 export const childCopy = {
   /** 섹션 라벨 — Figma `179:1739` · `244:1427`. */
@@ -82,4 +87,16 @@ export const childCopy = {
     french: 'French',
     other: 'Another language',
   } as const satisfies Record<LanguageEnvironment, string>,
+
+  /**
+   * 독서 루틴 선택지 — Stage 6 `R-11` 로 `features/onboarding-survey/copy` 에서 옮겼다 (값 변화 0).
+   * 온보딩 Step 1 과 아이 정보 수정 화면이 같은 문구를 쓴다 (`N6-27` ⓐ).
+   */
+  readingRoutineOptions: {
+    daily: 'Just about every day',
+    few_times_a_week: 'A few times a week',
+    weekends_only: 'Mostly on weekends',
+    occasionally: 'Every now and then',
+    just_starting: "We're just starting",
+  } as const satisfies Record<ReadingRoutine, string>,
 } as const;

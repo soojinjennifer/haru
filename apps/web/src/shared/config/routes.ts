@@ -9,8 +9,8 @@
  * 화면은 각각 `2-CONSENT` · `2-ONBOARDING` · `2-HOME` Step 이 등록한다 — Guard 가 그 경로로
  * 리다이렉트 판정을 내려야 하므로 상수는 먼저 존재해야 한다.
  *
- * Stage 2-B(`/onboarding/profile` · `/onboarding/growth-capability`)는 **여기에도 없다**
- * (approvals §3).
+ * Stage 2-B(`/onboarding/profile` · `/onboarding/growth-capability`)는 Stage 6 에서 design-agent 명세로
+ * 들어왔다 (`D6-1`). `S6-E1` 이 `profile` 을, `S6-E2` 가 `growthCapability` 를 등록했다.
  *
  * dev UI gallery(`/__dev/ui/*`)의 경로는 **여기에 두지 않는다.** 이 객체는 Production 번들에
  * 그대로 남으므로, 경로 문자열도 dev 에서만 존재하도록 `app/router.tsx` 의 가드 안에 인라인한다
@@ -45,6 +45,16 @@ export const ROUTES = {
      */
     step: '/onboarding/:step',
     saved: '/onboarding/saved',
+    /**
+     * 프로필 결과 — 온보딩 모드 (Stage 6 `C13-09`, Spec §2.1). `saved` CTA 가 **replace** 로 들어온다 (R-7).
+     * `:step` 보다 먼저 등록해야 slug 로 잡히지 않는다.
+     */
+    profile: '/onboarding/profile',
+    /**
+     * 발전 역량 제시 — 온보딩 모드 (Stage 6 `C13-10`, Spec §2.3). 프로필 `Next` 의 목적지.
+     * `S6-E2` 가 등록했다. 확정 → Home(replace).
+     */
+    growthCapability: '/onboarding/growth-capability',
   },
 
   /**
@@ -67,6 +77,28 @@ export const ROUTES = {
 
   /** `2-HOME` 가 화면을 등록한다. */
   settings: '/settings',
+  /**
+   * 프로필 — 재방문 모드 (Stage 6 `C13-09`, Spec §2.2 · `D6-4`). 진입 행(설정 목록)은 `S6-B` 가 붙인다.
+   * 평면 key — `settings` 를 객체로 바꾸면 기존 `ROUTES.settings` 사용처가 전부 깨진다 (`libraryAdd` 선례).
+   */
+  settingsProfile: '/settings/profile',
+  /** 아이 정보 수정 (Stage 6 `C13-S6-2`, Spec §2.5) — `S6-B`. */
+  settingsChild: '/settings/child',
+  /**
+   * 설문 재응답 진입 (Stage 6 `C13-S6-3`, Spec §2.6.1) — `S6-C` 가 등록했다. 설정 목록 행(`S6-B`)의 목적지.
+   */
+  settingsChildSurvey: '/settings/child/survey',
+  /**
+   * 설문 재응답 카드 (Spec §2.6.2 · `N6-48` → `D6-8`). `:step` = 온보딩과 **같은 slug** 중 카드 단계 4개
+   * (`reading-together` · `books-and-interests` · `growing-together` · `capability-items`). 경로를 만들 때는
+   * `settingsChildSurveyStepPath(slug)` 를 쓴다.
+   */
+  settingsChildSurveyStep: '/settings/child/survey/:step',
+  /**
+   * 발전 역량 · 설정 모드 (Stage 6 `C13-S6-4`, Spec §2.3) — `S6-D` 가 등록했다 (온보딩과 같은 컴포넌트 `mode="settings"`).
+   * 설정 목록 행(`S6-B`, Spec §2.4)이 이 상수로 이동한다.
+   */
+  settingsGrowthCapability: '/settings/growth-capability',
 
   /**
    * Stage 4 세션 화면 (Plan §9.1 · Figma `300:1309`) — 탭이 아니라 **Fullscreen** 이다 (탭바 없음).
@@ -105,6 +137,11 @@ export type OnboardingStepSlug = (typeof ONBOARDING_STEP_SLUGS)[number];
 /** `/onboarding/child-info` 형태의 경로를 만든다. */
 export function onboardingStepPath(slug: OnboardingStepSlug): string {
   return `${ROUTES.onboarding.intro}/${slug}`;
+}
+
+/** `/settings/child/survey/reading-together` 형태의 경로를 만든다 (Stage 6 `S6-C`). */
+export function settingsChildSurveyStepPath(slug: OnboardingStepSlug): string {
+  return `${ROUTES.settingsChildSurvey}/${slug}`;
 }
 
 /** `/session/:sessionId` 의 실제 경로. */

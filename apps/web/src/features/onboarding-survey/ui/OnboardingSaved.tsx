@@ -1,9 +1,9 @@
 /**
  * `/onboarding/saved` — Design Spec §2.11 (Figma `179:1809`).
  *
- * **Stage 2 에서 "Get started" 의 목적지는 `/` (Home) 다** (§12.1 권장안 · 이 Step 의 지시).
- * PRD §5.1 ③④(프로필 결과 → 발전 역량)는 **Stage 2-B** 에서 이 사이에 삽입된다.
- * 임시 대기 화면·임시 안내 문구를 만들지 않는다 — 존재하지 않는 상태를 디자인하지 않는다.
+ * "Get started" 의 목적지 = **`/onboarding/profile`** (Stage 6 `D6-1` · Plan R-7 · Spec §2.1 진입).
+ * PRD §5.1 ③④ 흐름 `saved → 프로필 결과 → 발전 역량 → Home` 이다. Stage 2 에서는 Home 이었다.
+ * **replace** 를 유지한다 — 뒤로 가기로 제출된 설문에 돌아가지 않는다 (`N6-24`). 화면 픽셀 변화 0.
  */
 import { Button, Icon, Text } from '@haru/ui';
 import { useNavigate } from 'react-router';
@@ -39,7 +39,7 @@ export function OnboardingSaved() {
           fullWidth
           trailingIcon={<Icon name="chevron-right" decorative />}
           onPress={() => {
-            void navigate(ROUTES.home, { replace: true });
+            void navigate(ROUTES.onboarding.profile, { replace: true });
           }}
         >
           {copy.cta}

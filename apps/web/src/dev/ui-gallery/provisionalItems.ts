@@ -171,7 +171,7 @@ export const PROVISIONAL_ITEMS: readonly ProvisionalItem[] = [
   /*
     Home 라운드 신규 — Library 범위 밖이라 1라운드가 등재하지 않았다 (`S3-PROV-2` · `QA-3-006`).
     `P-18`~`P-22` 는 **토큰 자체가 없어 등재 대상이 아니다** (approvals §26.5 — `P-20` 은
-    `--toggle-*` 확정, 나머지는 미생성). 활성 가값은 `P-01 · P-02 · P-04 · P-16 · P-23 · P-24 · P-25` 다
+    `--toggle-*` 확정, 나머지는 미생성). 활성 가값은 `P-01 · P-02 · P-04 · P-16 · P-23 · P-24 · P-25 · P-30~33` 다
     (`packages/design-tokens/__tests__/fonts.test.ts` 가 그 목록을 고정한다).
   */
   {
@@ -204,5 +204,43 @@ export const PROVISIONAL_ITEMS: readonly ProvisionalItem[] = [
     status: 'waiting',
     decision:
       '디자이너 대기 — 대비 2.211:1 (AA 4.5 미달). Figma 그대로 구현하고 가값으로 등록 (stage-4-approvals §5 · D4-16)',
+  },
+  /*
+    Stage 6 `S6-E1` 신설 4건 — Stage 6 Design Spec §5.3 (`D6-8`). DiamondChart 는 Figma 근거가 없는
+    design-agent 명세다 (`R6-01`). 디자이너 차트가 도착하면 값만 교체한다.
+  */
+  {
+    id: 'P-30',
+    title: '다이아몬드 차트 비텍스트 대비 --chart-area-stroke / --chart-grid-stroke',
+    adopted: 'Spec §3.1 — 면 외곽선 teal · 격자 ink 18% · 꼭짓점 역량색(#19) + 흰 테두리',
+    where: '/onboarding/profile · /settings/profile 차트 (DiamondChart)',
+    status: 'waiting',
+    decision:
+      '디자이너 대기 — 외곽선 1.98~2.04 · 꼭짓점 1.49~2.01 · 격자 1.25~1.26:1 (목표 3:1). 정보는 라벨 텍스트 · SR summary 가 전달 (Spec §5.3 · 요청서 Q3)',
+  },
+  {
+    id: 'P-31',
+    title: '다이아몬드 차트 면 채움 알파 --chart-area-fill',
+    adopted: 'Spec §5.2 T6-4 — teal 30%',
+    where: '/onboarding/profile · /settings/profile 차트 면',
+    status: 'waiting',
+    decision: '디자이너 대기 — 알파 30% 는 Figma 근거 없음 (Spec §5.3)',
+  },
+  {
+    id: 'P-32',
+    title: '미관찰 축 표현 --chart-missing-dash',
+    adopted: 'Spec §3.1 — 축선 점선 3 4 · 꼭짓점 없음 · "Not seen yet" 캡션',
+    where:
+      '/onboarding/profile 변형 B · C (children:scores-partially-missing · all-scores-missing)',
+    status: 'waiting',
+    decision: '디자이너 대기 — 미관찰 축의 선 스타일 (요청서 §6.3, Spec §5.3)',
+  },
+  {
+    id: 'P-33',
+    title: '다이아몬드 차트 기하 --chart-diamond-radius-max / --chart-diamond-label-max',
+    adopted: 'Spec §3.1 — h 상한 100 · 라벨 폭 64 · 1.0 = 반지름 20% · 축 순서 고정',
+    where: '/onboarding/profile · /settings/profile 차트',
+    status: 'waiting',
+    decision: '디자이너 대기 — Figma 근거 없음 (Spec §5.3)',
   },
 ];

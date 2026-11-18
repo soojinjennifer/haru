@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router';
+import { BrowserRouter, Outlet, Route, Routes } from 'react-router';
 
 import {
   AuthTopBar,
@@ -25,14 +25,30 @@ import {
 import { ProgressPage, ProgressTopBar } from '../pages/progress';
 import { NotFoundPage } from '../pages/not-found/NotFoundPage';
 import { OnboardingSessionProvider } from '../features/onboarding-survey';
+import { SurveyUpdateSessionProvider } from '../features/survey-update';
 import {
+  OnboardingGrowthPage,
+  OnboardingGrowthTopBar,
   OnboardingIntroPage,
+  OnboardingProfilePage,
   OnboardingSavedPage,
   OnboardingStartPage,
   OnboardingStepPage,
 } from '../pages/onboarding';
 import { SessionCompletePage, SessionFeedbackPage, StorytimeSessionPage } from '../pages/session';
-import { SettingsPage, SettingsTopBar } from '../pages/settings';
+import {
+  ChildInfoEditPage,
+  ChildInfoEditTopBar,
+  GrowthCapabilityPage,
+  GrowthCapabilityTopBar,
+  ProfilePage,
+  ProfileTopBar,
+  SettingsPage,
+  SettingsTopBar,
+  SurveyUpdatePage,
+  SurveyUpdateStepPage,
+  SurveyUpdateTopBar,
+} from '../pages/settings';
 import { ROUTES } from '../shared/config/routes';
 
 import { RouteGuard } from './guards/RouteGuard';
@@ -69,10 +85,17 @@ const DevOverlay = import.meta.env.DEV ? lazy(() => import('../dev/DevOverlay'))
  * | `/onboarding/start`      | StackLayout     | 프로필 입력 소개 (`243:1147`) — TopBar 없음 |
  * | `/onboarding/:step`      | StackLayout     | 위저드 — **TopBar 는 feature 가 렌더**(단계·문항마다 내용이 다르다) |
  * | `/onboarding/saved`      | StackLayout     | 제출 완료 — TopBar 없음 |
+ * | `/onboarding/profile`    | StackLayout     | 프로필 결과 · 온보딩 모드 (Stage 6 `C13-09`) — TopBar 없음 (뒤로 없음 `N6-24`) |
+ * | `/onboarding/growth-capability` | StackLayout | 발전 역량 · 온보딩 모드 (Stage 6 `C13-10`) — TopBar centered 제목 없음 · 뒤로 → 프로필 |
  * | `/`                      | **TabLayout**   | Home 본문 — `HomeTopBar`(워드마크 + 주간 집계 칩 + 설정) |
  * | `/library`               | **TabLayout**   | 서재 — Stage 3 1차는 탭바 마운트 자리만 |
  * | `/progress`              | **TabLayout**   | 리포트 준비 안내 (`D-2` — 수치 0건) |
- * | `/settings`              | StackLayout     | TopBar centered — 로그아웃 1행 |
+ * | `/settings`              | StackLayout     | TopBar centered — 2그룹 5행 (Stage 6 `C13-S6-1`) |
+ * | `/settings/profile`      | StackLayout     | 프로필 결과 · 재방문 모드 (Stage 6 `C13-09`) — TopBar centered "Profile" |
+ * | `/settings/child`        | StackLayout     | 아이 정보 수정 (Stage 6 `C13-S6-2`) — TopBar centered "Child info", 뒤로 = 변경 시 확인 |
+ * | `/settings/child/survey` | StackLayout     | 설문 재응답 진입 (Stage 6 `C13-S6-3`) — TopBar centered 제목 없음 · 뒤로 |
+ * | `/settings/child/survey/:step` | StackLayout | 설문 재응답 카드 — **TopBar 는 feature 가 렌더** (온보딩 위저드와 같다) |
+ * | `/settings/growth-capability` | StackLayout | 발전 역량 · 설정 모드 (Stage 6 `C13-S6-4`) — TopBar centered "Growth focus" · 뒤로 `navigate(-1)` |
  * | `/__dev/ui/*`            | (dev 전용)      | UI gallery — dev 에서만 존재한다 |
  * | `/__dev/screens`         | (dev 전용)      | 검수용 화면 목록 — dev 에서만 존재한다 |
  * | `*`                      | StackLayout     | NotFound |
@@ -80,8 +103,9 @@ const DevOverlay = import.meta.env.DEV ? lazy(() => import('../dev/DevOverlay'))
  * `/auth/*` 는 화면마다 TopBar 구성이 달라서 **Page 가 직접 `StackLayout` 을 조립**한다
  * (layout route 로 묶으면 TopBar 를 화면별로 줄 수 없다). Page 는 여전히 Composition 만 한다.
  *
- * Stage 2 에 등록하지 않는 route: `/onboarding/profile` · `/onboarding/growth-capability`
- * (**Stage 2-B** — 디자이너 Figma 대기, approvals §3). `ROUTES` 에도 두지 않는다.
+ * Stage 2-B 의 `/onboarding/profile` · `/onboarding/growth-capability` 는 Stage 6 에서 design-agent 명세로
+ * 들어왔다 (`D6-1`). `S6-E1` 이 `/onboarding/profile` · `/settings/profile` 을, `S6-E2` 가
+ * `/onboarding/growth-capability` 를, `S6-D` 가 설정 모드 `/settings/growth-capability` 를 등록한다.
  * Stage 3 에서 `/` · `/library` · `/progress` 가 **TabLayout** 으로 바뀌며 BottomTabBar 가
  * 처음 마운트된다 (#15 · `D-02`).
  */
@@ -216,7 +240,7 @@ export function AppRoutes() {
       {/*
         온보딩 세션 상태(떠난 카드 · 전환 후 포커스)는 **에러 경계보다 위**에 있어야 한다.
         `RouteErrorBoundary` 가 `key={location.key}` 라서 navigate 할 때마다 그 아래 트리가
-        재마운트되기 때문이다 (features/onboarding-survey/model/onboardingSession.tsx).
+        재마운트되기 때문이다 (entities/survey/deckSession.tsx — Stage 6 `R-5` 이동).
         provider 를 layout element 안에 두면 온보딩 route 사이에서는 살아남고, 온보딩을
         벗어나면 함께 사라진다.
       */}
@@ -252,11 +276,35 @@ export function AppRoutes() {
             </RouteGuard>
           }
         />
+        {/* Stage 6 `S6-E1` — 프로필 결과 온보딩 모드. `:step` 보다 먼저 와야 slug 로 잡히지 않는다. */}
+        <Route
+          path={ROUTES.onboarding.profile}
+          element={
+            <RouteGuard>
+              <OnboardingProfilePage />
+            </RouteGuard>
+          }
+        />
         <Route
           path={ROUTES.onboarding.step}
           element={
             <RouteGuard>
               <OnboardingStepPage />
+            </RouteGuard>
+          }
+        />
+      </Route>
+      {/*
+        Stage 6 `S6-E2` — 발전 역량 온보딩 모드 (`C13-10`). TopBar(뒤로 → 프로필)가 있어 layout 이 다르다.
+        정적 경로라 `/onboarding/:step` 보다 **순위가 높다**(React Router 는 선언 순서가 아니라 특이도로 고른다) —
+        등록 전에는 이 경로가 `:step` 에 잡혀 위저드로 갔다 (H6-2.4 ①). 위저드 세션 provider 는 필요 없다.
+      */}
+      <Route element={<StackLayout topBar={<OnboardingGrowthTopBar />} />}>
+        <Route
+          path={ROUTES.onboarding.growthCapability}
+          element={
+            <RouteGuard>
+              <OnboardingGrowthPage />
             </RouteGuard>
           }
         />
@@ -365,6 +413,76 @@ export function AppRoutes() {
             </RouteGuard>
           }
         />
+      </Route>
+      {/* Stage 6 `S6-E1` — 프로필 결과 재방문 모드 (`D6-4`). 설정 목록 행 = `S6-B`. */}
+      <Route element={<StackLayout topBar={<ProfileTopBar />} />}>
+        <Route
+          path={ROUTES.settingsProfile}
+          element={
+            <RouteGuard>
+              <ProfilePage />
+            </RouteGuard>
+          }
+        />
+      </Route>
+      {/*
+        Stage 6 `S6-B` — 아이 정보 수정 (`C13-S6-2`). TopBar 뒤로는 폼에 묻는다(변경 시 확인 `N6-14`).
+      */}
+      <Route element={<StackLayout topBar={<ChildInfoEditTopBar />} />}>
+        <Route
+          path={ROUTES.settingsChild}
+          element={
+            <RouteGuard>
+              <ChildInfoEditPage />
+            </RouteGuard>
+          }
+        />
+      </Route>
+      {/*
+        Stage 6 `S6-D` — 발전 역량 설정 모드 (`C13-S6-4`). 온보딩과 같은 컴포넌트(`D6-6`) · 이탈 확인 없음(`N6-46`).
+      */}
+      <Route element={<StackLayout topBar={<GrowthCapabilityTopBar />} />}>
+        <Route
+          path={ROUTES.settingsGrowthCapability}
+          element={
+            <RouteGuard>
+              <GrowthCapabilityPage />
+            </RouteGuard>
+          }
+        />
+      </Route>
+      {/*
+        Stage 6 `S6-C` — 설문 재응답 (`C13-S6-3`). 진입 화면과 카드 단계가 **한 흐름 세션**을 공유한다 — 고친 답(메모리,
+        `N6-07`)과 카드 덱 세션(떠난 카드 · 복귀 지점)이 단계 전환(navigate → 에러 경계 재마운트)을 넘어 살아남도록
+        provider 를 두 layout 의 **위**에 둔다. 흐름을 벗어나면 provider 가 사라지고 메모리 답도 함께 사라진다.
+      */}
+      <Route
+        element={
+          <SurveyUpdateSessionProvider>
+            <Outlet />
+          </SurveyUpdateSessionProvider>
+        }
+      >
+        <Route element={<StackLayout topBar={<SurveyUpdateTopBar />} />}>
+          <Route
+            path={ROUTES.settingsChildSurvey}
+            element={
+              <RouteGuard>
+                <SurveyUpdatePage />
+              </RouteGuard>
+            }
+          />
+        </Route>
+        <Route element={<StackLayout />}>
+          <Route
+            path={ROUTES.settingsChildSurveyStep}
+            element={
+              <RouteGuard>
+                <SurveyUpdateStepPage />
+              </RouteGuard>
+            }
+          />
+        </Route>
       </Route>
       <Route element={<StackLayout />}>
         <Route path={ROUTES.notFound} element={<NotFoundPage />} />

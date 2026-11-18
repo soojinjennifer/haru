@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest';
 
 import { isNetworkError } from '../../shared/api/helpers';
 import { MOCK_ACTIVE_SESSION_ID } from '../fixtures/home';
-import { MOCK_CHILD_ID } from '../fixtures/me';
+import { MOCK_CHILD_FIRST_NAME, MOCK_CHILD_ID } from '../fixtures/me';
 import {
   MOCK_COMPLETION_BUBBLE,
   MOCK_COMPLETION_BUBBLE_NO_SUBTEXT,
@@ -170,6 +170,52 @@ describe('MockSessionApi — 완료 버블 (`session-completion`, §3.2.3 · AC-
     expect(done.completionBubble).toStrictEqual(expected);
     expect(replay.completionBubble).toStrictEqual(expected);
     expect(detail.completionBubble).toStrictEqual(expected);
+  });
+
+  it.each([
+    ['session-completion:success', '14 min together · sticker earned'],
+    ['session-completion:subtext-missing', null],
+  ])(
+    '`%s` — 아이 이름 수정 뒤 완료 버블 = 새 이름 · `GET /v1/me` 와 같은 이름 (QA-6-001, AC-6-22)',
+    async (scenario, subtext) => {
+      const b = bundle(scenario);
+      await b.clients.children.update({ childId: MOCK_CHILD_ID, body: { firstName: 'Mia' } });
+
+      const { session } = await b.clients.sessions.create({ body: sessionBody() }, ik('c'));
+      await b.clients.sessions.transition(
+        { sessionId: session.id, body: to('recording') },
+        ik('r'),
+      );
+      const done = await b.clients.sessions.transition(
+        { sessionId: session.id, body: to('completed') },
+        ik('d'),
+      );
+      const detail = await b.clients.sessions.getDetail({ sessionId: session.id });
+      const me = await b.clients.me.get();
+
+      const expected = {
+        text: 'Storytime success! Mia did wonderfully.',
+        templateId: 'mock-completion',
+        subtext,
+      };
+      expect(done.completionBubble).toStrictEqual(expected);
+      expect(detail.completionBubble).toStrictEqual(expected);
+      expect(done.completionBubble?.text).not.toContain(MOCK_CHILD_FIRST_NAME);
+      expect(me.child?.firstName).toBe('Mia');
+    },
+  );
+
+  it('아이 프로필 상태가 없으면(수정 전) 완료 버블 = fixture 이름 `Emma`', async () => {
+    const b = bundle();
+    const { session } = await b.clients.sessions.create({ body: sessionBody() }, ik('c'));
+    await b.clients.sessions.transition({ sessionId: session.id, body: to('recording') }, ik('r'));
+    const done = await b.clients.sessions.transition(
+      { sessionId: session.id, body: to('completed') },
+      ik('d'),
+    );
+    expect(done.completionBubble?.text).toBe(
+      `Storytime success! ${MOCK_CHILD_FIRST_NAME} did wonderfully.`,
+    );
   });
 
   it('지난 세션 seed 는 `sticker: null` 이므로 `subtext` 도 `null` 이다 — 응답이 스스로 모순되지 않는다', async () => {

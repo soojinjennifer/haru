@@ -263,6 +263,9 @@ const EXPECTED: Record<string, Coverage> = {
   'haru-deck-enter': 'reduce-animation-none',
   'haru-deck-exit-next': 'reduce-animation-none-via',
   'haru-deck-exit-prev': 'reduce-animation-none-via',
+  // Stage 6 `S6-E1` DiamondChart — 첫 표시 scale+opacity · 선택 링 fade (Stage 6 Spec §3.1 · §6)
+  'haru-diamond-enter': 'reduce-animation-none',
+  'haru-diamond-ring-in': 'reduce-animation-none',
 };
 
 describe('AC-4-98 — `@keyframes`/`animation` ↔ `prefers-reduced-motion` 1:1 (`D4-3`)', () => {

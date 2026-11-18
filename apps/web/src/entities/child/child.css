@@ -1,0 +1,106 @@
+/*
+ * 아이 기본 정보 입력 묶음 (`ChildInfoFields`) — Stage 6 `R-11` 로 `features/onboarding-survey/onboarding.css`
+ * 에서 옮겼다. 언어 Chip 묶음 fieldset (Figma `248:1159` 언어 칩 카드 `244:1314`).
+ *
+ * `S6-G` G-1 (`D6-9` ①): 언어 칩이 **카드 안**으로 들어갔다(`ChildLanguageFields` = `.haru-language-card` + 아래 `--card`, 면은 `D6-10` 로 Surface 대신 전용 클래스).
+ * 값은 전부 semantic token 이다 — Figma 선언값 대응은 `ChildInfoFields.tsx` 머리말.
+ * `overflow` 선언 0 — 카드 그림자(`--shadow-bubble`, 번짐 좌우 4 · 위 0 · 아래 10)는 `AppShell` 뷰포트의 gutter(24)
+ * 안에 들어간다 (`R-SHADOW-1`). Figma 노드의 `overflow-clip` 은 옮기지 않았다(내용이 카드 안에 들어가 클립 대상 없음).
+ */
+.haru-choice-group {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+
+.haru-choice-group__legend {
+  padding: 0;
+  margin-block-end: var(--space-3);
+}
+
+.haru-choice-group__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ===== 카드 안 (Figma `244:1314` — padding 20 · 10 · 18 · 10 · legend ↔ 칩 14 · 칩 가운데 정렬) ===== */
+
+/*
+ * 여백은 fieldset 바깥 래퍼에 둔다 — `<legend>` 는 fieldset 의 border 영역에 렌더되어 fieldset 의 padding-top 이
+ * legend 아래로 밀린다 (S6-G 프로브 실측: legend 가 카드 위 끝에 붙고 칩이 20 아래로 밀렸다).
+ */
+.haru-choice-card {
+  padding-block: var(--space-5) var(--space-4-5);
+  padding-inline: var(--space-2-5);
+}
+
+/*
+ * legend 높이 = 문장 한 줄(Figma `244:1348` h18). 안쪽 `Text`(span)가 inline 이면 legend 의 line box 가 상속
+ * line-height(본문)로 잡혀 22 가 된다 — block 으로 두어 footnote line-height 만 남긴다.
+ */
+.haru-choice-group--card > .haru-choice-group__legend {
+  margin-block-end: var(--space-3-5);
+}
+
+.haru-choice-group--card > .haru-choice-group__legend > .haru-text {
+  display: block;
+}
+
+.haru-choice-group--card > .haru-choice-group__chips {
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/*
+ * 칩 줄 사이 hit 영역 분할 (G-1a — `D6-9` ④, `D5-6` 방식). 보이는 배치는 그대로, hit slop(`::before`)만 바꾼다.
+ *
+ * `select` 칩은 시각 33(미선택, border 1) / 31(선택) 에 세로 slop 으로 44 를 만든다. 줄 간격 8 안에서 윗줄 아래 slop
+ * (5.5 · 선택 6.5)과 아랫줄 위 slop(5.5)이 겹치고 아랫줄이 DOM 뒤라 겹친 띠 전체를 가져갔다. **첫 줄이 아닌 칩**
+ * (`useChipRowSplit` 이 붙이는 `data-chip-row-follows`)의 위쪽 slop 을 줄 간격의 절반으로 줄여 중간선에서 나눈다.
+ * 기준은 border box 위 끝이다 — 미선택은 1px border 가 있어 padding box 기준 `inset` 에 border 두께를 더한다
+ * (`reflection.css` 와 같은 식, 간격 토큰만 다르다).
+ */
+.haru-choice-group__chips > .haru-chip--select[data-chip-row-follows]::before {
+  inset-block-start: calc(-1 * (var(--space-2) / 2 + var(--chip-select-border-width)));
+}
+
+.haru-choice-group__chips > .haru-chip--select.haru-chip--selected[data-chip-row-follows]::before {
+  inset-block-start: calc(-1 * var(--space-2) / 2);
+}
+
+/*
+ * 독서 루틴 (Figma `244:1415`) — legend 를 섹션 라벨(`244:1358` Bold 12 · tracking .72 · ink-500)로 보이게 한다.
+ * 다른 섹션 라벨과 같은 recipe(`Text caption-1 · tone secondary · weight bold · tracking section-label`, `D6-10` ③)의
+ * 토큰을 그대로 쓴다.
+ *
+ * 세로 간격 (`D6-10` ③ `VG6-G-09`) — 언어 카드 아래 → 첫 행 = Figma **53**. 라벨 위 `--child-routine-label-offset`(7) +
+ * 라벨 줄 16 + 라벨 ↔ 첫 행 `space-2-5`(10) — 섹션 gap 20 과 합쳐 53, 글자 중심 = 카드 아래 +35 (Figma 와 같다).
+ * 산식 근거는 토큰 정의(`component/index.css` `S6-H` 블록).
+ */
+.haru-child-routine .haru-radio-group__legend {
+  padding-block-start: var(--child-routine-label-offset);
+  font-size: var(--text-caption-1);
+  line-height: var(--text-caption-1--line-height);
+  letter-spacing: var(--section-label-letter-spacing);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-fg-secondary);
+}
+
+.haru-child-routine .haru-radio-group__options {
+  margin-block-start: var(--space-2-5);
+}
+
+/*
+ * 언어 카드 면 (Figma `244:1314`, `D6-10` ② ③ · `VG6-G-02` · `VG6-G-04`) — fill white 90%(`--color-surface-strong`) ·
+ * radius **30**(`--choice-card-radius`) · 그림자 `--shadow-bubble`(인스턴스 렌더 drop 1겹 + inset 2겹). Figma effect 목록에
+ * **BACKGROUND_BLUR 가 없다** — `Surface fill="strong"` 은 blur 를 함께 걸기 때문에 쓰지 않는다 (다른 Surface 사용처 불변).
+ * 같은 면 구성의 선례 = 회고 카드(`reflection.css` `.haru-reflection-card` — strong fill · bubble shadow · blur 없음).
+ */
+.haru-language-card {
+  box-sizing: border-box;
+  border-radius: var(--choice-card-radius);
+  background-color: var(--color-surface-strong);
+  box-shadow: var(--shadow-bubble);
+}

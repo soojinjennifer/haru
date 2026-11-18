@@ -24,14 +24,18 @@ import {
 import type { Clock } from '../../shared/lib/clock';
 import type { IdFactory } from '../../shared/lib/idFactory';
 
-/** 가상 페르소나 — 실제 AI 생성 결과가 아니다. */
-const PERSONA = {
+/**
+ * 가상 페르소나 — 실제 AI 생성 결과가 아니다.
+ * Stage 6 `children` 그룹이 **같은 문구**를 재사용한다 (Plan R-9 — 이중 정의 금지, `fixtures/child-profile.ts`).
+ */
+export const MOCK_PERSONA_COPY = {
   name: 'The Quiet Noticer',
   description:
     'Right now they take their time with a page and come back to it later. That is a good starting point to build on together.',
 };
 
-const FALLBACK_PERSONA = {
+/** AI 생성 실패 대체 문구 (`persona-fallback`). `children` 그룹도 같은 값을 쓴다 (R-9). */
+export const MOCK_FALLBACK_PERSONA_COPY = {
   name: 'A story in progress',
   description:
     'We are still getting to know your reader. Their profile will fill in as you read together.',
@@ -75,7 +79,7 @@ export function createProfileResultFixture(options: ProfileResultFixtureOptions)
     ownedBooks: answers.books_and_interests.ownedBooks,
   };
 
-  const persona = options.fallbackPersona === true ? FALLBACK_PERSONA : PERSONA;
+  const persona = options.fallbackPersona === true ? MOCK_FALLBACK_PERSONA_COPY : MOCK_PERSONA_COPY;
 
   return ProfileResultSchema.parse({
     child,

@@ -19,39 +19,24 @@
  *
  * 검증은 `shared/lib/child-info` 의 순수 함수가 한다. 이 컴포넌트는 표시만 담당한다.
  */
-import {
-  Chip,
-  FieldGroup,
-  Icon,
-  IconButton,
-  RadioGroup,
-  SelectTrigger,
-  Surface,
-  Tag,
-  Text,
-  TextField,
-  TextLink,
-} from '@haru/ui';
+import { Icon, IconButton, SelectTrigger, Surface, Tag, Text, TextLink } from '@haru/ui';
 import { useId, useState } from 'react';
 import {
   CaregiverRelationshipSchema,
-  GenderSchema,
-  LanguageEnvironmentSchema,
-  ReadingRoutineSchema,
   type CaregiverRelationship,
-  type Gender,
-  type LanguageEnvironment,
   type OnboardingDraftAnswers,
-  type ReadingRoutine,
 } from '@haru/contracts';
 
+import {
+  ChildIdentityFields,
+  ChildLanguageFields,
+  ChildReadingRoutineField,
+} from '../../../entities/child';
 import { onboardingCopy } from '../copy';
 import {
   ageAccessibleLabel,
   ageTagLabel,
-  BIRTH_MONTH_VALUES,
   birthYearMonthOf,
-  birthYearOptions,
   childInfoFormFrom,
   partialChildInfoAnswers,
   validateChildInfo,
@@ -165,6 +150,17 @@ export function ChildInfoStep({
     });
   }
 
+  /** 입력 묶음의 변경 — 생년 년·월은 중간 상태를 화면이 들고 있는다 (D-10). */
+  function handleFieldChange(patch: Partial<ChildInfoFormState>): void {
+    if (patch.birthYear !== undefined || patch.birthMonth !== undefined) {
+      setBirth((current) => ({
+        year: patch.birthYear ?? current.year,
+        month: patch.birthMonth ?? current.month,
+      }));
+    }
+    update(patch);
+  }
+
   function startEditing(): void {
     setEditing(true);
   }
@@ -177,7 +173,7 @@ export function ChildInfoStep({
       <section className="flex flex-col gap-2">
         {/* SectionLabel recipe + 편집 전환 (§4.3 신호 ②) — 컴포넌트를 만들지 않는다. */}
         <div className="haru-child-section-header">
-          <Text variant="caption-1" tone="secondary" weight="semibold">
+          <Text variant="caption-1" tone="secondary" weight="bold" tracking="section-label">
             {copy.childSection}
           </Text>
           {editing ? (
@@ -199,83 +195,16 @@ export function ChildInfoStep({
         </div>
 
         {editing ? (
-          <>
-            <FieldGroup>
-              <TextField
-                label={copy.firstName}
-                value={form.firstName}
-                onChange={(value) => {
-                  update({ firstName: value });
-                }}
-                name="child-first-name"
-                autoComplete="off"
-                required
-                {...(firstNameError === undefined ? {} : { errorText: firstNameError })}
-              />
-              <TextField
-                label={copy.lastName}
-                value={form.lastName}
-                onChange={(value) => {
-                  update({ lastName: value });
-                }}
-                name="child-last-name"
-                autoComplete="off"
-                helperText={copy.lastNameOptional}
-              />
-            </FieldGroup>
-
-            <div className="flex items-start gap-3">
-              <div className="flex-1">
-                <SelectTrigger
-                  label={copy.birthYear}
-                  value={form.birthYear === '' ? null : form.birthYear}
-                  placeholder={copy.birthPlaceholder}
-                  options={birthYearOptions(now).map((year) => ({ value: year, label: year }))}
-                  onChange={(value) => {
-                    setBirth((current) => ({ ...current, year: value }));
-                    update({ birthYear: value });
-                  }}
-                  required
-                  {...(yearError === undefined ? {} : { error: yearError })}
-                />
-              </div>
-              <div className="flex-1">
-                <SelectTrigger
-                  label={copy.birthMonth}
-                  value={form.birthMonth === '' ? null : form.birthMonth}
-                  placeholder={copy.birthPlaceholder}
-                  options={BIRTH_MONTH_VALUES.map((month) => ({ value: month, label: month }))}
-                  onChange={(value) => {
-                    setBirth((current) => ({ ...current, month: value }));
-                    update({ birthMonth: value });
-                  }}
-                  required
-                />
-              </div>
-            </div>
-
-            {ageTag === null ? null : (
-              <Tag
-                label={ageTag}
-                tone="flexibility"
-                size="sm"
-                {...(ageLabel === null ? {} : { accessibleLabel: ageLabel })}
-              />
-            )}
-
-            <SelectTrigger
-              label={copy.gender}
-              value={form.gender}
-              placeholder={copy.genderPlaceholder}
-              options={GenderSchema.options.map((value) => ({
-                value,
-                label: onboardingCopy.genderOptions[value],
-              }))}
-              onChange={(value) => {
-                update({ gender: value as Gender });
-              }}
-            />
-          </>
+          /* 편집 필드는 `entities/child` 로 옮겼다 (Stage 6 `R-11`) — DOM·순서 변화 0. */
+          <ChildIdentityFields
+            form={form}
+            onChange={handleFieldChange}
+            now={now}
+            errors={{
+              ...(firstNameError === undefined ? {} : { firstName: firstNameError }),
+              ...(yearError === undefined ? {} : { birthYearMonth: yearError }),
+            }}
+          />
         ) : (
           <Surface fill="strong" radius="surface" padding="none">
             <DisplayRow
@@ -309,7 +238,7 @@ export function ChildInfoStep({
       </section>
 
       <section className="flex flex-col gap-2">
-        <Text variant="caption-1" tone="secondary" weight="semibold">
+        <Text variant="caption-1" tone="secondary" weight="bold" tracking="section-label">
           {copy.caregiverSection}
         </Text>
         <SelectTrigger
@@ -327,50 +256,15 @@ export function ChildInfoStep({
       </section>
 
       <section className="flex flex-col gap-3">
-        <Text variant="caption-1" tone="secondary" weight="semibold">
+        <Text variant="caption-1" tone="secondary" weight="bold" tracking="section-label">
           {copy.homeSection}
         </Text>
 
-        <fieldset className="haru-choice-group">
-          <legend className="haru-choice-group__legend">
-            <Text variant="footnote" tone="primary" as="span">
-              {copy.languages}
-            </Text>
-          </legend>
-          <div className="haru-choice-group__chips">
-            {LanguageEnvironmentSchema.options.map((code) => {
-              const selected = form.languageEnvironment.includes(code);
-
-              return (
-                <Chip
-                  key={code}
-                  label={onboardingCopy.languageOptions[code]}
-                  selected={selected}
-                  onToggle={() => {
-                    const next: LanguageEnvironment[] = selected
-                      ? form.languageEnvironment.filter((value) => value !== code)
-                      : [...form.languageEnvironment, code];
-                    update({ languageEnvironment: next });
-                  }}
-                />
-              );
-            })}
-          </div>
-        </fieldset>
-        <RadioGroup
-          legend={copy.readingRoutine}
-          name="reading-routine"
-          variant="list"
-          value={form.readingRoutine}
-          options={ReadingRoutineSchema.options.map((value) => ({
-            value,
-            label: onboardingCopy.readingRoutineOptions[value],
-          }))}
-          onChange={(value) => {
-            update({ readingRoutine: value as ReadingRoutine });
-          }}
-        />
+        <ChildLanguageFields form={form} onChange={handleFieldChange} now={now} />
       </section>
+
+      {/* Figma `248:1159` — 독서 루틴은 `AT HOME` 다음 형제 섹션(`244:1415`, `S6-G` G-1). */}
+      <ChildReadingRoutineField form={form} onChange={handleFieldChange} now={now} />
     </div>
   );
 }
