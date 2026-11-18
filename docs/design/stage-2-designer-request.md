@@ -5,6 +5,8 @@
 **대상 파일**: Figma `HARU_MVP` — fileKey `YWWu3AFEJpRxvw0T5klq0k`, page `16:2` `MVP_KeyScreen_V.2`, section `179:1700` `Signup & Baseline survey`
 **함께 볼 문서**: `docs/design/stage-2-design-spec.md`(Stage 2 명세) · `docs/design/stage-1-design-spec.md` §3(토큰) · §4(Shared UI 22종) · §5(공통 상태)
 
+> ⚠️ **상태 변경 (2026-11-14, Stage 6 `D6-1`)** — §2 `C13-09` · §3 `C13-10` 은 디자이너 Figma 를 기다리지 않고 **design-agent 명세로 선행**한다 (`docs/design/stage-6-design-spec.md`, DRAFT). §5 Q1~Q7 은 그 Spec §8 에 **제안**으로 답했다(체크포인트 확정 대상). **Figma 가 도착하면 최우선 규칙에 따라 Figma 로 대체**한다(`R6-01`) — 이 요청서는 계속 유효하다. Q8~Q10 · §9 · §10 은 변동 없음.
+>
 > **추가 요청 (2026-10-02)** — Stage 3 진행 중 확정된 요청 2건을 **§9** 에 덧붙였다: **§9.1 알림 설정 화면(`C13-19`)** · **§9.2 Home 캐릭터 고해상도 에셋**. 요청 형식·기술 제약·산출물 형식(§4 · §6 · §7)은 **그대로 적용**된다.
 
 ---

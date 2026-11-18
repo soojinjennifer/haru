@@ -1,0 +1,28 @@
+import sys
+from PIL import Image
+a=Image.open(sys.argv[1]).convert('RGB'); b=Image.open(sys.argv[2]).convert('RGB')
+print('sizes HEAD',a.size,'work',b.size)
+W=min(a.width,b.width)
+def row(im,y): return [im.getpixel((x,y)) for x in range(W)]
+H=min(a.height,b.height)
+first=None
+for y in range(H):
+  ra,rb=row(a,y),row(b,y)
+  if any(max(abs(p[i]-q[i]) for i in range(3))>5 for p,q in zip(ra,rb)): first=y;break
+print('first differing row',first,'(rows above identical, Δ<=5)')
+# bottom: uniform rows
+def flat_from(im):
+  last=None
+  for y in range(im.height-1,-1,-1):
+    r=row(im,y)
+    if max(max(abs(p[i]-r[0][i]) for i in range(3)) for p in r)>3: return y+1
+  return 0
+print('HEAD: last non-flat row',flat_from(a),'of',a.height)
+print('work: last non-flat row',flat_from(b),'of',b.height)
+# compare bottom tails aligned to bottom
+tail=0
+for k in range(1,min(a.height,b.height)):
+  ra,rb=row(a,a.height-k),row(b,b.height-k)
+  if any(max(abs(p[i]-q[i]) for i in range(3))>5 for p,q in zip(ra,rb)): break
+  tail=k
+print('bottom-aligned identical rows',tail)

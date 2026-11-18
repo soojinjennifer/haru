@@ -1,0 +1,193 @@
+import { test, expect, type Page } from '@playwright/test';
+import { logInToHome, firstStartSession, settleImages, requestPayloads } from '/Users/soojin/dev/haru/e2e/support/session';
+import { gotoApp, hideDevPanel, settle } from '/Users/soojin/dev/haru/e2e/support/gallery';
+import { frontCardCounter, cardCounterIndex, expectCardIndex, fillChildInfo } from '/Users/soojin/dev/haru/e2e/support/onboarding';
+import { decodePng, contrastRatio, parseCssRgb } from '/Users/soojin/dev/haru/e2e/support/pixels';
+import * as fs from 'node:fs';
+const OUT = '/Users/soojin/dev/haru/docs/qa/evidence/stage-6';
+const log: string[] = [];
+const L = (s: string) => { log.push(s); };
+test.afterEach(() => { fs.appendFileSync(OUT + '/r2-probe2.log', log.join('\n') + '\n'); log.length = 0; });
+const SAVE = 'PUT /v1/children/:childId/survey-update/steps/:step';
+async function spa(page: Page, path: string) {
+  await page.evaluate((t) => { window.history.pushState({}, '', t); window.dispatchEvent(new PopStateEvent('popstate')); }, path);
+}
+async function open(page: Page, path: string, scenario?: string) {
+  await hideDevPanel(page); await logInToHome(page, scenario); await spa(page, path);
+}
+const norm = (s: string) => s.replace(/\s+/g, ' ');
+
+test('QA-6-001 rename → completion bubble', async ({ page }) => {
+  await hideDevPanel(page); await logInToHome(page);
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByRole('button', { name: 'Child info' }).click();
+  const fn = page.getByRole('textbox', { name: /First name/ });
+  await expect(fn).toHaveValue('Emma'); await fn.fill('Mia');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page).toHaveURL(/\/settings$/);
+  await page.getByRole('button', { name: 'Back' }).click();
+  await firstStartSession(page).click();
+  const sheet = page.getByRole('dialog', { name: 'When will you read?' });
+  await sheet.getByText('Bedtime', { exact: true }).click();
+  await sheet.getByRole('button', { name: 'Continue' }).click();
+  await expect(page.getByRole('button', { name: 'Start recording' })).toBeVisible();
+  await settleImages(page);
+  await page.getByRole('button', { name: 'Start recording' }).click();
+  await expect(page.getByRole('button', { name: 'Pause recording' })).toBeVisible();
+  await page.getByRole('button', { name: 'Submit' }).click();
+  await expect(page.getByRole('region', { name: 'How was storytime with Mia?' })).toBeVisible();
+  await page.waitForTimeout(800);
+  const t = norm(await page.locator('body').innerText());
+  L('[QA-6-001] COMPLETE: ' + t);
+  L('[QA-6-001] containsMiaBubble=' + t.includes('Storytime success! Mia did wonderfully.') + ' containsEmma=' + t.includes('Emma'));
+  await page.screenshot({ path: OUT + '/r2-ac22-complete-after-rename.png' });
+});
+
+async function openSurveyCards(page: Page) {
+  await hideDevPanel(page); await logInToHome(page);
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByRole('button', { name: 'Update survey answers' }).click();
+  await expect(page.locator('.haru-survey-update[data-state="ready"]')).toBeVisible();
+  await page.getByRole('button', { name: /^(Start|Continue where you left off)$/ }).click();
+  await expect(page.locator('.haru-survey-update [data-state="ready"]')).toBeVisible();
+  await expect(frontCardCounter(page)).toBeVisible(); await settle(page);
+}
+async function changeFront(page: Page) {
+  const front = page.locator('.haru-swipe-deck__card--front');
+  if (await front.getByRole('checkbox').count() > 0) {
+    const cb = front.getByRole('checkbox').first(); await cb.focus(); await page.keyboard.press('Space');
+    return 'checkbox0=' + (await cb.isChecked()) + ':' + (await cb.getAttribute('value'));
+  }
+  const checked = front.getByRole('radio', { checked: true });
+  if (await checked.count() === 0) { await front.getByRole('radio').first().focus(); await page.keyboard.press('Space'); }
+  else { await checked.focus(); await page.keyboard.press('ArrowDown'); }
+  return front.getByRole('radio', { checked: true }).getAttribute('value');
+}
+
+test('QA-6-003 step-2 edit → browser back → resume step 2 with edit', async ({ page }) => {
+  await openSurveyCards(page);
+  const next = page.getByRole('button', { name: 'Next question' });
+  // walk to step 2
+  for (let g = 0; g < 10 && !/books-and-interests$/.test(page.url()); g++) { const b = await cardCounterIndex(page); await next.click(); await expectCardIndex(page, (b ?? 0) + 1); }
+  await expect(page).toHaveURL(/books-and-interests$/);
+  const idx = await cardCounterIndex(page);
+  const deckName = await page.locator('[aria-roledescription], .haru-swipe-deck').first().getAttribute('aria-label');
+  const progName = await page.getByRole('progressbar').getAttribute('aria-label');
+  L('[G-9] settings deck aria-label=' + deckName + ' progress=' + progName);
+  const val = await changeFront(page);
+  L('[QA-6-003] step2 card ' + idx + ' edited value=' + val);
+  const before = (await requestPayloads(page, SAVE)).length;
+  await page.goBack();
+  await expect(page).toHaveURL(/\/settings$/);
+  await expect.poll(async () => (await requestPayloads(page, SAVE)).length).toBe(before + 1);
+  const saves = await requestPayloads(page, SAVE);
+  L('[QA-6-003] PUTs=' + JSON.stringify(saves.map((s: any) => ({ step: s.step, currentStep: s.currentStep }))));
+  await page.getByRole('button', { name: 'Update survey answers' }).click();
+  await expect(page.locator('.haru-survey-update[data-state="ready"]')).toBeVisible();
+  await page.getByRole('button', { name: 'Continue where you left off' }).click();
+  await expect(page.locator('.haru-survey-update [data-state="ready"]')).toBeVisible();
+  await settle(page);
+  const idx2 = await cardCounterIndex(page);
+  L('[QA-6-003] resumed url=' + page.url() + ' card=' + idx2 + ' h1=' + (await page.locator('h1').first().innerText()));
+  const cb2 = page.locator('.haru-swipe-deck__card--front').getByRole('checkbox').first(); const v2 = (await cb2.count()) ? 'checkbox0=' + (await cb2.isChecked()) + ':' + (await cb2.getAttribute('value')) : await page.locator('.haru-swipe-deck__card--front').getByRole('radio', { checked: true }).getAttribute('value');
+  L('[QA-6-003] resumed first-card checked=' + v2 + ' (edited=' + val + ') match=' + (v2 === val));
+});
+
+test('QA-6-003 pagehide + TopBar leave', async ({ page }) => {
+  await openSurveyCards(page);
+  const n0 = (await requestPayloads(page, SAVE)).length;
+  await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+  await page.waitForTimeout(300);
+  const n1 = (await requestPayloads(page, SAVE)).length;
+  await changeFront(page);
+  await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+  await expect.poll(async () => (await requestPayloads(page, SAVE)).length).toBe(n1 + 1);
+  const last = (await requestPayloads(page, SAVE)).at(-1) as any;
+  L('[pagehide] noEdit PUTs=' + (n1 - n0) + ' afterEdit +1 payload step=' + last.step + ' currentStep=' + String(last.currentStep));
+  // TopBar back on first card (edit already flagged unsaved remains true after pagehide)
+  await page.getByRole('button', { name: 'Go back' }).click();
+  await expect(page).toHaveURL(/\/settings\/child\/survey$/);
+  await page.waitForTimeout(300);
+  const n3 = (await requestPayloads(page, SAVE)).length;
+  L('[TopBar leave] PUTs after Go back (from first card, unsaved) total=' + n3 + ' (prev ' + (n1 + 1) + ')');
+});
+
+test('G-3 contrast 852 & 1200', async ({ page }) => {
+  for (const H of [852, 1200]) {
+    await page.setViewportSize({ width: 393, height: H });
+    for (const [label, path, scen, text] of [['onb-youcanchange', '/onboarding/growth-capability', undefined, 'You can change this anytime in Settings.'], ['onb-choose', '/onboarding/growth-capability', 'children:all-scores-missing', 'Choose one to continue.'], ['onb-youcanchange-empty', '/onboarding/growth-capability', 'children:all-scores-missing', 'You can change this anytime in Settings.'], ['set-choose', '/settings/growth-capability', 'children:all-scores-missing', 'Choose one to continue.']] as const) {
+      await open(page, path, scen);
+      const loc = page.getByText(text, { exact: true }).first();
+      if (!(await loc.isVisible().catch(() => false))) { await page.waitForTimeout(1500); }
+      if (await loc.count() === 0) { L('[contrast] ' + H + ' ' + label + ' NOT PRESENT'); continue; }
+      await loc.scrollIntoViewIfNeeded(); await settle(page);
+      const info = await loc.evaluate((el) => { const r = el.getBoundingClientRect(); return { color: getComputedStyle(el).color, fs: getComputedStyle(el).fontSize, fw: getComputedStyle(el).fontWeight, x: r.x, y: r.y, w: r.width, h: r.height }; });
+      await loc.evaluate((el) => (el as HTMLElement).style.setProperty('color', 'transparent', 'important'));
+      const shot = await page.screenshot({ clip: { x: info.x, y: info.y, width: info.w, height: info.h } });
+      await loc.evaluate((el) => (el as HTMLElement).style.removeProperty('color'));
+      const bmp = decodePng(shot); const fg = parseCssRgb(info.color);
+      let min = 99, max = 0;
+      for (let i = 0; i < bmp.width * bmp.height; i++) { const c = { r: bmp.data[i * 4], g: bmp.data[i * 4 + 1], b: bmp.data[i * 4 + 2] }; const k = contrastRatio(fg, c); if (k < min) min = k; if (k > max) max = k; }
+      if (H === 852) fs.writeFileSync(OUT + '/r2-contrast-bg-' + label + '.png', shot);
+      L('[contrast] H=' + H + ' ' + label + ' color=' + info.color + ' ' + info.fs + '/' + info.fw + ' y=' + Math.round(info.y) + ' min=' + min.toFixed(2) + ' max=' + max.toFixed(2));
+    }
+  }
+});
+
+test('G-5 spacing + G-7 UpdateNote', async ({ page }) => {
+  const gap = async (a: string, b: string) => page.evaluate(([a, b]) => { const x = document.querySelector(a)!.getBoundingClientRect(); const y = [...document.querySelectorAll('p')].find((p) => (p as HTMLElement).innerText.trim().startsWith(b))!.getBoundingClientRect(); return { h1Bottom: x.bottom, nextTop: y.top, gap: y.top - x.bottom }; }, [a, b] as const);
+  await open(page, '/onboarding/profile'); await expect(page.locator('.haru-profile-view [data-state="ready"]')).toBeVisible(); await settle(page);
+  const pIntro = await page.locator('h1 ~ p, h1 + *').first().evaluate((n) => (n as HTMLElement).innerText.slice(0, 30)).catch(() => '');
+  const pg = await page.evaluate(() => { const h = document.querySelector('h1')!; const sib = h.nextElementSibling as HTMLElement; const a = h.getBoundingClientRect(), b = sib.getBoundingClientRect(); return { h1: h.innerText, next: sib.innerText.slice(0, 40), gap: b.top - a.bottom }; });
+  L('[G-5] profile ' + JSON.stringify(pg) + ' ' + pIntro);
+  await open(page, '/onboarding/growth-capability'); await page.waitForTimeout(1000); await settle(page);
+  const gg = await page.evaluate(() => { const h = document.querySelector('h1')!; const sib = h.nextElementSibling as HTMLElement; const a = h.getBoundingClientRect(), b = sib.getBoundingClientRect(); return { h1: h.innerText, next: sib.innerText.slice(0, 40), gap: b.top - a.bottom }; });
+  L('[G-5] growth header ' + JSON.stringify(gg));
+  await page.getByRole('radio', { name: /Emotion Regulation/ }).check(); await page.waitForTimeout(500); await settle(page);
+  const yc = page.getByText('You can change this anytime in Settings.', { exact: true });
+  const dd = await yc.evaluate((el) => { const prev = (el.previousElementSibling ?? el.parentElement!.previousElementSibling) as HTMLElement; const a = prev.getBoundingClientRect(), b = el.getBoundingClientRect(); return { prev: prev.innerText.slice(0, 50), prevBottom: a.bottom, top: b.top, gap: b.top - a.bottom }; });
+  L('[G-5] desc→footnote (ER selected) ' + JSON.stringify(dd));
+  await page.screenshot({ path: OUT + '/r2-growth-onboarding-er-selected.png' });
+  await page.setViewportSize({ width: 320, height: 852 });
+  await open(page, '/settings/profile', 'children:profile-updated');
+  await expect(page.locator('[data-update-note]')).toBeVisible(); await settle(page);
+  const un = await page.locator('[data-update-note]').evaluate((el) => { const r = el.getBoundingClientRect(); const svg = el.querySelector('svg')!.getBoundingClientRect(); const lh = parseFloat(getComputedStyle(el).lineHeight); return { h: r.height, top: r.top, lh, iconCenterFromTop: svg.top + svg.height / 2 - r.top, firstLineCenter: lh / 2 }; });
+  L('[G-7] UpdateNote 320 ' + JSON.stringify(un));
+  await page.locator('[data-update-note]').screenshot({ path: OUT + '/r2-updatenote-320.png' });
+});
+
+test('G-1 child-info geometry + G-1a chip midline + Step1 Next (VG6-G-18)', async ({ page }) => {
+  await open(page, '/settings/child'); await expect(page.getByRole('textbox', { name: /First name/ })).toBeVisible(); await page.waitForTimeout(500); await settle(page);
+  const g = await page.evaluate(() => {
+    const fs = [...document.querySelectorAll('fieldset')].map((f) => { const r = f.getBoundingClientRect(); const lg = f.querySelector('legend') as HTMLElement | null; return { legend: lg?.innerText, y: Math.round(r.y), h: Math.round(r.height), radios: f.querySelectorAll('input[type=radio],[role=radio]').length, chips: f.querySelectorAll('[aria-pressed],input[type=checkbox],[role=checkbox]').length }; });
+    return fs;
+  });
+  L('[G-1] settings/child fieldsets ' + JSON.stringify(g));
+  await page.screenshot({ path: OUT + '/r2-settings-child-full.png', fullPage: true });
+  // chip midline hit test
+  const chips = page.locator('fieldset').filter({ hasText: /language/i }).locator('button, label').filter({ hasNot: page.locator('legend') });
+  const rects = await page.evaluate(() => { const f = [...document.querySelectorAll('fieldset')].find((x) => /language/i.test((x.querySelector('legend') as HTMLElement)?.innerText ?? ''))!; return [...f.querySelectorAll('button, label')].map((n) => { const r = n.getBoundingClientRect(); return { t: (n as HTMLElement).innerText.trim(), x: r.x, y: r.y, w: r.width, h: r.height, b: r.bottom }; }); });
+  L('[G-1a] chip rects ' + JSON.stringify(rects.map((r) => ({ t: r.t, x: Math.round(r.x), y: Math.round(r.y), b: Math.round(r.b) }))));
+  const rows = [...new Set(rects.map((r) => Math.round(r.y)))].sort((a, b) => a - b);
+  for (let i = 0; i + 1 < rows.length; i++) {
+    const up = rects.find((r) => Math.round(r.y) === rows[i])!; const lo = rects.find((r) => Math.round(r.y) === rows[i + 1])!;
+    const x = lo.x + lo.w / 2; const res: string[] = [];
+    for (let y = up.b - 2; y <= lo.y + 2; y += 0.5) { const own = await page.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); const b = e?.closest('button, label') as HTMLElement | null; return b?.innerText.trim() ?? '-'; }, [x, y] as const); res.push(y + ':' + own); }
+    L('[G-1a] row' + i + ' upper=' + up.t + ' bottom=' + up.b + ' lowerTop=' + lo.y + ' scan x=' + x.toFixed(1) + ' ' + res.join(' '));
+  }
+  // onboarding step 1 Next
+  await page.setViewportSize({ width: 393, height: 852 });
+  await hideDevPanel(page);
+  await gotoApp(page, '/onboarding/start?scenario=me:consent-missing');
+  await page.getByRole('button', { name: 'Start the questions' }).click();
+  await expect(page).toHaveURL(/\/onboarding\/child-info$/);
+  await fillChildInfo(page); await page.mouse.move(0, 0); await settle(page);
+  const nx = page.getByRole('button', { name: 'Next', exact: true });
+  const before = await nx.boundingBox();
+  await nx.scrollIntoViewIfNeeded(); await settle(page);
+  const after = await nx.boundingBox();
+  L('[VG6-G-18] Step1 Next before-scroll=' + JSON.stringify(before) + ' after=' + JSON.stringify(after) + ' enabled=' + (await nx.isEnabled()) + ' docH=' + (await page.evaluate(() => document.scrollingElement!.scrollHeight)));
+  await page.screenshot({ path: OUT + '/r2-step1-bottom-after-scroll.png' });
+  const ov = await page.evaluate(() => { const f = [...document.querySelectorAll('fieldset')].find((x) => /language/i.test((x.querySelector('legend') as HTMLElement)?.innerText ?? ''))!; const card = f.closest('.haru-choice-card, [class*=surface]') ?? f; const r = card.getBoundingClientRect(); const anc: string[] = []; let n: Element | null = card.parentElement; while (n) { const cs = getComputedStyle(n); if (cs.overflowX !== 'visible' || cs.overflowY !== 'visible') { const q = n.getBoundingClientRect(); anc.push(n.className.toString().slice(0, 40) + ' ox=' + cs.overflowX + ' oy=' + cs.overflowY + ' L=' + Math.round(r.left - q.left) + ' R=' + Math.round(q.right - r.right)); } n = n.parentElement; } return { cls: card.className, shadow: getComputedStyle(card).boxShadow, anc }; });
+  L('[R-SHADOW-1] language card ' + JSON.stringify(ov));
+});

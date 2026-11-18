@@ -278,6 +278,9 @@ FR ID가 없는 화면 요구사항:
 - **Blocking decisions**: 회고 칩 값 형태; §15 #4/#5는 Frontend 비차단.
 
 ### Stage 6 — Personalization + Profile Update + Recommendation Loop (Frontend)
+
+> ✅ **진행 상태 (2026-11-18)** — **Stage 6 완료 — `PASS (accepted: QA-6-005)`** (`docs/qa/stage-6-qa-report.md` §11). 스크린 리더 확인(AC-6-46)은 Stage 8 Final QA 재확인 대상. 비차단 미결: `VG6-H-09` 섹션 간격 리듬(A/B/C, Stage 8 전), `VG6-H-06` `Text tracking` prop 수용, `VG6-D-12`, `v2-material` 드리프트 원인.
+
 - **Goal**: 세션·회고 이후 달라진 프로필/페르소나와 다음 카드(warm)를 사용자가 확인하는 UX.
 - **In Scope**: FR-15(표시), FR-06(설정 변경), FR-07(warm 표시), §7.8 아이 프로필 수정·설문 재응답.
 - **Deliverables**
@@ -288,6 +291,7 @@ FR ID가 없는 화면 요구사항:
 - **Exit Criteria**: Mock 업데이트 스냅샷·페르소나가 화면에 반영; 설정 수정 중도 이탈 복귀; difficulty-lowered fixture가 카드에 표시. PENDING: 추천 규칙의 실제 동작("이전 세션 데이터가 다음 추천에 반영") — 서버 검증 대상.
 - **Dependencies**: S5; 설정·프로필 업데이트 디자인(Figma 누락).
 - **Blocking decisions**: 업데이트 노출 방식; 스코어 갱신 규칙(제품·전문가 → Handoff).
+- **Status**: **Plan·Spec `APPROVED` (2026-11-15, `D6-8`)** — `docs/plans/stage-6-plan.md` 개정 2 (AC-6-01~66 · `N6-01`~`48` 전부 해소 `D6-1`~`D6-8`) · `docs/design/stage-6-design-spec.md`. 범위: Stage 2-B(`C13-09`·`C13-10`) 편입 · C-13 8건 design-agent 명세. 작업 순서 `S6-A` → `S6-E1` → `S6-E2` → `S6-B` → `S6-C` → `S6-D` → `S6-F`. 위 초안 항목(Exit·Mock·Blocking)은 Plan §19.5 후속에서 갱신한다.
 
 ### Stage 7 — 4-Week Report + History + Highlight Audio + PDF UX (Frontend)
 - **Goal**: 발행 기준 충족/미충족 양쪽 흐름, 리포트 상세·히스토리·하이라이트 클립·PDF UX를 Mock으로 검증.

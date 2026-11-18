@@ -205,6 +205,10 @@ HARU 화면에서 **사용 확인된 것은 `backgrounds/primary`(= white), `bac
 
 각 스타일 = v4 `--text-{style}` (size) + `--text-{style}--line-height` · `--text-{style}--font-weight` · `--text-{style}--letter-spacing` 4개 변수 (§1.1, #29). weight 는 스타일 기본값 + `--font-weight-{regular 400, medium 510, semibold 590, bold 700, heavy 860}` 조합.
 
+**섹션 라벨 (SectionLabel recipe)** — `D6-10` ③ (2026-11-18): Figma `244:1313` · `244:1358` · `244:1427` · `244:1430` · `179:1733` · `179:1739` · `319:1503` · `319:1510` · `319:1540` 선언값 = SF Pro **Bold 12 · tracking 0.72** · `#7d9291`. → `Text variant="caption-1" tone="secondary" weight="bold" tracking="section-label"` · Tier 3 `--section-label-letter-spacing` = 0.72px. (이전 recipe `semibold` · 자간 0 은 승인 근거가 없는 누락이었다 — `VG6-G-08`.)
+
+**Answer card 행 라벨** — `D6-10` ①: Figma `179:1788` · `244:1394` · `320:1493` = **Semibold(590)** 14.5 → `RadioGroup variant="card"` 라벨 `--font-weight-semibold` (크기 15 흡수는 Stage 1 §3.5 그대로).
+
 ### 3.2 Auto-generated 타이포 Variables (`17:367`) — 정규화 대상
 
 | Figma Variable | Value | 문제 | 제안 |
@@ -338,7 +342,7 @@ Tailwind 기본 spacing 스케일(4px 기준)을 그대로 쓰고, 7 · 13 · 18
 | `corner radius/16` | 16 | `--radius-field` = 16 | `rounded-field` | TextArea, 설문 옵션 |
 | (raw) 20, 22, 24 | 20 / 22 / 24 | `--radius-surface` = 22 (Figma 버블·FieldGroup 값) — 22 vs 24 = `가값 (P-12)` | `rounded-surface` | StatTile 20, 버블·FieldGroup 22, 리포트 카드 24 |
 | `radius-card` / `corner radius/28` | 28 | `--radius-card` = 28 | `rounded-card` | 덱 카드, 시트 (중복 2개 이름) |
-| `corner radius/30` | 30 | → `--radius-card` 흡수 | — | ReflectionCard `91:691` |
+| `corner radius/30` | 30 | **흡수하지 않는다** — Tier 3 `--reflection-card-radius` = 30 (ReflectionCard `91:691`, `N5-28` · `D5-4`) · `--choice-card-radius` = 30 (언어 카드 `244:1314`, `D6-10` ② 2026-11-18) | — | 위 두 노드. ⚠️ Stage 0 의 "30 → card(28) 흡수" 기록은 `N5-28`(Stage 5)과 `D6-10`(Stage 6) 사용자 결정으로 **대체**되었다. 두 토큰은 값이 같지만 서로 참조하지 않는다(다른 노드 · 다른 의미 — `VG6-G-02`). Semantic radius 단계(7단계, `L-OPEN-09`)는 바뀌지 않는다 |
 | (raw) 32 | 32 | → `--radius-card` 흡수 (6단계 확정으로 별도 32 단계 없음, #10-②) | — | 설문 카드 `179:1783` |
 | `radius-pill` / `corner radius/100` | 100 | `--radius-pill` = 9999 | `rounded-pill` | 버튼·칩·Tab Bar (중복 2개 이름) |
 | (raw) 19 (38px 원), 22 (44px 원) | — | `--radius-pill` | `rounded-pill` | IconButton, 스티커 아이콘 |

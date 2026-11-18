@@ -1,0 +1,106 @@
+import { test, expect, type Page } from '@playwright/test';
+import { logInToHome, firstStartSession, settleImages } from '/Users/soojin/dev/haru/e2e/support/session';
+import { gotoApp, hideDevPanel, settle } from '/Users/soojin/dev/haru/e2e/support/gallery';
+import { frontCardCounter, seedChildDraft, signUpAndConsent } from '/Users/soojin/dev/haru/e2e/support/onboarding';
+import * as fs from 'node:fs';
+const OUT = '/Users/soojin/dev/haru/docs/qa/evidence/stage-6';
+const LOG = OUT + '/r3-probe.log';
+const L = (s: string) => fs.appendFileSync(LOG, s + '\n');
+async function spa(page: Page, path: string) {
+  await page.evaluate((t) => { window.history.pushState({}, '', t); window.dispatchEvent(new PopStateEvent('popstate')); }, path);
+}
+async function measureChildForm(page: Page, tag: string) {
+  const r = await page.evaluate(() => {
+    const cs = (e: Element) => getComputedStyle(e);
+    const card = document.querySelector('.haru-language-card') as HTMLElement | null;
+    const out: Record<string, unknown> = {};
+    if (card) {
+      const c = cs(card);
+      out.card = { radius: c.borderTopLeftRadius + '/' + c.borderTopRightRadius + '/' + c.borderBottomLeftRadius + '/' + c.borderBottomRightRadius,
+        backdrop: c.backdropFilter, webkitBackdrop: (c as any).webkitBackdropFilter, bg: c.backgroundColor, shadow: c.boxShadow, rect: card.getBoundingClientRect().toJSON() };
+      // any ancestor/descendant blur within the card subtree
+      out.cardSubtreeBlur = [card, ...Array.from(card.querySelectorAll('*'))].filter((e) => { const f = cs(e).backdropFilter; return f && f !== 'none'; }).length;
+    }
+    const routine = document.querySelector('.haru-child-routine') as HTMLElement | null;
+    if (routine) {
+      const legend = routine.querySelector('.haru-radio-group__legend')!;
+      const lc = cs(legend);
+      const rows = Array.from(routine.querySelectorAll('.haru-radio-group__options > *'));
+      const labels = Array.from(routine.querySelectorAll('.haru-radio-group__label'));
+      out.routine = { groupClass: routine.querySelector('.haru-radio-group')?.className,
+        legend: { text: legend.textContent, weight: lc.fontWeight, size: lc.fontSize, ls: lc.letterSpacing, color: lc.color, tt: lc.textTransform, rect: legend.getBoundingClientRect().toJSON() },
+        labelWeights: labels.map((l) => (l.textContent ?? '').trim() + '=' + cs(l).fontWeight),
+        firstRowTop: rows[0]?.getBoundingClientRect().top, lastRowBottom: rows.at(-1)?.getBoundingClientRect().bottom };
+      if (card && rows[0]) out.gapCardToFirstRow = rows[0].getBoundingClientRect().top - card.getBoundingClientRect().bottom;
+    }
+    out.sectionLabels = Array.from(document.querySelectorAll('.haru-text--tracking-section-label')).map((e) => { const c = cs(e); return `${e.textContent}|w${c.fontWeight}|${c.fontSize}|ls${c.letterSpacing}|${c.color}`; });
+    return out;
+  });
+  L(`[${tag}] ` + JSON.stringify(r));
+  return r as any;
+}
+
+test('child-info onboarding edit (Step 1)', async ({ page }) => {
+  await gotoApp(page, '/onboarding/child-info');
+  await expect(page.getByLabel('First name')).toBeVisible();
+  await settle(page);
+  const r = await measureChildForm(page, 'step1-edit');
+  expect(r.card).toBeTruthy();
+  await page.locator('main').screenshot({ path: OUT + '/r3-step1-edit.png' });
+});
+test('child-info onboarding display (Step 1 after consent)', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-03-15T12:00:00Z'));
+  await seedChildDraft(page, 'Yuna', 2020);
+  await signUpAndConsent(page, ',onboarding:prefilled-child-info');
+  await expect(page).toHaveURL(/\/onboarding\/child-info$/);
+  await settle(page);
+  await measureChildForm(page, 'step1-display');
+});
+test('settings child + settings menu', async ({ page }) => {
+  await hideDevPanel(page); await logInToHome(page);
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await expect(page.getByRole('list', { name: 'Your child' })).toBeVisible();
+  await settle(page);
+  await measureChildForm(page, 'settings-menu');
+  await page.screenshot({ path: OUT + '/r3-settings-menu.png' });
+  await page.getByRole('button', { name: 'Child info' }).click();
+  await expect(page.locator('.haru-child-info-edit [data-state="ready"]')).toBeVisible();
+  await settle(page);
+  await measureChildForm(page, 'settings-child');
+  await page.screenshot({ path: OUT + '/r3-settings-child.png', fullPage: true });
+});
+async function radioWeights(page: Page, tag: string) {
+  const r = await page.evaluate(() => Array.from(document.querySelectorAll('.haru-radio-group')).map((g) => ({ cls: g.className,
+    labels: Array.from(g.querySelectorAll('.haru-radio-group__label')).map((l) => (l.textContent ?? '').trim().slice(0, 40) + '=' + getComputedStyle(l).fontWeight + '/' + getComputedStyle(l).fontSize) })));
+  L(`[${tag}] ` + JSON.stringify(r));
+  return r;
+}
+test('survey cards (onboarding reading-together + settings survey)', async ({ page }) => {
+  await gotoApp(page, '/onboarding/reading-together');
+  await expect(frontCardCounter(page)).toBeVisible(); await settle(page);
+  await radioWeights(page, 'onb-reading-together');
+  await hideDevPanel(page); await logInToHome(page);
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByRole('button', { name: 'Update survey answers' }).click();
+  await page.getByRole('button', { name: /^(Start|Continue where you left off)$/ }).click();
+  await expect(frontCardCounter(page)).toBeVisible(); await settle(page);
+  await radioWeights(page, 'settings-survey-card');
+  await page.screenshot({ path: OUT + '/r3-settings-survey-card.png' });
+});
+test('growth capability settings', async ({ page }) => {
+  await hideDevPanel(page); await logInToHome(page);
+  await spa(page, '/settings/growth-capability');
+  await expect(page.getByRole('radiogroup').first()).toBeVisible(); await settle(page);
+  await radioWeights(page, 'settings-growth');
+  await page.screenshot({ path: OUT + '/r3-settings-growth.png' });
+});
+test('reading context sheet', async ({ page }) => {
+  await hideDevPanel(page); await logInToHome(page);
+  await firstStartSession(page).click();
+  const sheet = page.getByRole('dialog', { name: 'When will you read?' });
+  await expect(sheet).toBeVisible(); await page.mouse.move(0, 0); await settleImages(page);
+  await radioWeights(page, 'reading-context-step1');
+  await sheet.screenshot({ path: OUT + '/r3-reading-context-step1.png' });
+  const pick = sheet.getByText(/Pick a time/);
+  if (await pick.count()) { await pick.first().click(); await page.waitForTimeout(600); await radioWeights(page, 'reading-context-step2'); await sheet.screenshot({ path: OUT + '/r3-reading-context-step2.png' }); }
+});

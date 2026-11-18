@@ -1,0 +1,15 @@
+ M e2e/__screenshots__/darwin/session.spec.ts/s4-reading-context-sheet.png
+ M e2e/__screenshots__/darwin/visual.spec.ts/s2-deck-capability.png
+ M e2e/__screenshots__/darwin/visual.spec.ts/s2-deck-reading-together.png
+ M e2e/__screenshots__/darwin/visual.spec.ts/s2-onboarding-childinfo-edit.png
+ M e2e/__screenshots__/darwin/visual.spec.ts/s2-onboarding-childinfo-trial.png
+ M e2e/__screenshots__/darwin/visual.spec.ts/s2-onboarding-childinfo.png
+ M e2e/__screenshots__/darwin/visual.spec.ts/s2-signup.png
+ M e2e/__screenshots__/darwin/visual.spec.ts/s3-dialog-scrim.png
+ M e2e/__screenshots__/darwin/visual.spec.ts/s3-sheet-scrim.png
+ M e2e/__screenshots__/darwin/visual.spec.ts/v5-field.png
+?? e2e/__screenshots__/darwin/growth-capability.spec.ts/
+?? e2e/__screenshots__/darwin/profile-result.spec.ts/
+?? e2e/__screenshots__/darwin/settings-child.spec.ts/
+?? e2e/__screenshots__/darwin/settings-growth.spec.ts/
+?? e2e/__screenshots__/darwin/settings-survey.spec.ts/

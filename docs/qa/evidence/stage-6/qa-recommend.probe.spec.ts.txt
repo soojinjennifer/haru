@@ -1,0 +1,69 @@
+import { test, expect, type Page } from '@playwright/test';
+import { logInToHome, startSession } from '/Users/soojin/dev/haru/e2e/support/session';
+import { hideDevPanel } from '/Users/soojin/dev/haru/e2e/support/gallery';
+const OUT = '/Users/soojin/dev/haru/docs/qa/evidence/stage-6';
+const log: string[] = [];
+async function firstReason(page: Page) {
+  const t = page.locator('.haru-activity-track:not(.haru-activity-track--skeleton)');
+  await expect(t).toBeVisible();
+  return (await page.locator('.haru-activity-card-flip__face--front').first().innerText()).replace(/\s+/g,' ');
+}
+async function completeSession(page: Page, scenario: string | undefined, tricky: boolean) {
+  if (scenario !== undefined) { await startSession(page, scenario); }
+  else {
+    await page.locator('.haru-activity-card-flip__face--front').first().getByRole('button', { name: 'Start Session' }).click();
+    const sheet = page.getByRole('dialog', { name: 'When will you read?' });
+    await sheet.getByText('Bedtime', { exact: true }).click();
+    await sheet.getByRole('button', { name: 'Continue' }).click();
+    await expect(page.getByRole('button', { name: 'Start recording' })).toBeVisible();
+    await expect(page.locator('.haru-scrim')).toHaveCount(0);
+  }
+  await page.getByRole('button', { name: 'Start recording' }).click();
+  await expect(page.getByRole('button', { name: 'Pause recording' })).toBeVisible();
+  await page.getByRole('button', { name: 'Submit' }).click();
+  await expect(page).toHaveURL(/\/complete$/);
+  if (tricky) {
+    await page.getByRole('radio', { name: '2 stars' }).click();
+    await page.getByRole('button', { name: 'Tricky today' }).click();
+    await page.getByRole('button', { name: 'Save' }).click();
+  } else {
+    await page.getByRole('button', { name: 'Close session' }).click();
+  }
+  await expect(page).toHaveURL(/\/$/);
+}
+async function revisitHome(page: Page) {
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await expect(page).toHaveURL(/\/settings$/);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+}
+test.afterAll(async () => { const fs = await import('node:fs'); fs.writeFileSync(OUT + '/qa-recommend-probe.log', log.join('\n') + '\n'); });
+
+test('AC-6-40 difficulty-lowered via browser', async ({ page }) => {
+  await hideDevPanel(page);
+  await logInToHome(page, 'activity-cards:difficulty-lowered');
+  log.push('[40] before: ' + await firstReason(page));
+  await completeSession(page, undefined, true);
+  log.push('[40] right after reflection save (t<30s): ' + await firstReason(page));
+  await page.screenshot({ path: OUT + '/qa-ac40-immediate.png' });
+  await page.waitForTimeout(31_000);
+  await revisitHome(page);
+  await page.waitForTimeout(1500);
+  log.push('[40] after 31s + revisit: ' + await firstReason(page));
+  await page.screenshot({ path: OUT + '/qa-ac40-after-stale.png' });
+});
+
+test('AC-6-39 cold-to-warm via browser', async ({ page }) => {
+  await hideDevPanel(page);
+  await logInToHome(page, 'activity-cards:cold-to-warm');
+  log.push('[39] before (seed 2 done): ' + await firstReason(page));
+  await completeSession(page, undefined, false);
+  log.push('[39] after 3rd session (t<30s): ' + await firstReason(page));
+  await page.waitForTimeout(31_000); await revisitHome(page); await page.waitForTimeout(1500);
+  log.push('[39] after 3rd session + 31s revisit: ' + await firstReason(page));
+  await completeSession(page, undefined, false);
+  log.push('[39] after 4th session (t<30s): ' + await firstReason(page));
+  await page.waitForTimeout(31_000); await revisitHome(page); await page.waitForTimeout(1500);
+  log.push('[39] after 4th session + 31s revisit: ' + await firstReason(page));
+  await page.screenshot({ path: OUT + '/qa-ac39-warm.png' });
+});
