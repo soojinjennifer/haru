@@ -13,6 +13,7 @@ import type { SessionRecorderEnvironment } from '../../entities/session';
 import { RecordingNoticeToasts } from '../../features/storytime-session';
 import type { ApiClients } from '../../shared/api/types';
 import type { AuthGateway } from '../../shared/auth';
+import type { FileSharePort } from '../../shared/platform/file-share';
 import type { PushPermissionPort } from '../../shared/platform/push-permission';
 
 import { ApiClientProvider } from './ApiClientProvider';
@@ -25,6 +26,8 @@ export interface AppProvidersProps {
   authGateway?: AuthGateway | undefined;
   /** 테스트 · dev gallery 전용 주입 지점 (push 권한 포트). */
   pushPermission?: PushPermissionPort | undefined;
+  /** 테스트 전용 주입 지점 (파일 저장·공유 포트 — Stage 7 `S7-F`). */
+  fileShare?: FileSharePort | undefined;
   /** 테스트 전용 주입 지점 (녹음 상태 머신 조립 — Stage 4 `S4-F1`). */
   sessionRecorder?: SessionRecorderEnvironment | undefined;
   queryClient?: QueryClient | undefined;
@@ -37,6 +40,7 @@ export function AppProviders({
   clients,
   authGateway,
   pushPermission,
+  fileShare,
   sessionRecorder,
   queryClient,
   fallback,
@@ -47,6 +51,7 @@ export function AppProviders({
         clients={clients}
         authGateway={authGateway}
         pushPermission={pushPermission}
+        fileShare={fileShare}
         sessionRecorder={sessionRecorder}
         fallback={fallback}
       >

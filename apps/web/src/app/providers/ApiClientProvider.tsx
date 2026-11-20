@@ -3,6 +3,7 @@
  *
  * Stage 2-AUTH 부터 `ApiClients` 와 `AuthGateway` **두 Adapter**를 함께 공급한다.
  * Stage 4(`S4-J`)부터 push 권한 **플랫폼 포트**(`PushPermissionPort`)도 같은 지점에서 공급한다.
+ * Stage 7(`S7-A`)부터 파일 저장·공유 포트(`FileSharePort`)도 같은 지점에서 공급한다.
  * 둘을 한 번에 만들어야 `mock` 모드에서 scenario store 와 요청 로그를 공유한다.
  *
  * `mock` 모드의 Adapter 는 동적 import 로 들어오므로 첫 프레임에서는 아직 없다.
@@ -22,6 +23,11 @@ import { wipeWebRecordingStorage } from '../../shared/platform/recording-storage
 import { createUnavailableAuthGateway, type AuthGateway } from '../../shared/auth';
 import { errorName, logger } from '../../shared/lib/logger';
 import {
+  createWebFileSharePort,
+  FileShareProvider,
+  type FileSharePort,
+} from '../../shared/platform/file-share';
+import {
   createWebPushPermissionPort,
   PushPermissionProvider,
   type PushPermissionPort,
@@ -39,6 +45,8 @@ export interface ApiClientProviderProps {
   authGateway?: AuthGateway | undefined;
   /** 주입된 push 권한 포트. `clients` 만 주입하면 Web 구현이 들어간다 (jsdom = `unsupported`). */
   pushPermission?: PushPermissionPort | undefined;
+  /** 주입된 파일 저장·공유 포트 (Stage 7). `clients` 만 주입하면 Web 구현이 들어간다. */
+  fileShare?: FileSharePort | undefined;
   /**
    * 주입된 녹음 조립 (테스트 전용). `clients` 만 주입하면 그 clients + **Web** 플랫폼으로 만든다 —
    * 런타임은 세션 화면이 처음 쓸 때 열리므로 세션을 다루지 않는 테스트는 브라우저 저장소를 열지 않는다.
@@ -53,6 +61,7 @@ export function ApiClientProvider({
   clients,
   authGateway,
   pushPermission,
+  fileShare,
   sessionRecorder,
   fallback = null,
 }: ApiClientProviderProps) {
@@ -63,6 +72,7 @@ export function ApiClientProvider({
   const [injectedPush] = useState<PushPermissionPort>(
     () => pushPermission ?? createWebPushPermissionPort(),
   );
+  const [injectedFileShare] = useState<FileSharePort>(() => fileShare ?? createWebFileSharePort());
   const [injectedRecorder] = useState<SessionRecorderEnvironment | null>(() =>
     clients === undefined
       ? null
@@ -86,6 +96,7 @@ export function ApiClientProvider({
           clients,
           authGateway: authGateway ?? createUnavailableAuthGateway(),
           pushPermission: pushPermission ?? injectedPush,
+          fileShare: fileShare ?? injectedFileShare,
           sessionRecorder: sessionRecorder ?? injectedRecorder,
         };
 
@@ -120,9 +131,11 @@ export function ApiClientProvider({
   return (
     <ApiClientsProvider clients={resolved.clients}>
       <PushPermissionProvider port={resolved.pushPermission}>
-        <SessionRecorderProvider environment={resolved.sessionRecorder}>
-          <AuthProvider gateway={resolved.authGateway}>{children}</AuthProvider>
-        </SessionRecorderProvider>
+        <FileShareProvider port={resolved.fileShare}>
+          <SessionRecorderProvider environment={resolved.sessionRecorder}>
+            <AuthProvider gateway={resolved.authGateway}>{children}</AuthProvider>
+          </SessionRecorderProvider>
+        </FileShareProvider>
       </PushPermissionProvider>
     </ApiClientsProvider>
   );

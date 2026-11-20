@@ -8,14 +8,12 @@ export type ProgressBarTone = 'accent' | 'neutral';
 /** Design Spec §4.18 — 6 / 8 (`--progress-height-sm` / `-md`). */
 export type ProgressBarSize = 'sm' | 'md';
 
-export interface ProgressBarProps {
+interface ProgressBarBaseProps {
   /** 현재 값. `null` 이면 indeterminate 상태가 된다 (§4.18). */
   value: number | null;
   max?: number;
   tone?: ProgressBarTone;
   size?: ProgressBarSize;
-  /** 접근성 이름 — 필수. */
-  label: string;
   /** 값을 색 외에 텍스트("1 / 10")로도 전달한다 (§4.18). */
   showValue?: boolean;
   /**
@@ -27,6 +25,28 @@ export interface ProgressBarProps {
   /** 스크린리더에 읽히는 값 문구 (`aria-valuetext`). 없으면 숫자 값만 읽힌다. */
   valueText?: string | undefined;
 }
+
+/** 기본 — `role="progressbar"` 로 값을 접근성 트리에 노출한다. 접근성 이름 필수. */
+interface ProgressBarAnnouncedProps extends ProgressBarBaseProps {
+  decorative?: false;
+  /** 접근성 이름 — 필수. */
+  label: string;
+}
+
+/**
+ * **장식 모드** — Stage 7 Plan §5.7 · `M7-11` (AC-7-31).
+ *
+ * `role="progressbar"` 는 `aria-valuenow` 로 SR 이 **퍼센트를 읽는다** → 숫자 미노출 결정(`N7-05` · `N7-15`)과
+ * 충돌한다. 같은 정보를 옆 텍스트(단계 라벨 · *Next report on …*)가 전달하는 자리에서는 막대를
+ * `aria-hidden` 으로 접근성 트리에서 뺀다. 이 모드에서는 role · aria-value* 를 **만들지 않으므로** 이름도 받지 않는다.
+ */
+interface ProgressBarDecorativeProps extends ProgressBarBaseProps {
+  decorative: true;
+  label?: undefined;
+  valueText?: undefined;
+}
+
+export type ProgressBarProps = ProgressBarAnnouncedProps | ProgressBarDecorativeProps;
 
 function clamp(value: number, max: number): number {
   if (Number.isNaN(value)) return 0;
@@ -43,6 +63,10 @@ function fillStyleOf(percent: number): CSSProperties {
  * ProgressBar — Design Spec §4.18.
  *
  * 도메인 로직을 갖지 않는다. 값 계산·표시 문구·구간 비율은 호출부가 정한다.
+ *
+ * **채움 색 override** (Stage 7 `T7-2`) — prop 이 아니라 CSS 변수 `--progress-fill-color` 하나다.
+ * 호출 측 CSS 가 조상에 선언하면 fill 이 그 색을 쓰고, 없으면 기존 `--color-progress-fill` 그대로다
+ * (`ProgressBar.css` fallback — 미지정 시 DOM · 렌더 불변, AC-7-81).
  */
 export function ProgressBar({
   value,
@@ -53,6 +77,7 @@ export function ProgressBar({
   showValue = false,
   segments,
   valueText,
+  decorative = false,
 }: ProgressBarProps) {
   const indeterminate = value === null;
   const safeMax = max > 0 ? max : 1;
@@ -64,17 +89,23 @@ export function ProgressBar({
       ? undefined
       : segments;
 
-  const accessibility = {
-    role: 'progressbar' as const,
-    'aria-label': label,
-    'aria-valuemin': indeterminate ? undefined : 0,
-    'aria-valuemax': indeterminate ? undefined : safeMax,
-    'aria-valuenow': indeterminate ? undefined : current,
-    'aria-valuetext': indeterminate ? undefined : valueText,
-  };
+  const accessibility = decorative
+    ? {}
+    : {
+        role: 'progressbar' as const,
+        'aria-label': label,
+        'aria-valuemin': indeterminate ? undefined : 0,
+        'aria-valuemax': indeterminate ? undefined : safeMax,
+        'aria-valuenow': indeterminate ? undefined : current,
+        'aria-valuetext': indeterminate ? undefined : valueText,
+      };
 
   return (
-    <div className={cx('haru-progress', `haru-progress--${size}`, `haru-progress--${tone}`)}>
+    <div
+      className={cx('haru-progress', `haru-progress--${size}`, `haru-progress--${tone}`)}
+      // 장식 모드만 속성을 단다 — 기본 모드의 DOM 은 Stage 6 와 같다 (AC-7-81).
+      aria-hidden={decorative ? true : undefined}
+    >
       {usableSegments === undefined ? (
         <div
           className={cx(

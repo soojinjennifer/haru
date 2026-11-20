@@ -101,6 +101,22 @@ test.describe('기하 (Design Spec §2.2 · §3.3)', () => {
     expect(end - 345).toBeLessThan(1);
   });
 
+  test('TopBar trailing(주간 칩) 오른쪽 끝 = x369 · 2열 (Figma `30:90` — `VG7-C-04` ⓐ · `D7-6` ③)', async ({
+    page,
+  }) => {
+    await goToLibrary(page);
+    // 빈 leading 이면 `TopBar large` 가 2열로 접혀 column-gap 20 이 남지 않는다 (이전 x349).
+    const layout = await page.locator('.haru-top-bar--large').evaluate((node) => {
+      const trailing = node.querySelector('.haru-top-bar__trailing > *');
+      return {
+        columns: getComputedStyle(node).gridTemplateColumns.split(' ').length,
+        trailingRight: Math.round((trailing?.getBoundingClientRect().right ?? 0) * 10) / 10,
+        titleX: Math.round((node.querySelector('h1')?.getBoundingClientRect().x ?? 0) * 10) / 10,
+      };
+    });
+    expect(layout).toStrictEqual({ columns: 2, trailingRight: 369, titleX: 24 });
+  });
+
   test('다음 페이지가 gutter 에 비치지 않는다 (Figma 에 peek 이 없다)', async ({ page }) => {
     await goToLibrary(page);
 

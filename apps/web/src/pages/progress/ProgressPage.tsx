@@ -1,24 +1,19 @@
-import { EmptyState } from '@haru/ui';
-
-import { progressCopy } from '../../shared/copy/progress-copy';
+import { ProgressOverview } from '../../features/progress-overview';
+import { ReportPdfAction } from '../../features/report-pdf';
 
 /**
- * `/progress` — 리포트 준비 안내 (`CONFIRMED (D-2)` · Design Spec §2.13).
+ * `/progress` — Stage 7 `S7-C` (Figma `31:102` 주간 관찰 + `110:835` 4주 리포트 카드, `D7-1`).
  *
- * **진행도 수치·차트·`ReportOverview` 호출이 0건**이다. 진행률 표시는 "3회 중 1회" 같은
- * 달성률 언어로 미끄러지므로 Stage 3 에서는 수치를 아예 넣지 않는다.
+ * Stage 3 의 준비 안내(`EmptyState` 1개 — `D-2`)를 **대체**했다 (AC-7-03).
  *
- * 하단에 탭바 관련 padding 을 넣지 않는다 (§2.1 이중 계상 금지).
+ * Page 는 **Composition 만** 한다 (`rules/frontend.md` §3) — API 호출·상태 전이·Mock 데이터 0.
+ * 4주 리포트 카드의 PDF 버튼은 `features/report-pdf` 를 여기서 slot(`pdfAction`)으로 꽂는다 — `S7-F`
+ * (feature 간 import 0 — Plan §5.1). 상세 ⑦ 과 같은 컴포넌트 · 같은 기록(`reportKeys.pdf`)이다 (`N7-24`).
  */
+function renderPdfAction(reportId: string) {
+  return <ReportPdfAction reportId={reportId} />;
+}
+
 export function ProgressPage() {
-  return (
-    <div className="flex min-h-full flex-col justify-center py-8">
-      <EmptyState
-        icon="chart-no-axes-column-increasing"
-        title={progressCopy.empty.title}
-        description={progressCopy.empty.description}
-        titleAs="h2"
-      />
-    </div>
-  );
+  return <ProgressOverview pdfAction={renderPdfAction} />;
 }

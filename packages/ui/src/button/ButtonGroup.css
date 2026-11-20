@@ -22,9 +22,17 @@
   flex-direction: column;
 }
 
-/* Design Spec §4.4 — 가로 폭 360px 미만이면 자동 stacked. */
+/*
+ * Design Spec §4.4 — 가로 폭 360px 미만이면 자동 stacked.
+ * 자식의 `flex: 1 1 0` 은 가로 배분용이다 — 세로로 바뀌면 basis 0 이 버튼 `block-size`(45/56)를 덮어 버튼이 라벨 높이로
+ * 눌린다(Stage 7 `S7-F` 실측 25px). 그래서 세로일 때는 배분을 끈다 (명시 `stacked` 와 같은 모양).
+ */
 @container (width < 360px) {
   .haru-button-group__row--inline {
     flex-direction: column;
+  }
+
+  .haru-button-group__row--inline > * {
+    flex: none;
   }
 }

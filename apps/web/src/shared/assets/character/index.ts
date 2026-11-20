@@ -7,6 +7,7 @@
  * | `headphones`       | `179:1823` (188² ellipse)       | 376²     | 188 (md)  | 2.0x |
  * | `hello-heart-full` | `163:2529` → `179:1819` 배치    | 614×830  | 307 (w)   | 2.0x |
  * | `home-character`   | `26:22` (357×442 프레이밍)      | 915×1133 | 357 / 444 | 2.56x / 2.06x |
+ * | `bookworm`         | `163:2643` → `163:2642` 크롭    | 941×1144 | 347 / 482 | 2.71x / 1.95x |
  *
  * **medallion 계열(`hello-heart` · `headphones`)은 정사각형이 정상이다.** 소스 노드가
  * 지름 232 / 188 의 **원형 ellipse** 이고, 파일에 들어 있는 image fill 비트맵이 각각
@@ -27,6 +28,9 @@
  * 그 사각형은 프레임 배경과 거의 같은 색이라 보이지 않는 것이 의도된 모습이다.
  * 기하(위치·크기)는 교체 전과 동일하다 — 캐릭터 bounds 를 원본 JPEG 에 맞춰 정렬했다.
  */
+import bookwormAvif from './bookworm.avif';
+import bookworm from './bookworm.png';
+import bookwormWebp from './bookworm.webp';
 import headphonesAvif from './headphones.avif';
 import headphones from './headphones.png';
 import headphonesWebp from './headphones.webp';
@@ -58,6 +62,7 @@ export const CHARACTER_ASSETS = {
   'hello-heart-full': { png: helloHeartFull, webp: helloHeartFullWebp, avif: helloHeartFullAvif },
   'home-character': { png: homeCharacter, webp: homeCharacterWebp, avif: homeCharacterAvif },
   headphones: { png: headphones, webp: headphonesWebp, avif: headphonesAvif },
+  bookworm: { png: bookworm, webp: bookwormWebp, avif: bookwormAvif },
 } as const satisfies Record<string, RasterAsset>;
 
 export type CharacterAssetName = keyof typeof CHARACTER_ASSETS;
@@ -82,4 +87,19 @@ export type CharacterAssetName = keyof typeof CHARACTER_ASSETS;
  *
  * **픽셀 밀도**: 393px 뷰포트(표시 폭 357)에서 **2.56x**, ≥600px 의 480 컬럼(표시 폭 444)에서
  * **2.06x** 다 — 두 구간 모두 2x 이상이므로 **허용 차이 `AD-S3-25`(1.73x)는 해소되었다**.
+ */
+
+/**
+ * `bookworm` — Stage 7 Progress 캐릭터 (Figma `163:2642` 프레임 347×422, 이미지 `163:2643`
+ * "안경 쓴 책벌레 민트 하루", Spec §2.1.1 · `N7-27`).
+ *
+ * 출처: Figma `163:2643` image fill 원본 **941×1672 투명 PNG** (design-agent 가 Spec 작성 시 내려받은 것 —
+ * 모서리 알파 0 확인). Figma 는 이 이미지를 프레임 폭 100% · **높이 146.15% · top −15.82%** 로 배치하고
+ * 프레임이 `overflow-clip` 으로 자른다 (Spec §0.2 `[ctx]`).
+ *
+ * 처리: 그 크롭 창을 **에셋에 미리 적용**했다 — 배율 941/347 = 2.7118 → y 181.04 … 1325.43 를 잘라
+ * **941×1144** (aspect 0.82227 = Figma 347/422 와 소수 5자리까지 같다). 다운샘플·업스케일 0.
+ * 그래서 화면은 `object-fit: cover` 만으로 Figma 와 같은 창을 보이고 **새 `overflow` 선언이 필요 없다**
+ * (`R-SHADOW-1` ① overflow 회피 — Spec 은 크롭용 `overflow: clip` 1건을 예정했으나 0건으로 줄였다, H7-3).
+ * 프레임 gradient fill(`#daebe5 → #d0e1dc`)은 그리지 않는다 (`N7-30` ⓐ, 허용 차이 후보 `AD7-5`).
  */

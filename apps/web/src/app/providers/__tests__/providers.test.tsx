@@ -87,6 +87,18 @@ const stubClients: ApiClients = {
     saveSurveyUpdateStep: () => Promise.reject(new Error('not used in this test')),
     submitSurveyUpdate: () => Promise.reject(new Error('not used in this test')),
   },
+  progress: { getWeekly: () => Promise.reject(new Error('not used in this test')) },
+  reports: {
+    getOverview: () => Promise.reject(new Error('not used in this test')),
+    list: () => Promise.reject(new Error('not used in this test')),
+    getDetail: () => Promise.reject(new Error('not used in this test')),
+    markViewed: () => Promise.reject(new Error('not used in this test')),
+  },
+  reportPdf: {
+    request: () => Promise.reject(new Error('not used in this test')),
+    getStatus: () => Promise.reject(new Error('not used in this test')),
+  },
+  highlightClips: { getPlaybackUrl: () => Promise.reject(new Error('not used in this test')) },
 };
 
 function Probe() {

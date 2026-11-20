@@ -18,13 +18,17 @@ import type { BooksApi } from './books-api';
 import type { ChildrenApi } from './children-api';
 import type { ConsentApi } from './consent-api';
 import type { HealthApi } from './health-api';
+import type { HighlightClipApi } from './highlight-clip-api';
 import type { HomeApi } from './home-api';
 import type { LibraryApi } from './library-api';
 import type { MeApi } from './me-api';
 import type { NotificationApi } from './notification-api';
 import type { OnboardingApi } from './onboarding-api';
+import type { ProgressApi } from './progress-api';
 import type { RecordingApi } from './recording-api';
 import type { ReflectionApi } from './reflection-api';
+import type { ReportApi } from './report-api';
+import type { ReportPdfApi } from './report-pdf-api';
 import type { SessionApi } from './session-api';
 import type { UploadTransport } from './upload-transport';
 
@@ -64,4 +68,12 @@ export interface ApiClients {
    * (FR-04~06 · FR-15 · §7.8, `API_CONTRACTS` Stage 6 절). 히스토리 목록 메서드는 없다 (`N6-12`).
    */
   readonly children: ChildrenApi;
+  /** Stage 7 — 주간 Progress (`GET …/progress/weekly`, C7-1 · Figma `31:102`). */
+  readonly progress: ProgressApi;
+  /** Stage 7 — 4주 리포트 overview · 목록 · 상세 · 열람 기록 (FR-16 · §2.3, C7-2~C7-4 · C7-7). */
+  readonly reports: ReportApi;
+  /** Stage 7 — 리포트 PDF 요청 · 상태 (FR-17, C7-6). */
+  readonly reportPdf: ReportPdfApi;
+  /** Stage 7 — 하이라이트 클립 재생 URL (FR-18, C7-8). */
+  readonly highlightClips: HighlightClipApi;
 }

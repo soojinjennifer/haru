@@ -22,7 +22,12 @@ import {
   LibraryPage,
   LibraryTopBar,
 } from '../pages/library';
-import { ProgressPage, ProgressTopBar } from '../pages/progress';
+import {
+  ProgressPage,
+  ProgressTopBar,
+  ReportDetailPage,
+  ReportDetailTopBar,
+} from '../pages/progress';
 import { NotFoundPage } from '../pages/not-found/NotFoundPage';
 import { OnboardingSessionProvider } from '../features/onboarding-survey';
 import { SurveyUpdateSessionProvider } from '../features/survey-update';
@@ -89,7 +94,8 @@ const DevOverlay = import.meta.env.DEV ? lazy(() => import('../dev/DevOverlay'))
  * | `/onboarding/growth-capability` | StackLayout | 발전 역량 · 온보딩 모드 (Stage 6 `C13-10`) — TopBar centered 제목 없음 · 뒤로 → 프로필 |
  * | `/`                      | **TabLayout**   | Home 본문 — `HomeTopBar`(워드마크 + 주간 집계 칩 + 설정) |
  * | `/library`               | **TabLayout**   | 서재 — Stage 3 1차는 탭바 마운트 자리만 |
- * | `/progress`              | **TabLayout**   | 리포트 준비 안내 (`D-2` — 수치 0건) |
+ * | `/progress`              | **TabLayout**   | 주간 관찰 + 4주 리포트 카드 (Stage 7 `S7-C` — `D7-1`) |
+ * | `/progress/reports/:reportId` | StackLayout | 4주 리포트 상세 (Stage 7 `S7-D`, `C13-S7-1`) — TopBar centered "4-week report" · 뒤로 = `N7-23` |
  * | `/settings`              | StackLayout     | TopBar centered — 2그룹 5행 (Stage 6 `C13-S6-1`) |
  * | `/settings/profile`      | StackLayout     | 프로필 결과 · 재방문 모드 (Stage 6 `C13-09`) — TopBar centered "Profile" |
  * | `/settings/child`        | StackLayout     | 아이 정보 수정 (Stage 6 `C13-S6-2`) — TopBar centered "Child info", 뒤로 = 변경 시 확인 |
@@ -343,6 +349,20 @@ export function AppRoutes() {
           element={
             <RouteGuard>
               <ProgressPage />
+            </RouteGuard>
+          }
+        />
+      </Route>
+      {/*
+        Stage 7 `S7-D` — 4주 리포트 상세 (`C13-S7-1`, Figma 없음 → Spec §2.3). 탭이 아닌 스택 화면(탭바 없음).
+        진입 = `/progress` 카드 헤더 링크 · 과거 목록 행 · push `report_published` deep link (`N7-22`).
+      */}
+      <Route element={<StackLayout topBar={<ReportDetailTopBar />} />}>
+        <Route
+          path={ROUTES.progressReport}
+          element={
+            <RouteGuard>
+              <ReportDetailPage />
             </RouteGuard>
           }
         />

@@ -268,3 +268,115 @@ describe('DiamondChart.css', () => {
     expect(css).toMatch(/max\(100%, var\(--size-touch-min\)\)/);
   });
 });
+
+/*
+ * Stage 7 `S7-B` — `previous` 오버레이 (Spec §3.7 · §2.3.1, AC-7-38 렌더 · AC-7-81 기본값 불변).
+ */
+describe('DiamondChart — previous 레이어 (Stage 7)', () => {
+  const current = axes([4.3, 3.5, 2.5, 3.7]);
+
+  it('previous 미지정 · null → 레이어 · 범례가 DOM 에 없다 (AC-7-81)', () => {
+    const { container, rerender } = render(
+      <DiamondChart axes={current} summary={SUMMARY} missingLabel="Not seen yet" />,
+    );
+    expect(container.querySelector('.haru-diamond__previous')).toBeNull();
+    expect(container.querySelector('.haru-diamond__legend')).toBeNull();
+
+    rerender(
+      <DiamondChart
+        axes={current}
+        summary={SUMMARY}
+        missingLabel="Not seen yet"
+        previous={null}
+        legend={{ previous: 'Earlier', current: 'This report' }}
+      />,
+    );
+    expect(container.querySelector('.haru-diamond__previous')).toBeNull();
+    expect(container.querySelector('.haru-diamond__legend')).toBeNull();
+  });
+
+  it('previous 가 있으면 외곽선만 그린다 — 면 0 · 꼭짓점 0 · 현재 레이어보다 아래(z)', () => {
+    const { container } = render(
+      <DiamondChart
+        axes={current}
+        summary={SUMMARY}
+        missingLabel="Not seen yet"
+        previous={[3, 3, 2, 3]}
+      />,
+    );
+    const layer = container.querySelector('.haru-diamond__previous');
+    expect(layer).not.toBeNull();
+    expect(layer?.querySelectorAll('.haru-diamond__previous-stroke')).toHaveLength(1);
+    expect(layer?.querySelector('.haru-diamond__area-fill')).toBeNull();
+    expect(layer?.querySelector('circle')).toBeNull();
+    // 닫힌 다이아몬드 — 위 3/5 = 0.6 → y −0.6
+    expect(layer?.querySelector('path')?.getAttribute('d')).toBe('M0 -0.6 L0.6 0 L0 0.4 L-0.6 0 Z');
+
+    const plotChildren = [...(container.querySelector('.haru-diamond__plot')?.children ?? [])];
+    const order = plotChildren.map((node) => node.getAttribute('class'));
+    expect(order.indexOf('haru-diamond__grid')).toBeLessThan(
+      order.indexOf('haru-diamond__previous'),
+    );
+    expect(order.indexOf('haru-diamond__previous')).toBeLessThan(
+      order.indexOf('haru-diamond__data'),
+    );
+  });
+
+  it('previous 의 null 축은 Stage 6 와 같은 사분면 규칙으로 열린다', () => {
+    const { container } = render(
+      <DiamondChart
+        axes={current}
+        summary={SUMMARY}
+        missingLabel="Not seen yet"
+        previous={[3, null, 2, 3]}
+      />,
+    );
+    const paths = container.querySelectorAll('.haru-diamond__previous-stroke');
+    expect(paths).toHaveLength(1);
+    expect(paths[0]?.getAttribute('d')?.endsWith('Z')).toBe(false);
+  });
+
+  it('previous 값만으로는 숫자 텍스트가 생기지 않는다 (N7-15)', () => {
+    const { container } = render(
+      <DiamondChart
+        axes={current}
+        summary={SUMMARY}
+        missingLabel="Not seen yet"
+        previous={[3, 3, 2, 3]}
+        legend={{ previous: 'Earlier', current: 'This report' }}
+      />,
+    );
+    expect(container.textContent).not.toMatch(/\d/);
+  });
+
+  it('범례는 previous + legend 일 때만 · aria-hidden · 견본 2개', () => {
+    const { container } = render(
+      <DiamondChart
+        axes={current}
+        summary={SUMMARY}
+        missingLabel="Not seen yet"
+        previous={[3, 3, 2, 3]}
+        legend={{ previous: 'Earlier', current: 'This report' }}
+      />,
+    );
+    const legend = container.querySelector('.haru-diamond__legend');
+    expect(legend?.getAttribute('aria-hidden')).toBe('true');
+    expect(legend?.textContent).toBe('EarlierThis report');
+    expect(legend?.querySelectorAll('.haru-diamond__swatch')).toHaveLength(2);
+    // summary 는 그대로 SVG 이름이다 — 비교 문장을 컴포넌트가 만들지 않는다.
+    expect(plot().getAttribute('aria-label')).toBe(SUMMARY);
+  });
+
+  it('CSS — previous 선은 토큰(P-38)만 · 모션 없음', () => {
+    const css = readFileSync(
+      path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'DiamondChart.css'),
+      'utf8',
+    );
+    const rule = /\.haru-diamond__previous-stroke\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+    expect(rule).toMatch(/stroke:\s*var\(--chart-previous-stroke\)/);
+    expect(rule).toMatch(/stroke-width:\s*var\(--chart-previous-width\)/);
+    expect(rule).toMatch(/stroke-dasharray:\s*var\(--chart-previous-dash\)/);
+    expect(rule).toMatch(/fill:\s*none/);
+    expect(css).not.toMatch(/\.haru-diamond__previous[^-][^{]*\{[^}]*animation/);
+  });
+});

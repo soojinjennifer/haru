@@ -575,4 +575,68 @@
   --choice-card-radius: 30px;
   --section-label-letter-spacing: 0.72px;
   --child-routine-label-offset: 7px;
+
+  /* ===== Stage 7 `S7-B` — Progress · 4주 리포트 (Stage 7 Spec §5.2 `T7-4`~`T7-15`, `D7-5`) =====
+   * 실측: Figma Dev Mode MCP 로컬 서버 `get_metadata(163:2564 · 163:2544)` + `get_variable_defs(31:102)` (2026-11-19)
+   * 와 Spec §0.2 `[ctx]` 선언값. 색(`color-mix` 포함)은 Tier 2 (`semantic/color.css` Stage 7 블록).
+   */
+  /* `T7-4` BarChart `163:2564` — 영역 h110(pt14 포함) · 열 gap 10 · 열 안 gap 6 · 막대 16 / radius 8 · 스텁 h4.
+   * 열 h96 = 값 라벨 + 6 + 트랙 + 6 + 요일. 트랙 높이는 CSS flex 가 나머지로 정한다 (JS 측정 없음). */
+  --bar-chart-block-size: 110px;
+  --bar-chart-pad-block-start: var(--space-3-5);
+  --bar-chart-gap: var(--space-2-5);
+  --bar-chart-label-gap: var(--space-1-5);
+  --bar-chart-bar-width: 16px;
+  --bar-chart-bar-radius: var(--radius-control);
+  --bar-chart-empty-size: 4px;
+  /* 막대 라벨(값 · 요일) 줄 높이 — Figma 선언 leading 1.0 (`leading-[10px]` · `leading-[10.5px]`) 을 글자 11px 에 그대로 적용.
+   * 트랙 = 96 − 11 − 6 − 6 − 11 = 62 (Figma 63, `VG7-B-03` ⓑ · `D7-6` ①). */
+  --bar-chart-label-line: 11px;
+  /* `T7-5` StatTile `163:2545` — pad 13/8 · gap 5 · 값 Heavy 24 · 행 h84 (`163:2544`). radius 20 → surface 22. */
+  --stat-tile-value-size: 24px;
+  --stat-tile-pad-block: 13px;
+  --stat-tile-pad-inline: var(--space-2);
+  --stat-tile-gap: 5px;
+  --stat-tile-row-block-size: 84px;
+  /* `T7-6` 주간 합계 `163:2557` — Bold 26/26 · tracking −0.52 (−2%). */
+  --weekly-total-size: 26px;
+  --weekly-total-line: 26px;
+  --weekly-total-tracking: -0.52px;
+  /* `T7-7` Moment 카드 `163:2633` — gap 7 · 인용 Medium 14/21 · eyebrow tracking 0.4. */
+  --moment-card-gap: 7px;
+  --moment-quote-size: 14px;
+  --moment-quote-line: 21px;
+  --moment-eyebrow-tracking: 0.4px;
+  /* `T7-8` 리포트 카드 아이콘 타일 `110:837` — 44 · 글리프 22 · radius 14 → media 12. */
+  --report-card-icon-tile-size: 44px;
+  --report-card-icon-size: 22px;
+  --report-card-icon-tile-radius: var(--radius-media);
+  /* `T7-9` 리포트 카드 진행 막대 `110:851` — h7 (`--reading-now-progress-height` 와 값만 같다, 소유 컴포넌트가 다르다). */
+  --report-card-progress-height: 7px;
+  /* `T7-10` 다이아몬드 `previous` 레이어 · 범례 견본 — Figma 없음 (Spec §3.7 · §2.3.1). */
+  /* provisional: P-38 (docs/design/stage-7-design-spec.md §5.3) */
+  --chart-previous-width: 1.5px;
+  /* provisional: P-38 (docs/design/stage-7-design-spec.md §5.3) */
+  --chart-previous-dash: 4 3;
+  /* provisional: P-38 (docs/design/stage-7-design-spec.md §5.3) */
+  --chart-legend-swatch: 12px;
+  /* `T7-11` Progress 캐릭터 `163:2642` — 347×422 @ top 4 (Figma y70 − 66: 상태바 56 + 위 여백 10 — 제목과 같은 −66 매핑,
+   * Library 와 같은 규칙 · `VG7-C-02` ⓑ · `D7-6` ②) · 본문과 겹침 146/422 · 좌우 2 돌출. */
+  --progress-character-top: 4px;
+  --progress-character-aspect: 347 / 422;
+  --progress-character-overlap: 0.346;
+  --progress-character-overhang: 2px;
+  /* `T7-12` 주 선택 chip `31:118` — h34 · pad-inline 14 · gap 6 · chevron 12 · hit 44. */
+  --week-picker-chip-block-size: 34px;
+  --week-picker-chip-pad-inline: var(--space-3-5);
+  --week-picker-chip-gap: var(--space-1-5);
+  --week-picker-chip-icon-size: 12px;
+  --week-picker-chip-hit-size: var(--size-touch-min);
+  /* `T7-14` 페르소나 히스토리 rail · `T7-15` 클립 행 — C-13 명세 (Figma 없음). */
+  /* provisional: P-39 (docs/design/stage-7-design-spec.md §5.3) */
+  --persona-rail-width: 16px;
+  /* provisional: P-39 (docs/design/stage-7-design-spec.md §5.3) */
+  --persona-rail-line: 2px;
+  /* provisional: P-39 (docs/design/stage-7-design-spec.md §5.3) */
+  --clip-row-gap: var(--space-3);
 }

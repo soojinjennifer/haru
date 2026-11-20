@@ -95,6 +95,37 @@ export async function hideDevPanel(page: Page): Promise<void> {
   });
 }
 
+/**
+ * 시각 baseline 에서 **dev gallery 의 sticky 칩 내비(`.haru-dev-nav`)를 가린다** (`QA-7-001`).
+ *
+ * 내비는 `position: sticky; inset-block-start: 0` 이라 영역 클립 대상이 뷰포트 아래에 있으면
+ * Playwright 가 그 요소를 화면 안으로 스크롤한 뒤 찍는다 — 그때 내비가 **대상의 위쪽을 덮은 채**
+ * baseline 에 들어간다. 실제로 S7-F 로 섹션이 길어진 뒤 `v1-button` 첫 행(*Start session*)의 위
+ * 절반이 내비로 굳었다 (`VG7-F-11`). dev 전용 UI 이므로 `R-BASELINE-1` ② 에 따라 **찍을 때만**
+ * 가린다.
+ *
+ * `hideDevPanel` 과 같은 이유로 `display: none` 이 아니라 **`visibility: hidden`** 이다 —
+ * sticky 는 흐름 안에 자리를 차지하므로 `display: none` 이면 아래 콘텐츠가 위로 당겨져
+ * 내비와 무관한 픽셀까지 바뀐다. `visibility` 는 레이아웃을 그대로 두고 그림만 지운다.
+ * 제품·gallery 코드는 바꾸지 않는다 (내비 동작은 그대로다).
+ */
+export async function hideGalleryNav(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const apply = (): void => {
+      const style = document.createElement('style');
+      style.setAttribute('data-e2e', 'hide-gallery-nav');
+      style.textContent = '.haru-dev-nav { visibility: hidden !important; }';
+      document.head.append(style);
+    };
+
+    if (document.head === null) {
+      document.addEventListener('DOMContentLoaded', apply, { once: true });
+    } else {
+      apply();
+    }
+  });
+}
+
 /** Design Spec §10.2 의 시각 비교 블록. `data-demo` 로 표시되어 있다. */
 export function demo(page: Page, id: string) {
   return page.locator(`[data-demo="${id}"]`);

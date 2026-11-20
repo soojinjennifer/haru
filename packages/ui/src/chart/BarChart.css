@@ -1,0 +1,111 @@
+/*
+ * BarChart — Stage 7 Design Spec §3.4 (Figma `163:2564`, `T7-4`, `N7-29` · `N7-31`)
+ *
+ * 기하 (Figma `get_metadata(163:2564)` 2026-11-19):
+ *   영역 h110 = pt 14 + 열 h96. 열 = 값 라벨 + gap 6 + 트랙(막대 최대) + gap 6 + 요일 라벨.
+ *   막대 w16 · radius 8. 기록 없음 스텁 h4. 열 폭 ≈ 36.14 (flex 1 · gap 10).
+ * 라벨 크기: 값 Bold 10 · 요일 Semibold 10.5 → **둘 다 caption-2 11** 흡수 (`N7-31`, 11 미만 텍스트 금지).
+ * 라벨 줄 높이: Figma 선언 leading 1.0 (10/10 · 10.5/10.5) → `--bar-chart-label-line` **11** (`VG7-B-03` ⓑ · `D7-6` ①).
+ *   그래서 트랙(막대 최대 높이)은 96 − 11 − 6 − 6 − 11 = **62** 다 (Figma 63, Δ−1 — 글자 10/10.5 → 11 흡수분).
+ *   한 줄 · `nowrap` 라벨이라 줄 상자 11 안의 글리프 여유 1px 미만이어도 겹칠 대상이 없다.
+ *
+ * 트랙 높이는 **CSS 가 나머지로 정한다**: plot 은 열 안에서 flex 1(정의된 높이) · 아래 정렬이고,
+ * 막대 높이 = ratio × (plot 높이 − 값 라벨 줄 − gap). 최대값 막대(ratio 1)가 plot 위끝에 값 라벨을 붙인다.
+ *
+ * `R-SHADOW-1`: 그림자 · `overflow` 없음.
+ */
+
+.haru-bar-chart {
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  gap: var(--bar-chart-gap);
+  block-size: var(--bar-chart-block-size);
+  padding-block-start: var(--bar-chart-pad-block-start);
+  margin: 0;
+  font-family: var(--font-sans);
+}
+
+.haru-bar-chart__column {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--bar-chart-label-gap);
+  min-inline-size: 0;
+}
+
+.haru-bar-chart__plot {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--bar-chart-label-gap);
+  min-block-size: 0;
+  inline-size: 100%;
+}
+
+/* 값 라벨 — Figma Bold 10 → caption-2 11 · 일반 ink-300 (`P-35`) / 강조 ink-600. */
+.haru-bar-chart__value,
+.haru-bar-chart__label {
+  font-size: var(--text-caption-2);
+  line-height: var(--bar-chart-label-line);
+  white-space: nowrap;
+}
+
+.haru-bar-chart__value {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-fg-quaternary);
+}
+
+.haru-bar-chart__column--emphasized .haru-bar-chart__value {
+  color: var(--color-action-secondary-fg);
+}
+
+/* 요일 라벨 — Figma Semibold 10.5 → caption-2 11 · ink-400 (`P-24` · `P-35`). */
+.haru-bar-chart__label {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-fg-tertiary);
+}
+
+.haru-bar-chart__bar {
+  display: block;
+  flex: none;
+  inline-size: var(--bar-chart-bar-width);
+  block-size: calc(
+    var(--bar-chart-ratio, 0) * (100% - var(--bar-chart-label-line) - var(--bar-chart-label-gap))
+  );
+  border-radius: var(--bar-chart-bar-radius);
+  background-color: var(--bar-chart-fill-muted);
+  transform-origin: 50% 100%;
+  animation: haru-bar-chart-grow var(--motion-duration-slow) var(--motion-ease-standard) both;
+}
+
+.haru-bar-chart__column--emphasized .haru-bar-chart__bar {
+  background-color: var(--bar-chart-fill);
+}
+
+/* 기록 없음 — 스텁 h4 · radius 4 (Figma 3 → `--radius-indicator`) · ink 18%. */
+.haru-bar-chart__column--empty .haru-bar-chart__bar {
+  block-size: var(--bar-chart-empty-size);
+  border-radius: var(--radius-indicator);
+  background-color: var(--bar-chart-empty-fill);
+  animation: none;
+}
+
+@keyframes haru-bar-chart-grow {
+  from {
+    transform: scaleY(0);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .haru-bar-chart__bar {
+    animation: none;
+  }
+}

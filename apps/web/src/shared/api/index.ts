@@ -26,6 +26,10 @@ export type { NotificationApi } from './notification-api';
 export type { ReflectionApi } from './reflection-api';
 export type { AnalysisApi } from './analysis-api';
 export type { ChildrenApi, SurveyUpdateSaveOptions } from './children-api';
+export type { ProgressApi } from './progress-api';
+export type { ReportApi } from './report-api';
+export type { ReportPdfApi } from './report-pdf-api';
+export type { HighlightClipApi } from './highlight-clip-api';
 export {
   isUploadOffsetConflictError,
   UploadOffsetConflictError,

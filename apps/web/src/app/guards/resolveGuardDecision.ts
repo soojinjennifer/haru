@@ -15,7 +15,8 @@
  * 3. 필수 동의 누락                           → /auth/consent
  * 4. VPC pending | failed                    → /auth/verify-parent
  * 5. 온보딩 미완료                            → /onboarding/start      (저장된 draft 가 있으면 그 지점)
- * 6. 온보딩 완료 && 현재 경로가 /auth/*        → /                      (인증 전용 화면이므로)
+ * 6. 온보딩 완료 && 현재 경로가 /auth/*        → 복귀 경로 | /           (인증 전용 화면이므로 — 복귀 = AC-7-46,
+ *                                               복귀 경로 이동에는 router state 표식 — D7-7)
  * 7. 그 외                                    → allow
  * ```
  *
@@ -27,12 +28,19 @@
 import { hasAllRequiredConsents, type MeResponse } from '@haru/contracts';
 
 import { ROUTES } from '../../shared/config/routes';
+import { AUTH_RETURN_STATE } from '../../shared/lib/in-app-history';
 
 /** Route 접근 판정 결과. */
 export type GuardDecision =
   | { readonly status: 'allow' }
   | { readonly status: 'pending' }
-  | { readonly status: 'redirect'; readonly to: string; readonly replace?: boolean };
+  | {
+      readonly status: 'redirect';
+      readonly to: string;
+      readonly replace?: boolean;
+      /** router state — 로그인 복귀(규칙 6 → 복귀 경로)에만 `AUTH_RETURN_STATE` 를 싣는다 (`D7-7`). */
+      readonly state?: typeof AUTH_RETURN_STATE;
+    };
 
 export const ALLOW_DECISION: GuardDecision = { status: 'allow' };
 export const PENDING_DECISION: GuardDecision = { status: 'pending' };
@@ -57,6 +65,11 @@ export interface GuardOptions {
    * 이 함수는 저장소를 모른다 (순수 함수 유지 — 결정 `D-5`).
    */
   onboardingResumePath?: string | null;
+  /**
+   * 로그인 후 복귀 경로 (AC-7-46, `D7-6` ⑨) — 미인증 때 가려던 **같은 출처의 앱 안 경로**. 없으면 `null`.
+   * 규칙 6 의 **목적지만** 바꾼다 (Home 대신). 검증 · 저장은 호출부(`shared/lib/return-path`)가 한다 — 순수 함수 유지.
+   */
+  returnPath?: string | null;
 }
 
 const AUTH_PREFIX = '/auth/';
@@ -122,7 +135,14 @@ export function resolveGuardDecision(
   }
 
   // 6. 온보딩까지 끝난 사용자에게 `/auth/*` 는 더 이상 보여 주지 않는다.
-  if (isAuthPath(pathname)) return redirectTo(ROUTES.home, pathname);
+  //    복귀 경로로 보낼 때는 로그인 복귀 표식을 싣는다 — 그 화면의 Back 이 인증 관문(Welcome · Log in) 대신
+  //    deep link 목적지로 간다 (`D7-7`, `N7-23`). Home 이동은 Stage 2 그대로 표식 없음.
+  if (isAuthPath(pathname)) {
+    const returnPath = options.returnPath;
+    if (returnPath === null || returnPath === undefined) return redirectTo(ROUTES.home, pathname);
+    const decision = redirectTo(returnPath, pathname);
+    return decision.status === 'redirect' ? { ...decision, state: AUTH_RETURN_STATE } : decision;
+  }
 
   // 7. 그 외
   return ALLOW_DECISION;

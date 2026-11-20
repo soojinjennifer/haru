@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
 import { Icon } from '../Icon';
-import { LUCIDE_STROKE_WIDTH } from '../registry';
+import { LUCIDE_ICONS, LUCIDE_STROKE_WIDTH } from '../registry';
 
 describe('Icon', () => {
   it('exposes a meaningful icon with its accessible name (§4.2)', () => {
@@ -41,4 +41,16 @@ describe('Icon', () => {
     expect(warn).toHaveBeenCalledOnce();
     warn.mockRestore();
   });
+});
+
+/* Stage 7 `S7-B` — Icon registry 추가 (Stage 7 Spec §3.9). `clock` 은 Stage 2 부터 있다. */
+describe('Icon — Stage 7 Lucide 등록', () => {
+  it.each(['file-down', 'arrow-down-to-line', 'share', 'play', 'pause', 'clock'] as const)(
+    '%s 를 svg 로 렌더한다',
+    (name) => {
+      const { container } = render(<Icon name={name} size="md" decorative />);
+      expect(container.querySelector('svg')).not.toBeNull();
+      expect(LUCIDE_ICONS[name]).toBeDefined();
+    },
+  );
 });

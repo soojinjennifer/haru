@@ -19,7 +19,15 @@
 import { expect, test, type Page } from '@playwright/test';
 
 import { FRAME_SNAPSHOT, REGION_SNAPSHOT } from '../playwright.config';
-import { demo, GALLERY, gotoApp, gotoStable, hideDevPanel, settle } from './support/gallery';
+import {
+  demo,
+  GALLERY,
+  gotoApp,
+  gotoStable,
+  hideDevPanel,
+  hideGalleryNav,
+  settle,
+} from './support/gallery';
 import {
   completeOnboardingToSaved,
   DECK_LABEL,
@@ -38,6 +46,18 @@ import {
 test.beforeEach(async ({ page }) => {
   await hideDevPanel(page);
 });
+
+/**
+ * gallery **영역 클립** 전용 이동 — sticky 칩 내비를 가린 뒤 연다 (`QA-7-001`, `hideGalleryNav` 주석).
+ *
+ * 영역 클립은 대상을 화면 안으로 스크롤한 뒤 찍으므로 어느 섹션이든 내비에 덮일 수 있다.
+ * 그래서 gallery 섹션을 찍는 **모든** 테스트가 이 함수를 쓴다. 전체 프레임(`frame-*`)은
+ * 스크롤 0 에서 찍어 내비가 대상을 덮지 않으므로 적용하지 않는다.
+ */
+async function gotoGallerySection(page: Page, path: string): Promise<void> {
+  await hideGalleryNav(page);
+  await gotoStable(page, path);
+}
 
 /** Design Spec §10.2 — Figma 대조 대상. */
 const FIGMA_BACKED: readonly { id: string; figma: string; page: string }[] = [
@@ -84,7 +104,7 @@ const SPEC_ONLY: readonly { id: string; page: string }[] = [
 test.describe('Figma 대조 baseline (V-1 … V-8)', () => {
   for (const target of FIGMA_BACKED) {
     test(`${target.id} — Figma ${target.figma}`, async ({ page }) => {
-      await gotoStable(page, target.page);
+      await gotoGallerySection(page, target.page);
       await expect(demo(page, target.id)).toHaveScreenshot(`${target.id}.png`, REGION_SNAPSHOT);
     });
   }
@@ -93,7 +113,7 @@ test.describe('Figma 대조 baseline (V-1 … V-8)', () => {
 test.describe('명세 기준 baseline (V-9, Figma 없음)', () => {
   for (const target of SPEC_ONLY) {
     test(target.id, async ({ page }) => {
-      await gotoStable(page, target.page);
+      await gotoGallerySection(page, target.page);
       await expect(demo(page, target.id)).toHaveScreenshot(`${target.id}.png`, REGION_SNAPSHOT);
     });
   }
@@ -102,7 +122,7 @@ test.describe('명세 기준 baseline (V-9, Figma 없음)', () => {
 test.describe('Stage 2 신규 컴포넌트 baseline (§11.2, 영역 클립)', () => {
   for (const id of STAGE2_COMPONENTS) {
     test(id, async ({ page }) => {
-      await gotoStable(page, GALLERY.components);
+      await gotoGallerySection(page, GALLERY.components);
       await expect(demo(page, id)).toHaveScreenshot(`${id}.png`, REGION_SNAPSHOT);
     });
   }
@@ -593,7 +613,7 @@ test.describe('scrim baseline (L-NEW-09 감시 — 신규)', () => {
 test.describe('Library 1라운드 컴포넌트 baseline (영역 클립)', () => {
   for (const id of ['s3-section-header', 's3-book-cover', 's3-list-media'] as const) {
     test(id, async ({ page }) => {
-      await gotoStable(page, GALLERY.components);
+      await gotoGallerySection(page, GALLERY.components);
       await expect(demo(page, id)).toHaveScreenshot(`${id}.png`, REGION_SNAPSHOT);
     });
   }

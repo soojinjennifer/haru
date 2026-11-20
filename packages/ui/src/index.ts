@@ -207,6 +207,18 @@ export type {
   DiamondValues,
 } from './chart/diamondGeometry';
 
+/* Stage 7 `S7-B` — Progress · 4주 리포트 Shared UI (Stage 7 Spec §3.1 · §3.4, `D7-5`). */
+export { BarChart } from './chart/BarChart';
+export type { BarChartBar, BarChartProps } from './chart/BarChart';
+export {
+  barChartLayout,
+  DEFAULT_EMPHASIS_RATIO,
+  normalizeEmphasisRatio,
+} from './chart/barChartLayout';
+export type { BarLayout } from './chart/barChartLayout';
+export { StatTile } from './stat/StatTile';
+export type { StatTileProps } from './stat/StatTile';
+
 /* 스크롤 컨테이너 context — 결정 D-13 (AppShell 이 ref 를 제공한다). */
 export { ScrollContainerProvider, useScrollContainerRef } from './layout/ScrollContainerContext';
 export type { ScrollContainerProviderProps } from './layout/ScrollContainerContext';

@@ -41,6 +41,13 @@
    */
   --haru-palette-yellow-700: #78733c;
 
+  /*
+   * Stage 7 `T7-1` — Figma **변수** `color/violet/67` = `#ac93c4` (`get_variable_defs(31:102)`, 2026-11-19).
+   * Progress `163:2607` Growth themes 4행 막대 fill 에 **바인딩된** 값이다. palette `purple`(`#c9b8d4`)과
+   * 다른 변수라 흡수하지 않는다. 대비는 Semantic 쪽이 가값 `P-36` 주석을 갖는다.
+   */
+  --haru-violet-67: #ac93c4;
+
   /* --- Ink (텍스트·경계) --------------------------------------------------- */
   --haru-ink-800: #3b4a48;
   --haru-ink-700: #4a5f5c;

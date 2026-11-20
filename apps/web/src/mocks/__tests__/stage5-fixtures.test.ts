@@ -97,10 +97,17 @@ describe('하이라이트 클립 fixture (C-9 · AC-5-07 — schema + fixture �
     expect(SignedMediaUrlSchema.parse(url)).toStrictEqual(url);
   });
 
-  it('Mock API Client 에 클립 메서드가 없다 (`N5-22`)', () => {
+  /**
+   * Stage 5 시점 단정은 "클립 메서드 0" 이었다 (`N5-22` — 재생 UI · `playback-url` 은 Stage 7).
+   * Stage 7 `S7-A` 가 그 예정대로 `highlightClips.getPlaybackUrl` **하나만** 추가했다 — 분석·회고 도메인에는 여전히 없다.
+   */
+  it('클립 메서드는 Stage 7 `highlightClips.getPlaybackUrl` 하나뿐이다 (`N5-22` → Stage 7 C7-8)', () => {
     const b = bundle();
     const domains = Object.keys(b.clients);
-    expect(domains.filter((name) => /clip|highlight/i.test(name))).toStrictEqual([]);
+    expect(domains.filter((name) => /clip|highlight/i.test(name))).toStrictEqual([
+      'highlightClips',
+    ]);
+    expect(Object.keys(b.clients.highlightClips)).toStrictEqual(['getPlaybackUrl']);
     expect(Object.keys(b.clients.analysis)).toStrictEqual(['getStatus']);
     expect(Object.keys(b.clients.reflections)).toStrictEqual(['submit']);
   });

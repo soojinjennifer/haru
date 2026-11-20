@@ -138,6 +138,44 @@ const EXPECTED: Record<string, { file: string; tokens: string[] }[]> = {
       tokens: ['--chart-diamond-radius-max', '--chart-diamond-label-max'],
     },
   ],
+  /*
+   * Stage 7 `S7-B` 신설 — `D7-5` (Stage 7 Design Spec §5.3).
+   *   `P-35` ink-300 텍스트(막대 값 라벨) · `P-36` 비텍스트(막대 · Growth 4색) · `P-37` Moment 카드 ·
+   *   `P-38` 다이아몬드 이전 리포트 선 · `P-39` C-13 레이아웃 값.
+   * `P-40`(막대 강조 비율 0.75)은 JS 규칙이라 토큰이 없다 — `P-17` 과 같은 예외다.
+   * ink-400 텍스트(`--color-fg-tertiary`)는 이미 `P-24` 소속이라 `P-35` 를 겹쳐 달지 않는다.
+   */
+  'P-35': [{ file: 'src/semantic/color.css', tokens: ['--color-fg-quaternary'] }],
+  'P-36': [
+    {
+      file: 'src/semantic/color.css',
+      tokens: [
+        '--color-growth-theme-agency',
+        '--color-growth-theme-emotion',
+        '--color-growth-theme-flexibility',
+        '--color-growth-theme-motivation',
+        '--bar-chart-fill',
+        '--bar-chart-fill-muted',
+        '--bar-chart-empty-fill',
+      ],
+    },
+  ],
+  'P-37': [
+    { file: 'src/semantic/color.css', tokens: ['--color-surface-moment', '--color-border-moment'] },
+  ],
+  'P-38': [
+    { file: 'src/semantic/color.css', tokens: ['--chart-previous-stroke'] },
+    {
+      file: 'src/component/index.css',
+      tokens: ['--chart-previous-width', '--chart-previous-dash', '--chart-legend-swatch'],
+    },
+  ],
+  'P-39': [
+    {
+      file: 'src/component/index.css',
+      tokens: ['--persona-rail-width', '--persona-rail-line', '--clip-row-gap'],
+    },
+  ],
 };
 
 /**
@@ -217,16 +255,21 @@ const REMAINING = [
   'P-31',
   'P-32',
   'P-33',
+  'P-35',
+  'P-36',
+  'P-37',
+  'P-38',
+  'P-39',
 ];
 
 describe('provisional 주석 ↔ 남은 가값 목록 (AC-1-12 · approvals §9)', () => {
-  it('항목이 11건이다 (P-01 · P-02 · P-04 · P-16 · P-23 · P-24 · P-25 · P-30 ~ P-33)', () => {
+  it('항목이 16건이다 (P-01 · P-02 · P-04 · P-16 · P-23 · P-24 · P-25 · P-30 ~ P-33 · P-35 ~ P-39)', () => {
     const items = [...new Set(declarations.map((d) => d.provisional).filter(Boolean))].sort();
     expect(items).toEqual(REMAINING);
-    expect(items).toHaveLength(11);
+    expect(items).toHaveLength(16);
   });
 
-  it('EXPECTED 표 자체가 남은 11 항목만 담는다 (표를 늘려 검사를 우회하지 못한다)', () => {
+  it('EXPECTED 표 자체가 남은 16 항목만 담는다 (표를 늘려 검사를 우회하지 못한다)', () => {
     expect(Object.keys(EXPECTED).sort()).toEqual(REMAINING);
     for (const item of [...CONFIRMED_2026_09_22, ...CONFIRMED_2026_10_06]) {
       expect(EXPECTED[item]).toBeUndefined();

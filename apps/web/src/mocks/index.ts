@@ -42,7 +42,12 @@ import { createMockOnboardingState, type MockOnboardingState } from './onboardin
 import { createMockPushPermissionPort } from './platform/MockPushPermissionPort';
 import { createMockRecordingApi } from './recordings/MockRecordingApi';
 import { createMockUploadTransport } from './recordings/MockUploadTransport';
+import { createMockHighlightClipApi } from './highlight-clips/MockHighlightClipApi';
+import { createMockProgressApi } from './progress/MockProgressApi';
 import { createMockReflectionApi } from './reflections/MockReflectionApi';
+import { createMockReportApi } from './reports/MockReportApi';
+import { createMockReportPdfApi } from './reports/MockReportPdfApi';
+import { createMockReportState, type MockReportState } from './reports/reportState';
 import { createRequestLog, type RequestLog } from './request-log';
 import {
   createScenarioStoreFrom,
@@ -100,6 +105,11 @@ export interface MockApiClientsOptions extends ScenarioStoreInput {
    */
   childProfileState?: MockChildProfileState;
   /**
+   * Stage 7 — `MockReportApi` · `MockReportPdfApi` · `MockHighlightClipApi` 가 공유하는 리포트 서버 상태.
+   * 주지 않으면 번들마다 새로 만든다.
+   */
+  reportState?: MockReportState;
+  /**
    * Stage 4 — `error`/`retry` 가 쓸 code (Plan §8.1 "error — code 지정", AC-4-24).
    * 키 = `group` 또는 `group.method`(소문자). 없으면 `INTERNAL_ERROR`.
    */
@@ -128,6 +138,8 @@ export interface MockApiClientsBundle {
   connectivity: MockConnectivity;
   /** Stage 6 아이 프로필 서버 상태 (테스트가 버전 행 · 스냅샷 행을 관찰한다). */
   childProfileState: MockChildProfileState;
+  /** Stage 7 리포트 서버 상태 (테스트가 발행 전이 · `viewed` · PDF 작업을 관찰한다). */
+  reportState: MockReportState;
   /** Mock **서버** 시계 (기본 `MOCK_EPOCH_MS` 고정) — 기기 seed 의 서버 세션 시각 (`D4-123`). */
   clock: Clock;
   /**
@@ -159,6 +171,7 @@ export function createMockApiClientsBundle(
   const sessionState = options.sessionState ?? createMockSessionState();
   const connectivity = options.connectivity ?? createMockConnectivity();
   const childProfileState = options.childProfileState ?? createMockChildProfileState();
+  const reportState = options.reportState ?? createMockReportState();
   const errorCodes = options.errorCodes;
   // 세션·녹음 endpoint 가 **하나의** `Idempotency-Key` 보관소를 쓴다 (서버도 키 공간이 하나다).
   const idempotency = createIdempotencyLedger(createMockFailure(idFactory));
@@ -173,6 +186,7 @@ export function createMockApiClientsBundle(
     sessionState,
     connectivity,
     childProfileState,
+    reportState,
     clock,
     sentinel: __HARU_MOCK_SENTINEL__,
     authGateway: createMockAuthGateway(deps),
@@ -212,6 +226,11 @@ export function createMockApiClientsBundle(
         idempotency,
         errorCodes,
       }),
+      // Stage 7 — 주간 Progress · 4주 리포트 · PDF · 하이라이트 클립 (Plan §8 rev 2). 리포트 3 Mock 은 같은 상태를 본다
+      progress: createMockProgressApi({ ...deps, errorCodes }),
+      reports: createMockReportApi({ ...deps, state: reportState, errorCodes }),
+      reportPdf: createMockReportPdfApi({ ...deps, state: reportState, idempotency, errorCodes }),
+      highlightClips: createMockHighlightClipApi({ ...deps, state: reportState, errorCodes }),
     },
   };
 }
@@ -546,6 +565,76 @@ export {
   MOCK_SURVEY_UPDATE_DRAFT_STEP,
 } from './fixtures/child-profile';
 export { MOCK_FALLBACK_PERSONA_COPY, MOCK_PERSONA_COPY } from './fixtures/profile-result';
+export {
+  createMockProgressApi,
+  progressScenarioGroup,
+  PROGRESS_SCENARIO_KEYS,
+  PROGRESS_LOADING_DELAY_MS,
+} from './progress/MockProgressApi';
+export type { ProgressScenarioKey } from './progress/MockProgressApi';
+export { createMockReportApi } from './reports/MockReportApi';
+export { createMockReportPdfApi } from './reports/MockReportPdfApi';
+export {
+  MOCK_PDF_GENERATING_READS,
+  REPORT_LOADING_DELAY_MS,
+  REPORT_PDF_SCENARIO_KEYS,
+  REPORT_SCENARIO_KEYS,
+  reportPdfScenarioGroup,
+  reportScenarioGroup,
+} from './reports/reportScenarios';
+export type { ReportPdfScenarioKey, ReportScenarioKey } from './reports/reportScenarios';
+export {
+  canTransitionReportCycle,
+  createMockReportState,
+  mockCycleEligibility,
+  mockProgressRatio,
+  publishCurrentCycle,
+  seedReportState,
+  toReportCycle,
+  transitionReportCycle,
+} from './reports/reportState';
+export type { MockPdfJob, MockReportCycleRecord, MockReportState } from './reports/reportState';
+export { createMockHighlightClipApi } from './highlight-clips/MockHighlightClipApi';
+export {
+  HIGHLIGHT_CLIP_LOADING_DELAY_MS,
+  HIGHLIGHT_CLIP_SCENARIO_KEYS,
+  highlightClipScenarioGroup,
+} from './highlight-clips/highlightClipScenarios';
+export type { HighlightClipScenarioKey } from './highlight-clips/highlightClipScenarios';
+export { createMockFileSharePort } from './platform/MockFileSharePort';
+export type {
+  MockFileSharePort,
+  MockFileSharePortDeps,
+  MockFileShareRecord,
+} from './platform/MockFileSharePort';
+export {
+  createWeeklyProgressFixture,
+  MOCK_AVAILABLE_WEEKS,
+  MOCK_FIGMA_DAILY_MINUTES,
+  MOCK_GROWTH_THEMES,
+  MOCK_MOMENT_OF_WEEK,
+  MOCK_MONTH_CROSSING_WEEK_START,
+  MOCK_THIS_WEEK_START,
+  MOCK_YEAR_CROSSING_WEEK_START,
+} from './fixtures/weekly-progress';
+export type { WeeklyProgressWorld } from './fixtures/weekly-progress';
+export {
+  createEarlierReportDetail,
+  createLatestReportDetail,
+  MOCK_EXPIRED_AT,
+  MOCK_FIRST_CYCLE_START,
+  MOCK_LATEST_SUMMARY_LINE,
+  MOCK_LONG_SUMMARY_LINE,
+  MOCK_PERSONA_HISTORY,
+  MOCK_REPORT_IDS,
+  MOCK_REPORT_PERSONA_COPY,
+  MOCK_REPORT_RETRY_AFTER,
+  MOCK_SIGNED_URL_EXPIRES_AT,
+  mockReportPdfFileName,
+  mockReportSummary,
+} from './fixtures/reports';
+export { createMockPdfBytes, createMockPdfDataUrl, MOCK_PDF_MIME_TYPE } from './media/mock-pdf';
+export { createMockWavBytes, createMockWavDataUrl, MOCK_WAV_MIME_TYPE } from './media/mock-wav';
 export * from './scenarios';
 export {
   createMockRecordingStorage,

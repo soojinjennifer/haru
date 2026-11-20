@@ -13,9 +13,12 @@ import { analysisScenarioGroup } from '../../mocks/analysis/analysisScenarios';
 import { booksScenarioGroup } from '../../mocks/books/MockBooksApi';
 import { childrenScenarioGroup } from '../../mocks/children/childProfileRecords';
 import { healthScenarioGroup } from '../../mocks/health/MockHealthApi';
+import { highlightClipScenarioGroup } from '../../mocks/highlight-clips/highlightClipScenarios';
 import { homeScenarioGroup } from '../../mocks/home/MockHomeApi';
 import { libraryScenarioGroup } from '../../mocks/library/MockLibraryApi';
+import { progressScenarioGroup } from '../../mocks/progress/MockProgressApi';
 import { reflectionScenarioGroup } from '../../mocks/reflections/MockReflectionApi';
+import { reportPdfScenarioGroup, reportScenarioGroup } from '../../mocks/reports/reportScenarios';
 import { sessionCompletionScenarioGroup } from '../../mocks/sessions/sessionFixtureScenarios';
 import type { ScenarioGroupDefinition } from '../../mocks/scenarios';
 
@@ -52,5 +55,10 @@ export const DEV_SCENARIO_GROUPS: readonly ScenarioGroupDefinition<string>[] = [
   analysisScenarioGroup,
   // Stage 6 (AC-6-14, Plan §8) — 프로필 · 아이 정보 · 발전 역량 · 설문 재응답 (API_CONTRACTS §5.4)
   childrenScenarioGroup,
+  // Stage 7 (`S7-A`, Plan §8 rev 2) — 주간 Progress · 4주 리포트 · PDF(+ 공유 포트) · 하이라이트 클립 (API_CONTRACTS §5.4 Rev 11)
+  progressScenarioGroup,
+  reportScenarioGroup,
+  reportPdfScenarioGroup,
+  highlightClipScenarioGroup,
   statesScenarioGroup,
 ];

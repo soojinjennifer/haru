@@ -63,7 +63,7 @@ describe('가값 승인 자료 목록 (Plan §17-3)', () => {
    * 확정됐고 나머지는 토큰으로 만들어지지 않았다 (approvals §26.5 가 §21.5 기록을 정정).
    * 등재 기준은 **`packages/design-tokens` 의 `provisional` 주석** 이다.
    */
-  it('P-01 … P-17 + P-23 + P-24 + P-25 + P-30 … P-33 를 제시한다', () => {
+  it('P-01 … P-17 + P-23 + P-24 + P-25 + P-30 … P-33 + P-35 … P-40 를 제시한다', () => {
     expect(PROVISIONAL_ITEMS.map((item) => item.id)).toStrictEqual([
       ...Array.from({ length: 17 }, (_, index) => `P-${String(index + 1).padStart(2, '0')}`),
       'P-23',
@@ -75,10 +75,17 @@ describe('가값 승인 자료 목록 (Plan §17-3)', () => {
       'P-31',
       'P-32',
       'P-33',
+      // Stage 7 `S7-B` — Stage 7 Spec §5.3 (`D7-5`). `P-34` 는 번호만 비어 있다 (Spec "P-35 부터").
+      'P-35',
+      'P-36',
+      'P-37',
+      'P-38',
+      'P-39',
+      'P-40',
     ]);
   });
 
-  it('확정 12건 / 디자이너 대기 12건으로 사용자 결정이 반영되어 있다', () => {
+  it('확정 12건 / 디자이너 대기 18건으로 사용자 결정이 반영되어 있다', () => {
     const waiting = PROVISIONAL_ITEMS.filter((item) => item.status === 'waiting').map(
       (item) => item.id,
     );
@@ -97,6 +104,12 @@ describe('가값 승인 자료 목록 (Plan §17-3)', () => {
       'P-31',
       'P-32',
       'P-33',
+      'P-35',
+      'P-36',
+      'P-37',
+      'P-38',
+      'P-39',
+      'P-40',
     ]);
     expect(PROVISIONAL_ITEMS.filter((item) => item.status === 'confirmed')).toHaveLength(12);
   });

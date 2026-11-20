@@ -171,7 +171,7 @@ export const PROVISIONAL_ITEMS: readonly ProvisionalItem[] = [
   /*
     Home 라운드 신규 — Library 범위 밖이라 1라운드가 등재하지 않았다 (`S3-PROV-2` · `QA-3-006`).
     `P-18`~`P-22` 는 **토큰 자체가 없어 등재 대상이 아니다** (approvals §26.5 — `P-20` 은
-    `--toggle-*` 확정, 나머지는 미생성). 활성 가값은 `P-01 · P-02 · P-04 · P-16 · P-23 · P-24 · P-25 · P-30~33` 다
+    `--toggle-*` 확정, 나머지는 미생성). 활성 가값은 `P-01 · P-02 · P-04 · P-16 · P-23 · P-24 · P-25 · P-30~33 · P-35~39` 다 (`P-40` 은 JS 규칙)
     (`packages/design-tokens/__tests__/fonts.test.ts` 가 그 목록을 고정한다).
   */
   {
@@ -242,5 +242,64 @@ export const PROVISIONAL_ITEMS: readonly ProvisionalItem[] = [
     where: '/onboarding/profile · /settings/profile 차트',
     status: 'waiting',
     decision: '디자이너 대기 — Figma 근거 없음 (Spec §5.3)',
+  },
+  /*
+    Stage 7 `S7-B` 신설 6건 — Stage 7 Design Spec §5.3 (`D7-5`). `P-35`~`P-37` 은 **Figma 선언값을 그대로 쓴**
+    대비 미달(최우선 규칙 1), `P-38`·`P-39` 는 Figma 가 없는 C-13 명세, `P-40` 은 막대 강조 규칙(JS — 토큰 없음,
+    `P-17` 처럼 토큰 주석이 없는 예외). 확인 화면 `/progress` · 리포트 상세는 `S7-C` · `S7-D` 에서 생긴다 —
+    그 전에는 dev gallery `/__dev/ui/components` 의 `s7-*` 블록에서 본다.
+  */
+  {
+    id: 'P-35',
+    title: '4번째 텍스트 색 --color-fg-quaternary (ink-300) + ink-400 보조 텍스트',
+    adopted: 'Figma 선언값 유지 — 막대 값 라벨 ink-300 · 보조 줄 · 요일 · 단계 라벨 ink-400',
+    where:
+      '/__dev/ui/components s7-bar-chart → (S7-C) /progress 주간 카드 · Growth themes · 리포트 카드',
+    status: 'waiting',
+    decision:
+      '디자이너 대기 (Q7-15) — ink-400 2.20~2.35 · ink-300 1.72~1.84:1 (AA 4.5 미달). Figma 가 있는 화면이라 본문색으로 올리지 않는다 (Spec §5.3)',
+  },
+  {
+    id: 'P-36',
+    title: '막대 · Growth 4색 비텍스트 --bar-chart-* / --color-growth-theme-*',
+    adopted: 'Figma 선언값 — teal 55% / teal / 스텁 ink 18% · teal · pink · blue · violet/67',
+    where: '/__dev/ui/components s7-bar-chart · s7-progress-fill → (S7-C) /progress',
+    status: 'waiting',
+    decision:
+      '디자이너 대기 — teal55% 1.41~1.44 · teal 1.91~2.01 · pink 1.44~1.51 · blue 2.21~2.33 · violet67 2.50~2.63 · 스텁 1.25:1 (목표 3:1). 정보는 값 라벨 · 단계 텍스트 · SR 이름이 전달',
+  },
+  {
+    id: 'P-37',
+    title: 'Moment 카드 --color-surface-moment / --color-border-moment',
+    adopted: 'Figma 선언값 — teal 16% 면 · teal 35% 1px 테두리 · 그림자 0',
+    where: '(S7-C) /progress Moment of the week · (S7-D) 리포트 상세 인용',
+    status: 'waiting',
+    decision:
+      '디자이너 대기 + Visual Gap 에서 실제 배경 픽셀 재측정 — 인용 3.98~5.20 · eyebrow · 출처 1.92~2.51:1 (Spec §5.3)',
+  },
+  {
+    id: 'P-38',
+    title: '다이아몬드 이전 리포트 선 --chart-previous-* · 범례 견본 --chart-legend-swatch',
+    adopted: 'Spec §3.7 — ink-400 1.5px dash 4 3 · 면 0 · 꼭짓점 0 · 범례 Earlier / This report',
+    where: '/__dev/ui/components s7-diamond-previous → (S7-D) 리포트 상세 ① Growth themes',
+    status: 'waiting',
+    decision: '디자이너 대기 (Q7-1) — Figma 근거 없음 (Spec §5.3)',
+  },
+  {
+    id: 'P-39',
+    title: 'C-13 레이아웃 값 --persona-rail-* / --clip-row-gap',
+    adopted: 'Spec C-13 명세 — 페르소나 rail 16/2 · 클립 행 gap 12 · PDF 2버튼 · 과거 목록 · 시트',
+    where: '(S7-D) 페르소나 히스토리 · (S7-E) 하이라이트 클립 · (S7-F) PDF',
+    status: 'waiting',
+    decision: '디자이너 대기 (Q7-1~9) — Figma 없음 (Spec §5.3)',
+  },
+  {
+    id: 'P-40',
+    title: '막대 강조 규칙 value ≥ 0.75 × 주 최대 (DEFAULT_EMPHASIS_RATIO)',
+    adopted: 'N7-29 ⓐ — 비례 높이 + 0.75 강조 (Figma fixture 16·20 두 개 재현)',
+    where: '/__dev/ui/components s7-bar-chart → (S7-C) /progress 주간 막대',
+    status: 'waiting',
+    decision:
+      '디자이너 대기 (Q7-13) — Figma fixture 재현용 추정. JS 규칙이라 토큰 주석 없음 (packages/ui chart/barChartLayout.ts)',
   },
 ];

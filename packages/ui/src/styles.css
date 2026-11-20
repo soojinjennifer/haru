@@ -55,3 +55,5 @@
 @import './divider/DividerWithLabel.css';
 @import './link/TextLink.css';
 @import './chart/DiamondChart.css';
+@import './chart/BarChart.css';
+@import './stat/StatTile.css';

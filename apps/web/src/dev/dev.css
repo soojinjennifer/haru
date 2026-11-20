@@ -687,3 +687,30 @@
 .haru-dev-measure-audio {
   inline-size: 100%;
 }
+
+/* ===== Stage 7 `S7-B` gallery (Stage7ProgressSection) ======================
+ * StatTile 행 — `163:2544` 2열 · gap 10 · 행 h84 · 세로 가운데 (행 자체는 S7-C 가 화면에 둔다). overflow 0 (`M7-9`).
+ * Growth 막대 색 — 호출 측이 조상에 `--progress-fill-color` 를 선언하는 방식(`T7-2`)을 그대로 시연한다.
+ */
+.haru-dev-s7-stat-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2-5);
+  block-size: var(--stat-tile-row-block-size);
+}
+
+.haru-dev-s7-growth--agency {
+  --progress-fill-color: var(--color-growth-theme-agency);
+}
+
+.haru-dev-s7-growth--emotion {
+  --progress-fill-color: var(--color-growth-theme-emotion);
+}
+
+.haru-dev-s7-growth--flexibility {
+  --progress-fill-color: var(--color-growth-theme-flexibility);
+}
+
+.haru-dev-s7-growth--motivation {
+  --progress-fill-color: var(--color-growth-theme-motivation);
+}

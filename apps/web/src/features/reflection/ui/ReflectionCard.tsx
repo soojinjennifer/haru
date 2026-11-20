@@ -31,7 +31,11 @@ import { useId, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { useMe } from '../../../entities/me';
-import { useSubmitReflection, useSubmittedReflection } from '../../../entities/reflection';
+import {
+  REFLECTION_CHECK_ORDER,
+  useSubmitReflection,
+  useSubmittedReflection,
+} from '../../../entities/reflection';
 import { useSessionCompletion } from '../../../entities/session';
 import { ROUTES } from '../../../shared/config/routes';
 import {
@@ -41,7 +45,7 @@ import {
   unknownErrorCopy,
 } from '../../../shared/copy/error-copy';
 import { useChipRowSplit } from '../../../shared/hooks/useChipRowSplit';
-import { REFLECTION_CHECK_ORDER, reflectionCopy as copy } from '../copy';
+import { reflectionCopy as copy } from '../copy';
 
 export interface ReflectionCardProps {
   sessionId: string;

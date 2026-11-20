@@ -25,10 +25,11 @@ describe('Tier 1 — Primitive (Design Spec §3.1)', () => {
    * 밖의 값이므로 허용 차이 등록 대상이고, 그래서 **개수가 늘면 눈에 걸리도록** 여기서 센다.
    * 35 = + **`--haru-gray-6`** (Stage 4b `S4-G2` — Drawer 캐러셀 화살표 비활성 fill `#f2f2f7`, `86:324`).
    * 36 = + **`--haru-mist-300`** (Stage 5 `T5-1` — Figma 빈 별 fill `#d6dedc`, `91:702`, `D5-4`).
+   * 37 = + **`--haru-violet-67`** (Stage 7 `T7-1` — Figma **변수** `color/violet/67` `#ac93c4`, `163:2607`, `D7-5`).
    */
-  it('palette 색 36개 + status 8개 — 30 + white a82 · a85 + yellow-700 + gray-2 · gray-6 + mist-300', () => {
+  it('palette 색 37개 + status 8개 — 30 + white a82 · a85 + yellow-700 + gray-2 · gray-6 + mist-300 + violet-67', () => {
     const colors = primitives.filter((d) => d.file === 'src/primitive/color.css');
-    expect(colors.filter((d) => !d.name.startsWith('--haru-status-'))).toHaveLength(36);
+    expect(colors.filter((d) => !d.name.startsWith('--haru-status-'))).toHaveLength(37);
     expect(colors.filter((d) => d.name.startsWith('--haru-status-'))).toHaveLength(8);
   });
 
@@ -57,10 +58,12 @@ describe('Tier 1 — Primitive (Design Spec §3.1)', () => {
 });
 
 describe('Tier 2 — Semantic (Design Spec §3.2)', () => {
-  it('semantic color 가 79개다 — 67 + Home 재구현 5 + 칩 아이콘 1 + 세션 neutral 2 + 메달리온 링 1 + Drawer 3 (--gradient-app 제외)', () => {
+  it('semantic color 가 86개다 — 67 + Home 재구현 5 + 칩 아이콘 1 + 세션 neutral 2 + 메달리온 링 1 + Drawer 3 + Stage 7 7 (--gradient-app 제외)', () => {
     const colors = semantics.filter((d) => d.name.startsWith('--color-'));
     // Stage 4b `S4-G2`: `--color-surface-drawer`(`T-1`) · `--color-carousel-arrow` · `-disabled` (`86:324`)
-    expect(colors).toHaveLength(79);
+    // Stage 7 `S7-B` (+7): `--color-growth-theme-*` 4 (`T7-1`) · `--color-fg-quaternary` (`T7-6`) ·
+    //   `--color-surface-moment` · `--color-border-moment` (`T7-7`).
+    expect(colors).toHaveLength(86);
   });
 
   /*
@@ -275,10 +278,51 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
    *
    * Stage 6 `S6-E1`(DiamondChart, Stage 6 Spec §5.2 `T6-1`~`T6-3` · `T6-5` 굵기 · `T6-7` · `T6-8`, `D6-8`)에서 **7종 추가** → 281.
    * Stage 6 `S6-H`(QA 2차 결정 `D6-10` ② ③ — 언어 카드 radius 30 · 섹션 라벨 자간 0.72 · 독서 루틴 라벨 위 7)에서 **3종 추가** → 284.
+   * Stage 7 `S7-B`(Stage 7 Spec §5.2 `T7-4`~`T7-15`, `D7-5`)에서 **38종 추가** — 색(`color-mix`)은 Tier 2 에 있다.
+   * Stage 7 `D7-6` ①(`VG7-B-03` ⓑ — 막대 라벨 줄 높이 11)에서 **1종 추가** → 324.
    */
-  it('Tier 3 토큰 284개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset + Library 1라운드 + 표지 그림자 자리 + 세션 ready + S4-F1R + S4-F2 + S4-G1 + S4-G2 + S4-K1 + S4-H1 + S4-H1R + S5-B + S6-E1 + S6-H)', () => {
+  it('Tier 3 토큰 324개를 전부 정의한다 (Home 재구현 + Visual Gap 교정·3차 + 버블 닫기 + 그림자 inset + Library 1라운드 + 표지 그림자 자리 + 세션 ready + S4-F1R + S4-F2 + S4-G1 + S4-G2 + S4-K1 + S4-H1 + S4-H1R + S5-B + S6-E1 + S6-H + S7-B + D7-6)', () => {
     expect(components.map((d) => d.name).sort()).toEqual(
       [
+        '--bar-chart-block-size',
+        '--bar-chart-pad-block-start',
+        '--bar-chart-gap',
+        '--bar-chart-label-gap',
+        '--bar-chart-bar-width',
+        '--bar-chart-bar-radius',
+        '--bar-chart-empty-size',
+        '--bar-chart-label-line',
+        '--stat-tile-value-size',
+        '--stat-tile-pad-block',
+        '--stat-tile-pad-inline',
+        '--stat-tile-gap',
+        '--stat-tile-row-block-size',
+        '--weekly-total-size',
+        '--weekly-total-line',
+        '--weekly-total-tracking',
+        '--moment-card-gap',
+        '--moment-quote-size',
+        '--moment-quote-line',
+        '--moment-eyebrow-tracking',
+        '--report-card-icon-tile-size',
+        '--report-card-icon-size',
+        '--report-card-icon-tile-radius',
+        '--report-card-progress-height',
+        '--chart-previous-width',
+        '--chart-previous-dash',
+        '--chart-legend-swatch',
+        '--progress-character-top',
+        '--progress-character-aspect',
+        '--progress-character-overlap',
+        '--progress-character-overhang',
+        '--week-picker-chip-block-size',
+        '--week-picker-chip-pad-inline',
+        '--week-picker-chip-gap',
+        '--week-picker-chip-icon-size',
+        '--week-picker-chip-hit-size',
+        '--persona-rail-width',
+        '--persona-rail-line',
+        '--clip-row-gap',
         '--choice-card-radius',
         '--section-label-letter-spacing',
         '--child-routine-label-offset',

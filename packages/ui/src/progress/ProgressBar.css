@@ -45,8 +45,12 @@
   block-size: 100%;
   inline-size: var(--progress-fill-size, 0%);
   border-radius: var(--radius-pill);
-  /* provisional: P-02 (docs/decisions/stage-0-approvals.md §4) */
-  background-color: var(--color-progress-fill);
+  /*
+   * provisional: P-02 (docs/decisions/stage-0-approvals.md §4)
+   * Stage 7 `T7-2` — 호출 측이 조상에 `--progress-fill-color` 를 선언하면 그 색을 쓴다 (Growth themes 4색).
+   * 선언이 없으면 fallback 이 기존 `--color-progress-fill` 이라 렌더가 바뀌지 않는다 (AC-7-81).
+   */
+  background-color: var(--progress-fill-color, var(--color-progress-fill));
   transition-property: inline-size;
   transition-duration: var(--motion-duration-base);
   transition-timing-function: var(--motion-ease-standard);

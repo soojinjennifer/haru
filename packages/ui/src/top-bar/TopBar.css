@@ -59,6 +59,17 @@
   display: none;
 }
 
+/*
+ * 빈 leading → **2열로 접는다** (`VG7-C-04` ⓐ · `D7-6` ③, 2026-11-20).
+ * 3열(`auto 1fr auto`)에서 빈 leading 만 `display: none` 으로 빼면 center → 1열 · trailing → 2열(1fr)로 밀리고
+ * 빈 3열 앞에 column-gap 20 이 남아 trailing 이 컬럼 끝보다 20 안쪽(393 에서 x349)에서 끝났다.
+ * Figma `30:90`(Library) · `31:118`(Progress) 의 chip 오른쪽 끝 = x369 = 컬럼 끝. leading 이 있는 TopBar
+ * (Home 워드마크 — `HomeTopBar`)는 이 조건 밖이라 그대로다.
+ */
+.haru-top-bar--large:has(> .haru-top-bar__leading:empty) {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
 /* pill = leading 없이 중앙 pill 만 (Figma `139:2735`). */
 .haru-top-bar--pill .haru-top-bar__leading {
   visibility: hidden;

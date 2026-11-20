@@ -14,6 +14,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppRoutes } from '../src/app/router';
 import { activityDeckCopy } from '../src/features/activity-card-deck';
 import { homeOverviewCopy } from '../src/features/home-overview';
+import { progressOverviewCopy } from '../src/features/progress-overview';
 import {
   applyActivityCardCacheSeed,
   createActivityCardFixture,
@@ -33,7 +34,6 @@ import { tabCopy } from '../src/shared/config/tabs';
 import { capabilityCopy } from '../src/shared/copy/capability-copy';
 import { appCopy } from '../src/shared/copy/app-copy';
 import { libraryCopy } from '../src/shared/copy/library-copy';
-import { progressCopy } from '../src/shared/copy/progress-copy';
 import { createHarness, type Harness } from '../src/test/harness';
 
 const CREDENTIALS = { email: 'sam@example.com', password: 'sunny-evening-8' } as const;
@@ -173,9 +173,13 @@ describe('BottomTabBar 마운트 (AC-3-04 · AC-3-05 · AC-3-08)', () => {
       expect(screen.getByTestId('pathname').textContent).toBe(ROUTES.progress);
     });
 
-    expect(screen.getByRole('heading', { level: 1, name: progressCopy.title })).toBeDefined();
-    expect(screen.getByText(progressCopy.empty.title)).toBeDefined();
-    expect(screen.queryByText(/\d/)).toBeNull();
+    expect(
+      screen.getByRole('heading', { level: 1, name: progressOverviewCopy.title }),
+    ).toBeDefined();
+    // Stage 7 `S7-C` — 준비 안내(`D-2`)가 Figma `31:102` 화면으로 대체됐다. 본문 상세는 `progress-overview.test.tsx`.
+    expect(
+      await screen.findByRole('heading', { level: 2, name: progressOverviewCopy.reading.title }),
+    ).toBeDefined();
   });
 
   /*

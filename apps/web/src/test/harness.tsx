@@ -23,11 +23,16 @@ import {
   type MockErrorCodes,
 } from '../mocks';
 import type { MockAppStatePort } from '../mocks/platform/MockAppStatePort';
+import {
+  createMockFileSharePort,
+  type MockFileSharePort,
+} from '../mocks/platform/MockFileSharePort';
 import type { MockRecorderAdapter, MockRecorderCall } from '../mocks/platform/MockRecorderAdapter';
 import type { MockRecordingStorage } from '../mocks/platform/MockRecordingStorage';
 import { createScenarioSource, createScenarioStore } from '../mocks/scenarios';
 import { createImmediateTimer } from '../shared/api/helpers';
 import { createSystemClock, type Clock } from '../shared/lib/clock';
+import { returnPathStore } from '../shared/lib/return-path';
 import { createSystemScheduler, type Scheduler } from '../shared/lib/scheduler';
 import { wipeWebRecordingStorage } from '../shared/platform/recording-storage';
 
@@ -73,6 +78,11 @@ export interface Harness {
   recorderCalls: () => readonly MockRecorderCall[];
   /** 만들어진 Mock 녹음기 — 마지막 것이 지금 세션 화면의 녹음기다 (`failNextStart` 등 사건 주입). */
   recorders: () => readonly MockRecorderAdapter[];
+  /**
+   * 파일 저장·공유 Mock 포트 (Stage 7 `S7-F`) — scenario `report-pdf:share-*` 를 읽고 호출을 기록한다.
+   * 저장은 기록만 한다(jsdom 다운로드 0). 실제 다운로드 계수는 e2e.
+   */
+  fileShare: MockFileSharePort;
   wrapper: (props: { children: ReactNode }) => ReactNode;
 }
 
@@ -88,6 +98,8 @@ function storeFor(scenarios: readonly string[]) {
 }
 
 export function createHarness(options: HarnessOptions = {}): Harness {
+  // 로그인 후 복귀 경로(AC-7-46)는 탭 메모리 싱글턴이다 — 테스트끼리 새지 않게 하네스마다 비운다.
+  returnPathStore.clear();
   const bundle = createMockApiClientsBundle({
     store: storeFor(options.scenarios ?? []),
     ...(options.errorCodes === undefined ? {} : { errorCodes: options.errorCodes }),
@@ -96,6 +108,7 @@ export function createHarness(options: HarnessOptions = {}): Harness {
   });
 
   const queryClient = createQueryClient();
+  const fileShare = createMockFileSharePort({ store: bundle.store });
   const clock: Clock = options.recorderTime ?? createSystemClock();
   const scheduler: Scheduler = options.recorderTime ?? createSystemScheduler();
   let recordingStorage: MockRecordingStorage | null = null;
@@ -133,12 +146,14 @@ export function createHarness(options: HarnessOptions = {}): Harness {
     appState: () => appState,
     recorderCalls: () => recorderCalls,
     recorders: () => recorders,
+    fileShare,
     wrapper: ({ children }) => (
       <MemoryRouter initialEntries={[...(options.initialEntries ?? ['/'])]}>
         <AppProviders
           clients={bundle.clients}
           authGateway={bundle.authGateway}
           queryClient={queryClient}
+          fileShare={fileShare}
           sessionRecorder={sessionRecorder}
         >
           {children}

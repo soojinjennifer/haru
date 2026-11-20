@@ -1,0 +1,39 @@
+/*
+ * entities/report — Stage 7 `S7-C` (Spec §3.6 · §0.3). 값은 전부 토큰 (`T7-7`).
+ */
+
+/* `NotableQuoteCard` — Figma `163:2633`. 그림자 0 → `R-SHADOW-1` 대상 아님. */
+.haru-notable-quote {
+  display: flex;
+  flex-direction: column;
+  gap: var(--moment-card-gap);
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-moment);
+  border-radius: var(--radius-surface);
+  background-color: var(--color-surface-moment);
+  /* 긴 인용·책 제목은 줄바꿈 (Spec §8.3 — 말줄임 0, Stage 5 `D5-14`) */
+  overflow-wrap: break-word;
+}
+
+/* eyebrow — Semibold 11 · tracking 0.4 (`T7-7`). 대문자는 copy 가 준다. */
+.haru-notable-quote__eyebrow {
+  letter-spacing: var(--moment-eyebrow-tracking);
+}
+
+.haru-notable-quote__quote {
+  margin: 0;
+  color: var(--color-fg-primary);
+  font-size: var(--moment-quote-size);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--moment-quote-line);
+}
+
+.haru-notable-quote__quote > p {
+  margin: 0;
+}
+
+/* figcaption 은 inline `Text` 하나만 담는다 — 줄 상자가 본문 line-height 로 커지지 않게 (출처 h = caption-1 line). */
+.haru-notable-quote > figcaption {
+  display: flex;
+}

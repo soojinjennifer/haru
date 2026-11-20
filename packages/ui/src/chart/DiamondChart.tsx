@@ -44,6 +44,18 @@ export interface DiamondChartProps {
   onSelect?: (id: string) => void;
   /** 저장 중처럼 잠깐 선택을 막는다 — 시각 변화 없음 (Spec §3.1). */
   disabled?: boolean;
+  /**
+   * 이전 값 레이어 — Stage 7 Spec §3.7 (`T7-10`, 가값 `P-38`). `axes` 와 **같은 순서**의 값 4개.
+   * 같은 "이웃 축 둘 다 값 있는 사분면" 규칙으로 **외곽선만** 그린다 (면 채움 0 · 꼭짓점 0, 점선 ink-400).
+   * 미지정 · `null` 이면 아무것도 그리지 않는다 — Stage 6 DOM 그대로다 (AC-7-81).
+   * 두 값을 비교해 말로 바꾸지 않는다 — summary 문장은 호출 측이 쓴다 (`N7-15`).
+   */
+  previous?: DiamondValues | null;
+  /**
+   * `previous` 범례 문구 (Stage 7 Spec §2.3.1 — *"Earlier"* · *"This report"*). `previous` 가 있을 때만
+   * 차트 아래에 견본 2개로 그린다. `aria-hidden` — 같은 정보를 summary 가 말한다.
+   */
+  legend?: { previous: string; current: string };
 }
 
 const POSITIONS = ['top', 'right', 'bottom', 'left'] as const;
@@ -78,8 +90,11 @@ export function DiamondChart({
   selectedId = null,
   onSelect,
   disabled = false,
+  previous = null,
+  legend,
 }: DiamondChartProps) {
   const values: DiamondValues = [axes[0].value, axes[1].value, axes[2].value, axes[3].value];
+  const previousOutlines = previous === null ? null : diamondOutlines(previous, max);
   const vertices = diamondVertices(values, max);
   const polygons = diamondAreaPolygons(values, max);
   const outlines = diamondOutlines(values, max);
@@ -134,6 +149,30 @@ export function DiamondChart({
             );
           })}
         </g>
+        {/*
+          이전 레이어 — 격자 위 · 현재 면 아래 (z: 격자 → previous → current, Spec §3.7).
+          첫 표시 모션이 없다(즉시) — `.haru-diamond__data` 만 grow 한다 ("이전에서 현재로").
+        */}
+        {previousOutlines === null ? null : (
+          <g className="haru-diamond__previous">
+            <svg
+              className="haru-diamond__area"
+              viewBox="-1 -1 2 2"
+              preserveAspectRatio="none"
+              width="100%"
+              height="100%"
+            >
+              {previousOutlines.map((outline, index) => (
+                <path
+                  key={`previous-${String(index)}`}
+                  className="haru-diamond__previous-stroke"
+                  vectorEffect="non-scaling-stroke"
+                  d={diamondPathData(outline.points, outline.closed)}
+                />
+              ))}
+            </svg>
+          </g>
+        )}
         <g className="haru-diamond__data">
           <svg
             className="haru-diamond__area"
@@ -229,6 +268,25 @@ export function DiamondChart({
           </span>
         );
       })}
+
+      {previous === null || legend === undefined ? null : (
+        <div className="haru-diamond__legend" aria-hidden="true">
+          <span className="haru-diamond__legend-item">
+            <svg className="haru-diamond__swatch haru-diamond__swatch--previous" focusable="false">
+              <line x1="0" y1="50%" x2="100%" y2="50%" />
+            </svg>
+            <Text as="span" variant="caption-1" tone="secondary">
+              {legend.previous}
+            </Text>
+          </span>
+          <span className="haru-diamond__legend-item">
+            <span className="haru-diamond__swatch haru-diamond__swatch--current" />
+            <Text as="span" variant="caption-1" tone="secondary">
+              {legend.current}
+            </Text>
+          </span>
+        </div>
+      )}
     </div>
   );
 }

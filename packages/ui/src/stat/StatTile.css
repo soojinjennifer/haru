@@ -1,0 +1,31 @@
+/*
+ * StatTile — Stage 7 Design Spec §3.1 (Figma `163:2545` · `163:2548`, `T7-5`)
+ *
+ * `R-SHADOW-1`: 이 파일은 `overflow` 를 선언하지 않는다. 면·그림자는 `Surface`(`--shadow-bubble` 1겹 —
+ * 번짐 좌우 4 · 위 0 · 아래 10)가 그린다. Figma 행의 `overflow-clip` 은 재현하지 않는다 (`M7-9`).
+ */
+
+.haru-stat-tile {
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+
+.haru-stat-tile__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--stat-tile-gap);
+  margin: 0;
+  padding-block: var(--stat-tile-pad-block);
+  padding-inline: var(--stat-tile-pad-inline);
+  text-align: center;
+  font-family: var(--font-sans);
+}
+
+/* 값 — SF Heavy 24 · line normal (`163:2546`) · text-primary. 24 는 타입 스케일 밖 — 흡수하지 않는다 (Spec §3.1). */
+.haru-stat-tile__value {
+  font-size: var(--stat-tile-value-size);
+  line-height: normal;
+  font-weight: var(--font-weight-heavy);
+  color: var(--color-fg-primary);
+}

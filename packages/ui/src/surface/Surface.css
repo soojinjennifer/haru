@@ -95,6 +95,12 @@
   backdrop-filter: blur(var(--material-blur-md));
 }
 
+.haru-surface--fill-card {
+  /* Stage 7 `T7-3` — `163:2551` · `110:835` white 82% + backdrop-blur 12 (Spec §0.3, Δ0) */
+  background-color: var(--color-surface-card);
+  backdrop-filter: blur(var(--material-blur-md));
+}
+
 .haru-surface--fill-solid {
   background-color: var(--color-surface-solid);
 }
@@ -118,14 +124,16 @@
 /* 투명도 축소 · backdrop-filter 미지원 → 불투명 fallback (§4.3-③). */
 @supports not (backdrop-filter: blur(1px)) {
   .haru-surface--fill-glass,
-  .haru-surface--fill-strong {
+  .haru-surface--fill-strong,
+  .haru-surface--fill-card {
     background-color: var(--material-glass-fill-fallback);
   }
 }
 
 @media (prefers-reduced-transparency: reduce) {
   .haru-surface--fill-glass,
-  .haru-surface--fill-strong {
+  .haru-surface--fill-strong,
+  .haru-surface--fill-card {
     background-color: var(--material-glass-fill-fallback);
     backdrop-filter: none;
   }

@@ -1,0 +1,75 @@
+/*
+ * entities/weekly-progress — Stage 7 `S7-C` (Spec §3.3 · §3.5, Figma `163:2551` · `163:2607`). 값은 전부 토큰.
+ */
+
+/* ===== WeeklyReadingCard `163:2551` ======================================
+ * Figma `get_metadata` (2026-11-19): 헤더 313×69.59 — 제목 span h18 @0 · 합계 span h26 @23 · 보조 span h16.59 @53
+ * → 간격 5 · 4. 제목은 `subheadline` 15/**20**(Figma 18, line Δ+2 — Spec §0.3)이라 간격을 둘 다 `--space-1`(4)로
+ * 두면 합계 y24(Δ+1) · 보조 y54(Δ+1) · 헤더 70(Δ+0.4). 막대 영역(`BarChart`, h110 · pt14 포함)은 헤더 바로 아래.
+ */
+.haru-weekly-reading__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* 합계 "1h 12m" — Bold 26/26 · tracking −0.52 (`T7-6`). */
+.haru-weekly-reading__total {
+  margin: 0;
+  color: var(--color-fg-primary);
+  font-size: var(--weekly-total-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--weekly-total-line);
+  letter-spacing: var(--weekly-total-tracking);
+}
+
+/* ===== GrowthThemesCard `163:2607` =======================================
+ * 행 = 라벨 줄(h15) → 6 → 막대 h8 (`--progress-height-md`). 행 간격 12 = `ProfileCard` 내부 gap-3 (Figma 46→87 = 29+12).
+ */
+.haru-growth-themes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.haru-growth-theme {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.haru-growth-theme__text {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+/* 라벨 `#5e7370` → `--color-action-secondary-fg` (Spec §0.3 Δ0). */
+.haru-growth-theme__label {
+  color: var(--color-action-secondary-fg);
+}
+
+/*
+ * 막대 색 = Figma `163:2607` fill 변수 4개 (`N7-10` · `T7-1`). `ProgressBar` 의 `--progress-fill-color` 경로(`T7-2`)를
+ * 조상에서 선언한다 — prop 이 아니다 (S7-B H7-2.7 ⑥).
+ */
+.haru-growth-theme--self_directed_agency {
+  --progress-fill-color: var(--color-growth-theme-agency);
+}
+
+.haru-growth-theme--emotion_regulation {
+  --progress-fill-color: var(--color-growth-theme-emotion);
+}
+
+.haru-growth-theme--cognitive_flexibility {
+  --progress-fill-color: var(--color-growth-theme-flexibility);
+}
+
+.haru-growth-theme--intrinsic_motivation {
+  --progress-fill-color: var(--color-growth-theme-motivation);
+}

@@ -1,0 +1,201 @@
+/*
+ * features/report-detail — Stage 7 `S7-D` (`C13-S7-1` · `C13-S7-7` Spec §2.3 · §2.9). Figma 없음 → 명세 값(가값 `P-39`).
+ * 값은 전부 토큰. `R-SHADOW-1`: 카드는 전부 `--shadow-bubble`(번짐 좌우 4 · 아래 10) — 새 `overflow` 선언 0.
+ */
+
+.haru-report-detail {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  padding-block-start: var(--space-6);
+}
+
+/* 섹션 간격 20 — Spec §2.0 "상세 섹션 간격 `--space-5`" (Stage 6 C-13 화면 공통). */
+.haru-report-detail__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* header — 기간(title-3) ↔ summaryLine. 긴 문장 말줄임 0 (Spec §8.3). */
+.haru-report-detail__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  overflow-wrap: break-word;
+}
+
+/* ① 근거 dl · ③ 지표 dl — 행 간격 12 (Spec §2.3.1 `--space-3`). */
+.haru-report-detail__evidence,
+.haru-report-detail__metrics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.haru-report-detail__evidence dd,
+.haru-report-detail__metrics dd {
+  margin: 0;
+}
+
+/* ① 근거 행 — dt(라벨) 위 · dd(서버 문장) 아래. */
+.haru-report-detail__evidence-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* ③ 지표 행 — 라벨 ↔ 값 `justify-between` (`163:2610` recipe, Spec §2.3.3). */
+.haru-report-detail__metric-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.haru-report-detail__metric-row dd {
+  text-align: end;
+}
+
+/* 행 라벨 `#5e7370` → `--color-action-secondary-fg` (`163:2611` recipe — GrowthThemesCard 와 같다). */
+.haru-report-detail__row-label {
+  color: var(--color-action-secondary-fg);
+}
+
+/* SectionLabel + 내용 묶음 (LATELY WE NOTICED · WHAT YOU CHECKED · TOPICS THAT CAME UP). */
+.haru-report-detail__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.haru-report-detail__list,
+.haru-report-detail__trends {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ⑤ 체크 트렌드 행 — 라벨 ↔ `3×` (`163:2610` recipe). */
+.haru-report-detail__trend-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* ④ 인용 1~2 — 같은 eyebrow 카드 사이 14 (Spec §3.6 "gap 14"). */
+.haru-report-detail__quotes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3-5);
+}
+
+/* ⑦ PDF 액션 — 카드 밖, 흐름 배치 (Spec §2.3 `mt --space-3` — 섹션 간격 20 에 더하지 않고 그 자리로 둔다). */
+.haru-report-detail__pdf {
+  display: flex;
+  flex-direction: column;
+}
+
+/*
+ * Loading — 차트 카드 Skeleton = 차트 높이 (Stage 6 `haru-profile-view__chart-skeleton` 과 같은 식).
+ * `features/child-profile-view` 를 import 할 수 없어 같은 식을 이 feature 에 둔다 (feature 간 import 0).
+ */
+.haru-report-detail__chart-skeleton {
+  position: relative;
+  display: flex;
+  padding-block: calc(var(--text-caption-1--line-height) + var(--chart-diamond-label-gap));
+}
+
+.haru-report-detail__chart-skeleton::before {
+  content: '';
+  inline-size: min(
+    calc(var(--chart-diamond-radius-max) * 2),
+    calc(100% - 2 * (var(--chart-diamond-label-max) + var(--chart-diamond-label-gap)))
+  );
+  aspect-ratio: 1;
+  margin-inline: auto;
+}
+
+.haru-report-detail__chart-skeleton > .haru-skeleton {
+  position: absolute;
+  inset: 0;
+}
+
+/* ===== ② 페르소나 히스토리 `C13-S7-7` (Spec §2.3.2 — 가값 `P-39`) ===================== */
+
+.haru-report-persona {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  overflow-wrap: break-word;
+}
+
+.haru-report-persona__single {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.haru-report-persona__timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* li = [rail 16 | card]. 카드 열 최소 0 — 긴 이름이 grid 를 밀지 않게. */
+.haru-report-persona__item {
+  display: grid;
+  grid-template-columns: var(--persona-rail-width) minmax(0, 1fr);
+  column-gap: var(--space-2);
+}
+
+/*
+ * rail — 점(10) 은 카드 eyebrow 첫 줄 가운데에 놓는다: 카드 padding 16 + (caption-1 줄높이 − 점) / 2.
+ * 세로선은 점 아래에서 **다음 li 까지**(행 간격 포함) 이어진다 — `position: relative` 기준 음수 bottom.
+ * 그림자 없음 · overflow 없음.
+ */
+.haru-report-persona__rail {
+  position: relative;
+  display: block;
+}
+
+.haru-report-persona__dot {
+  position: absolute;
+  inset-block-start: calc(
+    var(--space-4) + (var(--text-caption-1--line-height) - var(--chart-vertex-size)) / 2
+  );
+  inset-inline-start: calc((var(--persona-rail-width) - var(--chart-vertex-size)) / 2);
+  inline-size: var(--chart-vertex-size);
+  block-size: var(--chart-vertex-size);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-fg-tertiary);
+}
+
+.haru-report-persona__item[data-current] .haru-report-persona__dot {
+  background-color: var(--color-action-primary-bg);
+}
+
+.haru-report-persona__rail::after {
+  content: '';
+  position: absolute;
+  inset-block: calc(
+      var(--space-4) + (var(--text-caption-1--line-height) + var(--chart-vertex-size)) / 2
+    )
+    calc(-1 * var(--space-3));
+  inset-inline-start: calc((var(--persona-rail-width) - var(--persona-rail-line)) / 2);
+  inline-size: var(--persona-rail-line);
+  background-color: var(--color-border-subtle);
+}
+
+/* 마지막(현재) 항목은 선 없음. */
+.haru-report-persona__item[data-current] .haru-report-persona__rail::after {
+  content: none;
+}

@@ -61,6 +61,11 @@ describe('가값 등재 누락 가드 (Stage 0 #10-4 · QA-3-006)', () => {
       'P-31',
       'P-32',
       'P-33',
+      'P-35',
+      'P-36',
+      'P-37',
+      'P-38',
+      'P-39',
     ]);
   });
 
@@ -76,7 +81,18 @@ describe('가값 등재 누락 가드 (Stage 0 #10-4 · QA-3-006)', () => {
       (item) => item.status === 'waiting' && !tokenIds.has(item.id),
     ).map((item) => item.id);
 
-    // `P-17` 은 컴포넌트 규칙(밑줄 제거)이라 토큰 주석이 없다 — 유일한 예외다.
-    expect(waitingWithoutToken).toStrictEqual(['P-17']);
+    // `P-17` 은 컴포넌트 규칙(밑줄 제거)이라 토큰 주석이 없다.
+    // `P-40`(Stage 7 막대 강조 비율 0.75)도 **JS 규칙**이라 토큰이 없다 — 주석은
+    // `packages/ui/src/chart/barChartLayout.ts` 의 `DEFAULT_EMPHASIS_RATIO` 가 갖는다 (아래 테스트가 지킨다).
+    expect(waitingWithoutToken).toStrictEqual(['P-17', 'P-40']);
+  });
+
+  it('`P-40` 주석이 막대 강조 규칙 소스에 남아 있다 (토큰 대신 코드가 갖는 가값)', () => {
+    const source = readFileSync(
+      resolve(TOKENS_SRC, '../../ui/src/chart/barChartLayout.ts'),
+      'utf8',
+    );
+    expect(source).toMatch(/provisional:\s*P-40/);
+    expect(source).toMatch(/DEFAULT_EMPHASIS_RATIO = 0\.75;/);
   });
 });

@@ -18,7 +18,9 @@
  * `enums` +1(`ReflectionCheckKey`, `N5-01`) · `SessionDetail.reflection`.
  * Stage 6 범위: `survey-update`(설문 재응답 3 endpoint) · `children/update-child`(`UpdateChildRequest`) ·
  * `children/history`(목록 schema 만, `N6-12`) · `CapabilitySnapshotSource` 3값 · `ChildProfile.profileUpdatedAt`.
- * 나머지 도메인 schema(reports · data-management)는 해당 Stage 에서 추가한다.
+ * Stage 7 범위(`S7-A`): `progress`(`WeeklyProgress` · `GrowthThemeStage`) · `reports`(overview · summary · detail · pdf) ·
+ * `highlight-clips` 확장(`ReportHighlightClip` · `RecordingDeletedDetails`) · `rules/report-cycle`(C7-11).
+ * 나머지 도메인 schema(data-management)는 해당 Stage 에서 추가한다.
  */
 export * from './activity/index.js';
 export * from './analysis/index.js';
@@ -35,9 +37,11 @@ export * from './library/index.js';
 export * from './me/index.js';
 export * from './notifications/index.js';
 export * from './onboarding/index.js';
+export * from './progress/index.js';
 export * from './prompts/index.js';
 export * from './recordings/index.js';
 export * from './reflections/index.js';
+export * from './reports/index.js';
 export * from './rules/index.js';
 export * from './sessions/index.js';
 export * from './survey-update/index.js';

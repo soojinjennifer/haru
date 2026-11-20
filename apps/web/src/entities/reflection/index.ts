@@ -3,3 +3,4 @@ export { reflectionKeys } from './reflectionKeys';
 export { useSubmitReflection } from './useSubmitReflection';
 export type { SubmitReflectionMutation } from './useSubmitReflection';
 export { useSubmittedReflection } from './useSubmittedReflection';
+export { REFLECTION_CHECK_ORDER, reflectionCheckLabels } from './copy';

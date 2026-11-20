@@ -72,4 +72,27 @@ describe('Surface material="bubble" (Stage 6)', () => {
     const rule = /\.haru-surface--material-bubble\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
     expect(rule).toMatch(/box-shadow:\s*var\(--shadow-bubble\)/);
   });
+
+  /* Stage 7 `T7-3` — `163:2551` · `110:835` white 82% + blur 12 (Spec §0.3). */
+  it('fill="card" 는 --color-surface-card + blur 이고 glass · strong 과 같은 fallback 을 탄다', async () => {
+    const { readFileSync } = await import('node:fs');
+    const path = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const { container } = render(
+      <Surface fill="card" material="rest">
+        x
+      </Surface>,
+    );
+    expect(container.firstElementChild?.classList.contains('haru-surface--fill-card')).toBe(true);
+
+    const css = readFileSync(
+      path.join(path.dirname(fileURLToPath(import.meta.url)), '../Surface.css'),
+      'utf8',
+    );
+    const rule = /\.haru-surface--fill-card\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+    expect(rule).toMatch(/background-color:\s*var\(--color-surface-card\)/);
+    expect(rule).toMatch(/backdrop-filter:\s*blur\(var\(--material-blur-md\)\)/);
+    expect(css).toMatch(/@supports not[^{]*\{[^}]*\.haru-surface--fill-card/);
+    expect(css).toMatch(/prefers-reduced-transparency[^{]*\{[^}]*\.haru-surface--fill-card/);
+  });
 });

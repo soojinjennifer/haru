@@ -67,6 +67,18 @@
   stroke-linecap: round;
 }
 
+/*
+ * 이전 레이어 — Stage 7 Spec §3.7 (`T7-10`, 가값 `P-38`). 외곽선만 · 면 0 · 꼭짓점 0.
+ * ink-400 · 1.5px · dash `4 3` · round join. 모션 없음 (즉시 표시).
+ */
+.haru-diamond__previous-stroke {
+  fill: none;
+  stroke: var(--chart-previous-stroke);
+  stroke-width: var(--chart-previous-width);
+  stroke-dasharray: var(--chart-previous-dash);
+  stroke-linejoin: round;
+}
+
 /* 꼭짓점 — 역량색 + 흰 테두리 2 (면·선 위에서 분리). px 고정 반지름. */
 .haru-diamond__vertex {
   r: calc(var(--chart-vertex-size) / 2);
@@ -218,4 +230,44 @@
 
 .haru-diamond--selectable .haru-diamond__label:disabled {
   cursor: default;
+}
+
+/* ===== 범례 — Stage 7 Spec §2.3.1 (`previous` 가 있을 때만, `aria-hidden`) ===== */
+.haru-diamond__legend {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  justify-self: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.haru-diamond__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+/*
+ * 점선 견본 16×0 (Spec §2.3.1) — 차트 선과 같은 dasharray 를 쓰려고 SVG 선으로 그린다.
+ * 상자 높이는 면 견본과 같은 12 로 두어 두 견본의 세로 중심이 맞는다 (선은 가운데 1개).
+ */
+.haru-diamond__swatch--previous {
+  display: block;
+  inline-size: var(--space-4);
+  block-size: var(--chart-legend-swatch);
+  stroke: var(--chart-previous-stroke);
+  stroke-width: var(--chart-previous-width);
+  stroke-dasharray: var(--chart-previous-dash);
+}
+
+/* 면 견본 12×12 radius indicator · 현재 면 채움 + 외곽선 (Spec §2.3.1). */
+.haru-diamond__swatch--current {
+  box-sizing: border-box;
+  inline-size: var(--chart-legend-swatch);
+  block-size: var(--chart-legend-swatch);
+  border: var(--chart-stroke-width) solid var(--chart-area-stroke);
+  border-radius: var(--radius-indicator);
+  background-color: var(--chart-area-fill);
 }

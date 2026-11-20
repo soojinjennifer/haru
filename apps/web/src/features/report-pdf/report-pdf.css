@@ -1,0 +1,25 @@
+/*
+ * 리포트 PDF — Stage 7 Spec §2.6 `C13-S7-4` (`S7-F`). Figma 는 `110:854` idle 버튼만 — 나머지 배치는 가값 `P-39`.
+ * 값은 전부 semantic token. 새 토큰 0 · 새 `overflow` 0 (버튼 그림자는 카드 · 상세 스크롤 박스 안에서 그대로 그려진다).
+ */
+
+/* 카드 안에서는 `110:835` 본문 gap 14 가 위아래 간격을 맡는다 — 이 루트는 자기 바깥 여백을 갖지 않는다. */
+.haru-report-pdf {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 실패 · 지연 · 오프라인 = 안내 + *Try again* — 사이 12 (ButtonGroup gap 과 같은 `--space-3`). */
+.haru-report-pdf__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/*
+ * live region 은 늘 있다(비어 있으면 높이 0 — 알림 신뢰성). 보이는 문장만 버튼 아래 8 (`--space-2`).
+ * SR 전용 *Your PDF is ready.* 는 `haru-visually-hidden`(absolute) 이라 높이를 만들지 않는다.
+ */
+.haru-report-pdf__status > p {
+  margin-block-start: var(--space-2);
+}

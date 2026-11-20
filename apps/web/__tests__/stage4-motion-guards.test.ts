@@ -266,6 +266,8 @@ const EXPECTED: Record<string, Coverage> = {
   // Stage 6 `S6-E1` DiamondChart — 첫 표시 scale+opacity · 선택 링 fade (Stage 6 Spec §3.1 · §6)
   'haru-diamond-enter': 'reduce-animation-none',
   'haru-diamond-ring-in': 'reduce-animation-none',
+  // Stage 7 `S7-B` BarChart — 첫 표시 막대 grow (Stage 7 Spec §3.4 모션 · Stage 6 차트 규칙)
+  'haru-bar-chart-grow': 'reduce-animation-none',
 };
 
 describe('AC-4-98 — `@keyframes`/`animation` ↔ `prefers-reduced-motion` 1:1 (`D4-3`)', () => {

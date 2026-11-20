@@ -13,6 +13,7 @@ import type {
 import { describe, expect, it } from 'vitest';
 
 import { ROUTES } from '../../../shared/config/routes';
+import { AUTH_RETURN_STATE } from '../../../shared/lib/in-app-history';
 import { resolveGuardDecision } from '../resolveGuardDecision';
 
 const REQUIRED: ConsentType[] = ['terms_of_service', 'privacy_policy', 'child_voice_data'];
@@ -292,6 +293,48 @@ describe('6. 온보딩 완료', () => {
 
   it('온보딩 완료 후에도 /onboarding/saved 는 볼 수 있다 (제출 직후 연속 네비게이션)', () => {
     expect(resolveGuardDecision(me, ROUTES.onboarding.saved)).toStrictEqual({ status: 'allow' });
+  });
+
+  it('복귀 경로가 있으면 `/auth/*` 에서 Home 대신 그 경로로 보낸다 + 로그인 복귀 표식 (AC-7-46 · D7-7)', () => {
+    const returnPath = '/progress/reports/e7e7e7e7-0000-4000-8000-000000000002';
+    expect(resolveGuardDecision(me, ROUTES.auth.logIn, { returnPath })).toStrictEqual({
+      status: 'redirect',
+      to: returnPath,
+      replace: true,
+      state: AUTH_RETURN_STATE,
+    });
+    expect(resolveGuardDecision(me, ROUTES.auth.welcome, { returnPath })).toStrictEqual({
+      status: 'redirect',
+      to: returnPath,
+      replace: true,
+      state: AUTH_RETURN_STATE,
+    });
+    // Home 이동은 Stage 2 그대로 — 표식 없음
+    expect(resolveGuardDecision(me, ROUTES.auth.logIn, { returnPath: null })).toStrictEqual({
+      status: 'redirect',
+      to: ROUTES.home,
+      replace: true,
+    });
+  });
+
+  it('복귀 경로는 **규칙 6 의 목적지만** 바꾼다 — 동의 · VPC · 온보딩 게이트가 먼저다 (AC-7-46)', () => {
+    const returnPath = '/progress/reports/x';
+    expect(
+      resolveGuardDecision(makeMe({ missing: ['child_voice_data'] }), ROUTES.auth.logIn, {
+        returnPath,
+      }),
+    ).toStrictEqual({ status: 'redirect', to: ROUTES.auth.consent, replace: true });
+    expect(
+      resolveGuardDecision(makeMe({ verification: 'pending' }), returnPath, { returnPath }),
+    ).toStrictEqual({ status: 'redirect', to: ROUTES.auth.verifyParent, replace: true });
+    expect(
+      resolveGuardDecision(makeMe({ onboarding: 'in_progress' }), ROUTES.auth.logIn, {
+        returnPath,
+      }),
+    ).toStrictEqual({ status: 'redirect', to: ROUTES.onboarding.start, replace: true });
+    expect(resolveGuardDecision(me, ROUTES.home, { returnPath })).toStrictEqual({
+      status: 'allow',
+    });
   });
 });
 

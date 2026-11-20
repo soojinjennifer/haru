@@ -1,4 +1,5 @@
 import {
+  ArrowDownToLine,
   Book,
   BookOpen,
   ChartNoAxesColumnIncreasing,
@@ -9,15 +10,19 @@ import {
   CircleCheck,
   Clock,
   ExternalLink,
+  FileDown,
   Info,
   ListChecks,
   Mail,
   MessageCircle,
   MessageSquareText,
   OctagonAlert,
+  Pause,
   Pencil,
+  Play,
   RotateCcw,
   Settings,
+  Share,
   ShieldCheck,
   TriangleAlert,
   WifiOff,
@@ -66,10 +71,16 @@ import {
  * 등록 제거는 규칙 ①(쓰지 않는 글리프를 번들에 넣지 않는다)에 따른 것이며 **되돌리지 않는다**
  * (사용처 0건). 다시 필요해지면 그때 Figma 근거와 함께 등록한다.
  *
+ * Stage 7 `S7-B` 추가 (Stage 7 Spec §3.9 Icon registry): `file-down`(4주 리포트 카드 아이콘 타일 `110:838`) ·
+ * `arrow-down-to-line`(Download PDF 버튼 `110:855`) — 둘 다 Spec §0.2 `[svg]` 로 Lucide 와 같은 path 확인.
+ * `share` · `play` · `pause` 는 C-13 명세(PDF 공유 · 하이라이트 클립 플레이어 — Figma 없음, `P-39`).
+ * `clock` 은 Stage 2 에 이미 있다.
+ *
  * 탭 아이콘 글리프는 `book` / `chart-no-axes-column-increasing` 으로 **확정**되었다
  * (결정 `S1-D2-5`, approvals §8 — Figma `25:87` 16배 확대 대조 결과 path 가 1:1 대응한다).
  */
 export const LUCIDE_ICONS = {
+  'arrow-down-to-line': ArrowDownToLine,
   book: Book,
   'book-open': BookOpen,
   'chart-no-axes-column-increasing': ChartNoAxesColumnIncreasing,
@@ -80,15 +91,19 @@ export const LUCIDE_ICONS = {
   'circle-check': CircleCheck,
   clock: Clock,
   'external-link': ExternalLink,
+  'file-down': FileDown,
   info: Info,
   'list-checks': ListChecks,
   mail: Mail,
   'message-circle': MessageCircle,
   'message-square-text': MessageSquareText,
   'octagon-alert': OctagonAlert,
+  pause: Pause,
   pencil: Pencil,
+  play: Play,
   'rotate-ccw': RotateCcw,
   settings: Settings,
+  share: Share,
   'shield-check': ShieldCheck,
   'triangle-alert': TriangleAlert,
   'wifi-off': WifiOff,

@@ -44,7 +44,7 @@ export function RouteGuard({
   }
 
   if (decision.status === 'redirect') {
-    return <Navigate to={decision.to} replace={decision.replace ?? true} />;
+    return <Navigate to={decision.to} replace={decision.replace ?? true} state={decision.state} />;
   }
 
   return <>{children}</>;

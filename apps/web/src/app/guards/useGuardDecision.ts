@@ -13,8 +13,14 @@
  * 동의 직후 착지 화면이 "처음이면 프로필 안내 / 중도 복귀면 그 지점" 으로 갈린다. 판정 함수는
  * 저장소를 모르므로(순수 유지) 여기에서 **기존 `OnboardingDraftStore`** 를 읽어 경로로 바꿔
  * 넘긴다. **새 저장소·새 플래그를 만들지 않는다.**
+ *
+ * ── 로그인 후 복귀 (AC-7-46, `D7-6` ⑨) ──
+ * 미인증으로 보호된 경로에서 튕겨 나갈 때 그 경로(`pathname + search + hash`)를 `returnPathStore` 에 기억하고,
+ * 로그인 뒤 규칙 6(`/auth/*` → 목적지)과 `LogInPage` 가 Home 대신 그 경로로 보낸다. 인증 사용자가 `/auth/*` 밖의
+ * 화면에 **도달(allow)** 하면 지운다 — 동의 · VPC · 온보딩 게이트가 먼저 걸리면 그 흐름이 이기고, 끝나면 Home 기본값이다.
+ * 경로는 로그에 남기지 않는다.
  */
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
 
 import { useMe } from '../../entities/me';
@@ -25,6 +31,7 @@ import {
   createOnboardingDraftStore,
   type OnboardingDraftStore,
 } from '../../shared/lib/onboarding-draft';
+import { returnPathStore } from '../../shared/lib/return-path';
 
 import { ALLOW_DECISION, resolveGuardDecision, type GuardDecision } from './resolveGuardDecision';
 
@@ -44,7 +51,7 @@ export function onboardingResumePathFrom(store: OnboardingDraftStore): string | 
 }
 
 export function useGuardDecision(): GuardDecision {
-  const { pathname } = useLocation();
+  const { pathname, search, hash } = useLocation();
   const { sessionExpired } = useAuth();
   const { me, isError } = useMe();
 
@@ -53,8 +60,6 @@ export function useGuardDecision(): GuardDecision {
     createOnboardingDraftStore({ clock: createSystemClock() }),
   );
 
-  if (me === undefined && isError) return ALLOW_DECISION;
-
   /*
    * 저장소 읽기를 **필요할 때만** 한다. 판정이 아니라 비용 가드다 — 규칙 5 밖에서는 이 값이
    * 쓰이지 않으므로 매 렌더마다 `localStorage` + parse 를 할 이유가 없다.
@@ -62,8 +67,33 @@ export function useGuardDecision(): GuardDecision {
   const needsOnboardingTarget =
     me !== null && me !== undefined && me.onboardingStatus !== 'completed';
 
-  return resolveGuardDecision(me, pathname, {
-    sessionExpired,
-    onboardingResumePath: needsOnboardingTarget ? onboardingResumePathFrom(store) : null,
-  });
+  const decision: GuardDecision =
+    me === undefined && isError
+      ? ALLOW_DECISION
+      : resolveGuardDecision(me, pathname, {
+          sessionExpired,
+          onboardingResumePath: needsOnboardingTarget ? onboardingResumePathFrom(store) : null,
+          returnPath: me === null || me === undefined ? null : returnPathStore.peek(),
+        });
+
+  // 복귀 경로 기억 · 정리 (AC-7-46). 미인증 리다이렉트 = 기억 · 인증 사용자가 앱 화면에 도달 = 정리.
+  // **로그아웃 · 세션 만료는 기억하지 않는다** — 이 Guard 가 인증 상태를 본 적이 있으면 "deep link 진입"이 아니라
+  // 화면 안에서 세션을 잃은 것이고, 다음 로그인은 Stage 2 기본값(Home)이어야 한다.
+  const authenticated = me !== null && me !== undefined;
+  const unauthenticatedRedirect = me === null && decision.status === 'redirect';
+  const arrived = authenticated && decision.status === 'allow' && !pathname.startsWith('/auth/');
+  const intendedPath = `${pathname}${search}${hash}`;
+  const seenAuthenticated = useRef(false);
+  useEffect(() => {
+    if (authenticated) {
+      seenAuthenticated.current = true;
+      if (arrived) returnPathStore.clear();
+      return;
+    }
+    if (unauthenticatedRedirect && !seenAuthenticated.current) {
+      returnPathStore.remember(intendedPath);
+    }
+  }, [authenticated, unauthenticatedRedirect, arrived, intendedPath]);
+
+  return decision;
 }

@@ -4,4 +4,4 @@
  */
 export { ReflectionCard } from './ui/ReflectionCard';
 export type { ReflectionCardProps } from './ui/ReflectionCard';
-export { reflectionCopy, REFLECTION_CHECK_ORDER } from './copy';
+export { reflectionCopy } from './copy';

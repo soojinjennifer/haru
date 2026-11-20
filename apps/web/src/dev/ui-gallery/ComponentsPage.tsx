@@ -44,6 +44,7 @@ import { galleryCopy } from './gallery-copy';
 import { Stage2Section } from './Stage2Section';
 import { Stage3LibrarySection } from './Stage3LibrarySection';
 import { Stage4SessionSection } from './Stage4SessionSection';
+import { Stage7ProgressSection } from './Stage7ProgressSection';
 import { Row, Section, Stack, Stage, SubHead } from './primitives';
 import { TabBarDemo } from './TabBarDemo';
 
@@ -819,6 +820,7 @@ export function ComponentsPage() {
       <Stage2Section />
       <Stage3LibrarySection />
       <Stage4SessionSection />
+      <Stage7ProgressSection />
     </>
   );
 }

@@ -159,6 +159,31 @@ export const galleryCopy = {
     prompts: 'Prompts',
   },
 
+  /* Stage 7 `S7-B` — Progress · 4주 리포트 Shared UI (Stage 7 Spec §3.1 · §3.4 · §3.7). dev 전용 문구. */
+  stage7: {
+    statSessionsValue: '5',
+    statSessionsLabel: 'sessions',
+    statMinutesValue: '62m',
+    statMinutesLabel: 'together',
+    barSummary: 'Minutes read each day this week',
+    barDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    barNoValue: '—',
+    barMinutes: (day: string, minutes: number) => `${day}, ${String(minutes)} minutes`,
+    barNoStorytime: (day: string) => `${day}, no storytime`,
+    barValue: (minutes: number) => `${String(minutes)}m`,
+    diamondSummary:
+      'Growth themes for Emma in this report. The dashed outline shows the previous report.',
+    diamondMissing: 'Not seen yet',
+    legendPrevious: 'Earlier',
+    legendCurrent: 'This report',
+    axisAgency: 'Self-Direction',
+    axisEmotion: 'Emotion Regulation',
+    axisFlexibility: 'Cognitive Flexibility',
+    axisMotivation: 'Intrinsic Motivation',
+    surfaceCard: 'fill="card" — white 82% + blur 12 · Glass Rest',
+    decorativeNote: 'decorative — no progressbar role (M7-11)',
+  },
+
   a11y: {
     focusTourTitle: 'Focus order',
     touchTargetTitle: 'Touch targets',

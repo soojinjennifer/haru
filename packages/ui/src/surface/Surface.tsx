@@ -11,8 +11,15 @@ import { cx } from '../lib/cx';
  */
 export type SurfaceMaterial = 'rest' | 'raised' | 'pressed' | 'bubble' | 'none';
 
-/** Design Spec §4.3 — 채움. glass 74% / strong 90% / solid 불투명. */
-export type SurfaceFill = 'glass' | 'strong' | 'solid' | 'subtle' | 'tinted' | 'note' | 'none';
+/**
+ * Design Spec §4.3 — 채움. glass 74% / strong 90% / solid 불투명.
+ *
+ * `card` (Stage 7 `T7-3`) — white **82%** + blur 12 (`--color-surface-card`). Figma `163:2551` 주간 카드 ·
+ * `110:835` 리포트 카드의 선언값이다 (Spec §0.3 — Activity Card 앞면 `163:2649` 와 같은 값). 새 값이 아니라
+ * 기존 토큰 매핑이며, glass · strong 과 같은 불투명 fallback 규칙을 따른다.
+ */
+export type SurfaceFill =
+  'glass' | 'strong' | 'card' | 'solid' | 'subtle' | 'tinted' | 'note' | 'none';
 
 /** Design Spec §3.2.3 radius 6단계. */
 export type SurfaceRadius = 'indicator' | 'control' | 'field' | 'surface' | 'card' | 'pill';

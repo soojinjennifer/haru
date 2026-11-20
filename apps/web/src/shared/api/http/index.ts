@@ -7,13 +7,17 @@ import { createHttpBooksApi } from './HttpBooksApi';
 import { createHttpChildrenApi } from './HttpChildrenApi';
 import { createHttpConsentApi } from './HttpConsentApi';
 import { createHttpHealthApi } from './HttpHealthApi';
+import { createHttpHighlightClipApi } from './HttpHighlightClipApi';
 import { createHttpHomeApi } from './HttpHomeApi';
 import { createHttpLibraryApi } from './HttpLibraryApi';
 import { createHttpMeApi } from './HttpMeApi';
 import { createHttpNotificationApi } from './HttpNotificationApi';
 import { createHttpOnboardingApi } from './HttpOnboardingApi';
+import { createHttpProgressApi } from './HttpProgressApi';
 import { createHttpRecordingApi } from './HttpRecordingApi';
 import { createHttpReflectionApi } from './HttpReflectionApi';
+import { createHttpReportApi } from './HttpReportApi';
+import { createHttpReportPdfApi } from './HttpReportPdfApi';
 import { createHttpSessionApi } from './HttpSessionApi';
 import { createHttpClient, type HttpClientOptions } from './httpClient';
 import { createTusUploadTransport } from './TusUploadTransport';
@@ -63,6 +67,17 @@ export {
   surveyUpdateStepPath,
   surveyUpdateSubmitPath,
 } from './HttpChildrenApi';
+export { createHttpProgressApi, weeklyProgressPath } from './HttpProgressApi';
+export {
+  childReportsPath,
+  createHttpReportApi,
+  reportOverviewPath,
+  reportPath,
+  reportViewedPath,
+  REPORTS_PATH,
+} from './HttpReportApi';
+export { createHttpReportPdfApi, reportPdfPath } from './HttpReportPdfApi';
+export { createHttpHighlightClipApi, highlightClipPlaybackPath } from './HttpHighlightClipApi';
 
 export function createHttpApiClients(options: HttpClientOptions): ApiClients {
   const client = createHttpClient(options);
@@ -85,5 +100,9 @@ export function createHttpApiClients(options: HttpClientOptions): ApiClients {
     reflections: createHttpReflectionApi(client),
     analysis: createHttpAnalysisApi(client),
     children: createHttpChildrenApi(client),
+    progress: createHttpProgressApi(client),
+    reports: createHttpReportApi(client),
+    reportPdf: createHttpReportPdfApi(client),
+    highlightClips: createHttpHighlightClipApi(client),
   };
 }

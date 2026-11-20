@@ -21,6 +21,7 @@ import { createSystemClock } from '../../shared/lib/clock';
 import { env } from '../../shared/lib/env';
 import { createSystemScheduler } from '../../shared/lib/scheduler';
 import { createWebAppStatePort } from '../../shared/platform/app-state';
+import { createWebFileSharePort, type FileSharePort } from '../../shared/platform/file-share';
 import {
   createWebPushPermissionPort,
   type PushPermissionPort,
@@ -45,6 +46,11 @@ export interface AppAdapters {
    * `http` = Web 구현(`Notification` API 까지만). Native 는 후속 `S4N-D` 가 여기에 한 줄 추가한다.
    */
   pushPermission: PushPermissionPort;
+  /**
+   * Stage 7 (`S7-A`, `N7-19`) — PDF 저장·공유 포트. `mock` = Mock 포트(공유 = scenario `report-pdf:share-*`, 저장 = Web 포트에 위임),
+   * `http` = Web 구현(Web Share API + `<a download>`). Native 는 후속 `S4N-A` 가 여기에 한 줄 추가한다.
+   */
+  fileShare: FileSharePort;
   /**
    * Stage 4 `S4-F1` — 녹음 상태 머신 조립 (`RecorderAdapter` · 로컬 저장소 = Web | Mock).
    * Native 는 후속 `S4N-B` 가 `RecordingPlatform` 한 벌을 여기에 추가한다.
@@ -72,8 +78,12 @@ export async function resolveAdapters(): Promise<AppAdapters> {
   const scheduler = createSystemScheduler();
 
   if (import.meta.env.VITE_API_MODE === 'mock') {
-    const { applyRecordingDeviceSeed, createBrowserMockApiClients, createMockRecordingPlatform } =
-      await import('../../mocks');
+    const {
+      applyRecordingDeviceSeed,
+      createBrowserMockApiClients,
+      createMockFileSharePort,
+      createMockRecordingPlatform,
+    } = await import('../../mocks');
     // 세 번째 인자 = **기기** 시계 (Mock 서버 시계가 아니다) — `offline-cached-card` 캐시 seed 가 쓴다.
     const bundle = createBrowserMockApiClients(env.mockScenario, undefined, clock);
     const sessionRecorder = createSessionRecorderEnvironment({
@@ -108,6 +118,10 @@ export async function resolveAdapters(): Promise<AppAdapters> {
       clients: bundle.clients,
       authGateway: bundle.authGateway,
       pushPermission: bundle.pushPermission,
+      fileShare: createMockFileSharePort({
+        store: bundle.store,
+        saveDelegate: createWebFileSharePort(),
+      }),
       sessionRecorder,
     };
   }
@@ -126,6 +140,7 @@ export async function resolveAdapters(): Promise<AppAdapters> {
     // 실제 인증 Adapter 는 아직 없다 (#27) — 조용히 성공하지 않고 명시적으로 실패한다.
     authGateway: createUnavailableAuthGateway(),
     pushPermission: createWebPushPermissionPort(),
+    fileShare: createWebFileSharePort(),
     sessionRecorder,
   };
 }

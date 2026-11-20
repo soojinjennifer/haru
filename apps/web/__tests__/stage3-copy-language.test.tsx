@@ -18,8 +18,8 @@ import { describe, expect, it } from 'vitest';
 
 import { activityDeckCopy } from '../src/features/activity-card-deck';
 import { homeOverviewCopy } from '../src/features/home-overview';
+import { progressOverviewCopy } from '../src/features/progress-overview';
 import { libraryCopy } from '../src/shared/copy/library-copy';
-import { progressCopy } from '../src/shared/copy/progress-copy';
 
 function collect(value: unknown, path: string): { path: string; text: string }[] {
   if (typeof value === 'string') return [{ path, text: value }];
@@ -52,7 +52,8 @@ function collect(value: unknown, path: string): { path: string; text: string }[]
 const ENTRIES = [
   ...collect(activityDeckCopy, 'activityDeckCopy'),
   ...collect(homeOverviewCopy, 'homeOverviewCopy'),
-  ...collect(progressCopy, 'progressCopy'),
+  // Stage 7 `S7-C` — Stage 3 준비 안내(`progressCopy`, `D-2`)가 `/progress` 화면 copy 로 대체됐다 (AC-7-03).
+  ...collect(progressOverviewCopy, 'progressOverviewCopy'),
   ...collect(libraryCopy, 'libraryCopy'),
 ];
 
@@ -71,18 +72,37 @@ const FORBIDDEN: readonly { pattern: RegExp; reason: string }[] = [
   { pattern: /\bstage \d|coming soon|next release|not implemented\b/i, reason: '개발 단계 노출' },
 ];
 
+/**
+ * Figma 원문을 그대로 쓴 구절 — 금지어 검사에서 **이 구절만** 뺀다 (나머지 문장은 그대로 검사한다).
+ *
+ * - `the moments behind them` — Figma `110:847` *"Apr 13 – May 10 · a deeper read on the four themes, with the moments
+ *   behind them."* (Stage 7 Spec §10.2 승인 문구, `D7-5`). "behind" 가 **뒤처짐**이 아니라 "그 뒤에 있는(근거가 된)
+ *   순간들" 이라는 뜻이다. 정규식을 느슨하게 하지 않고 구절 단위로만 예외를 둔다.
+ */
+const FIGMA_VERBATIM = ['the moments behind them'] as const;
+
+function withoutFigmaVerbatim(text: string): string {
+  return FIGMA_VERBATIM.reduce((rest, phrase) => rest.split(phrase).join(''), text);
+}
+
 describe('Stage 3 copy — 금지어 (Design Spec §10)', () => {
   it('검사 대상 문구가 비어 있지 않다 (검사가 헛돌지 않도록)', () => {
     expect(ENTRIES.length).toBeGreaterThan(20);
   });
 
   it.each(FORBIDDEN)('$reason 이 없다', ({ pattern }) => {
-    const offenders = ENTRIES.filter((entry) => pattern.test(entry.text));
+    const offenders = ENTRIES.filter((entry) => pattern.test(withoutFigmaVerbatim(entry.text)));
     expect(offenders.map((entry) => `${entry.path}: ${entry.text}`)).toStrictEqual([]);
   });
 
-  it('`/progress` 안내에 수치가 없다 (D-2 승인 조건)', () => {
-    const texts = [progressCopy.empty.title, progressCopy.empty.description];
-    for (const text of texts) expect(text).not.toMatch(/\d/);
+  /*
+    Stage 3 의 "`/progress` 안내에 수치가 없다 (D-2)" 단정은 대상(준비 안내 화면)이 Stage 7 `S7-C` 로 **대체**되어 옮겼다:
+    `/progress` 는 이제 서버 관찰 수치(세션 수 · 분)를 보여 준다(`D7-1`). 대신 `D7-2` · `N7-05` 의 비교·분모·퍼센트 금지를
+    `apps/web/__tests__/stage7-progress-copy.test.ts` 가 지킨다 (AC-7-66).
+  */
+  it('`/progress` 문구에 비교 · 분모 · 퍼센트 표현이 없다 (D7-2 · N7-05 — D-2 의 후속)', () => {
+    const progress = collect(progressOverviewCopy, 'progressOverviewCopy');
+    const offenders = progress.filter((entry) => /\bvs\b|\bof 7\b|%|\bstreak\b/i.test(entry.text));
+    expect(offenders).toStrictEqual([]);
   });
 });

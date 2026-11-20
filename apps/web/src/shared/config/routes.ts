@@ -61,7 +61,8 @@ export const ROUTES = {
    * Stage 3 탭 route. 탭 항목은 **Library / Home(가운데) / Progress 3개**이며 `/session` 탭은
    * 없다 (`CONFIRMED (#15 · D-02)`).
    *
-   * `/progress` 는 리포트 준비 안내만 둔다 (`CONFIRMED (D-2)` — 진행도 수치 0건).
+   * `/progress` — Stage 7 `S7-C` 가 Stage 3 준비 안내(`D-2`)를 **대체**했다: Figma `31:102` 주간 관찰 +
+   * `110:835` 4주 리포트 카드 (`D7-1`). 이전 주 선택은 query `?week=YYYY-MM-DD` (`PROGRESS_WEEK_PARAM`).
    */
   library: '/library',
   /**
@@ -74,6 +75,12 @@ export const ROUTES = {
   libraryAdd: '/library/add',
   libraryGiftRequests: '/library/gift-requests',
   progress: '/progress',
+  /**
+   * 4주 리포트 상세 (Stage 7 `C13-S7-1`) — 경로를 만들 때는 `progressReportPath(id)` 를 쓴다.
+   * 화면 등록 = `S7-D` (`app/router.tsx` — `ReportDetailPage`). `S7-C` 는 카드 헤더 링크(`N7-37`)의 목적지 상수를 두었다.
+   * deep link 경로에는 `reportId` 만 넣는다 (이름·기간 금지 — Plan §5.6).
+   */
+  progressReport: '/progress/reports/:reportId',
 
   /** `2-HOME` 가 화면을 등록한다. */
   settings: '/settings',
@@ -157,4 +164,15 @@ export function sessionCompletePath(sessionId: string): string {
 /** `/session/:sessionId/feedback` 의 실제 경로 (deep link 도착 URL). */
 export function sessionFeedbackPath(sessionId: string): string {
   return ROUTES.sessionFeedback.replace(':sessionId', encodeURIComponent(sessionId));
+}
+
+/**
+ * `/progress` 의 주 선택 query 이름 (`S7-C`, Spec §2.7). 값 = 선택한 주의 시작일(서버 `availableWeeks` 값 그대로).
+ * 없으면 이번 주다. TopBar 의 chip 과 본문이 **같은 값**을 보도록 URL 이 상태를 소유한다 (두 슬롯이 형제 route element).
+ */
+export const PROGRESS_WEEK_PARAM = 'week';
+
+/** `/progress/reports/:reportId` 경로를 만든다 (`S7-C` 카드 헤더 링크 · 과거 리포트 행). */
+export function progressReportPath(reportId: string): string {
+  return ROUTES.progressReport.replace(':reportId', encodeURIComponent(reportId));
 }
