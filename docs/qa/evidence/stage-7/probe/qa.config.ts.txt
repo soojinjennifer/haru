@@ -1,0 +1,12 @@
+import { defineConfig } from '@playwright/test';
+const PORT = 4319;
+const BASE_URL = `http://127.0.0.1:${PORT}`;
+export default defineConfig({
+  testDir: '.',
+  testMatch: /qa-.*\.spec\.ts$/,
+  workers: 1, retries: 0, timeout: 180_000,
+  reporter: [['list']],
+  expect: { timeout: 15_000 },
+  use: { baseURL: BASE_URL, browserName: 'chromium', viewport: { width: 393, height: 852 }, deviceScaleFactor: 1, reducedMotion: 'reduce', colorScheme: 'light', locale: 'en-US', timezoneId: 'UTC' },
+  webServer: { command: `pnpm --filter @haru/web run dev --port ${PORT} --strictPort --host 127.0.0.1`, cwd: '/Users/soojin/dev/haru', url: BASE_URL, reuseExistingServer: true, timeout: 180_000, stdout: 'ignore', stderr: 'pipe' },
+});

@@ -3,6 +3,8 @@
 Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (Rev: #33 · C-19 반영)
 Based on: Figma `YWWu3AFEJpRxvw0T5klq0k` `get_variable_defs` on `17:129` (Colors), `17:298` (Typography), `17:367` (HARU Components), screen frames `26:21`, `28:51`, `29:62`, `30:74`, `31:102`, `179:1724`, `179:1770` + `get_design_context` raw 값 (2026-09-14); `docs/decisions/stage-0-approvals.md` (기존 문서보다 우선); Scope: **Frontend-only — CONFIRMED (사용자, 2026-09-14)**, `.claude/rules/frontend.md` §6. 로컬 `_ds` CSS 는 **참조 금지** (CONFIRMED (사용자 결정 2026-09-14, #10)) — §6.4 는 차이 기록으로만 남긴다
 Author: design-agent (2026-09-14)
+개정 (2026-11-20, design-agent · Stage 7 `D7-6` 반영 확인): §10 `T7-4` 에 **`--bar-chart-label-line` 11px** 신설 행(막대 값·요일 라벨 줄 높이 = Figma `163:2564` leading 1.0 → 트랙 62) · `T7-11` `--progress-character-top` **14 → 4**(Figma y70 − 66, Library 와 같은 −66 매핑) 확인 — 코드 `packages/design-tokens/src/component/index.css` 와 대조 일치. 토큰 수 323 → 324. 근거 `docs/design/stage-7-visual-gap.md` `## D7-6 반영 확인` `VG7-R-01` · `VG7-R-02`.
+개정 (2026-11-19, design-agent · Stage 7 `S7-B` Visual Gap): §10 신설 — `T7-1`~`T7-15` 등재 (코드 대조, 기존 값 변경 0).
 개정 (2026-11-02, design-agent · Stage 4b `S4-H1` 마무리): §8 신설 — Stage 4 · 4b 토큰 122개 등재. **기존 토큰의 값은 바꾸지 않았고, 값은 코드에서 그대로 옮겼다.**
 개정 (2026-09-27, design-agent · Stage 2 QA 문서 항목 `S2-TOKEN-1`·`QA-2-005`): §3.3 에 화면 raw 27·30 흡수 행 추가, §5.1 에 raw 29·38 행과 spacing 스케일 2단계 제안(`--space-7` 28 · `--space-10` 40) 추가. **기존 토큰의 값은 바꾸지 않았다.**
 
@@ -612,3 +614,47 @@ design-agent 는 Figma 를 수정하지 않는다. 아래 표는 디자이너 �
 | ID | 토큰 | Tier | 값 | 근거 |
 |---|---|---|---|---|
 | `VG5B-1` ⓑ | `--chip-select-label-size` | Component | `12.5px` | Figma `90:611`/`90:617` · `91:710`~`714` 라벨 12.5 (`docs/design/stage-5-visual-gap-s5b.md` §2, 사용자 결정). **`Chip variant="select"` 만** 쓴다 — `outline`/`filled`/`glass` 는 `--chip-label-size`(caption-1 12 흡수) 그대로. §3.3 흡수 규칙의 예외이며 신규 텍스트 스타일이 아니라 Tier 3 크기다 (선례 `--attendance-sticker-title-size` 14, `D4-90`) |
+
+## 10. Stage 7 토큰 추가 (S7-B, 2026-11-19 — 코드 대조)
+
+근거: 승인된 `docs/design/stage-7-design-spec.md` §5.2 `T7-1`~`T7-15` · §5.3 `P-35`~`P-40` (`D7-5`). 값은 `packages/design-tokens/src/**` 에서 그대로 옮겼다. 검토 `docs/design/stage-7-visual-gap.md` §S7-B (`VG7-B-01`·`02`·`04`·`05` — Figma 선언값 재조회 일치). **기존 토큰 값은 바꾸지 않았다.**
+
+**Tier 열 주의 (`VG7-B-05`)**: `color-mix()` 를 쓰는 색은 `:root`(Tier 3 파일)에 두면 Tailwind v4 폴리필이 뒤 선언을 CSSOM 밖으로 미는 결함(H6-2)이 있어, 의미가 컴포넌트 색이라도 **Tier 2 파일 `semantic/color.css` 의 `@theme static`** 에 둔다 (선례 Stage 6 `--chart-area-fill`). 아래 "파일" 열이 실제 위치다.
+
+| ID | 토큰 | 의미 Tier | 파일 | 값 | 가값 | Figma 근거 |
+|---|---|---|---|---|---|---|
+| `T7-1` | `--haru-violet-67` | Primitive | `primitive/color.css` | `#ac93c4` | — | 변수 `color/violet/67` (`163:2607`) — 신규 HEX 1 |
+| `T7-1` | `--color-growth-theme-agency` · `-emotion` · `-flexibility` · `-motivation` | Semantic | `semantic/color.css` | teal · pink · blue · `--haru-violet-67` | `P-36` | `163:2607` fill 변수 4개. `--color-capability-*`(#19)와 별도 세트 (Q7-10) |
+| `T7-2` | (토큰 아님) `--progress-fill-color` | — | `ProgressBar.css` fallback | `var(--progress-fill-color, var(--color-progress-fill))` | — | 호출 측 조상이 선언. `:root` 선언 금지(값이 거기서 고정됨) |
+| `T7-3` | (토큰 아님) `Surface fill="card"` | — | `Surface.css` | `--color-surface-card` + `--material-blur-md` | — | `163:2551` · `110:835` white 82% + blur 12 |
+| `T7-4` | `--bar-chart-block-size` | Component | `component/index.css` | `110px` | — | `163:2564` |
+| `T7-4` | `--bar-chart-pad-block-start` | Component | 〃 | `var(--space-3-5)` | — | 〃 pt 14 |
+| `T7-4` | `--bar-chart-gap` | Component | 〃 | `var(--space-2-5)` | — | 열 gap 10 |
+| `T7-4` | `--bar-chart-label-gap` | Component | 〃 | `var(--space-1-5)` | — | 열 안 gap 6 |
+| `T7-4` | `--bar-chart-bar-width` | Component | 〃 | `16px` | — | 막대 w16 |
+| `T7-4` | `--bar-chart-bar-radius` | Component | 〃 | `var(--radius-control)` | — | radius 8 |
+| `T7-4` | `--bar-chart-empty-size` | Component | 〃 | `4px` | — | 스텁 h4 (radius 3 → `--radius-indicator` 4, `AD7-10` 확장 후보) |
+| `T7-4` (`D7-6` ①) | `--bar-chart-label-line` | Component | 〃 | `11px` | — | 막대 값·요일 라벨 줄 높이 — Figma leading 1.0(`163:2564` 10/10 · 10.5/10.5) → 트랙 62 (`VG7-B-03` ⓑ) |
+| `T7-4` | `--bar-chart-fill` | Component | **`semantic/color.css`** | `var(--color-action-primary-bg)` | `P-36` | 강조 `#85bfb6` |
+| `T7-4` | `--bar-chart-fill-muted` | Component | **`semantic/color.css`** | `color-mix(in srgb, var(--color-action-primary-bg) 55%, transparent)` | `P-36` | 일반 `rgba(133,191,182,.55)` |
+| `T7-4` | `--bar-chart-empty-fill` | Component | **`semantic/color.css`** | `var(--color-border-subtle)` | `P-36` | 스텁 ink 18% |
+| `T7-5` | `--stat-tile-value-size` | Component | `component/index.css` | `24px` | — | `163:2546` Heavy 24 (스케일 밖, 흡수 안 함) |
+| `T7-5` | `--stat-tile-pad-block` · `--stat-tile-pad-inline` · `--stat-tile-gap` | Component | 〃 | `13px` · `var(--space-2)` · `5px` | — | `163:2545` py 13 · px 8 · gap 5 |
+| `T7-5` | `--stat-tile-row-block-size` | Component | 〃 | `84px` | — | `163:2544` 행 h84 |
+| `T7-6` | `--weekly-total-size` · `--weekly-total-line` · `--weekly-total-tracking` | Component | 〃 | `26px` · `26px` · `-0.52px` | — | `163:2557` Bold 26/26 |
+| `T7-6` | `--color-fg-quaternary` | Semantic | `semantic/color.css` | `var(--haru-ink-300)` | `P-35` | `163:2567` 막대 값 라벨 `#b3c0bf` |
+| `T7-7` | `--color-surface-moment` · `--color-border-moment` | Semantic | `semantic/color.css` | `color-mix(… teal 16%, transparent)` · `color-mix(… teal 35%, transparent)` | `P-37` | `163:2633` |
+| `T7-7` | `--moment-card-gap` · `--moment-quote-size` · `--moment-quote-line` · `--moment-eyebrow-tracking` | Component | `component/index.css` | `7px` · `14px` · `21px` · `0.4px` | — | `163:2633` |
+| `T7-8` | `--report-card-icon-tile-size` · `--report-card-icon-size` · `--report-card-icon-tile-radius` | Component | 〃 | `44px` · `22px` · `var(--radius-media)` | — | `110:837` (radius 14 → 12, `AD7-10` 후보) |
+| `T7-8` | `--report-card-icon-tile-bg` | Component | **`semantic/color.css`** | `color-mix(in srgb, var(--color-action-primary-bg) 20%, transparent)` | — | `110:837` teal 20% |
+| `T7-9` | `--report-card-progress-height` | Component | `component/index.css` | `7px` | — | `110:851` |
+| `T7-10` | `--chart-previous-stroke` | Semantic | `semantic/color.css` | `var(--color-fg-tertiary)` | `P-38` | Figma 없음 (Spec §3.7) |
+| `T7-10` | `--chart-previous-width` · `--chart-previous-dash` · `--chart-legend-swatch` | Component | `component/index.css` | `1.5px` · `4 3` · `12px` | `P-38` | 〃 (범례 점선 길이 16 은 `--space-4` 차용 — `VG7-B-08` Low) |
+| `T7-11` | `--progress-character-top` · `-aspect` · `-overlap` · `-overhang` | Component | 〃 | `4px` · `347 / 422` · `0.346` · `2px` | — | `163:2642` — top = Figma y70 − 66 (`VG7-C-02` ⓑ · `D7-6` ②, 이전 14) |
+| `T7-12` | `--week-picker-chip-block-size` · `-pad-inline` · `-gap` · `-icon-size` · `-hit-size` | Component | 〃 | `34px` · `var(--space-3-5)` · `var(--space-1-5)` · `12px` · `var(--size-touch-min)` | — | `31:118` |
+| `T7-13` | (토큰 아님) `ListRow.subtitle` 2줄 clamp | — | — | 기존 `Text truncate="2"` | — | Spec §2.4 — 변경 0 |
+| `T7-14` | `--persona-rail-width` · `--persona-rail-line` | Component | `component/index.css` | `16px` · `2px` | `P-39` | C-13 |
+| `T7-15` | `--clip-row-gap` | Component | 〃 | `var(--space-3)` | `P-39` | C-13 |
+
+- 가값 `P-40`(막대 강조 `≥ 0.75 × max`)은 토큰이 아니라 JS 상수 `DEFAULT_EMPHASIS_RATIO` (`packages/ui/src/chart/barChartLayout.ts`, `P-17` 선례).
+- `VG7-B-03` ⓑ 채택(`D7-6` ①, 2026-11-20) — Tier 3 `--bar-chart-label-line: 11px` 추가 완료 (막대 라벨 줄 높이 = 글자 크기, Figma leading 1.0 · 트랙 58 → 62).

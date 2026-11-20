@@ -1,0 +1,18 @@
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { expect, test } from '@playwright/test';
+import { GALLERY, gotoStable, hideDevPanel, hideGalleryNav, settle } from '../../../../../../e2e/support/gallery';
+const OUT = process.env.QA_OUT ?? '/tmp/qa-r2-out';
+mkdirSync(OUT, { recursive: true });
+const SHOT = { animations: 'disabled', caret: 'hide', scale: 'css' } as const;
+for (const id of ['s7-icons', 's7-surface-card', 's4-record-control']) {
+  for (const off of [false, true]) {
+    test(`b ${id} off=${off}`, async ({ page }) => {
+      await hideDevPanel(page); await hideGalleryNav(page);
+      await gotoStable(page, GALLERY.components);
+      if (off) { await page.addStyleTag({ content: '[data-demo="v1-button"] { margin-block-end: -46px !important; }' }); await settle(page); }
+      const el = page.locator(`[data-demo="${id}"]`); await expect(el).toBeVisible();
+      
+      writeFileSync(`${OUT}/${id}.b.off${off ? 1 : 0}.png`, await el.screenshot(SHOT));
+    });
+  }
+}

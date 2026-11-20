@@ -293,6 +293,8 @@ FR ID가 없는 화면 요구사항:
 - **Blocking decisions**: 업데이트 노출 방식; 스코어 갱신 규칙(제품·전문가 → Handoff).
 - **Status**: **Plan·Spec `APPROVED` (2026-11-15, `D6-8`)** — `docs/plans/stage-6-plan.md` 개정 2 (AC-6-01~66 · `N6-01`~`48` 전부 해소 `D6-1`~`D6-8`) · `docs/design/stage-6-design-spec.md`. 범위: Stage 2-B(`C13-09`·`C13-10`) 편입 · C-13 8건 design-agent 명세. 작업 순서 `S6-A` → `S6-E1` → `S6-E2` → `S6-B` → `S6-C` → `S6-D` → `S6-F`. 위 초안 항목(Exit·Mock·Blocking)은 Plan §19.5 후속에서 갱신한다.
 
+> ✅ **진행 상태 (2026-11-20)** — **Stage 7 완료 — `PASS (accepted: QA-7-002, QA-7-003, QA-7-004)`** (`docs/qa/stage-7-qa-report.md` 재검증 3차, 결정 `D7-8`). iOS Safari 첫 탭 재생(AC-7-49b)·실시간 재생 진행(AC-7-62)·VoiceOver(AC-7-68)는 Stage 8 Final QA 실기기·스크린리더 점검에서 확인 (`QA-6-005` 와 같은 세션). 허용 차이 AD7-1~13·15·16 등록 (`docs/decisions/stage-7-approvals.md` §2).
+
 ### Stage 7 — 4-Week Report + History + Highlight Audio + PDF UX (Frontend)
 - **Goal**: 발행 기준 충족/미충족 양쪽 흐름, 리포트 상세·히스토리·하이라이트 클립·PDF UX를 Mock으로 검증.
 - **In Scope**: FR-16, FR-17(UX), FR-18(재생), FR-04(오버레이), FR-15(페르소나 히스토리 표시), §13 미충족·생성 실패 UX.

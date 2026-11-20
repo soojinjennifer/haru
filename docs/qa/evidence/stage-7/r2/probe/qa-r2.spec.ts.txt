@@ -1,0 +1,76 @@
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { expect, test, type Page } from '@playwright/test';
+import { GALLERY, gotoApp, gotoStable, hideDevPanel, hideGalleryNav, settle } from '../../../../../../e2e/support/gallery';
+
+const OUT = process.env.QA_OUT ?? '/tmp/qa-r2-out';
+mkdirSync(OUT, { recursive: true });
+const SHOT = { animations: 'disabled', caret: 'hide', scale: 'css' } as const;
+const NAV_OFF = '.haru-dev-nav { visibility: hidden !important; }';
+const OFFSET = '[data-demo="v1-button"] { margin-block-end: -46px !important; }';
+const ids = JSON.parse(process.env.QA_IDS ?? '{}') as Record<string, string[]>; // page -> ids
+
+async function shot(page: Page, path: string, id: string, file: string, opts: { navHidden: boolean; offset?: boolean }) {
+  await hideDevPanel(page);
+  if (opts.navHidden) await hideGalleryNav(page);
+  await gotoStable(page, path);
+  if (opts.offset) { await page.addStyleTag({ content: OFFSET }); await settle(page); }
+  const el = page.locator(`[data-demo="${id}"]`);
+  await expect(el).toBeVisible();
+  writeFileSync(`${OUT}/${file}`, await el.screenshot(SHOT));
+}
+
+for (const [key, list] of Object.entries(ids)) {
+  const path = GALLERY[key as keyof typeof GALLERY];
+  for (const id of list) {
+    test(`nav ${key} ${id}`, async ({ page }) => {
+      await shot(page, path, id, `${id}.navV.png`, { navHidden: false });
+    });
+    test(`hid ${key} ${id}`, async ({ page }) => {
+      await shot(page, path, id, `${id}.navH.png`, { navHidden: true });
+    });
+  }
+}
+
+for (const id of ['s2-textlink', 'v4-tag-chip', 'v9-icon-button', 'v5-field', 'v9-spinner-skeleton', 'v9-state-cards']) {
+  test(`offset hid ${id}`, async ({ page }) => { await shot(page, GALLERY.components, id, `${id}.navH.off.png`, { navHidden: true, offset: true }); });
+  test(`offset vis ${id}`, async ({ page }) => { await shot(page, GALLERY.components, id, `${id}.navV.off.png`, { navHidden: false, offset: true }); });
+}
+
+async function logInToLibrary(page: Page) {
+  await gotoApp(page, '/auth/log-in');
+  await page.getByLabel('Email').fill('sam@example.com');
+  await page.getByRole('textbox', { name: 'Password', exact: true }).fill('sunny-evening-8');
+  await page.getByRole('button', { name: 'Log in', exact: true }).click();
+  await expect(page.locator('.haru-activity-track')).toBeVisible();
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Library' }).click();
+  const shelves = page.locator('.haru-library-shelves');
+  await expect(shelves).toBeVisible();
+  await expect(shelves).not.toHaveAttribute('aria-busy', 'true');
+}
+const SHELF_TOGGLES: Record<string, string> = {
+  plain: '',
+  plain2: '',
+  chipBack20: '.haru-top-bar--large .haru-top-bar__trailing > * { transform: translateX(-20px) !important; }',
+  chipHidden: '.haru-top-bar--large .haru-top-bar__trailing { visibility: hidden !important; }',
+  topbarHidden: '.haru-top-bar--large { visibility: hidden !important; }',
+};
+for (const [name, css] of Object.entries(SHELF_TOGGLES)) {
+  test(`shelf ${name}`, async ({ page }) => {
+    await hideDevPanel(page);
+    await logInToLibrary(page);
+    await page.getByRole('button', { name: 'See all Our curated shelf' }).click();
+    const sheet = page.locator('.haru-sheet--inset-card');
+    await expect(sheet).toBeVisible();
+    await expect(sheet.locator('.haru-list-row').first()).toBeVisible();
+    await page.waitForFunction(() => [...document.images].every((i) => i.complete && i.naturalWidth > 0));
+    if (css) await page.addStyleTag({ content: css });
+    await settle(page);
+    const info = await page.evaluate(() => {
+      const s = document.querySelector('.haru-sheet--inset-card')!.getBoundingClientRect();
+      const t = document.querySelector('.haru-top-bar--large .haru-top-bar__trailing > *')?.getBoundingClientRect();
+      return { sheet: [s.x, s.y, s.width, s.height], chip: t ? [t.x, t.y, t.right, t.bottom] : null };
+    });
+    console.log(`QA shelf ${name} ${JSON.stringify(info)}`);
+    writeFileSync(`${OUT}/shelf.${name}.png`, await sheet.screenshot(SHOT));
+  });
+}

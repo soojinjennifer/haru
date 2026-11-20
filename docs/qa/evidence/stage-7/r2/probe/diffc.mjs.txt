@@ -1,0 +1,23 @@
+import { createRequire } from 'node:module';
+const require = createRequire('/Users/soojin/dev/haru/node_modules/.pnpm/sharp@0.35.5_@types+node@24.13.5/node_modules/sharp/package.json');
+const sharp = require('sharp');
+const [a, b, tolArg, offArg] = process.argv.slice(2);
+const tol = Number(tolArg ?? 0); const off = Number(offArg ?? 0); // compare a[y] with b[y-off]
+const load = async (p) => { const { data, info } = await sharp(p).removeAlpha().raw().toBuffer({ resolveWithObject: true }); return { data, w: info.width, h: info.height }; };
+const A = await load(a), B = await load(b);
+const w = Math.min(A.w, B.w);
+const ys = Math.max(0, off), ye = Math.min(A.h, B.h + off);
+const mask = new Map(); let maxD = 0;
+for (let y = ys; y < ye; y++) for (let x = 0; x < w; x++) {
+  const ia = (y * A.w + x) * 3, ib = ((y - off) * B.w + x) * 3;
+  const d = Math.max(Math.abs(A.data[ia] - B.data[ib]), Math.abs(A.data[ia+1] - B.data[ib+1]), Math.abs(A.data[ia+2] - B.data[ib+2]));
+  if (d > tol) { mask.set(y * w + x, d); }
+}
+// clusters 8-conn radius 2
+const seen = new Set(); const cl = [];
+for (const [k] of mask) { if (seen.has(k)) continue; const st = [k]; seen.add(k); let n=0,x0=1e9,x1=-1,y0=1e9,y1=-1,md=0;
+  while (st.length) { const c = st.pop(); const cy = Math.floor(c / w), cx = c % w; n++; md = Math.max(md, mask.get(c)); x0=Math.min(x0,cx);x1=Math.max(x1,cx);y0=Math.min(y0,cy);y1=Math.max(y1,cy);
+    for (let dy=-2; dy<=2; dy++) for (let dx=-2; dx<=2; dx++) { const nx=cx+dx, ny=cy+dy; if (nx<0||nx>=w) continue; const nk=ny*w+nx; if (mask.has(nk)&&!seen.has(nk)) { seen.add(nk); st.push(nk);} } }
+  cl.push({ n, y: `${y0}-${y1}`, x: `${x0}-${x1}`, d: md }); }
+cl.sort((p,q)=>q.n-p.n);
+console.log(JSON.stringify({ a: a.split('/').pop(), b: b.split('/').pop(), dimA: `${A.w}x${A.h}`, dimB: `${B.w}x${B.h}`, off, px: mask.size, clusters: cl.length, top: cl.slice(0, 14) }));

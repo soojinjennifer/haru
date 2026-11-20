@@ -1,0 +1,28 @@
+64c64
+< 95fe906f10bec6dc57471cda46fabd8c0ea6dd901e3b62eb8d40b0616a8a927d  e2e/__screenshots__/darwin/session-recording.spec.ts/s4-record-control.png
+---
+> 8b9da0d1f7d506342a1e2a4a8c299c13fb307ee2c4c0174187be69d506210287  e2e/__screenshots__/darwin/session-recording.spec.ts/s4-record-control.png
+89c89
+< 5c1e50dcfdc1730bb79dc17f3dec5b78e843f2aee2d79922d6e6818fa050e713  e2e/__screenshots__/darwin/stage7-shared-ui.spec.ts/s7-icons.png
+---
+> 9b41a8a8d0de5c736ee2c735fab6e4983408c96d373d598265bcec1f33d9330d  e2e/__screenshots__/darwin/stage7-shared-ui.spec.ts/s7-icons.png
+92c92
+< 2b8f581d0d9da14fe6e6bc201c47abdfa9866a090441e044864157250bafb7b8  e2e/__screenshots__/darwin/stage7-shared-ui.spec.ts/s7-surface-card.png
+---
+> 964555f9fe9ef6734cf560295d849fba306e514a44c8315f7d9c9742ed55b37a  e2e/__screenshots__/darwin/stage7-shared-ui.spec.ts/s7-surface-card.png
+117c117
+< 974f4d3cc5699fc21f691667c3b2c05c268388ffbc562ce0b0248b3a9ebd5df4  e2e/__screenshots__/darwin/visual.spec.ts/s2-textlink.png
+---
+> 7a0e7eee191034135e3f95b46a79b4675cd98d5e2148d31bfd3842c705bac62d  e2e/__screenshots__/darwin/visual.spec.ts/s2-textlink.png
+136c136
+< d96a7693e1ed187886a977d8d0839a31ee8ec7882dffe3a27791d99bcb27bd87  e2e/__screenshots__/darwin/visual.spec.ts/s3-library-shelf-sheet.png
+---
+> 3bd35a0102ff2d06c4b3e0957aa79181a934116874549693fc2b2d2c2d36529b  e2e/__screenshots__/darwin/visual.spec.ts/s3-library-shelf-sheet.png
+150c150
+< 8f8f796a102c7b307a638fc3facfbe314852c8cba45334320421359b80542f9e  e2e/__screenshots__/darwin/visual.spec.ts/v4-tag-chip.png
+---
+> 04a4a493bc9fdde403241be17b5fbfb3a9c9cc84b33a837f02e97fc6d6c0c44b  e2e/__screenshots__/darwin/visual.spec.ts/v4-tag-chip.png
+157c157
+< d3940635ce821f96af383e08b9d6416f602aac13e4f843bfe4355883b9b8c1d6  e2e/__screenshots__/darwin/visual.spec.ts/v9-icon-button.png
+---
+> 813ae11658dd65d7122276738862fdf1874844574301507d36df010ed7225fb9  e2e/__screenshots__/darwin/visual.spec.ts/v9-icon-button.png
