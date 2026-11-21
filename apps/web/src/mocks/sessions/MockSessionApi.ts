@@ -10,6 +10,8 @@
  * | `success` | 상태 기반 정상 동작 (아래 "서버 규칙") |
  * | `loading` | 주입 timer 로 지연 후 성공 |
  * | `empty` | `list` 가 `items: []` (AC-4-23). 나머지 메서드는 `success` |
+ *
+ * ⭐ Stage 8 `C8-2`: `list` 항목은 `SessionListItem`(= `SessionSummary` + `recording`)이며 `hasRecording` 필터를 따른다.
  * | `error` | contracts Error Envelope — 기본 `INTERNAL_ERROR`, 번들 옵션 `errorCodes` 로 지정 (AC-4-24) |
  * | `retry` | **메서드별** 1회차 실패 → 2회차부터 성공 (AC-4-25) |
  * | `offline` | `NetworkError` |
@@ -100,6 +102,7 @@ import {
   COMPLETION_STATUSES,
   findActiveSession,
   markRecordingDeleted,
+  toRecordingStatus,
   type MockSessionRecord,
   type MockSessionState,
 } from './sessionState';
@@ -566,8 +569,17 @@ export function createMockSessionApi(deps: MockSessionApiDeps): SessionApi {
             ? []
             : [...state.sessions.values()]
                 .filter((record) => record.childId === request.childId)
-                .map((record) => record.summary)
+                // Stage 8 `C8-2` — 항목 = `SessionSummary` + 서버가 본 녹음 상태 (`SessionListItem`)
+                .map((record) => ({
+                  ...record.summary,
+                  recording: toRecordingStatus(state, record),
+                }))
                 .filter((summary) => query.status === undefined || summary.status === query.status)
+                .filter(
+                  (item) =>
+                    query.hasRecording === undefined ||
+                    (item.recording !== null) === query.hasRecording,
+                )
                 // 최신 준비 시각이 먼저 — ISO 문자열 비교는 같은 형식이면 시간 순서와 같다.
                 .sort((a, b) => (a.readyAt < b.readyAt ? 1 : a.readyAt > b.readyAt ? -1 : 0))
                 .slice(0, query.limit);

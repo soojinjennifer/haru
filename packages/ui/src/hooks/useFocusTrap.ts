@@ -16,6 +16,47 @@ function focusableElements(container: HTMLElement): HTMLElement[] {
   );
 }
 
+/**
+ * Tab 순서에 실제로 오르는 요소 — 같은 `name` 의 radio 묶음은 **하나**만 Tab 정지점이다
+ * (선택된 것, 없으면 첫 번째). 묶음 전체를 넣으면 "마지막 요소" 판정이 Tab 순서와 어긋나
+ * focus 가 컨테이너 밖으로 새어 나간다 — Stage 8 `S8-G` 감사 실측: 연도 선택 시트에서 Tab
+ * 한 번에 focus 가 body 로, Shift+Tab 으로 배경 화면 `Next` 로 빠졌다 (AC-8-48).
+ */
+function tabStops(container: HTMLElement): HTMLElement[] {
+  const focusable = focusableElements(container);
+  const radioStop = new Map<string, HTMLElement>();
+  for (const element of focusable) {
+    if (!(element instanceof HTMLInputElement) || element.type !== 'radio' || element.name === '')
+      continue;
+    const current = radioStop.get(element.name);
+    if (current === undefined || (element.checked && !(current as HTMLInputElement).checked)) {
+      radioStop.set(element.name, element);
+    }
+  }
+  return focusable.filter(
+    (element) =>
+      !(element instanceof HTMLInputElement) ||
+      element.type !== 'radio' ||
+      element.name === '' ||
+      radioStop.get(element.name) === element,
+  );
+}
+
+/** 지금 focus 가 있는 Tab 정지점 — radio 묶음 안이면 그 묶음의 정지점. */
+function currentStop(stops: readonly HTMLElement[], active: Element | null): HTMLElement | null {
+  if (!(active instanceof HTMLElement)) return null;
+  if (stops.includes(active)) return active;
+  if (active instanceof HTMLInputElement && active.type === 'radio' && active.name !== '') {
+    return (
+      stops.find(
+        (stop) =>
+          stop instanceof HTMLInputElement && stop.type === 'radio' && stop.name === active.name,
+      ) ?? null
+    );
+  }
+  return null;
+}
+
 export interface FocusTrapOptions {
   /** 트랩을 켤지 여부. */
   active: boolean;
@@ -62,23 +103,24 @@ export function useFocusTrap<T extends HTMLElement>(
       }
       if (event.key !== 'Tab') return;
 
-      const focusable = focusableElements(container);
-      if (focusable.length === 0) {
+      const stops = tabStops(container);
+      if (stops.length === 0) {
         event.preventDefault();
         container.focus();
         return;
       }
 
-      const first = focusable[0] as HTMLElement;
-      const last = focusable[focusable.length - 1] as HTMLElement;
+      const first = stops[0] as HTMLElement;
+      const last = stops[stops.length - 1] as HTMLElement;
       const activeElement = document.activeElement;
+      const current = currentStop(stops, activeElement);
 
-      if (event.shiftKey && (activeElement === first || !container.contains(activeElement))) {
+      if (event.shiftKey && (current === first || !container.contains(activeElement))) {
         event.preventDefault();
         last.focus();
         return;
       }
-      if (!event.shiftKey && (activeElement === last || !container.contains(activeElement))) {
+      if (!event.shiftKey && (current === last || !container.contains(activeElement))) {
         event.preventDefault();
         first.focus();
       }

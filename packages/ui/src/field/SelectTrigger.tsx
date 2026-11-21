@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 
+import { useRadioListKeyboard } from '../hooks/useRadioListKeyboard';
 import { Icon } from '../icon/Icon';
 import { cx } from '../lib/cx';
 import { Sheet } from '../sheet/Sheet';
@@ -68,6 +69,16 @@ export function SelectTrigger({
   const fieldId = id ?? generatedId;
   const errorId = `${fieldId}-error`;
   const [open, setOpen] = useState(false);
+  const optionsName = `${fieldId}-options`;
+  // 화살표 = 고르기만 · Enter/Space = 확정 (S8-G — 키보드로 원하는 값을 고를 수 있어야 한다)
+  const keyboard = useRadioListKeyboard({
+    active: open && onOpen === undefined,
+    name: optionsName,
+    onCommit: (next) => {
+      onChange(next);
+      setOpen(false);
+    },
+  });
 
   const selected = options.find((option) => option.value === value) ?? null;
   const radioOptions: readonly RadioOption[] = options.map((option) => ({
@@ -141,12 +152,13 @@ export function SelectTrigger({
         >
           <RadioGroup
             legend={label}
-            name={`${fieldId}-options`}
+            name={optionsName}
             options={radioOptions}
             value={value}
             variant="list"
             onChange={(next) => {
               onChange(next);
+              if (keyboard.consumeKeyboardMove()) return;
               setOpen(false);
             }}
           />

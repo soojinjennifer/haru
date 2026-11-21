@@ -395,7 +395,7 @@ describe('ReportPdfAction — 접근성 · Privacy', () => {
   it('포커스가 영역 밖이면 옮기지 않는다', async () => {
     const harness = await renderAt('card');
     tap(copy.download);
-    const link = screen.getByRole('link', { name: /Open 4-week report/ });
+    const link = screen.getByRole('link', { name: /^4-week full report/ });
     link.focus();
     await advance(0);
     await advance(2_000);

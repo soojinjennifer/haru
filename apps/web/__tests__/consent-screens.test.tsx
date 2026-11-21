@@ -265,6 +265,35 @@ describe('동의 기록 → 다음 단계 (end-to-end, Mock)', () => {
     });
   });
 
+  /*
+   * Stage 8 `N8-26` ⓐ (`S2-CONSENT-1`, Plan 부록 B.2-② · AC-8-45) — 이미 구현(`consentSourceFor`)된 것을 **요청 로그**로 확인한다.
+   * Google 가입 세션의 첫 동의 기록 → `source = signup_oauth`. 서버 기록 자체는 BACKEND_INTEGRATION_PENDING.
+   */
+  it('OAuth(Google) 가입 → 동의 기록 요청의 `source` = `signup_oauth` (N8-26 · AC-8-45 요청 로그)', async () => {
+    const harness = createHarness({
+      initialEntries: [ROUTES.home],
+      scenarios: ['me:consent-missing'],
+    });
+    await harness.bundle.authGateway.signInWithProvider('google');
+    const Wrapper = harness.wrapper;
+    render(
+      <Wrapper>
+        <LocationProbe />
+        <AppRoutes />
+      </Wrapper>,
+    );
+    await waitForGuard();
+    await checkAllRequired();
+    fireEvent.click(continueButton());
+    await waitForMeAfterConsent(harness);
+
+    const recorded = harness.bundle.requestLog
+      .entries()
+      .filter((entry) => entry.operation === 'POST /v1/consents');
+    expect(recorded).toHaveLength(1);
+    expect((recorded[0]?.payload as { source?: unknown }).source).toBe('signup_oauth');
+  });
+
   it('선택 항목을 함께 고르면 요청에 포함된다', async () => {
     const harness = await renderSignedIn(['me:consent-missing']);
     await checkAllRequired();

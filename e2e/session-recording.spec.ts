@@ -351,9 +351,9 @@ test.describe('전 흐름 — 녹음 → 시간 증가 → 일시정지 → 재�
           }),
         [from, to] as const,
       );
-    const start = await measure('Start recording', 'Pause recording');
-    const pause = await measure('Pause recording', 'Resume recording');
-    const resume = await measure('Resume recording', 'Pause recording');
+    const start = await measure('Tap to recording, Start recording', 'Pause recording');
+    const pause = await measure('Pause recording', 'Tap to resume, Resume recording');
+    const resume = await measure('Tap to resume, Resume recording', 'Pause recording');
     for (const elapsed of [start, pause, resume]) expect(elapsed).toBeLessThanOrEqual(1_000);
     test.info().annotations.push({
       type: 'AC-4-51',
@@ -509,7 +509,7 @@ test.describe('RecordControl 5변형 · Button sm — dev gallery (AC-4-138)', (
     const gray2 = GRAY_2;
     expect(computed).toEqual([
       {
-        label: 'Start recording',
+        label: 'Tap to recording, Start recording',
         disabled: null,
         opacity: '1',
         core: teal,
@@ -527,7 +527,7 @@ test.describe('RecordControl 5변형 · Button sm — dev gallery (AC-4-138)', (
         caption: null,
       },
       {
-        label: 'Resume recording',
+        label: 'Tap to resume, Resume recording',
         disabled: null,
         opacity: '1',
         core: teal,
@@ -536,7 +536,7 @@ test.describe('RecordControl 5변형 · Button sm — dev gallery (AC-4-138)', (
         caption: 'Tap to resume',
       },
       {
-        label: 'Start recording',
+        label: 'Tap to recording, Start recording',
         disabled: 'true',
         opacity: '0.5',
         core: teal,
@@ -545,7 +545,7 @@ test.describe('RecordControl 5변형 · Button sm — dev gallery (AC-4-138)', (
         caption: 'Tap to recording',
       },
       {
-        label: 'Microphone is off',
+        label: 'Mic is off',
         disabled: null,
         opacity: '1',
         core: gray2,

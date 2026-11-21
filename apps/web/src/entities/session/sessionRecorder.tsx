@@ -166,6 +166,13 @@ export interface SessionRecorderEnvironment {
    * 런타임 메모리 상태까지 비운다 (`S4-E` handoff E-8 ②).
    */
   clearLocalRecordings(): Promise<void>;
+  /**
+   * 이 기기에 남은 **한 세션의** 로컬 녹음(청크 · 색인)을 지우고 업로드 큐 항목을 취소한다 — 세션 녹음 삭제
+   * (Stage 8 FR-21, AC-8-23). 서버 삭제 **확정 응답 뒤에만** 부른다 (rules/architecture §7 — 실패 · 오프라인이면
+   * 부르지 않아 로컬을 보존한다). 로컬 녹음이 없으면 아무 일도 하지 않는다. 미전송 세션 전이(outbox)는 건드리지 않는다
+   * — 세션 상태는 녹음 삭제와 무관하다.
+   */
+  deleteLocalRecording(sessionId: string): Promise<void>;
   /** 업로드 · 보관 · 크래시 복구 안내 (`S4-H3` · `D4-117`). */
   readonly notices: SessionRecorderNotices;
   /**

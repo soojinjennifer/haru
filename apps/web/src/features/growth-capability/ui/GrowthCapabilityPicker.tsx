@@ -42,8 +42,14 @@ import {
   type CurrentChildProfileState,
 } from '../../../entities/child-profile';
 import { ROUTES } from '../../../shared/config/routes';
+import { useBackNavigation } from '../../../shared/hooks/useBackNavigation';
 import { capabilityCopy } from '../../../shared/copy/capability-copy';
-import { errorCopyForCode, networkErrorCopy, retryLabel } from '../../../shared/copy/error-copy';
+import {
+  deletionPendingCopy,
+  errorCopyForCode,
+  networkErrorCopy,
+  retryLabel,
+} from '../../../shared/copy/error-copy';
 import { growthCapabilityCopy as copy } from '../copy';
 
 export type GrowthCapabilityMode = 'onboarding' | 'settings';
@@ -120,6 +126,7 @@ function PickerError({
 
 function PickerContent({ mode, profile }: GrowthCapabilityPickerProps & { profile: ChildProfile }) {
   const navigate = useNavigate();
+  const goBack = useBackNavigation();
   const toast = useToast();
   const reasonId = useId();
   /** 온보딩 = 서버 제시값(`D-2 ⑤`) · 설정 = 현재값. meta 는 이 옵션에 남는다. */
@@ -133,13 +140,18 @@ function PickerContent({ mode, profile }: GrowthCapabilityPickerProps & { profil
         return;
       }
       toast.show({ tone: 'success', message: copy.settings.savedToast });
-      void navigate(-1);
+      // 앱 안 기록 없으면 논리적 부모 `/settings` 로 replace (`VG6-D-12`, Spec §6.3)
+      goBack();
     },
   });
 
   const canSubmit = selected !== null && (mode === 'onboarding' || selected !== original);
   const meta = mode === 'onboarding' ? copy.onboarding.meta : copy.settings.meta;
-  const failure = saving.isError ? (saving.isOffline ? copy.offline : copy.saveFailed) : null;
+  const failure = saving.isError
+    ? saving.isOffline
+      ? copy.offline
+      : (deletionPendingCopy(saving.errorCode) ?? copy.saveFailed)
+    : null;
 
   const choose = (capability: Capability) => {
     if (saving.isPending) return;

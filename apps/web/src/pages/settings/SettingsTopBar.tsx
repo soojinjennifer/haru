@@ -1,7 +1,7 @@
 import { Icon, IconButton, TopBar } from '@haru/ui';
-import { useNavigate } from 'react-router';
 
 import { settingsCopy } from '../../features/settings';
+import { useBackNavigation } from '../../shared/hooks/useBackNavigation';
 
 /**
  * `/settings` TopBar — Design Spec §2.14 (`variant=centered`, leading = 뒤로, title = "Settings").
@@ -10,7 +10,8 @@ import { settingsCopy } from '../../features/settings';
  * (`pages → app` import 금지 — rules/architecture §3).
  */
 export function SettingsTopBar() {
-  const navigate = useNavigate();
+  // Back = 앱 안 기록 있으면 이전 화면, 없으면 논리적 부모로 replace (`VG6-D-12`, Spec §6.3)
+  const goBack = useBackNavigation();
 
   return (
     <TopBar
@@ -22,7 +23,7 @@ export function SettingsTopBar() {
           label={settingsCopy.backLabel}
           variant="plain"
           onPress={() => {
-            void navigate(-1);
+            goBack();
           }}
         />
       }

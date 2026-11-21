@@ -15,6 +15,7 @@
  *   않기 위해서다. 실제 앱은 `warmUp()` 으로 시작 시 1회 연다(복구 → 보관 정리 → outbox·큐 시작).
  * - ready 리마인드 = 5분(`D4-46`) · 방치 = 10분(contracts `READY_ABANDON_SECONDS`).
  * - 로그아웃 정리 = 런타임 `clearAll()`(메모리 큐·outbox 까지) + 플랫폼 저장소 삭제 (AC-4-72).
+ * - 세션 녹음 삭제 (Stage 8 AC-8-23) = `deleteLocalRecording(id)` — 서버 확정 뒤 그 세션의 업로드 큐 취소 + 로컬 청크 삭제.
  * - 앱 수준 안내 (`S4-H3`) = 런타임 안내 센터(`RecordingNoticeCenter` — 14일 · 48h · 크래시 복구 Toast, 7일 배너)를
  *   그대로 넘기고, **녹음 중인 세션 화면이 있는지**(`capturing` — Toast 보류, `D4-120` Q13)를 여기서 센다.
  *   보류는 녹음(recording · paused)에 들어간 세션 화면이 **떠날 때(컨트롤러 dispose)** 풀린다 (`D4-134`).
@@ -284,6 +285,13 @@ export function createSessionRecorderEnvironment(
       if (conversationNoticed.has(sessionId)) return false;
       conversationNoticed.add(sessionId);
       return true;
+    },
+
+    async deleteLocalRecording(sessionId) {
+      // 큐를 먼저 취소한다 — 진행 중 전송을 끊고 항목을 지운 뒤 청크를 지워야 큐가 지워진 청크를 읽지 않는다.
+      const current = ensureRuntime();
+      await current.queue.cancel(sessionId);
+      await current.store.delete(sessionId);
     },
 
     async clearLocalRecordings() {

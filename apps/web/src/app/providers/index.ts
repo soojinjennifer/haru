@@ -8,3 +8,6 @@ export { resolveAdapters } from './apiClients';
 export type { AppAdapters } from './apiClients';
 export { AuthProvider } from './AuthProvider';
 export type { AuthProviderProps } from './AuthProvider';
+export { DataDeletionWatcher } from './DataDeletionWatcher';
+export type { DataDeletionWatcherProps } from './DataDeletionWatcher';
+export { useDataDeletionGuardHold } from './dataDeletionHold';

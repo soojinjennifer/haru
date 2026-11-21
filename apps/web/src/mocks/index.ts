@@ -9,6 +9,8 @@
  * `pnpm assert:no-mocks` 가 `apps/web/dist/**` 에서 이 문자열을 찾아 1건이라도 나오면 실패한다
  * (AC-1-42).
  */
+import type { DeletionScope } from '@haru/contracts';
+
 import { createRealTimer, type Timer } from '../shared/api/helpers';
 import type { ApiClients } from '../shared/api/types';
 import { createFixedClock, type Clock } from '../shared/lib/clock';
@@ -17,7 +19,9 @@ import { createSeededIdFactory, type IdFactory } from '../shared/lib/idFactory';
 import type { AuthGateway } from '../shared/auth';
 import type { PushPermissionPort } from '../shared/platform/push-permission';
 
+import { createMockAccountApi } from './account/MockAccountApi';
 import { applyActivityCardCacheSeed } from './activities/activityCardCacheSeed';
+import { applyDataDeletionMarkerSeed } from './data-management/dataDeletionMarkerSeed';
 import { createMockActivityApi } from './activities/MockActivityApi';
 import { createMockAnalysisApi } from './analysis/MockAnalysisApi';
 import { createMockAuthGateway } from './auth/MockAuthGateway';
@@ -32,6 +36,15 @@ import { createMockFailure, type MockErrorCodes } from './common/delivery';
 import { createIdempotencyLedger } from './common/idempotency';
 import { createMockConsentApi } from './consent/MockConsentApi';
 import { createMockConsentState, type MockConsentState } from './consent/consentState';
+import { applyDeletionPendingWriteGuard } from './common/writeGuard';
+import { createMockDataManagementApi } from './data-management/MockDataManagementApi';
+import {
+  createMockDeletionState,
+  ensureDeletionSeed,
+  isAccountDeletionPending,
+  offscreenCompletedRequestId,
+  type MockDeletionState,
+} from './data-management/deletionState';
 import { createMockHealthApi } from './health/MockHealthApi';
 import { createMockHomeApi } from './home/MockHomeApi';
 import { createMockLibraryApi } from './library/MockLibraryApi';
@@ -47,7 +60,11 @@ import { createMockProgressApi } from './progress/MockProgressApi';
 import { createMockReflectionApi } from './reflections/MockReflectionApi';
 import { createMockReportApi } from './reports/MockReportApi';
 import { createMockReportPdfApi } from './reports/MockReportPdfApi';
-import { createMockReportState, type MockReportState } from './reports/reportState';
+import {
+  createMockReportState,
+  wipeReportState,
+  type MockReportState,
+} from './reports/reportState';
 import { createRequestLog, type RequestLog } from './request-log';
 import {
   createScenarioStoreFrom,
@@ -56,7 +73,11 @@ import {
   type ScenarioStoreInput,
 } from './scenarios';
 import { createMockSessionApi } from './sessions/MockSessionApi';
-import { createMockSessionState, type MockSessionState } from './sessions/sessionState';
+import {
+  createMockSessionState,
+  wipeSessionState,
+  type MockSessionState,
+} from './sessions/sessionState';
 
 /** 빌드 산출물 검증용 표식 (`scripts/assert-no-mocks.mjs`). 값을 바꾸면 스크립트도 함께 바꾼다. */
 export const __HARU_MOCK_SENTINEL__ = '__HARU_MOCK_SENTINEL__';
@@ -110,6 +131,11 @@ export interface MockApiClientsOptions extends ScenarioStoreInput {
    */
   reportState?: MockReportState;
   /**
+   * Stage 8 — `MockDataManagementApi` · `MockAccountApi` · 쓰기 차단 guard · `MockMeApi` 가 공유하는 삭제 요청 서버 상태.
+   * 주지 않으면 번들마다 새로 만든다.
+   */
+  deletionState?: MockDeletionState;
+  /**
    * Stage 4 — `error`/`retry` 가 쓸 code (Plan §8.1 "error — code 지정", AC-4-24).
    * 키 = `group` 또는 `group.method`(소문자). 없으면 `INTERNAL_ERROR`.
    */
@@ -140,6 +166,8 @@ export interface MockApiClientsBundle {
   childProfileState: MockChildProfileState;
   /** Stage 7 리포트 서버 상태 (테스트가 발행 전이 · `viewed` · PDF 작업을 관찰한다). */
   reportState: MockReportState;
+  /** Stage 8 삭제 요청 서버 상태 (테스트가 진행 · 완료 효과 · 쓰기 차단을 관찰한다). */
+  deletionState: MockDeletionState;
   /** Mock **서버** 시계 (기본 `MOCK_EPOCH_MS` 고정) — 기기 seed 의 서버 세션 시각 (`D4-123`). */
   clock: Clock;
   /**
@@ -172,11 +200,100 @@ export function createMockApiClientsBundle(
   const connectivity = options.connectivity ?? createMockConnectivity();
   const childProfileState = options.childProfileState ?? createMockChildProfileState();
   const reportState = options.reportState ?? createMockReportState();
+  const deletionState = options.deletionState ?? createMockDeletionState();
   const errorCodes = options.errorCodes;
   // 세션·녹음 endpoint 가 **하나의** `Idempotency-Key` 보관소를 쓴다 (서버도 키 공간이 하나다).
   const idempotency = createIdempotencyLedger(createMockFailure(idFactory));
   const deps = { store, clock, idFactory, timer, requestLog };
   const stage4 = { ...deps, errorCodes, state: sessionState };
+
+  /**
+   * Stage 8 — 전체 데이터 삭제 · 탈퇴 `completed` 의 서버 효과 (`P8-BIP-02` · `03` 의 Mock): 아동 데이터(세션 · 녹음 ·
+   * 아이 프로필 · 온보딩 응답)를 지운다 → `GET /v1/me` 가 온보딩 전 상태 → Guard 가 온보딩으로 (`N8-10` ⓐ).
+   * 탈퇴는 동의 기록도 지운다(다시 가입하면 동의부터). 리포트 · 주기 진행도 지운다 — 다시 온보딩한 뒤 옛 리포트가 보이지
+   * 않는다 (`H8-1-N5` → `S8-C`). 주간 Progress 는 `deletionState.childDataDeleted` 를 보고 빈 세계를 낸다.
+   */
+  const onDataDeleted = (scope: DeletionScope): void => {
+    if (scope === 'session_recording') return;
+    wipeSessionState(sessionState);
+    childProfileState.reset();
+    onboardingState.reset();
+    wipeReportState(reportState);
+    if (scope === 'account') consentState.reset();
+  };
+
+  // `data-management:deletion-completed-offscreen` (`N8-31` ⓐ) — 이미 끝난 전체 삭제는 `me` 첫 조회부터 보여야 한다 → 지금 seed
+  if (offscreenCompletedRequestId(store) !== null) {
+    ensureDeletionSeed(deletionState, store, clock.nowIso(), onDataDeleted);
+  }
+
+  const clients: ApiClients = {
+    health: createMockHealthApi({ store, clock, idFactory, timer }),
+    me: createMockMeApi({
+      ...deps,
+      consentState,
+      onboardingState,
+      childProfileState,
+      deletionState,
+    }),
+    consents: createMockConsentApi({ ...deps, consentState }),
+    onboarding: createMockOnboardingApi({
+      ...deps,
+      consentState,
+      onboardingState,
+      childProfileState,
+    }),
+    books: createMockBooksApi(deps),
+    home: createMockHomeApi(deps),
+    // Stage 6 — `cold-to-warm` · `difficulty-lowered` 가 세션·회고 서버 상태를 본다 (Plan §8)
+    activities: createMockActivityApi({ ...deps, sessionState }),
+    library: createMockLibraryApi(deps),
+    // Stage 6 — 완료 버블이 현재 아이 이름을 쓴다 (`QA-6-001`, AC-6-22)
+    sessions: createMockSessionApi({
+      ...stage4,
+      idempotency,
+      onboardingState,
+      childProfileState,
+    }),
+    recordings: createMockRecordingApi({ ...stage4, idempotency, connectivity }),
+    uploadTransport: createMockUploadTransport({ ...stage4, connectivity }),
+    notifications: createMockNotificationApi({ ...deps, errorCodes }),
+    // Stage 5 — 세션과 같은 서버 상태 · 같은 `Idempotency-Key` 보관소 (Plan §8)
+    reflections: createMockReflectionApi({ ...stage4, idempotency }),
+    analysis: createMockAnalysisApi(stage4),
+    // Stage 6 — 아이 프로필 · 수정 · 발전 역량 · 설문 재응답 (Plan §8 `children`)
+    children: createMockChildrenApi({
+      ...deps,
+      childProfileState,
+      idempotency,
+      errorCodes,
+    }),
+    // Stage 7 — 주간 Progress · 4주 리포트 · PDF · 하이라이트 클립 (Plan §8 rev 2). 리포트 3 Mock 은 같은 상태를 본다
+    progress: createMockProgressApi({
+      ...deps,
+      errorCodes,
+      isChildDataDeleted: () => deletionState.childDataDeleted,
+    }),
+    reports: createMockReportApi({ ...deps, state: reportState, errorCodes }),
+    reportPdf: createMockReportPdfApi({ ...deps, state: reportState, idempotency, errorCodes }),
+    // Stage 8 — 세션별 녹음 삭제가 클립 재생에 반영된다 (교차 일관성, AC-8-10)
+    highlightClips: createMockHighlightClipApi({
+      ...deps,
+      state: reportState,
+      sessionState,
+      errorCodes,
+    }),
+    // Stage 8 (`S8-A`, Plan §8) — 데이터 관리 · 세션 녹음 삭제 · 전체 삭제 요청 · 탈퇴. 세션과 같은 서버 상태 · 같은 IK 보관소
+    dataManagement: createMockDataManagementApi({
+      ...deps,
+      sessionState,
+      deletionState,
+      idempotency,
+      onDataDeleted,
+      errorCodes,
+    }),
+    account: createMockAccountApi({ ...deps, deletionState, idempotency, errorCodes }),
+  };
 
   return {
     store,
@@ -187,51 +304,20 @@ export function createMockApiClientsBundle(
     connectivity,
     childProfileState,
     reportState,
+    deletionState,
     clock,
     sentinel: __HARU_MOCK_SENTINEL__,
     authGateway: createMockAuthGateway(deps),
     pushPermission: createMockPushPermissionPort({ store }),
-    clients: {
-      health: createMockHealthApi({ store, clock, idFactory, timer }),
-      me: createMockMeApi({ ...deps, consentState, onboardingState, childProfileState }),
-      consents: createMockConsentApi({ ...deps, consentState }),
-      onboarding: createMockOnboardingApi({
-        ...deps,
-        consentState,
-        onboardingState,
-        childProfileState,
-      }),
-      books: createMockBooksApi(deps),
-      home: createMockHomeApi(deps),
-      // Stage 6 — `cold-to-warm` · `difficulty-lowered` 가 세션·회고 서버 상태를 본다 (Plan §8)
-      activities: createMockActivityApi({ ...deps, sessionState }),
-      library: createMockLibraryApi(deps),
-      // Stage 6 — 완료 버블이 현재 아이 이름을 쓴다 (`QA-6-001`, AC-6-22)
-      sessions: createMockSessionApi({
-        ...stage4,
-        idempotency,
-        onboardingState,
-        childProfileState,
-      }),
-      recordings: createMockRecordingApi({ ...stage4, idempotency, connectivity }),
-      uploadTransport: createMockUploadTransport({ ...stage4, connectivity }),
-      notifications: createMockNotificationApi({ ...deps, errorCodes }),
-      // Stage 5 — 세션과 같은 서버 상태 · 같은 `Idempotency-Key` 보관소 (Plan §8)
-      reflections: createMockReflectionApi({ ...stage4, idempotency }),
-      analysis: createMockAnalysisApi(stage4),
-      // Stage 6 — 아이 프로필 · 수정 · 발전 역량 · 설문 재응답 (Plan §8 `children`)
-      children: createMockChildrenApi({
-        ...deps,
-        childProfileState,
-        idempotency,
-        errorCodes,
-      }),
-      // Stage 7 — 주간 Progress · 4주 리포트 · PDF · 하이라이트 클립 (Plan §8 rev 2). 리포트 3 Mock 은 같은 상태를 본다
-      progress: createMockProgressApi({ ...deps, errorCodes }),
-      reports: createMockReportApi({ ...deps, state: reportState, errorCodes }),
-      reportPdf: createMockReportPdfApi({ ...deps, state: reportState, idempotency, errorCodes }),
-      highlightClips: createMockHighlightClipApi({ ...deps, state: reportState, errorCodes }),
-    },
+    // Stage 8 `C8-5` — 삭제 진행 중이면 쓰기 endpoint 가 `ACCOUNT_DELETION_PENDING` (`mocks/common/writeGuard.ts`)
+    clients: applyDeletionPendingWriteGuard(
+      clients,
+      () => {
+        ensureDeletionSeed(deletionState, store, clock.nowIso());
+        return isAccountDeletionPending(deletionState);
+      },
+      createMockFailure(idFactory),
+    ),
   };
 }
 
@@ -277,6 +363,8 @@ export function createBrowserMockApiClients(
   // `activity-cards:offline-cached-card` — "최근 카드 캐시가 있는 기기" 를 만든다 (AC-4-82).
   if (deviceClock !== undefined) {
     applyActivityCardCacheSeed({ store: bundle.store, deviceClock });
+    // `data-management:deletion-completed-offscreen` — "전체 삭제 요청 id 가 표시된 기기" (`N8-31` ⓐ). 감시자보다 먼저(동기)
+    applyDataDeletionMarkerSeed({ store: bundle.store, deviceClock });
   }
 
   // e2e 증거 경로 (Stage 4 `S4-F1`) — **dev 서버에서만** 요청 로그를 창에 노출한다. Playwright 가
@@ -350,6 +438,7 @@ export {
 } from './activities/MockActivityApi';
 export type { ActivityScenarioKey } from './activities/MockActivityApi';
 export { applyActivityCardCacheSeed } from './activities/activityCardCacheSeed';
+export { applyDataDeletionMarkerSeed } from './data-management/dataDeletionMarkerSeed';
 export type { ActivityCardCacheSeedOptions } from './activities/activityCardCacheSeed';
 export {
   createMockLibraryApi,
@@ -592,6 +681,7 @@ export {
   seedReportState,
   toReportCycle,
   transitionReportCycle,
+  wipeReportState,
 } from './reports/reportState';
 export type { MockPdfJob, MockReportCycleRecord, MockReportState } from './reports/reportState';
 export { createMockHighlightClipApi } from './highlight-clips/MockHighlightClipApi';
@@ -673,3 +763,50 @@ export {
   seedStalledUpload,
 } from './fixtures/local-recordings';
 export type { LocalRecordingSeedTarget } from './fixtures/local-recordings';
+export { createMockDataManagementApi } from './data-management/MockDataManagementApi';
+export { createMockAccountApi } from './account/MockAccountApi';
+export {
+  ACCOUNT_LOADING_DELAY_MS,
+  ACCOUNT_SCENARIO_KEYS,
+  accountScenarioGroup,
+  DATA_MANAGEMENT_LOADING_DELAY_MS,
+  DATA_MANAGEMENT_SCENARIO_KEYS,
+  dataManagementScenarioGroup,
+  MOCK_DELETION_FINAL_READ,
+} from './data-management/dataManagementScenarios';
+export type {
+  AccountScenarioKey,
+  DataManagementScenarioKey,
+} from './data-management/dataManagementScenarios';
+export {
+  activeDeletionRequest,
+  createMockDeletionState,
+  isAccountDeletionPending,
+} from './data-management/deletionState';
+export type {
+  MockDeletionOutcome,
+  MockDeletionRecord,
+  MockDeletionState,
+} from './data-management/deletionState';
+export { ensureRecordingHistory } from './data-management/recordingHistory';
+export {
+  applyDeletionPendingWriteGuard,
+  DELETION_PENDING_WRITE_METHODS,
+} from './common/writeGuard';
+export {
+  createRecordingRowFixtures,
+  MOCK_LONG_BOOK_TITLE,
+  MOCK_LONG_TITLE_BOOK,
+  MOCK_RAW_AUDIO_DAYS,
+  MOCK_RECORDING_PAGE_SIZE,
+  MOCK_RECORDING_ROW_RECORDING_IDS,
+  MOCK_RECORDING_SESSION_IDS,
+  MOCK_SEEDED_DELETION_REQUEST_ID,
+} from './fixtures/data-management';
+export type { MockRecordingRowFixture, MockRecordingRowName } from './fixtures/data-management';
+export {
+  MOCK_LOCAL_PENDING_AGE_MS,
+  MOCK_LOCAL_PENDING_RETRY_IN_MS,
+  seedPendingLocalUpload,
+} from './fixtures/local-recordings';
+export { MOCK_CAREGIVER_EMAIL } from './fixtures/me';

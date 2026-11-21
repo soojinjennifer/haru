@@ -46,6 +46,23 @@
   content: '';
 }
 
+/*
+ * `hitArea="touch"` (`D8-3` `H8-6-N4`, opt-in) — 보이는 모습은 그대로, **누르는 영역만** 44×44 이상.
+ * `subtle` 과 같은 `::before` 기법이며 칠하지 않는다(시각 변화 0). 글자 상자가 44 보다 크면 그 축은
+ * 넓히지 않는다(`min(0%, …)` — 이웃 쪽으로 불필요하게 번지지 않게). `top`/`left` % 는 이 박스 기준이다.
+ * `position: relative` 는 오프셋이 없어 배치를 바꾸지 않는다.
+ */
+.haru-text-link--hit-touch {
+  position: relative;
+}
+
+.haru-text-link--hit-touch::before {
+  position: absolute;
+  inset-block: min(0%, calc((100% - var(--size-touch-min)) / 2));
+  inset-inline: min(0%, calc((100% - var(--size-touch-min)) / 2));
+  content: '';
+}
+
 .haru-text-link__icon {
   display: inline-flex;
   align-items: center;

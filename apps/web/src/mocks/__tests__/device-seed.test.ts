@@ -9,7 +9,10 @@ import { createLocalRecordingStore } from '../../features/recording';
 import { createFixedClock } from '../../shared/lib/clock';
 import { MOCK_EPOCH_MS, createMockSessionState } from '../index';
 import { MOCK_DEVICE_SEED_SESSION_IDS as IDS } from '../fixtures/sessions';
+import { MOCK_RECORDING_SESSION_IDS } from '../fixtures/data-management';
 import {
+  MOCK_LOCAL_PENDING_AGE_MS,
+  MOCK_LOCAL_PENDING_RETRY_IN_MS,
   MOCK_NOTICE_AGE_MS,
   MOCK_STALE_AGE_MS,
   MOCK_STALLED_AGE_MS,
@@ -93,5 +96,27 @@ describe('applyRecordingDeviceSeed', () => {
     expect(resolveDeviceSeedSessionIds(scenarios).sort()).toStrictEqual(
       [IDS.expired, IDS.stalled].sort(),
     );
+  });
+
+  it('⭐ data-management:recording-delete-local-pending → `pending` 행 세션에 미업로드 녹음 + 1시간 뒤 재시도 큐 항목 · 서버 녹음 `pending` (Stage 8)', async () => {
+    const { store, storage, sessionState, scenarios } = await seed(
+      '?scenario=data-management:recording-delete-local-pending',
+    );
+    const sessionId = MOCK_RECORDING_SESSION_IDS.pending;
+    const record = await store.get(sessionId);
+    expect(record?.state).toBe('completed');
+    expect(record?.createdAtMs).toBe(DEVICE_NOW - MOCK_LOCAL_PENDING_AGE_MS);
+
+    const entries = (await storage.kv.list('uploads')) as {
+      sessionId: string;
+      nextAttemptAtMs: number;
+    }[];
+    expect(entries.map((entry) => entry.sessionId)).toStrictEqual([sessionId]);
+    expect(entries[0]?.nextAttemptAtMs).toBe(DEVICE_NOW + MOCK_LOCAL_PENDING_RETRY_IN_MS);
+
+    const server = sessionState.sessions.get(sessionId);
+    expect(server?.summary.status).toBe('completed');
+    expect(sessionState.recordings.get(server?.recordingId ?? '')?.uploadStatus).toBe('pending');
+    expect(resolveDeviceSeedSessionIds(scenarios)).toStrictEqual([sessionId]);
   });
 });

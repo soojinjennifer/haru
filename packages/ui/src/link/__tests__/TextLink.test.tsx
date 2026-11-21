@@ -79,6 +79,34 @@ describe('TextLink (Stage 2 Design Spec §4.6)', () => {
     );
   });
 
+  it('`hitArea="touch"` (D8-3 · H8-6-N4): opt-in — 기본은 글자 상자 그대로, 켜면 `::before` 로 44×44', () => {
+    const { rerender } = render(<TextLink onPress={() => {}}>Done</TextLink>);
+    const plain = screen.getByRole('button', { name: 'Done' });
+    expect(plain.classList.contains('haru-text-link--hit-touch')).toBe(false);
+
+    rerender(
+      <TextLink onPress={() => {}} hitArea="touch">
+        Done
+      </TextLink>,
+    );
+    const wide = screen.getByRole('button', { name: 'Done' });
+    expect(wide.classList.contains('haru-text-link--hit-touch')).toBe(true);
+    // tone 은 그대로 (보이는 모습 = default)
+    expect(wide.classList.contains('haru-text-link--default')).toBe(true);
+
+    const css = readFileSync(
+      path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'TextLink.css'),
+      'utf8',
+    );
+    const block = /\.haru-text-link--hit-touch \{([^}]*)\}/.exec(css)?.[1] ?? '';
+    // 보이는 모습을 바꾸는 선언 0 — 배치 기준점만
+    expect(block.trim()).toBe('position: relative;');
+    const before = /\.haru-text-link--hit-touch::before \{([^}]*)\}/.exec(css)?.[1] ?? '';
+    expect(before).toContain('inset-block: min(0%, calc((100% - var(--size-touch-min)) / 2));');
+    expect(before).toContain('inset-inline: min(0%, calc((100% - var(--size-touch-min)) / 2));');
+    expect(before).not.toMatch(/background|border|box-shadow|outline/);
+  });
+
   it('hasPopup 이 없으면 aria-haspopup 을 달지 않는다', () => {
     render(<TextLink onPress={() => {}}>Plain</TextLink>);
     expect(screen.getByRole('button', { name: 'Plain' }).hasAttribute('aria-haspopup')).toBe(false);

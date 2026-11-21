@@ -63,7 +63,10 @@ test.describe('설정 목록 (AC-6-15 · 16)', () => {
       'Update survey answers',
       'Growth focus',
     ]);
+    // Stage 8 `Q8-02` ⓐ — 이동 행 2 → Log out (AC-8-13)
     await expect(page.getByRole('list', { name: 'Account' }).getByRole('button')).toHaveText([
+      'Data & privacy',
+      'Account',
       'Log out',
     ]);
 

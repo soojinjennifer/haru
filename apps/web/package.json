@@ -10,6 +10,7 @@
     "dev": "vite",
     "prebuild": "pnpm --filter @haru/design-tokens run build",
     "build": "vite build",
+    "build:preview": "pnpm --filter @haru/design-tokens run build && vite build --mode preview",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
     "test": "vitest run",

@@ -163,15 +163,15 @@ describe('`/settings` (AC-2-40 · C13-12)', () => {
    * **의도된 변경**이다: `C13-S6-1`(Spec §2.4, `N6-38`)이 목록을 2그룹 5행으로 바꿨다. 로그아웃은
    * `Account` 그룹의 유일한 행으로 남는다(Stage 2 AC 회귀 없음). 새 행 구성은 `__tests__/child-info-edit.test.tsx`.
    */
-  it('`Account` 그룹은 로그아웃 1행이다 (Stage 6 — 아이 그룹은 별도)', async () => {
+  it('`Account` 그룹 = Data & privacy · Account · Log out (Stage 8 `Q8-02` ⓐ — 로그아웃은 마지막)', async () => {
     await renderSignedIn(ROUTES.settings);
     await waitForGuard();
 
     const list = await screen.findByRole('list', { name: settingsCopy.groups.account.listLabel });
     const items = within(list).getAllByRole('listitem');
 
-    expect(items).toHaveLength(1);
-    expect(within(items[0] as HTMLElement).getByRole('button').textContent).toContain(
+    expect(items).toHaveLength(3);
+    expect(within(items[2] as HTMLElement).getByRole('button').textContent).toContain(
       settingsCopy.logOut.rowLabel,
     );
   });

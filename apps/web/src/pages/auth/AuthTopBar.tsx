@@ -6,9 +6,9 @@
  * router 가 `StackLayout topBar={…}` 로 넘긴다.
  */
 import { Icon, IconButton, TopBar } from '@haru/ui';
-import { useNavigate } from 'react-router';
 
 import { authCopy } from '../../features/auth';
+import { useBackNavigation } from '../../shared/hooks/useBackNavigation';
 
 export interface AuthTopBarProps {
   /** 가운데 제목. 주지 않으면 투명 TopBar 다 (로그인 화면). */
@@ -18,7 +18,8 @@ export interface AuthTopBarProps {
 }
 
 export function AuthTopBar({ title, withBack = true }: AuthTopBarProps) {
-  const navigate = useNavigate();
+  // Back = 앱 안 기록 있으면 이전 화면, 없으면 논리적 부모로 replace (`VG6-D-12`, Spec §6.3)
+  const goBack = useBackNavigation();
 
   const leading = withBack ? (
     <IconButton
@@ -26,7 +27,7 @@ export function AuthTopBar({ title, withBack = true }: AuthTopBarProps) {
       label={authCopy.backLabel}
       variant="plain"
       onPress={() => {
-        void navigate(-1);
+        goBack();
       }}
     />
   ) : undefined;

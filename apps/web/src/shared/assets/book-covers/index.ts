@@ -1,29 +1,27 @@
 /**
- * 책 표지 — **Mock 전용 임시 에셋** (사용자 지시 2026-10-05, `stage-3-approvals.md` §12.12).
+ * 책 표지 — **Mock 전용 중립 대체 표지** (Stage 8 `S8-I`, 결정 `N8-13` ⓐ · `D8-1`).
  *
- * > "책 이미지도 피그마에 있는 이미지를 이용해서 임시로 노출해주어야 함"
+ * Stage 3 에서는 Figma 노드의 **상용 그림책 표지** 이미지를 Mock 임시 에셋으로 썼다
+ * (사용자 지시 2026-10-05, `stage-3-approvals.md` §12.12). 그 표지가 Mock 데모 웹 프리뷰(C-18)에
+ * 노출되지 않도록(`P3-BIP-19` · `R8-04`) **무늬·글자 없는 단색 표지**로 바꿨다.
+ *
+ * - 마스터 PNG 는 `pnpm assets:optimize` 가 **생성**한다 (`scripts/assets-optimize.mjs` `COVER_SPECS`).
+ *   손으로 그리거나 편집하지 않는다. 검사 = `pnpm assets:optimize --check`.
+ * - 색 = design-tokens palette 원시값 (`--haru-palette-teal` · `-orange` · `-indigo`).
+ * - 216 × 309 (`--book-cover-aspect` 7/10 · `D-4` 상한 216 — 서재 캐러셀 약 107px 의 2배).
  *
  * ⚠ **Backend 연동 시 전부 교체된다.** 실제 표지는 서버가 `BookSummary.coverUrl` 로 내려주며
  * (`P3-BIP-15`·`P3-BIP-02`), 그때 이 디렉토리와 `mocks/fixtures/saved-books.ts` 의 매핑을
  * 지운다. 화면 코드는 `coverUrl` 만 보므로 교체 범위가 Mock 레이어 안에 갇혀 있다.
- *
- * | 파일 | 출처 Figma 노드 | 원본 크기 | 표시 크기 |
- * |---|---|---|---|
- * | `the-most-magnificent-idea.png` | `30:74` Library `145:1004` `asset/book-cover` image fill | 500×501 → 239×240 | 58×82 |
- * | `grumpy-monkey-play-all-day.png` | `30:74` Library `113:1977` image fill | 193×193 | 58×82 |
- * | `where-the-wild-things-are.png` | `30:74` Library `113:1982` image fill | 135×193 | 58×82 |
- *
- * 전부 표시 크기의 2배 이상이다 (`D-4` 에셋 파이프라인 해상도 규칙). 원본 비율이 제각각이지만
- * `BookCover` 가 **고정 aspect + `object-fit: cover`** 로 흡수한다 (`D-13 ③` · `QA-2-004`).
  */
-import grumpyMonkeyPlayAllDay from './grumpy-monkey-play-all-day.png';
-import theMostMagnificentIdea from './the-most-magnificent-idea.png';
-import whereTheWildThingsAre from './where-the-wild-things-are.png';
+import neutralCoverIndigo from './neutral-cover-indigo.png';
+import neutralCoverOrange from './neutral-cover-orange.png';
+import neutralCoverTeal from './neutral-cover-teal.png';
 
 export const BOOK_COVER_ASSETS = {
-  'the-most-magnificent-idea': theMostMagnificentIdea,
-  'grumpy-monkey-play-all-day': grumpyMonkeyPlayAllDay,
-  'where-the-wild-things-are': whereTheWildThingsAre,
+  'neutral-cover-teal': neutralCoverTeal,
+  'neutral-cover-orange': neutralCoverOrange,
+  'neutral-cover-indigo': neutralCoverIndigo,
 } as const;
 
 export type BookCoverAssetName = keyof typeof BOOK_COVER_ASSETS;

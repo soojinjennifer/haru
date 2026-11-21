@@ -149,10 +149,10 @@ export const galleryCopy = {
 
   /** Stage 4b `S4-F2` — RecordControl 5변형 · Button sm (Prompts 칩). 접근성 이름 = 4b Spec §9.1. */
   stage4Session: {
-    recordStart: 'Start recording',
+    recordStart: 'Tap to recording, Start recording',
     recordPause: 'Pause recording',
-    recordResume: 'Resume recording',
-    micOff: 'Microphone is off',
+    recordResume: 'Tap to resume, Resume recording',
+    micOff: 'Mic is off', // `D8-5` — 보이는 캡션과 같은 이름
     captionRecord: 'Tap to recording',
     captionResume: 'Tap to resume',
     captionMicOff: 'Mic is off',

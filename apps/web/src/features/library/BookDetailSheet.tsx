@@ -89,6 +89,7 @@ import { BookCover, useBookPrompts } from '../../entities/book';
 import { CoachingNote, PromptPill, SaveButton } from '../../entities/activity-card';
 import { useToggleLibrarySave } from '../../entities/library';
 import { giftRequestStatusCopy, libraryCopy } from '../../shared/copy/library-copy';
+import { deletionPendingToastMessage } from '../../shared/copy/error-copy';
 
 import { StartSessionAction } from './StartSessionAction';
 import { bookAuthor, bookSubtitle, bookTitle } from './bookDisplay';
@@ -139,9 +140,13 @@ export function BookDetailSheet({ open, book, onClose }: BookDetailSheetProps) {
     없어지고, 호출 1회 = 알림 1회가 된다. Home `ActivityCardDeck` 과 **같은 방식**이다.
   */
   const toast = useToast();
-  const save = useToggleLibrarySave(() => {
+  const save = useToggleLibrarySave((errorCode) => {
     setPending(null);
-    toast.show({ message: libraryCopy.bookSheet.saveFailed, tone: 'error' });
+    // 삭제 진행 중 쓰기 차단 = 차단 문구(설명만 — Toast 1줄 표면, Spec §2.9 `VG8-C-08` · `VG8-C-09` ①)
+    toast.show({
+      message: deletionPendingToastMessage(errorCode) ?? libraryCopy.bookSheet.saveFailed,
+      tone: 'error',
+    });
   });
   const saved =
     pending !== null && pending.bookId === bookId ? pending.saved : (book?.saved ?? false);

@@ -42,12 +42,18 @@ import {
 } from '../pages/onboarding';
 import { SessionCompletePage, SessionFeedbackPage, StorytimeSessionPage } from '../pages/session';
 import {
+  AccountPage,
+  AccountTopBar,
   ChildInfoEditPage,
   ChildInfoEditTopBar,
+  DataManagementPage,
+  DataManagementTopBar,
   GrowthCapabilityPage,
   GrowthCapabilityTopBar,
   ProfilePage,
   ProfileTopBar,
+  RecordingListPage,
+  RecordingListTopBar,
   SettingsPage,
   SettingsTopBar,
   SurveyUpdatePage,
@@ -102,6 +108,9 @@ const DevOverlay = import.meta.env.DEV ? lazy(() => import('../dev/DevOverlay'))
  * | `/settings/child/survey` | StackLayout     | 설문 재응답 진입 (Stage 6 `C13-S6-3`) — TopBar centered 제목 없음 · 뒤로 |
  * | `/settings/child/survey/:step` | StackLayout | 설문 재응답 카드 — **TopBar 는 feature 가 렌더** (온보딩 위저드와 같다) |
  * | `/settings/growth-capability` | StackLayout | 발전 역량 · 설정 모드 (Stage 6 `C13-S6-4`) — TopBar centered "Growth focus" · 뒤로 `navigate(-1)` |
+ * | `/settings/data`         | StackLayout     | 데이터 관리 (Stage 8 `C13-S8-2`) — TopBar centered "Data & privacy" · 뒤로 부모 `/settings` |
+ * | `/settings/data/recordings` | StackLayout  | 세션 녹음 목록 (Stage 8 `C13-S8-3`) — TopBar centered "Session recordings" · 뒤로 부모 `/settings/data` |
+ * | `/settings/account`      | StackLayout     | 계정 (Stage 8 `C13-S8-6`) — TopBar centered "Account" · 이메일 · 탈퇴 (`S8-D`) |
  * | `/__dev/ui/*`            | (dev 전용)      | UI gallery — dev 에서만 존재한다 |
  * | `/__dev/screens`         | (dev 전용)      | 검수용 화면 목록 — dev 에서만 존재한다 |
  * | `*`                      | StackLayout     | NotFound |
@@ -430,6 +439,37 @@ export function AppRoutes() {
           element={
             <RouteGuard>
               <SettingsPage />
+            </RouteGuard>
+          }
+        />
+      </Route>
+      {/* Stage 8 `S8-B` — 데이터 관리 · 세션 녹음 목록 (`C13-S8-2` · `C13-S8-3`) · 계정 route (`C13-S8-6`, 본문 `S8-D`). */}
+      <Route element={<StackLayout topBar={<DataManagementTopBar />} />}>
+        <Route
+          path={ROUTES.settingsData}
+          element={
+            <RouteGuard>
+              <DataManagementPage />
+            </RouteGuard>
+          }
+        />
+      </Route>
+      <Route element={<StackLayout topBar={<RecordingListTopBar />} />}>
+        <Route
+          path={ROUTES.settingsDataRecordings}
+          element={
+            <RouteGuard>
+              <RecordingListPage />
+            </RouteGuard>
+          }
+        />
+      </Route>
+      <Route element={<StackLayout topBar={<AccountTopBar />} />}>
+        <Route
+          path={ROUTES.settingsAccount}
+          element={
+            <RouteGuard>
+              <AccountPage />
             </RouteGuard>
           }
         />

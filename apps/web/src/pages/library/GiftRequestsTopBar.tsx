@@ -1,11 +1,12 @@
 import { Icon, IconButton, TopBar } from '@haru/ui';
-import { useNavigate } from 'react-router';
 
 import { libraryCopy } from '../../shared/copy/library-copy';
+import { useBackNavigation } from '../../shared/hooks/useBackNavigation';
 
 /** `/library/gift-requests` TopBar — `AddOwnBookTopBar` 와 같은 규격 (§7.3). */
 export function GiftRequestsTopBar() {
-  const navigate = useNavigate();
+  // Back = 앱 안 기록 있으면 이전 화면, 없으면 논리적 부모로 replace (`VG6-D-12`, Spec §6.3)
+  const goBack = useBackNavigation();
 
   return (
     <TopBar
@@ -17,7 +18,7 @@ export function GiftRequestsTopBar() {
           label={libraryCopy.giftRequests.back}
           variant="plain"
           onPress={() => {
-            void navigate(-1);
+            goBack();
           }}
         />
       }

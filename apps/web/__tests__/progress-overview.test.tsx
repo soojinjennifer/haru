@@ -181,9 +181,11 @@ describe('/progress — 4주 리포트 카드 (Figma `110:835` + C13-S7-2)', () 
     const card = await reportCard();
     expect(card.getAttribute('data-state')).toBe('published');
 
+    // `D8-3` (`H8-6-N1`) — 이름 = 보이는 제목 + 범위가 든 설명 (aria-label 없음, WCAG 2.5.3)
     const link = within(card).getByRole('link', {
-      name: 'Open 4-week report, Apr 13 – May 10',
+      name: /^4-week full report\s*Apr 13 – May 10 · a deeper read/,
     });
+    expect(link.hasAttribute('aria-label')).toBe(false);
     expect(link.getAttribute('href')).toBe(`/progress/reports/${MOCK_REPORT_IDS.latest}`);
     expect(within(card).getAllByRole('link')).toHaveLength(1);
     expect(within(link).queryAllByRole('button')).toHaveLength(0);

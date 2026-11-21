@@ -11,15 +11,16 @@ import {
 } from '../common/index.js';
 
 describe('Error Code Catalogue (API_CONTRACTS §1.2)', () => {
-  it('코드는 29 종이고 중복이 없다', () => {
-    expect(ERROR_CODES).toHaveLength(29);
-    expect(new Set(ERROR_CODES).size).toBe(29);
+  it('코드는 30 종이고 중복이 없다 (Stage 8 `C8-5` +1)', () => {
+    expect(ERROR_CODES).toHaveLength(30);
+    expect(new Set(ERROR_CODES).size).toBe(30);
   });
 
   /*
-   * 29 종 전수 스냅샷 (Stage 4 AC-4-08 — 신규 Error Code 0건). 값·순서가 바뀌면 문서 §1.2 와 함께 고친다.
+   * 30 종 전수 스냅샷. Stage 4 AC-4-08(신규 0건) 이후 유일한 추가는 Stage 8 `C8-5` `ACCOUNT_DELETION_PENDING`
+   * (`DELETION_ALREADY_REQUESTED` 바로 뒤 — 문서 §1.2 표 순서). 값·순서가 바뀌면 문서 §1.2 와 함께 고친다.
    */
-  it('코드 29 종의 값과 순서가 Stage 4 S4-B 이전과 같다 (AC-4-08)', () => {
+  it('코드 30 종의 값과 순서가 문서 §1.2 표와 같다 (AC-4-08 · AC-8-07)', () => {
     expect(ERROR_CODES).toEqual([
       'VALIDATION_FAILED',
       'AUTH_REQUIRED',
@@ -46,6 +47,7 @@ describe('Error Code Catalogue (API_CONTRACTS §1.2)', () => {
       'GIFT_REQUEST_DUPLICATE',
       'BOOK_ALREADY_OWNED',
       'DELETION_ALREADY_REQUESTED',
+      'ACCOUNT_DELETION_PENDING',
       'IDEMPOTENCY_KEY_REUSED',
       'RATE_LIMITED',
       'PROVIDER_UNAVAILABLE',
@@ -65,7 +67,7 @@ describe('Error Code Catalogue (API_CONTRACTS §1.2)', () => {
       expect(status).toBeGreaterThanOrEqual(400);
       expect(status).toBeLessThan(600);
     }
-    expect(Object.keys(ERROR_CODE_HTTP_STATUS)).toHaveLength(29);
+    expect(Object.keys(ERROR_CODE_HTTP_STATUS)).toHaveLength(30);
   });
 
   it('대표 코드의 status 가 문서 표와 일치한다', () => {

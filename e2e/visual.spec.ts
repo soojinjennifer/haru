@@ -287,6 +287,10 @@ test.describe('Stage 2 온보딩 화면 baseline (S2-HOME-2, 영역 클립)', ()
     await expect(page).toHaveURL(/\/onboarding\/child-info$/);
     await expect(page.getByRole('button', { name: /Yuna/ })).toBeVisible();
     await expect(page.getByText('Your answers stay on this device')).toHaveCount(0);
+    // 가입 · 동의 클릭 위치에 남은 포인터가 독서 루틴 행 hover 를 찍지 않게 한다 — `S8-F` 에서 행이 14px 내려가자 포인터
+    // 아래로 행이 들어와 hover 가 baseline 에 들어갔다 (`R-BASELINE-1`). SPA 이동이라 `gotoApp` settle 도 거치지 않는다.
+    await page.mouse.move(0, 0);
+    await settle(page);
 
     await expect(page.locator('main')).toHaveScreenshot(
       's2-onboarding-childinfo.png',

@@ -7,8 +7,9 @@
  * 그 표지 이미지**를 보여 줘야 한다. 그래서 덱 전용 목록을 따로 둔다 —
  * 검색 카탈로그를 건드리지 않으므로 Stage 2 동작이 그대로 유지된다.
  *
- * 책과 표지는 **전부 Figma 노드에서 왔다** (`163:2649` Activity card · `30:74` Library).
- * 표지는 **Mock 전용 임시 에셋**이며 Backend 연동 시 `coverUrl` 로 교체된다
+ * 책(제목·저자)은 **Figma 노드에서 왔다** (`163:2649` Activity card · `30:74` Library).
+ * 표지는 Stage 8 `S8-I`(`N8-13` ⓐ)에서 Figma 의 상용 표지 이미지를 **중립 대체 표지**(단색)로
+ * 바꿨다 — Mock 전용 임시 에셋이며 Backend 연동 시 `coverUrl` 로 교체된다
  * (`shared/assets/book-covers/index.ts`).
  */
 import type { BookSummary, SaveBookTarget } from '@haru/contracts';
@@ -30,19 +31,19 @@ export const DECK_BOOKS: readonly BookSummary[] = [
     id: '22222222-2222-4222-8222-000000000004',
     title: 'Where the Wild Things Are',
     author: 'Maurice Sendak',
-    coverUrl: toAbsolute(BOOK_COVER_ASSETS['where-the-wild-things-are']),
+    coverUrl: toAbsolute(BOOK_COVER_ASSETS['neutral-cover-teal']),
   },
   {
     id: '22222222-2222-4222-8222-000000000009',
     title: 'The Most Magnificent Idea',
     author: 'Ashley Spires',
-    coverUrl: toAbsolute(BOOK_COVER_ASSETS['the-most-magnificent-idea']),
+    coverUrl: toAbsolute(BOOK_COVER_ASSETS['neutral-cover-orange']),
   },
   {
     id: '22222222-2222-4222-8222-000000000010',
     title: 'Grumpy Monkey: Play All Day',
     author: 'Suzanne Lang',
-    coverUrl: toAbsolute(BOOK_COVER_ASSETS['grumpy-monkey-play-all-day']),
+    coverUrl: toAbsolute(BOOK_COVER_ASSETS['neutral-cover-indigo']),
   },
 ];
 

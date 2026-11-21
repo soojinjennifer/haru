@@ -1,0 +1,23 @@
+// HARU — Stage 8 `S8-I` Mock 데모 웹 프리뷰 (C-18) · Cloudflare Workers 정적 자산 배포 설정
+//
+// 정적 자산만 올린다. `main`(Worker 스크립트)을 두지 않는다 — 서버 코드 0 (Frontend-only, Backend 금지).
+//   "The `main` key is optional for assets-only Workers."
+//   https://developers.cloudflare.com/workers/wrangler/configuration/
+//   https://developers.cloudflare.com/workers/static-assets/
+//
+// 산출물은 `pnpm build:preview` → `pnpm assert:preview` 를 통과한 `apps/web/dist-preview/` 다.
+// Workers Builds 의 Build command 가 이 두 명령을 묶어 실행하므로, 검사에 실패하면 배포 단계로 가지 않는다 (`R8-13`).
+// 절차서: docs/qa/stage-8-preview-deploy.md
+//
+// Secret · 계정 ID · 이메일을 이 파일에 두지 않는다. 접근 제한은 대시보드의 Cloudflare Access 로만 한다.
+{
+  "name": "haru",
+  "compatibility_date": "2026-11-21",
+  "assets": {
+    "directory": "./apps/web/dist-preview",
+    // 모르는 경로(/progress, /settings/data …)에 index.html 을 200 으로 준다 — 깊은 경로 새로고침 (AC-8-68)
+    "not_found_handling": "single-page-application"
+  },
+  // `*.workers.dev` 주소로 공개한다 (사용자 지정 도메인 없음 — 범위 밖). 보호는 Cloudflare Access(All traffic).
+  "workers_dev": true
+}

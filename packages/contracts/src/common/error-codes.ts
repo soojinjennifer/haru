@@ -3,7 +3,8 @@ import { z } from 'zod';
 /**
  * Error Code Catalogue — `docs/API_CONTRACTS.md` §1.2 표 전체.
  *
- * - 총 **29 종**. 순서는 문서의 표 순서를 그대로 따른다.
+ * - 총 **30 종**. 순서는 문서의 표 순서를 그대로 따른다.
+ *   Stage 8 `S8-A` 에서 `ACCOUNT_DELETION_PENDING`(409) 1종이 추가됐다 (Plan §7 `C8-5`, `N8-09` ⓐ — `D8-1`).
  *   Library 1라운드에서 `BOOK_ALREADY_OWNED` 1종이 추가됐다 (Library Plan §7.4 — 신규는
  *   **최대 2건**이고 `GIFT_REQUEST_DUPLICATE` 는 이미 등재되어 있었으므로 실제 추가는 1건).
  * - `TRIAL_ACCOUNT_RESTRICTED` 는 익명 Trial 계정 미채택(C-12)으로 **제거**되었다. 추가하지 않는다.
@@ -35,6 +36,7 @@ export const ERROR_CODES = [
   'GIFT_REQUEST_DUPLICATE',
   'BOOK_ALREADY_OWNED',
   'DELETION_ALREADY_REQUESTED',
+  'ACCOUNT_DELETION_PENDING',
   'IDEMPOTENCY_KEY_REUSED',
   'RATE_LIMITED',
   'PROVIDER_UNAVAILABLE',
@@ -79,6 +81,8 @@ export const ERROR_CODE_HTTP_STATUS: Readonly<Record<ErrorCode, number>> = {
   GIFT_REQUEST_DUPLICATE: 409,
   BOOK_ALREADY_OWNED: 409,
   DELETION_ALREADY_REQUESTED: 409,
+  /** 전체 삭제 · 탈퇴 진행 중(`deletion_pending`) 계정의 쓰기 거부. 삭제 · 탈퇴 endpoint 자신은 `DELETION_ALREADY_REQUESTED`. */
+  ACCOUNT_DELETION_PENDING: 409,
   IDEMPOTENCY_KEY_REUSED: 422,
   RATE_LIMITED: 429,
   PROVIDER_UNAVAILABLE: 503,

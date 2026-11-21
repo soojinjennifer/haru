@@ -640,9 +640,10 @@ test.describe('`/settings` · 로그아웃 (AC-2-40 · AC-2-41 · AC-2-29 · D-7
     await expect(page).toHaveURL(/\/settings$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Settings' })).toBeVisible();
 
-    // 목록은 로그아웃 1행뿐이다 (C13-12).
+    // `Account` 그룹 = Data & privacy · Account · Log out (Stage 8 `Q8-02` ⓐ — 로그아웃은 마지막 동작 행).
     const list = page.getByRole('list', { name: 'Account' });
-    await expect(list.getByRole('listitem')).toHaveCount(1);
+    await expect(list.getByRole('listitem')).toHaveCount(3);
+    await expect(list.getByRole('listitem').last()).toHaveText('Log out');
 
     await page.getByRole('button', { name: 'Log out', exact: true }).click();
 

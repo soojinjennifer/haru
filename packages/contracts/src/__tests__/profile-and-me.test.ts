@@ -147,6 +147,8 @@ describe('MeResponse — Route Guard 판정 입력 (D-5 · D-6)', () => {
       id: caregiverId,
       displayName: 'Jamie Park',
       timezone: 'America/Los_Angeles',
+      // Stage 8 `C8-10` — 가상 주소 (실제 주소 금지)
+      email: 'jamie@example.com',
     },
     consentStatus: {
       required: ['terms_of_service', 'privacy_policy', 'child_voice_data'],

@@ -1,0 +1,14 @@
+/*
+ * 계정 (Stage 8 `C13-S8-6`, Spec §2.6) — `DELETE ACCOUNT` 섹션 안 설명 문장 ↔ (알림) ↔ ListGroup 간격.
+ *
+ * 섹션 = SectionLabel → (설명 → ListGroup). 라벨 ↔ 설명은 설정 목록과 같은 `gap-2` 8 (Spec §2.0),
+ * 설명 ↔ ListGroup 은 데이터 관리(`.haru-data-section__body`)와 같은 12 다. Figma 근거가 없는 C-13 레이아웃 값이라 가값으로 둔다.
+ *
+ * `R-SHADOW-1`: 새 overflow 0 — `ListGroup` 그림자(`--shadow-bubble`)는 문서 흐름 안에 있고 거터 24 · 섹션 간격 16 안에 든다.
+ */
+.haru-account-section__body {
+  display: flex;
+  flex-direction: column;
+  /* provisional: P-41 (docs/decisions/stage-0-approvals.md §4 · Stage 8 Spec §5.3) */
+  gap: var(--space-3);
+}

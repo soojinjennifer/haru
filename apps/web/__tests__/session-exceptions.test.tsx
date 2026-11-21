@@ -172,7 +172,7 @@ describe('AC-4-148 · AC-4-134 — 녹음 세션 중 권한 상실: `permission-
     `S4-H2R` 이후 Start Session 에서 거부되면 처음부터 대화 전용이다(`session-permission.test.tsx`). 녹음 세션의
     거부는 **Start 때 허용 → Record 탭에서 거부**(`mic-permission-revoked`) 경로로만 생긴다.
   */
-  it('거부 → 전이 0 · 시트 자동 1회(녹음 세션 문단) · 변형 `permission-denied`(이름 `Microphone is off` · 시각 라벨 `Mic is off`)', async () => {
+  it('거부 → 전이 0 · 시트 자동 1회(녹음 세션 문단) · 변형 `permission-denied`(이름 = 시각 라벨 `Mic is off` — `D8-5`)', async () => {
     const opened = await openReady(['recorder:mic-permission-revoked']);
     expect(requests(opened.harness, CREATE)[0]?.mode).toBe('recorded');
     fireEvent.click(screen.getByRole('button', { name: copy.record.start }));
@@ -221,7 +221,7 @@ describe('AC-4-148 · AC-4-134 — 녹음 세션 중 권한 상실: `permission-
 });
 
 describe('AC-4-134 — `disabled` 변형: 동의 없음', () => {
-  it('서버 `CONSENT_REQUIRED` → `disabled`(이름 = `Start recording`, 사유 연결) · 탭 → 추가 요청 0', async () => {
+  it('서버 `CONSENT_REQUIRED` → `disabled`(이름 = `Tap to recording, Start recording` — `D8-3`, 사유 연결) · 탭 → 추가 요청 0', async () => {
     const opened = await openReady(['sessions:consent-missing']);
     fireEvent.click(screen.getByRole('button', { name: copy.record.start }));
     await waitFor(() => {

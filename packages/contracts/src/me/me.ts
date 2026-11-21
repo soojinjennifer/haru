@@ -33,6 +33,14 @@ export const CaregiverSchema = z.object({
    * contracts 는 목록을 갖지 않는다 — `zod` 외 런타임 의존을 늘리지 않기 위해 형식만 검사한다.
    */
   timezone: z.string().min(1),
+  /**
+   * 인증 계정의 로그인 이메일 — **읽기 전용** (Stage 8 Rev 12 `C8-10`, `Q8-10` ⓐ · `D8-1`).
+   *
+   * - 계정은 언제나 로그인 식별자를 가진다(Email · Google · Apple — C-5). Apple 비공개 릴레이면 그 주소 그대로다.
+   * - `PATCH /v1/me` 요청(`UpdateCaregiverRequestSchema`)에는 **없다** — 이 값은 바꿀 수 없다.
+   * - 계정 화면 표시에만 쓴다. 콘솔 · 에러 리포트 · 요청 로그 · Toast 에 남기지 않는다 (Plan §5.5, `P8-BIP-09`).
+   */
+  email: z.email(),
 });
 
 export type Caregiver = z.infer<typeof CaregiverSchema>;

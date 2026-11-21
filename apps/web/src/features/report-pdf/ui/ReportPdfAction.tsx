@@ -23,6 +23,7 @@
 import { Button, ButtonGroup, Icon, InlineAlert, Text } from '@haru/ui';
 import { useEffect, useRef } from 'react';
 
+import { ERROR_COPY } from '../../../shared/copy/error-copy';
 import { createSystemClock } from '../../../shared/lib/clock';
 import { reportPdfCopy as copy } from '../copy';
 import { isReportPdfBusy, type ReportPdfJob } from '../model/reportPdfState';
@@ -43,7 +44,11 @@ const DOWNLOAD_ICON = <Icon name="arrow-down-to-line" decorative />;
 function alertFor(job: ReportPdfJob) {
   switch (job.phase) {
     case 'failed':
-      return { tone: 'error', ...copy.failed } as const;
+      // 요청이 삭제 진행 중 쓰기 차단으로 거절된 경우만 차단 문구 — 2줄 표면 = 제목 + 설명 (Spec §2.9 `VG8-C-09` ②)
+      return {
+        tone: 'error',
+        ...(job.blocked === true ? ERROR_COPY.ACCOUNT_DELETION_PENDING : copy.failed),
+      } as const;
     case 'timeout':
       return { tone: 'info', ...copy.timeout } as const;
     case 'offline':

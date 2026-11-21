@@ -31,7 +31,15 @@ export type ReportPdfJob =
   | (Attempt & { readonly phase: 'requesting'; readonly startedAt: number })
   | (Attempt & { readonly phase: 'generating'; readonly startedAt: number })
   | (Attempt & { readonly phase: 'ready'; readonly file: File })
-  | (Attempt & { readonly phase: 'failed'; readonly serverFailed: boolean })
+  | (Attempt & {
+      readonly phase: 'failed';
+      readonly serverFailed: boolean;
+      /**
+       * 요청(`POST`) 자체가 삭제 진행 중 쓰기 차단(`ACCOUNT_DELETION_PENDING`)으로 거절됐다 (Stage 8 `VG8-C-09` ②).
+       * 화면이 기존 실패 InlineAlert 에 차단 문구를 쓴다. 로컬 job 상태일 뿐 contract 변경 0. 서버 job `failed` 는 `false`.
+       */
+      readonly blocked?: boolean;
+    })
   | (Attempt & { readonly phase: 'timeout' })
   | (Attempt & { readonly phase: 'offline' });
 
@@ -45,7 +53,13 @@ export type ReportPdfEvent =
   /** `ready` 의 PDF 바이트를 메모리에 받았다. */
   | { readonly type: 'file-ready'; readonly key: string; readonly file: File }
   /** 요청 · 조회 · 파일 받기 실패. */
-  | { readonly type: 'request-failed'; readonly key: string; readonly offline: boolean }
+  | {
+      readonly type: 'request-failed';
+      readonly key: string;
+      readonly offline: boolean;
+      /** `POST` 가 `ACCOUNT_DELETION_PENDING` 으로 거절됐다 (`VG8-C-09` ②). 생략 = `false`. */
+      readonly blocked?: boolean;
+    }
   /** 상한(60s) 동안 `ready` 가 아니다 — 폴링 중단. */
   | { readonly type: 'poll-timed-out'; readonly key: string };
 
@@ -95,7 +109,15 @@ export function reportPdfReducer(job: ReportPdfJob, event: ReportPdfEvent): Repo
       if (!isReportPdfBusy(job) || job.key !== event.key) return job;
       return event.offline
         ? { phase: 'offline', attempt: job.attempt, key: job.key }
-        : { phase: 'failed', attempt: job.attempt, key: job.key, serverFailed: false };
+        : event.blocked === true
+          ? {
+              phase: 'failed',
+              attempt: job.attempt,
+              key: job.key,
+              serverFailed: false,
+              blocked: true,
+            }
+          : { phase: 'failed', attempt: job.attempt, key: job.key, serverFailed: false };
 
     case 'poll-timed-out':
       if (job.phase !== 'generating' || job.key !== event.key) return job;

@@ -17,6 +17,7 @@
 @import '@haru/design-tokens';
 @import '@haru/ui/styles.css';
 @import '../app/layouts/app-shell.css';
+@import '../shared/styles/section.css';
 @import '../entities/character/character.css';
 @import '../entities/home/home.css';
 @import '../entities/report/report.css';
@@ -45,6 +46,8 @@
 @import '../features/progress-overview/progress-overview.css';
 @import '../features/report-detail/report-detail.css';
 @import '../features/report-pdf/report-pdf.css';
+@import '../features/data-management/data-management.css';
+@import '../features/account-deletion/account-deletion.css';
 
 /*
  * 앱 셸 기본값. 값은 전부 semantic token 이며 리터럴 수치를 쓰지 않는다.

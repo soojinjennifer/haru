@@ -30,6 +30,7 @@ function makeMe(
       id: '11111111-1111-4111-8111-111111111111',
       displayName: 'Sam Rivera',
       timezone: 'America/Los_Angeles',
+      email: 'sam@example.com',
     },
     consentStatus: {
       required: REQUIRED,

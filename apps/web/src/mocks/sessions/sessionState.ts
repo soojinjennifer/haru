@@ -10,6 +10,7 @@
  * 번들마다 새로 만든다 — 테스트 간 상태가 새지 않는다. 시간·ID 는 만들지 않는다(호출자가 주입 값을 넣는다).
  */
 import type {
+  RecordingStatus,
   Reflection,
   SessionBubbleCopy,
   SessionStatus,
@@ -80,6 +81,11 @@ export interface MockSessionState {
   readonly analysisReads: Map<string, number>;
   /** 지난 세션 fixture 를 넣었는지 (최초 접근 시 1회). */
   seeded: boolean;
+  /**
+   * Stage 8 — 세션별 녹음 목록 fixture(`data-management:success`, `M8-4`)를 넣었는지 (최초 접근 시 1회).
+   * 지난 세션 seed 와 **분리**한다 — `sessions` 목록의 기존 결과(Stage 4–7 테스트)를 바꾸지 않는다.
+   */
+  recordingHistorySeeded: boolean;
 }
 
 export function createMockSessionState(): MockSessionState {
@@ -89,7 +95,41 @@ export function createMockSessionState(): MockSessionState {
     objects: new Map(),
     analysisReads: new Map(),
     seeded: false,
+    recordingHistorySeeded: false,
   };
+}
+
+/**
+ * 세션 레코드의 녹음 상태 — `SessionDetail.recording` · `SessionListItem.recording` 공통 (§3.9 · Rev 12 `C8-2`).
+ * 녹음 레코드가 없으면 `null`. 서버가 본 사실만 담는다.
+ */
+export function toRecordingStatus(
+  state: MockSessionState,
+  record: Pick<MockSessionRecord, 'recordingId'>,
+): RecordingStatus | null {
+  if (record.recordingId === null) return null;
+  const recording = state.recordings.get(record.recordingId);
+  if (recording === undefined) return null;
+  return {
+    recordingId: recording.recordingId,
+    uploadStatus: recording.uploadStatus,
+    partCount: recording.parts.size,
+    expiresAt: recording.expiresAt,
+    deletedAt: recording.deletedAt,
+  };
+}
+
+/**
+ * 서버의 아동 데이터 전체를 지운다 — 전체 데이터 삭제 · 탈퇴 **완료** 시 (Stage 8 `P8-BIP-02` · `P8-BIP-03` 의 Mock).
+ * seed 플래그는 `true` 로 둔다 — 지운 뒤 지난 세션 fixture 가 다시 생기지 않는다.
+ */
+export function wipeSessionState(state: MockSessionState): void {
+  state.sessions.clear();
+  state.recordings.clear();
+  state.objects.clear();
+  state.analysisReads.clear();
+  state.seeded = true;
+  state.recordingHistorySeeded = true;
 }
 
 /** 진행 중(ready/recording/paused) 세션 — `SESSION_ALREADY_ACTIVE` 판정 기준 (§1.2). */

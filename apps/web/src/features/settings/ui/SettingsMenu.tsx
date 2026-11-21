@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 
 import type { OnboardingDraftStore } from '../../../shared/lib/onboarding-draft';
 import { settingsCopy } from '../copy';
-import { CHILD_SETTINGS_ROWS } from '../model/menuRows';
+import { ACCOUNT_SETTINGS_ROWS, CHILD_SETTINGS_ROWS, type SettingsNavRow } from '../model/menuRows';
 import { useSignOut } from '../model/useSignOut';
 
 export interface SettingsMenuProps {
@@ -17,8 +17,10 @@ export interface SettingsMenuProps {
  *
  * ```
  * SectionLabel "YOUR CHILD"  →  ListGroup "Your child"  (Profile · Child info · Update survey answers · Growth focus, chevron)
- * SectionLabel "ACCOUNT"     →  ListGroup "Account"     (Log out — 동작 행, chevron 없음)
+ * SectionLabel "ACCOUNT"     →  ListGroup "Account"     (Data & privacy · Account — 이동 행, chevron → Log out — 동작 행, chevron 없음)
  * ```
+ *
+ * Stage 8 `C13-S8-1` (Spec §2.1, `Q8-02` ⓐ): 이동 행을 먼저, 동작 행(Log out)을 끝에 둔다 — chevron 유무가 섞이는 구간을 1곳으로 모은다.
  *
  * - 행 subtitle 없음 — 목록이 데이터(`GET /profile`)에 의존하지 않는다 → Loading/Error 상태 해당 없음 (AC-6-17 N/A).
  * - SectionLabel = `ChildInfoStep` 과 같은 recipe(`caption-1 · secondary · bold · tracking section-label`, Figma `248:1159` — `D6-10` ③) — 컴포넌트를 만들지 않는다.
@@ -36,6 +38,21 @@ export function SettingsMenu({ draftStore }: SettingsMenuProps) {
   const signOut = useSignOut({ draftStore });
   const navigate = useNavigate();
 
+  const renderNavRow = (row: SettingsNavRow) => (
+    <ListRow
+      key={row.id}
+      title={row.label}
+      trailing={
+        <span className="haru-settings-row__chevron">
+          <Icon name="chevron-right" size="sm" tone="inherit" decorative />
+        </span>
+      }
+      onPress={() => {
+        void navigate(row.to);
+      }}
+    />
+  );
+
   return (
     <div className="flex flex-col gap-4 py-6">
       {signOut.isError ? (
@@ -46,33 +63,21 @@ export function SettingsMenu({ draftStore }: SettingsMenuProps) {
         />
       ) : null}
 
-      <section className="flex flex-col gap-2">
+      <section className="haru-section">
         <Text variant="caption-1" tone="secondary" weight="bold" tracking="section-label">
           {settingsCopy.groups.child.sectionLabel}
         </Text>
         <ListGroup label={settingsCopy.groups.child.listLabel}>
-          {CHILD_SETTINGS_ROWS.map((row) => (
-            <ListRow
-              key={row.id}
-              title={row.label}
-              trailing={
-                <span className="haru-settings-row__chevron">
-                  <Icon name="chevron-right" size="sm" tone="inherit" decorative />
-                </span>
-              }
-              onPress={() => {
-                void navigate(row.to);
-              }}
-            />
-          ))}
+          {CHILD_SETTINGS_ROWS.map(renderNavRow)}
         </ListGroup>
       </section>
 
-      <section className="flex flex-col gap-2">
+      <section className="haru-section">
         <Text variant="caption-1" tone="secondary" weight="bold" tracking="section-label">
           {settingsCopy.groups.account.sectionLabel}
         </Text>
         <ListGroup label={settingsCopy.groups.account.listLabel}>
+          {ACCOUNT_SETTINGS_ROWS.map(renderNavRow)}
           <ListRow
             title={settingsCopy.logOut.rowLabel}
             onPress={() => {

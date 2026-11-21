@@ -131,7 +131,7 @@ test.describe('마이크 거부 안내 시트 (§7.3 · AC-4-148 · AC-4-134)', 
 
     await sheet.getByRole('button', { name: 'Not now' }).click();
     await expect(sheet).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Microphone is off' })).toBeFocused();
+    await expect(page.getByRole('button', { name: 'Mic is off', exact: true })).toBeFocused();
   });
 });
 
@@ -205,7 +205,7 @@ test.describe('`S4-H2R` — Start Session 권한 판정 → 대화 전용 (AC-4-
       await expect(page.locator('.haru-record')).toHaveClass(/haru-record--permission-denied/);
       await sheet.getByRole('button', { name: 'Not now' }).click();
       await expect(sheet).toHaveCount(0);
-      await expect(page.getByRole('button', { name: 'Microphone is off' })).toBeFocused();
+      await expect(page.getByRole('button', { name: 'Mic is off', exact: true })).toBeFocused();
       expect((await requestOperations(page)).filter((op) => op.includes('/transitions'))).toEqual(
         [],
       );

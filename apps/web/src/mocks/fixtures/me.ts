@@ -24,6 +24,12 @@ export const MOCK_CAREGIVER_ID = '11111111-1111-4111-8111-111111111111';
 /** 가상 보호자 표시 이름. 실제 사용자 이름이 아니다. */
 export const MOCK_CAREGIVER_DISPLAY_NAME = 'Sam Rivera';
 
+/**
+ * 가상 보호자 로그인 이메일 (Stage 8 `C8-10`). `example.com` 은 예약 도메인이다 — 실제 주소가 아니다.
+ * Mock 로그인 계정(`sam@example.com` / Plan §12.3)과 같은 값이다.
+ */
+export const MOCK_CAREGIVER_EMAIL = 'sam@example.com';
+
 /** Mock 이 쓰는 고정 타임존. 실행 기기의 타임존에 의존하지 않는다 (결정성). */
 export const MOCK_TIMEZONE = 'America/Los_Angeles';
 
@@ -72,6 +78,7 @@ export function createMeResponseFixture(clock: Clock, options: MeFixtureOptions 
       id: MOCK_CAREGIVER_ID,
       displayName: MOCK_CAREGIVER_DISPLAY_NAME,
       timezone: MOCK_TIMEZONE,
+      email: MOCK_CAREGIVER_EMAIL,
     },
     consentStatus: {
       required: [...MOCK_REQUIRED_CONSENTS],

@@ -33,7 +33,14 @@ import {
 } from '../../shared/lib/onboarding-draft';
 import { returnPathStore } from '../../shared/lib/return-path';
 
-import { ALLOW_DECISION, resolveGuardDecision, type GuardDecision } from './resolveGuardDecision';
+import { useDataDeletionGuardHold } from '../providers/dataDeletionHold';
+
+import {
+  ALLOW_DECISION,
+  PENDING_DECISION,
+  resolveGuardDecision,
+  type GuardDecision,
+} from './resolveGuardDecision';
 
 /**
  * 저장된 draft 가 가리키는 지점의 경로. draft 가 없거나 응답이 하나도 없으면 `null`.
@@ -54,6 +61,8 @@ export function useGuardDecision(): GuardDecision {
   const { pathname, search, hash } = useLocation();
   const { sessionExpired } = useAuth();
   const { me, isError } = useMe();
+  // 전체 삭제 완료 감시자가 첫 조회 · 정리를 마치기 전 (`N8-31` ⓐ) — 정리 전 온보딩 resume 화면을 그리지 않는다.
+  const holdForDeletion = useDataDeletionGuardHold();
 
   // 저장소는 마운트 동안 변하지 않는 싱글턴이다 (렌더 중 ref 를 읽지 않기 위해 lazy state).
   const [store] = useState<OnboardingDraftStore>(() =>
@@ -67,8 +76,9 @@ export function useGuardDecision(): GuardDecision {
   const needsOnboardingTarget =
     me !== null && me !== undefined && me.onboardingStatus !== 'completed';
 
-  const decision: GuardDecision =
-    me === undefined && isError
+  const decision: GuardDecision = holdForDeletion
+    ? PENDING_DECISION
+    : me === undefined && isError
       ? ALLOW_DECISION
       : resolveGuardDecision(me, pathname, {
           sessionExpired,

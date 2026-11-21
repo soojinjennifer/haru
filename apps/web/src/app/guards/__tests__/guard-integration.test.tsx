@@ -234,6 +234,14 @@ describe('세션 만료 2회 실패 → /auth/log-in (AC-2-07)', () => {
       getStatus: () => Promise.reject(new Error('not used')),
     },
     highlightClips: { getPlaybackUrl: () => Promise.reject(new Error('not used')) },
+    dataManagement: {
+      summary: () => Promise.reject(new Error('not used')),
+      listRecordingSessions: () => Promise.reject(new Error('not used')),
+      deleteSessionRecording: () => Promise.reject(new Error('not used')),
+      createDeletionRequest: () => Promise.reject(new Error('not used')),
+      getDeletionRequest: () => Promise.reject(new Error('not used')),
+    },
+    account: { deleteAccount: () => Promise.reject(new Error('not used')) },
   };
 
   function wrapper({ children }: { children: ReactNode }) {

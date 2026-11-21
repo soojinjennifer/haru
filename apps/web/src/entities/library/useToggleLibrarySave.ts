@@ -20,6 +20,9 @@
  * `libraryKeys.all` 을 무효화하기 **전까지** 라벨이 바뀌지 않으면 `★ Save` 가 둔하게 느껴진다.
  * 서재 목록을 낙관적으로 재조립하지 않는 대신, **버튼 라벨은 호출 측이 로컬 상태로** 즉시
  * 바꾸고(시트가 소유) 실패 시 되돌린다 — 이 hook 은 `onError` 를 그대로 전달한다.
+ *
+ * `onError` 는 응답 error code 를 받는다 (Stage 8 `VG8-C-09` ① — 삭제 진행 중 쓰기 차단 `ACCOUNT_DELETION_PENDING` 이면
+ * 호출부가 Toast 에 차단 문구를 쓴다). 네트워크 오류 등 code 가 없으면 `undefined`.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ErrorCode } from '@haru/contracts';
@@ -44,7 +47,9 @@ export interface ToggleLibrarySaveMutation {
   isOffline: boolean;
 }
 
-export function useToggleLibrarySave(onError?: () => void): ToggleLibrarySaveMutation {
+export function useToggleLibrarySave(
+  onError?: (errorCode: ErrorCode | undefined) => void,
+): ToggleLibrarySaveMutation {
   const { library } = useApiClients();
   const childId = useCurrentChildId();
   const queryClient = useQueryClient();
@@ -58,8 +63,8 @@ export function useToggleLibrarySave(onError?: () => void): ToggleLibrarySaveMut
           })
         : library.unsaveBook({ childId: childId ?? '', bookId: variables.bookId }),
 
-    onError: () => {
-      onError?.();
+    onError: (error: unknown) => {
+      onError?.(isHaruApiError(error) ? error.code : undefined);
     },
 
     /*

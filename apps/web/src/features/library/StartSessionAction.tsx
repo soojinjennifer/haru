@@ -24,7 +24,11 @@ import type { LibraryBook } from '@haru/contracts';
 
 import { useCreateSession, useResolveSessionMode } from '../../entities/session';
 import { sessionPath } from '../../shared/config/routes';
-import { joinErrorMessage, sessionStartBlockedCopy } from '../../shared/copy/error-copy';
+import {
+  deletionPendingToastMessage,
+  joinErrorMessage,
+  sessionStartBlockedCopy,
+} from '../../shared/copy/error-copy';
 import { libraryCopy } from '../../shared/copy/library-copy';
 
 export interface StartSessionActionProps {
@@ -55,7 +59,10 @@ export function StartSessionAction({ id, book, open = true }: StartSessionAction
       setLaunching(false);
       const blocked = sessionStartBlockedCopy(errorCode);
       toast.show({
-        message: blocked === null ? libraryCopy.bookSheet.startFailed : joinErrorMessage(blocked),
+        // 쓰기 차단 = 설명만 (Toast 1줄 표면, Spec §2.9 `VG8-C-08`)
+        message:
+          deletionPendingToastMessage(errorCode) ??
+          (blocked === null ? libraryCopy.bookSheet.startFailed : joinErrorMessage(blocked)),
         tone: 'error',
       });
     },

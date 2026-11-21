@@ -22,6 +22,7 @@ const EXPECTED_EXPORTS = {
     // list.ts
     'ListSessionsRequestSchema',
     'ListSessionsResponseSchema',
+    'SessionListItemSchema', // Stage 8 `C8-2`
     // session.ts
     'SessionBubbleCopySchema',
     'SessionDetailSchema',

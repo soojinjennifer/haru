@@ -106,6 +106,18 @@ export const ROUTES = {
    * 설정 목록 행(`S6-B`, Spec §2.4)이 이 상수로 이동한다.
    */
   settingsGrowthCapability: '/settings/growth-capability',
+  /**
+   * 데이터 관리 (Stage 8 `C13-S8-2`, Spec §2.2) — 보관 정책 안내 · 녹음 목록 진입 · 전체 삭제. 설정 `ACCOUNT` 행
+   * *Data & privacy* 의 목적지 (`Q8-02` ⓐ). 화면 등록 = `S8-B`.
+   */
+  settingsData: '/settings/data',
+  /** 세션 녹음 목록 (Stage 8 `C13-S8-3`, Spec §2.3) — 행별 *Delete*. 데이터 관리 행의 목적지. `S8-B`. */
+  settingsDataRecordings: '/settings/data/recordings',
+  /**
+   * 계정 (Stage 8 `C13-S8-6`, Spec §2.6) — 설정 `ACCOUNT` 행 *Account* 의 목적지.
+   * `S8-B` 는 route 와 진입 행만 등록한다. 화면 내용(이메일 · 탈퇴)은 `S8-D`.
+   */
+  settingsAccount: '/settings/account',
 
   /**
    * Stage 4 세션 화면 (Plan §9.1 · Figma `300:1309`) — 탭이 아니라 **Fullscreen** 이다 (탭바 없음).
@@ -175,4 +187,49 @@ export const PROGRESS_WEEK_PARAM = 'week';
 /** `/progress/reports/:reportId` 경로를 만든다 (`S7-C` 카드 헤더 링크 · 과거 리포트 행). */
 export function progressReportPath(reportId: string): string {
   return ROUTES.progressReport.replace(':reportId', encodeURIComponent(reportId));
+}
+
+/**
+ * 앱 안 기록이 없을 때 Back 의 **논리적 부모** (Stage 8 `VG6-D-12` — `N8-14` · `Q8-17`, Spec §6.3 부모 표 · AC-8-40).
+ *
+ * 앱 안 기록이 있으면 Back = `navigate(-1)`. 없으면(직접 URL · 새로고침 · 알림 진입 · 로그인 복귀) 이 표의 부모로 **replace**
+ * 한다 — 뒤로 가기로 앱 밖에 나가거나 같은 화면 사이를 도는 고리를 만들지 않는다. 판정 · 이동은 `useBackNavigation`.
+ * 시각 변화 0 (Back 버튼 모양 · 위치 그대로).
+ *
+ * 순서가 의미를 가진다 — 위에서부터 처음 맞는 패턴을 쓴다(구체적인 패턴이 먼저).
+ */
+export const BACK_PARENT_ROUTES: readonly (readonly [pattern: string, parent: string])[] = [
+  [ROUTES.settingsChildSurveyStep, ROUTES.settingsChildSurvey],
+  [ROUTES.settingsDataRecordings, ROUTES.settingsData],
+  [ROUTES.settingsProfile, ROUTES.settings],
+  [ROUTES.settingsChild, ROUTES.settings],
+  [ROUTES.settingsChildSurvey, ROUTES.settings],
+  [ROUTES.settingsGrowthCapability, ROUTES.settings],
+  [ROUTES.settingsData, ROUTES.settings],
+  [ROUTES.settingsAccount, ROUTES.settings],
+  [ROUTES.settings, ROUTES.home],
+  [ROUTES.libraryAdd, ROUTES.library],
+  [ROUTES.libraryGiftRequests, ROUTES.library],
+  [ROUTES.progressReport, ROUTES.progress],
+  [ROUTES.auth.signUp, ROUTES.auth.welcome],
+  [ROUTES.auth.logIn, ROUTES.auth.welcome],
+  [ROUTES.auth.forgotPassword, ROUTES.auth.welcome],
+  [ROUTES.auth.resetPassword, ROUTES.auth.welcome],
+];
+
+function matchesRoutePattern(pattern: string, pathname: string): boolean {
+  const expected = pattern.split('/');
+  const actual = pathname.replace(/\/+$/, '').split('/');
+  if (expected.length !== actual.length) return false;
+  return expected.every((segment, index) =>
+    segment.startsWith(':') ? (actual[index] ?? '') !== '' : segment === actual[index],
+  );
+}
+
+/** 이 화면의 논리적 부모 경로. 표에 없으면 Home (`/`). */
+export function logicalParentPath(pathname: string): string {
+  for (const [pattern, parent] of BACK_PARENT_ROUTES) {
+    if (matchesRoutePattern(pattern, pathname)) return parent;
+  }
+  return ROUTES.home;
 }

@@ -325,7 +325,7 @@ describe('Tier 3 — Component (Design Spec §3.3)', () => {
         '--clip-row-gap',
         '--choice-card-radius',
         '--section-label-letter-spacing',
-        '--child-routine-label-offset',
+        '--section-label-offset',
         '--chart-diamond-radius-max',
         '--chart-diamond-label-max',
         '--chart-diamond-label-gap',

@@ -53,7 +53,7 @@ import {
 import { useToggleSavedBook } from '../../../entities/library';
 import { useCreateSession, useResolveSessionMode } from '../../../entities/session';
 import { sessionPath } from '../../../shared/config/routes';
-import { sessionStartBlockedCopy } from '../../../shared/copy/error-copy';
+import { deletionPendingCopy, sessionStartBlockedCopy } from '../../../shared/copy/error-copy';
 import { activityDeckCopy } from '../copy';
 
 import { ActivityCardTrack } from './ActivityCardTrack';
@@ -213,7 +213,9 @@ export function ActivityCardDeck() {
     if (createSession.isError) {
       return sessionStartBlockedCopy(createSession.errorCode) ?? { title: copy.card.startFailed };
     }
-    return selectOption.isError ? { title: copy.card.startFailed } : null;
+    if (!selectOption.isError) return null;
+    // 삭제 진행 중 쓰기 차단 — 같은 시트 표면에 문구만 (AC-8-32 · Spec §2.9)
+    return deletionPendingCopy(selectOption.errorCode) ?? { title: copy.card.startFailed };
   }
 
   function renderOption(option: ActivityCardOption) {

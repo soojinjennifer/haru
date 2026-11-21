@@ -10,6 +10,7 @@
  * | `recordings:upload-stalled-48h` | 48h 전에 적재된 미확정 업로드 (`seedStalledUpload`) | 세션 `completed` | 48h Toast + `Try again` · 업로드는 계속 실패 (AC-4-149) |
  * | `recorder:local-retention-notice` | 7일 넘은 미업로드 녹음 (`seedNoticeRecording`) | 없음 | Home 7일 배너 (AC-4-150) |
  * | `recorder:local-retention-exceeded` | 14일 넘은 미업로드 녹음 (`seedStaleRecording`) | 없음 | 로컬 삭제 · 14일 Toast · 서버 요청 0 (AC-4-151) |
+ * | ⭐ `data-management:recording-delete-local-pending` | 1시간 전 미업로드 녹음 + 큐 항목(`seedPendingLocalUpload`) | 녹음 목록 seed — 세션 `completed` · 녹음 `pending` (`MOCK_RECORDING_SESSION_IDS.pending`) | 세션 녹음 삭제 → 서버 확정 후 로컬 삭제 · 큐 취소 (Stage 8 Plan §8) |
  *
  * `recorder` 와 `recordings` 는 그룹이 달라 함께 고를 수 있다 (예: `recorder:local-retention-exceeded,recordings:upload-stalled-48h`
  * = 14일 → 48h 순차 Toast). **가상 데이터**다 — 바이트는 Mock 녹음기 규칙, 세션은 고정 uuid.
@@ -19,9 +20,13 @@
 import type { Clock } from '../../shared/lib/clock';
 import type { LocalKeyValueStore } from '../../shared/platform/recording-storage';
 import { MOCK_CHILD_ID } from '../fixtures/me';
+import { dataManagementScenarioGroup } from '../data-management/dataManagementScenarios';
+import { ensureRecordingHistory } from '../data-management/recordingHistory';
+import { MOCK_RECORDING_SESSION_IDS } from '../fixtures/data-management';
 import {
   seedCrashedRecording,
   seedNoticeRecording,
+  seedPendingLocalUpload,
   seedStaleRecording,
   seedStalledUpload,
   type LocalRecordingSeedTarget,
@@ -57,6 +62,9 @@ export function resolveDeviceSeedSessionIds(scenarios: ScenarioStore): string[] 
   if (local === 'local-retention-exceeded') ids.push(MOCK_DEVICE_SEED_SESSION_IDS.expired);
   if (scenarios.resolve(recordingScenarioGroup) === 'upload-stalled-48h') {
     ids.push(MOCK_DEVICE_SEED_SESSION_IDS.stalled);
+  }
+  if (scenarios.resolve(dataManagementScenarioGroup) === 'recording-delete-local-pending') {
+    ids.push(MOCK_RECORDING_SESSION_IDS.pending);
   }
   return ids;
 }
@@ -100,5 +108,11 @@ export async function applyRecordingDeviceSeed(options: RecordingDeviceSeedOptio
   if (scenarios.resolve(recordingScenarioGroup) === 'upload-stalled-48h') {
     putServerSession(options, ids.stalled, 'completed');
     await seedStalledUpload(target, kv, ids.stalled, deviceClock);
+  }
+
+  // Stage 8 — 서버 세션은 녹음 목록 seed 가 넣는다 (목록 · 상세 · 삭제가 같은 레코드를 본다).
+  if (scenarios.resolve(dataManagementScenarioGroup) === 'recording-delete-local-pending') {
+    ensureRecordingHistory(options.sessionState, options.serverClock);
+    await seedPendingLocalUpload(target, kv, MOCK_RECORDING_SESSION_IDS.pending, deviceClock);
   }
 }

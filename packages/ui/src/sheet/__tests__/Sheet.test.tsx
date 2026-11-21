@@ -92,6 +92,45 @@ describe('Sheet', () => {
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'First' }));
   });
 
+  /*
+   * Stage 8 `S8-G` (AC-8-48) — radio 묶음은 Tab 정지점이 하나다. 묶음 전체를 "focusable 목록"으로 세면
+   * 선택된 radio 가 목록의 마지막이 아니어서 Tab 이 가로채지지 않고, focus 가 시트 밖으로 새어 나갔다.
+   */
+  it('wraps Tab from the checked radio when the radio group is the last tab stop', () => {
+    render(
+      <Sheet open onClose={() => {}} title="Year">
+        <Button onPress={() => {}}>Back</Button>
+        <input type="radio" name="year" value="2023" aria-label="2023" defaultChecked />
+        <input type="radio" name="year" value="2022" aria-label="2022" />
+        <input type="radio" name="year" value="2021" aria-label="2021" />
+      </Sheet>,
+    );
+
+    const checked = screen.getByRole('radio', { name: '2023' });
+    checked.focus();
+    const forward = fireEvent.keyDown(document, { key: 'Tab' });
+    expect(forward).toBe(false); // preventDefault — 브라우저 기본 이동(시트 밖)을 막았다
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Back' }));
+
+    const backward = fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+    expect(backward).toBe(false);
+    expect(document.activeElement).toBe(checked);
+  });
+
+  it('treats a radio group without a checked option as one stop (its first radio)', () => {
+    render(
+      <Sheet open onClose={() => {}} title="Year">
+        <Button onPress={() => {}}>Back</Button>
+        <input type="radio" name="year" value="2023" aria-label="2023" />
+        <input type="radio" name="year" value="2022" aria-label="2022" />
+      </Sheet>,
+    );
+
+    screen.getByRole('button', { name: 'Back' }).focus();
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(screen.getByRole('radio', { name: '2023' }));
+  });
+
   it('locks background scrolling while open and restores it after the exit motion', () => {
     const { rerender } = render(
       <Sheet open onClose={() => {}} title="Prompts">

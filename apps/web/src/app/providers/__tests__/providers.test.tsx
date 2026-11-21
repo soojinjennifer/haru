@@ -99,6 +99,14 @@ const stubClients: ApiClients = {
     getStatus: () => Promise.reject(new Error('not used in this test')),
   },
   highlightClips: { getPlaybackUrl: () => Promise.reject(new Error('not used in this test')) },
+  dataManagement: {
+    summary: () => Promise.reject(new Error('not used in this test')),
+    listRecordingSessions: () => Promise.reject(new Error('not used in this test')),
+    deleteSessionRecording: () => Promise.reject(new Error('not used in this test')),
+    createDeletionRequest: () => Promise.reject(new Error('not used in this test')),
+    getDeletionRequest: () => Promise.reject(new Error('not used in this test')),
+  },
+  account: { deleteAccount: () => Promise.reject(new Error('not used in this test')) },
 };
 
 function Probe() {

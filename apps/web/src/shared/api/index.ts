@@ -30,6 +30,8 @@ export type { ProgressApi } from './progress-api';
 export type { ReportApi } from './report-api';
 export type { ReportPdfApi } from './report-pdf-api';
 export type { HighlightClipApi } from './highlight-clip-api';
+export type { DataManagementApi } from './data-management-api';
+export type { AccountApi } from './account-api';
 export {
   isUploadOffsetConflictError,
   UploadOffsetConflictError,

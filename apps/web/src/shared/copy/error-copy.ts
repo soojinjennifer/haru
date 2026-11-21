@@ -129,6 +129,11 @@ export const ERROR_COPY: Readonly<Record<ErrorCode, ErrorMessage>> = {
     title: 'Deletion already requested',
     description: 'Your earlier request is still being processed.',
   },
+  // Stage 8 `C8-5` — 제목 = `VG8-A-03` 확정 (design-agent) · 설명 = Spec §10.4 "쓰기 차단" 원문.
+  ACCOUNT_DELETION_PENDING: {
+    title: 'Changes are paused',
+    description: 'Your data is being deleted, so changes are paused.',
+  },
   IDEMPOTENCY_KEY_REUSED: {
     title: 'That request changed',
     description: 'Please start the action again.',
@@ -160,13 +165,35 @@ export function errorCopyForCode(code: ErrorCode | undefined): ErrorMessage {
  * 그 밖의 실패(Detail 조회 실패 포함 — `D4-146` Q4)는 `null` → 화면은 기존 일반 실패 문구를 쓴다.
  */
 export function sessionStartBlockedCopy(code: ErrorCode | undefined): ErrorMessage | null {
-  return code === 'SESSION_ALREADY_ACTIVE' || code === 'ONBOARDING_INCOMPLETE'
+  return code === 'SESSION_ALREADY_ACTIVE' ||
+    code === 'ONBOARDING_INCOMPLETE' ||
+    code === 'ACCOUNT_DELETION_PENDING'
     ? ERROR_COPY[code]
     : null;
 }
 
 /**
+ * 삭제 진행 중 쓰기 차단 (`ACCOUNT_DELETION_PENDING`, Stage 8 `C8-5` · AC-8-32) — 화면 고유 실패 문구 대신 쓸 문구.
+ * 다른 code 면 `null` (화면은 원래 문구를 쓴다). 표면은 **각 화면의 기존 실패 표면** 그대로다 — 새 UI · Toast 0
+ * (Spec §2.9 · `VG8-A-03`: 2줄 표면 = 제목 + 설명).
+ */
+export function deletionPendingCopy(code: ErrorCode | undefined): ErrorMessage | null {
+  return code === 'ACCOUNT_DELETION_PENDING' ? ERROR_COPY.ACCOUNT_DELETION_PENDING : null;
+}
+
+/**
+ * Toast(1줄 표면)의 쓰기 차단 문구 — `ACCOUNT_DELETION_PENDING` 이면 **설명만** (Spec §2.9 `VG8-C-08`: 제목 + 설명을 이어 붙이면
+ * "paused" 가 반복된다). 다른 code 면 `null` (호출부는 원래 문구를 쓴다).
+ */
+export function deletionPendingToastMessage(code: ErrorCode | undefined): string | null {
+  return code === 'ACCOUNT_DELETION_PENDING'
+    ? ERROR_COPY.ACCOUNT_DELETION_PENDING.description
+    : null;
+}
+
+/**
  * 글 한 칸(Toast `message`)에 제목과 설명을 함께 담는다 — `제목. 설명` (`D4-146` Q1 ⓐ). 단어는 바꾸지 않는다.
+ * 쓰기 차단(`ACCOUNT_DELETION_PENDING`)은 이 함수가 아니라 `deletionPendingToastMessage` 를 쓴다 (`VG8-C-08`).
  */
 export function joinErrorMessage(message: ErrorMessage): string {
   return `${message.title}. ${message.description}`;

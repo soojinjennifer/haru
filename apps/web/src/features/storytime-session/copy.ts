@@ -14,7 +14,7 @@
  * | `complete.title` | Figma `29:75` 원문 |
  * | `states.backHome` | `Back to Home` — 세션 조회 실패 화면 출구 (`D4-96`·`D4-99`, Figma 없음) |
  * | `submitted` | `Recording submitted` — Orchestrator 채택 `T-A` (stage-4-approvals §1 "Toast 문구", 변경 가능) |
- * | `record.micOff` | 4b Spec §9.1 `Microphone is off` — `S4B-Q9` 채택 (`D4-58` NB-8) |
+ * | `record.micOff` | ~~4b Spec §9.1 `Microphone is off` (`S4B-Q9`, `D4-58` NB-8)~~ → **`D8-5`**: 보이는 캡션과 같은 `Mic is off` (WCAG 2.5.3) |
  * | `record.micOffCaption` | Figma `298:1245` PermissionDenied 변형 시각 라벨 `Mic is off` |
  * | `micSheet.notNow` | 4b Spec §7.3 원문. (`micSheet.talkWithoutRecording` 은 `D4-119` CP-11 로 폐기 — 4b Spec §18.2 ④) |
  * | `record.consentReason` · `micSheet.title` · `micSheet.description` · `actions.conversationReason` · `notices.background.*` · `connectivity.*` · `autoTimeout` | development-agent 초안(`S4-H2`) → **`D4-115` 승인**. `notices.dismiss` = 기존 `Dismiss`(home-overview · onboarding-survey) 재사용 |
@@ -27,16 +27,26 @@
 export const storytimeSessionCopy = {
   close: 'Close session',
   record: {
-    start: 'Start recording',
+    /**
+     * `D8-3` (`H8-6-N2`) — 보이는 캡션 `caption` 을 **먼저**, 동작을 뒤에 둔다 (WCAG 2.5.3 label-in-name).
+     * `idle` · `disabled` 변형 공통. 동작 이름(Spec §2.6.3)은 유지된다.
+     */
+    start: 'Tap to recording, Start recording',
     pause: 'Pause recording',
-    /** paused 변형의 접근성 이름 — 동작을 읽는다 (4b Spec §9.1). */
-    resume: 'Resume recording',
+    /**
+     * paused 변형의 접근성 이름 — `D8-4` (`D8-3-N1`): `start` 와 같은 규칙. 보이는 캡션 `resumeCaption` 을
+     * **먼저**, 동작(4b Spec §9.1 `Resume recording`)을 뒤에 둔다 (WCAG 2.5.3 label-in-name).
+     */
+    resume: 'Tap to resume, Resume recording',
     /** Figma `140:2854` — `Record` 변형 시각 라벨. 접근성 이름이 아니다. */
     caption: 'Tap to recording',
     /** Figma `298:1227` — `Paused` 변형 시각 라벨. */
     resumeCaption: 'Tap to resume',
-    /** `permission-denied` 변형의 접근성 이름 (4b Spec §9.1) — 탭하면 안내 시트가 열린다. */
-    micOff: 'Microphone is off',
+    /**
+     * `permission-denied` 변형의 접근성 이름 — 탭하면 안내 시트가 열린다. `D8-5` (`D8-3-N2` · `D8-4-N1`):
+     * 보이는 캡션 `micOffCaption` 과 **같은** 문구 (WCAG 2.5.3 label-in-name). 화면 변화 0.
+     */
+    micOff: 'Mic is off',
     /** Figma `298:1245` — `PermissionDenied` 변형 시각 라벨. */
     micOffCaption: 'Mic is off',
     /** 승인 `D4-115` — 동의가 없어 `disabled` 일 때 `aria-describedby` 사유 (4b Spec §9.1 "사유 — 예: 동의 필요"). */

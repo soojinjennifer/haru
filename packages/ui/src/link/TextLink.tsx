@@ -36,6 +36,15 @@ export interface TextLinkProps {
   controls?: string;
   /** 누르면 대화상자(Sheet·Dialog)가 열리는 동작 버튼 (`aria-haspopup="dialog"`). `<button>` 경로 전용. */
   hasPopup?: 'dialog';
+  /**
+   * 누르는 영역 (`D8-3` `H8-6-N4` — opt-in, 기본 `'text'`).
+   *
+   * - `'text'` — 글자 상자 그대로 (본문 안 링크 — 주변 문장 높이를 따른다, WCAG 2.5.8 inline 예외).
+   * - `'touch'` — **보이는 모습은 그대로** 두고 누르는 영역만 `::before` 로 44×44 이상으로 넓힌다
+   *   (단독 줄 · 행 안 링크). 색 · 크기 · 레이아웃 변화 0. 쓰는 자리는 이웃 인터랙티브와 넓힌 영역이
+   *   겹치지 않음을 확인해야 한다.
+   */
+  hitArea?: 'text' | 'touch';
 }
 
 /**
@@ -55,12 +64,18 @@ export function TextLink({
   expanded,
   controls,
   hasPopup,
+  hitArea = 'text',
 }: TextLinkProps) {
   if (external && externalHint === undefined) {
     devWarn('TextLink', 'missing-external-hint', 'external');
   }
 
-  const className = cx('haru-text-link', `haru-text-link--${tone}`, 'haru-focus-ring');
+  const className = cx(
+    'haru-text-link',
+    `haru-text-link--${tone}`,
+    hitArea === 'touch' && 'haru-text-link--hit-touch',
+    'haru-focus-ring',
+  );
 
   const content = (
     <>

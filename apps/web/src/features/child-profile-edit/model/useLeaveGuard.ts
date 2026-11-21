@@ -20,6 +20,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 
+import { useBackNavigation } from '../../../shared/hooks/useBackNavigation';
+
 export interface LeaveGuard {
   /** 확인 Dialog 표시 여부. */
   promptOpen: boolean;
@@ -34,6 +36,9 @@ export interface LeaveGuard {
 export function useLeaveGuard(dirty: boolean): LeaveGuard {
   const navigate = useNavigate();
   const location = useLocation();
+  // 화면을 떠나는 목적지 = 앱 공통 Back 규칙 (`VG6-D-12`, Spec §6.3 — 기록 없으면 `/settings` replace).
+  // 부모 이동은 확인 Dialog **뒤**다 (`N6-14` 순서 유지). sentinel 이 있고 앱 안 기록이 없으면 sentinel 항목이 부모로 바뀐다.
+  const goBack = useBackNavigation();
   const [promptOpen, setPromptOpen] = useState(false);
   /** 현재 sentinel 항목 위에 있는가. */
   const sentinel = useRef(false);
@@ -61,8 +66,8 @@ export function useLeaveGuard(dirty: boolean): LeaveGuard {
     setPromptOpen(false);
     const steps = sentinel.current ? 2 : 1;
     sentinel.current = false;
-    void navigate(-steps);
-  }, [navigate]);
+    goBack(steps);
+  }, [goBack]);
 
   useEffect(() => {
     if (!browserBacked) return undefined;

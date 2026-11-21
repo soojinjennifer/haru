@@ -4,6 +4,7 @@ node_modules/
 
 # build output
 dist/
+dist-preview/
 build/
 coverage/
 *.tsbuildinfo
@@ -48,3 +49,6 @@ dependency-graph.*
 
 # 사용자 개인 지시 초안 폴더 — 원문 사본은 docs/source/prompts/ 에 등재한다 (결정 2026-10-06)
 My Prompt/
+
+# Cloudflare wrangler 로컬 상태 (Stage 8 S8-I — wrangler.jsonc 사용 시 생성)
+.wrangler/

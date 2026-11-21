@@ -1,7 +1,7 @@
 import { Icon, IconButton, TopBar } from '@haru/ui';
-import { useNavigate } from 'react-router';
 
 import { libraryCopy } from '../../shared/copy/library-copy';
+import { useBackNavigation } from '../../shared/hooks/useBackNavigation';
 
 /**
  * `/library/add` TopBar — `variant=centered` + 뒤로 (Library Design Spec §7.2).
@@ -13,7 +13,8 @@ import { libraryCopy } from '../../shared/copy/library-copy';
  * Layout 은 `app/router.tsx` 가 씌운다 (`pages → app` import 금지 — rules/architecture §3).
  */
 export function AddOwnBookTopBar() {
-  const navigate = useNavigate();
+  // Back = 앱 안 기록 있으면 이전 화면, 없으면 논리적 부모로 replace (`VG6-D-12`, Spec §6.3)
+  const goBack = useBackNavigation();
 
   return (
     <TopBar
@@ -25,7 +26,7 @@ export function AddOwnBookTopBar() {
           label={libraryCopy.add.back}
           variant="plain"
           onPress={() => {
-            void navigate(-1);
+            goBack();
           }}
         />
       }

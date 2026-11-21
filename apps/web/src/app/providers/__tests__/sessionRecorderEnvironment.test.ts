@@ -15,7 +15,11 @@ import {
   type WebMediaEnvironment,
 } from '../../../shared/platform/recorder';
 import { createManualScheduler } from '../../../test/manual-scheduler';
-import { seedCrashedRecording, seedStaleRecording } from '../../../mocks/fixtures/local-recordings';
+import {
+  seedCrashedRecording,
+  seedPendingLocalUpload,
+  seedStaleRecording,
+} from '../../../mocks/fixtures/local-recordings';
 import { CONSENTED } from '../../../features/recording/model/__tests__/controller-support';
 import {
   createSessionRecorderEnvironment,
@@ -98,6 +102,36 @@ describe('createSessionRecorderEnvironment', () => {
     await recorder.dispose();
     await environment.clearLocalRecordings();
     expect(wipeDevice).toHaveBeenCalledOnce();
+  });
+
+  it('세션 녹음 삭제 (Stage 8 AC-8-23) = 그 세션의 큐 항목 취소 + 로컬 청크 삭제 · 다른 세션 · 기기 전체는 그대로', async () => {
+    const A = '99999999-9999-4999-8999-0000000000a1';
+    const B = '99999999-9999-4999-8999-0000000000b2';
+    let target: DeviceSeedTarget | null = null;
+    const { clock, environment, wipeDevice } = setup({
+      seedDevice: async (seed) => {
+        target = seed;
+        await seedPendingLocalUpload(seed.store, seed.kv, A, clock);
+        await seedPendingLocalUpload(seed.store, seed.kv, B, clock);
+      },
+    });
+    environment.warmUp();
+    await vi.waitFor(async () => {
+      expect(target).not.toBeNull();
+      expect(await target?.kv.get('uploads', B)).toBeDefined();
+    });
+    const seeded = target as unknown as DeviceSeedTarget;
+    expect(await seeded.store.countChunkFiles(A)).toBeGreaterThan(0);
+
+    await environment.deleteLocalRecording(A);
+
+    expect(await seeded.store.get(A)).toBeNull();
+    expect(await seeded.store.countChunkFiles(A)).toBe(0);
+    expect(await seeded.kv.get('uploads', A)).toBeUndefined();
+    expect(await seeded.store.get(B)).not.toBeNull();
+    expect(await seeded.store.countChunkFiles(B)).toBeGreaterThan(0);
+    expect(await seeded.kv.get('uploads', B)).toBeDefined();
+    expect(wipeDevice).not.toHaveBeenCalled();
   });
 });
 

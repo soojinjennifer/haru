@@ -12,7 +12,9 @@
  * ── 서버 규칙 (Backend 요구 `P7-BIP-01` 과 같다) ──
  * - 아이 id 는 `GET /v1/me` 의 아이 하나뿐 — 다른 id → `CHILD_NOT_FOUND` (소유권, RLS 는 Backend)
  * - `weekStart` 는 `availableWeeks` 중 하나여야 한다 — 아니면 `VALIDATION_FAILED` (`details.fields: ['weekStart']`)
- * - `weekStart` 생략 = 이번 주. 읽기 전용 · 상태 없음 · 시간·난수 없음 (결정적).
+ * - `weekStart` 생략 = 이번 주. 읽기 전용 · 시간·난수 없음 (결정적).
+ * - 전체 데이터 삭제 · 탈퇴가 **완료**되면(`isChildDataDeleted()`) scenario 와 무관하게 `empty` 세계다 — 지운 세션이 주간
+ *   기록에 남지 않는다 (Stage 8 `P8-BIP-02`, handoff `H8-1-N5`).
  */
 import {
   WeeklyProgressQuerySchema,
@@ -83,6 +85,8 @@ export interface MockProgressApiDeps {
   timer: Timer;
   requestLog?: RequestLog | undefined;
   errorCodes?: MockErrorCodes | undefined;
+  /** 서버의 아동 데이터가 지워졌는가 (Stage 8 — `MockDeletionState.childDataDeleted`). 주지 않으면 항상 `false`. */
+  isChildDataDeleted?: (() => boolean) | undefined;
 }
 
 export function createMockProgressApi(deps: MockProgressApiDeps): ProgressApi {
@@ -109,8 +113,9 @@ export function createMockProgressApi(deps: MockProgressApiDeps): ProgressApi {
 
       const run = (): WeeklyProgress => {
         if (request.childId !== MOCK_CHILD_ID) return fail('CHILD_NOT_FOUND', 'Unknown child.');
+        const deleted = deps.isChildDataDeleted?.() === true;
         const value = createWeeklyProgressFixture(
-          worldOf(scenario),
+          deleted ? 'empty' : worldOf(scenario),
           query.weekStart ?? MOCK_THIS_WEEK_START,
         );
         if (value === undefined) {

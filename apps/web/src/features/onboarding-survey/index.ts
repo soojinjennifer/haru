@@ -6,6 +6,7 @@ export type { OnboardingWizardProps } from './ui/OnboardingWizard';
 export { OnboardingIntro } from './ui/OnboardingIntro';
 export type { OnboardingIntroProps, OnboardingIntroVariant } from './ui/OnboardingIntro';
 export { OnboardingSaved } from './ui/OnboardingSaved';
+export type { TrialDraftInfo, TrialNoticeFooter } from './ui/OnboardingNotices';
 /*
  * Stage 6 `R-5`(`N6-06` ⓐ): 카드 렌더러 · instrument 해석 · 카드 세션은 `entities/survey` 로 **이동**했다.
  * 기존 소비자(pages · app · 테스트)가 바뀌지 않도록 같은 이름으로 다시 노출한다.

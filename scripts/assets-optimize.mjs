@@ -18,9 +18,14 @@
 //
 // 해상도 상한 (`D-4`: 1440 / 696 / 360 / 216) — 그룹별로 하나를 쓴다. **업스케일하지 않는다.**
 //
-// 범위 — 캐릭터 에셋만 (`apps/web/src/shared/assets/character`). 책 표지는 Mock 전용 임시 에셋이고
-// 실제 표지는 서버 `coverUrl` 로 온다 (`P3-BIP-19` — Stage 8 게이트, AC-4-85). 쓰이지 않을 변형을
-// 저장소에 쌓지 않는다.
+// 범위
+//   character   캐릭터 에셋 (`apps/web/src/shared/assets/character`) — PNG + WebP + AVIF
+//   book-covers Mock 전용 **중립 대체 표지** (Stage 8 `S8-I` · `N8-13` ⓐ · `P3-BIP-19` · `QA-3-003`).
+//               상용 그림책 표지를 저장소·프리뷰에서 걷어내고, 마스터 PNG 를 **이 스크립트가 생성**한다
+//               (`COVER_SPECS` — 무늬·글자 없는 단색 면, 색 = design-tokens palette 원시값을 읽어 온다).
+//               포맷은 **PNG 하나**다: 표지는 contract `BookSummary.coverUrl` **단일 URL** 로 전달되어
+//               화면이 `<picture>` 로 포맷을 고를 수 없다 (실제 포맷은 서버 몫). 쓰이지 않을 변형을
+//               저장소에 쌓지 않는다.
 //
 // 사용
 //   pnpm assets:optimize            산출물을 만든다 (이미 최신이면 그대로 둔다)
@@ -49,16 +54,36 @@ export const ASSET_GROUPS = [
     name: 'character',
     dir: 'apps/web/src/shared/assets/character',
     maxWidth: 1440,
+    formats: ['webp', 'avif'],
+  },
+  {
+    // 표시 최대 = 서재 캐러셀 `lg` 약 107px 폭 → 2배 214 ≤ 216 (`D-4` 최소 단계)
+    name: 'book-covers',
+    dir: 'apps/web/src/shared/assets/book-covers',
+    maxWidth: 216,
+    formats: [],
   },
 ];
+
+/**
+ * 중립 대체 표지 (Stage 8 `S8-I` · `N8-13` ⓐ). 크기 = 216 × 309 (`--book-cover-aspect` 7/10).
+ * `palette` = `packages/design-tokens/src/primitive/color.css` 의 `--haru-palette-<palette>` —
+ * HEX 를 여기에 다시 적지 않는다 (값의 기준은 Figma → design-tokens 한 곳).
+ */
+export const COVER_SPECS = [
+  { name: 'neutral-cover-teal', palette: 'teal' },
+  { name: 'neutral-cover-orange', palette: 'orange' },
+  { name: 'neutral-cover-indigo', palette: 'indigo' },
+];
+export const COVER_SIZE = { width: 216, height: 309 };
+
+const PALETTE_CSS = 'packages/design-tokens/src/primitive/color.css';
 
 /** 품질 — 위 머리말 "품질" 참고. 손실로 바꾸면 시각 baseline 재생성 절차가 필요하다. */
 export const QUALITY = {
   webp: { lossless: true, exact: true, effort: 6 },
   avif: { lossless: true, effort: 6 },
 };
-
-const FORMATS = /** @type {const} */ (['webp', 'avif']);
 
 const check = process.argv.includes('--check');
 
@@ -74,6 +99,45 @@ function kb(bytes) {
 
 let failed = false;
 const rows = [];
+
+/** @param {string} name */
+function paletteHex(name) {
+  const css = readFileSync(join(repoRoot, PALETTE_CSS), 'utf8');
+  const match = css.match(new RegExp(`--haru-palette-${name}:\\s*(#[0-9a-fA-F]{6})\\s*;`));
+  if (match === null) {
+    console.error(`[assets:optimize] ${PALETTE_CSS} 에 --haru-palette-${name} 가 없습니다.`);
+    process.exit(1);
+  }
+  return match[1];
+}
+
+// ── 중립 대체 표지 마스터 생성 (book-covers) ──
+// 같은 픽셀이면 다시 쓰지 않는다 — 실행을 반복해도 git 변화가 없다. `--check` 는 쓰지 않고 비교만 한다.
+{
+  const coverDir = join(repoRoot, 'apps/web/src/shared/assets/book-covers');
+  for (const spec of COVER_SPECS) {
+    const outPath = join(coverDir, `${spec.name}.png`);
+    const expected = await sharp({
+      create: { ...COVER_SIZE, channels: 3, background: paletteHex(spec.palette) },
+    })
+      .png({ compressionLevel: 9 })
+      .toBuffer();
+
+    const same =
+      existsSync(outPath) &&
+      (await sharp(outPath).raw().toBuffer()).equals(await sharp(expected).raw().toBuffer());
+
+    if (same) continue;
+    if (check) {
+      failed = true;
+      console.error(
+        `[assets:optimize] 표지 마스터가 없거나 사양과 다릅니다: ${rel(outPath)} — pnpm assets:optimize 를 실행하세요.`,
+      );
+      continue;
+    }
+    writeFileSync(outPath, expected);
+  }
+}
 
 for (const group of ASSET_GROUPS) {
   if (!RESOLUTION_CAPS.includes(group.maxWidth)) {
@@ -119,7 +183,7 @@ for (const group of ASSET_GROUPS) {
 
     const sizes = { png: statSync(pngPath).size };
 
-    for (const format of FORMATS) {
+    for (const format of group.formats) {
       const outPath = join(dir, `${stem}.${format}`);
 
       if (check) {

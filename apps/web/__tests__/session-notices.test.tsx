@@ -110,6 +110,7 @@ function environmentWith(notices: SessionRecorderNotices): SessionRecorderEnviro
   return {
     create: unused,
     clearLocalRecordings: () => Promise.resolve(),
+    deleteLocalRecording: () => Promise.resolve(),
     notices,
     resolveSessionMode: () => Promise.resolve('recorded'),
     takeConversationNotice: () => false,

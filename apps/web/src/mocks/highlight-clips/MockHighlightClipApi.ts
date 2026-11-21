@@ -9,6 +9,8 @@
  * - 유효 URL = 런타임 합성 WAV `data:` URL(클립 길이만큼) · 만료 = `MOCK_SIGNED_URL_EXPIRES_AT`
  * - `clip-url-expired`: 클립별 **첫 조회**는 이미 만료된 URL(`expiresAt` 과거 + 빈 오디오) → 두 번째부터 유효 (재발급 1회 검증 — AC-7-51)
  * - URL 은 요청 로그에 남기지 않는다 (clipId 만). 시간·난수 없음 (결정적).
+ * - ⭐ Stage 8 교차 일관성 (AC-8-10): 클립의 세션 녹음이 서버 상태(`MockSessionState`)에서 `deleted` · `expired` 면
+ *   scenario 와 무관하게 `RECORDING_DELETED`(`reason` = 그 상태) — 세션별 녹음 삭제가 클립까지 지운다 (`N8-03` ⓐ · `P8-BIP-01`)
  */
 import {
   RecordingDeletedDetailsSchema,
@@ -33,6 +35,7 @@ import { MOCK_WAV_MIME_TYPE, createMockWavDataUrl } from '../media/mock-wav';
 import { ensureReportSeed } from '../reports/MockReportApi';
 import type { MockReportState } from '../reports/reportState';
 import type { RequestLog } from '../request-log';
+import { toRecordingStatus, type MockSessionState } from '../sessions/sessionState';
 import { beginScenarioCall, type ScenarioStore } from '../scenarios';
 
 import {
@@ -51,6 +54,8 @@ export interface MockHighlightClipApiDeps {
   idFactory: IdFactory;
   timer: Timer;
   state: MockReportState;
+  /** Stage 8 — 세션 · 녹음 서버 상태 (세션별 녹음 삭제가 클립 재생에 반영된다). 없으면(단독 조립) 보지 않는다. */
+  sessionState?: MockSessionState | undefined;
   requestLog?: RequestLog | undefined;
   errorCodes?: MockErrorCodes | undefined;
 }
@@ -88,7 +93,19 @@ export function createMockHighlightClipApi(deps: MockHighlightClipApiDeps): High
     );
   }
 
+  /** 클립 원본 녹음의 서버 상태가 삭제 · 만료인지 (Stage 8 교차 일관성). */
+  function serverRecordingGone(clip: ReportHighlightClip): 'deleted' | 'expired' | null {
+    const sessionState = deps.sessionState;
+    if (sessionState === undefined) return null;
+    const record = sessionState.sessions.get(clip.sessionId);
+    if (record === undefined) return null;
+    const status = toRecordingStatus(sessionState, record)?.uploadStatus;
+    return status === 'deleted' || status === 'expired' ? status : null;
+  }
+
   function respond(clip: ReportHighlightClip, scenario: HighlightClipScenarioKey): SignedMediaUrl {
+    const gone = serverRecordingGone(clip);
+    if (gone !== null) return deleted(gone);
     if (scenario === 'recording-deleted') return deleted('deleted');
     if (scenario === 'clip-expired' && clip.id === MOCK_HIGHLIGHT_CLIP_IDS[1])
       return deleted('expired');

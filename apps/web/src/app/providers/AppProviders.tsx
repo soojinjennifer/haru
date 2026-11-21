@@ -17,6 +17,7 @@ import type { FileSharePort } from '../../shared/platform/file-share';
 import type { PushPermissionPort } from '../../shared/platform/push-permission';
 
 import { ApiClientProvider } from './ApiClientProvider';
+import { DataDeletionWatcher } from './DataDeletionWatcher';
 import { QueryProvider } from './QueryProvider';
 
 export interface AppProvidersProps {
@@ -62,7 +63,11 @@ export function AppProviders({
             화면이 아니라 앱 수명에 묶는다.
           */}
           <RecordingNoticeToasts />
-          {children}
+          {/*
+            화면 밖 전체 삭제 완료 감지 1곳 (`N8-31` ⓐ — `D8-2` ①). Router · RouteGuard 바깥이라 어느 화면에 있든(앱 재시작 포함)
+            완료를 잡아 로컬 정리 + Toast 1회를 하고, 그 전에는 Guard 가 기존 pending 표현으로 기다린다.
+          */}
+          <DataDeletionWatcher>{children}</DataDeletionWatcher>
         </ToastProvider>
       </ApiClientProvider>
     </QueryProvider>

@@ -32,6 +32,8 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
       reports: 'success',
       'report-pdf': 'success',
       'highlight-clips': 'success',
+      'data-management': 'success',
+      account: 'success',
       __states: 'success',
     });
   });
@@ -71,6 +73,8 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
       reports: 'error',
       'report-pdf': 'error',
       'highlight-clips': 'error',
+      'data-management': 'error',
+      account: 'error',
       __states: 'error',
     });
   });
@@ -94,6 +98,8 @@ describe('resolveSelection — 우선순위 (URL > panel > env > success)', () =
       reports: 'success',
       'report-pdf': 'success',
       'highlight-clips': 'success',
+      'data-management': 'success',
+      account: 'success',
       __states: 'empty',
     });
   });
@@ -136,6 +142,8 @@ describe('serializeSelection / withGroupKey', () => {
       reports: 'report-deferred-first',
       'report-pdf': 'share-unsupported',
       'highlight-clips': 'clip-url-expired',
+      'data-management': 'deletion-processing',
+      account: 'deletion-pending-write-blocked',
       __states: 'error',
     };
     const restored = resolveSelection(DEV_SCENARIO_GROUPS, {
@@ -322,7 +330,21 @@ describe('DEV_SCENARIO_GROUPS — Catalogue 준수 (AC-1-40)', () => {
     'recording-deleted',
   ];
 
-  it('패널이 다루는 그룹은 health · home · activity-cards · library · books · session-completion · reflections · analysis · children · progress · reports · report-pdf · highlight-clips · __states 다', () => {
+  /**
+   * Stage 8 (`S8-A`, Plan §8) — `data-management` · `account` 특화 key. 전부 `API_CONTRACTS.md` §5.4 등재 (Rev 12).
+   */
+  const CATALOGUE_STAGE_8 = [
+    'deletion-processing',
+    'deletion-failed',
+    'deletion-retry',
+    'deletion-already-requested',
+    'deletion-completed-offscreen',
+    'recording-deleted',
+    'recording-delete-local-pending',
+    'deletion-pending-write-blocked',
+  ];
+
+  it('패널이 다루는 그룹은 health · home · activity-cards · library · books · session-completion · reflections · analysis · children · progress · reports · report-pdf · highlight-clips · data-management · account · __states 다', () => {
     expect(DEV_SCENARIO_GROUPS.map((group) => group.group)).toStrictEqual([
       'health',
       'home',
@@ -337,6 +359,8 @@ describe('DEV_SCENARIO_GROUPS — Catalogue 준수 (AC-1-40)', () => {
       'reports',
       'report-pdf',
       'highlight-clips',
+      'data-management',
+      'account',
       '__states',
     ]);
   });
@@ -350,6 +374,7 @@ describe('DEV_SCENARIO_GROUPS — Catalogue 준수 (AC-1-40)', () => {
           ...CATALOGUE_STAGE_4_5,
           ...CATALOGUE_STAGE_6,
           ...CATALOGUE_STAGE_7,
+          ...CATALOGUE_STAGE_8,
         ]).toContain(key);
       }
     }

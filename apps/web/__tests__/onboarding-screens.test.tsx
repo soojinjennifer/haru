@@ -29,6 +29,7 @@ import {
 } from '../src/features/onboarding-survey';
 import { MOCK_REQUIRED_CONSENT_TYPES } from '../src/mocks/fixtures/consent';
 import { MOCK_BOOKS } from '../src/mocks/fixtures/books';
+import { MOCK_CHILD_FIRST_NAME } from '../src/mocks/fixtures/me';
 import {
   createOnboardingInstrumentFixture,
   createChildInfoDraftAnswers,
@@ -230,7 +231,8 @@ describe('`About your child` — 가입에서 받은 값을 표시한다 (`R-01`
     });
 
     // 표시 전용 행은 `<button>` 이다 — 눌리면 편집이라는 사실을 형태로 전한다 (§4.3 신호 ③).
-    const row = await screen.findByRole('button', { name: /Nova/ });
+    // 서버 draft fixture 이름 = Mock 아이 이름 (`OBS-5-7` 정리 — Stage 8 `S8-A`)
+    const row = await screen.findByRole('button', { name: new RegExp(MOCK_CHILD_FIRST_NAME) });
     expect(row.tagName).toBe('BUTTON');
     // `readonly` input 을 쓰지 않는다 (§4.3 접근성).
     expect(document.querySelectorAll('input[readonly]')).toHaveLength(0);
@@ -243,10 +245,10 @@ describe('`About your child` — 가입에서 받은 값을 표시한다 (`R-01`
       draft: { child_info: createChildInfoDraftAnswers() },
     });
 
-    fireEvent.click(await screen.findByRole('button', { name: /Nova/ }));
+    fireEvent.click(await screen.findByRole('button', { name: new RegExp(MOCK_CHILD_FIRST_NAME) }));
 
     const input = await screen.findByLabelText(new RegExp(onboardingCopy.childInfo.firstName));
-    expect((input as HTMLInputElement).value).toBe('Nova');
+    expect((input as HTMLInputElement).value).toBe(MOCK_CHILD_FIRST_NAME);
   });
 
   it('섹션 헤더 연필로도 편집에 들어가고 Done 으로 돌아온다', async () => {

@@ -1,11 +1,13 @@
 /** Http Adapter 집합 — `app/providers` 의 Adapter 선택 지점에서만 조립한다. */
 import type { ApiClients } from '../types';
 
+import { createHttpAccountApi } from './HttpAccountApi';
 import { createHttpActivityApi } from './HttpActivityApi';
 import { createHttpAnalysisApi } from './HttpAnalysisApi';
 import { createHttpBooksApi } from './HttpBooksApi';
 import { createHttpChildrenApi } from './HttpChildrenApi';
 import { createHttpConsentApi } from './HttpConsentApi';
+import { createHttpDataManagementApi } from './HttpDataManagementApi';
 import { createHttpHealthApi } from './HttpHealthApi';
 import { createHttpHighlightClipApi } from './HttpHighlightClipApi';
 import { createHttpHomeApi } from './HttpHomeApi';
@@ -78,6 +80,15 @@ export {
 } from './HttpReportApi';
 export { createHttpReportPdfApi, reportPdfPath } from './HttpReportPdfApi';
 export { createHttpHighlightClipApi, highlightClipPlaybackPath } from './HttpHighlightClipApi';
+export {
+  createHttpDataManagementApi,
+  DATA_DELETION_REQUESTS_PATH,
+  DATA_MANAGEMENT_PATH,
+  dataDeletionRequestPath,
+  recordingSessionsPath,
+  sessionRecordingPath,
+} from './HttpDataManagementApi';
+export { createHttpAccountApi } from './HttpAccountApi';
 
 export function createHttpApiClients(options: HttpClientOptions): ApiClients {
   const client = createHttpClient(options);
@@ -104,5 +115,7 @@ export function createHttpApiClients(options: HttpClientOptions): ApiClients {
     reports: createHttpReportApi(client),
     reportPdf: createHttpReportPdfApi(client),
     highlightClips: createHttpHighlightClipApi(client),
+    dataManagement: createHttpDataManagementApi(client),
+    account: createHttpAccountApi(client),
   };
 }

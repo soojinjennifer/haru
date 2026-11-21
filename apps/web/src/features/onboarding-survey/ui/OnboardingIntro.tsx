@@ -23,7 +23,7 @@ import { DEFAULT_ONBOARDING_INSTRUMENT } from '../model/defaultInstrument';
 import { CARD_STEPS, FIRST_CARD_STEP, FIRST_STEP, pathForStep } from '../model/steps';
 import { hasAnyAnswers, useOnboardingDraft } from '../model/useOnboardingDraft';
 
-import { DraftDiscardNotice, TrialNotice } from './OnboardingNotices';
+import { DraftDiscardNotice, TrialNotice, type TrialNoticeFooter } from './OnboardingNotices';
 
 export type OnboardingIntroVariant = 'profile' | 'survey';
 
@@ -34,9 +34,17 @@ export interface OnboardingIntroProps {
   isTrial: boolean;
   store?: OnboardingDraftStore | undefined;
   clock?: Clock | undefined;
+  /** Trial 안내 바로 아래 슬롯 (Stage 8 `C13-S8-7` — page 가 기기 draft 삭제를 조합한다). */
+  trialNoticeFooter?: TrialNoticeFooter | undefined;
 }
 
-export function OnboardingIntro({ variant, isTrial, store, clock }: OnboardingIntroProps) {
+export function OnboardingIntro({
+  variant,
+  isTrial,
+  store,
+  clock,
+  trialNoticeFooter,
+}: OnboardingIntroProps) {
   const navigate = useNavigate();
 
   // 소개 화면은 서버를 호출하지 않는다 — draft 를 읽어 "이어서" 여부와 아이 이름만 본다.
@@ -103,7 +111,14 @@ export function OnboardingIntro({ variant, isTrial, store, clock }: OnboardingIn
         <DraftDiscardNotice reason={draft.discarded} onDismiss={draft.dismissDiscardNotice} />
       </div>
       <div className="w-full">
-        <TrialNotice isTrial={isTrial} />
+        <TrialNotice
+          isTrial={isTrial}
+          footer={trialNoticeFooter?.({
+            hasAnswers: resuming,
+            childFirstName,
+            clear: draft.clear,
+          })}
+        />
       </div>
     </SurveyIntroLayout>
   );

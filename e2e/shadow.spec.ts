@@ -1534,3 +1534,83 @@ test.describe('발전 역량 설정 모드 차트 카드 그림자 (S6-D · `--s
     });
   }
 });
+
+/*
+ * `D8-3` (`H8-6-N6`) — Activity Card 헤더 역량 Tag 글자 span 의 새 `overflow: hidden` (`activity-card.css`).
+ * Tag 에는 drop shadow 가 없다 — 그래도 `R-SHADOW-1` ⑥ 에 따라 이 박스가 **아무것도 자르지 않음**을 세로 · 가로
+ * 양쪽으로 본다: Tag 상자 + 사방 12px(그림자 · 글리프 번짐 자리)을 찍고, `overflow: visible` 로 되돌려 다시 찍어
+ * **바이트 동일**이면 393 · 320 에서 이 선언이 그리는 것을 바꾸지 않는다(baseline 변화 0 조건과 같은 증거).
+ * 196 폭(줌 200% 등가)에서는 실제로 말줄임이 걸린다 — 그 폭에서 뒤집기 버튼이 눌리는지는 `a11y-audit` ⑥ 이 본다.
+ */
+test.describe('Activity Card 헤더 Tag 글자 overflow — 393 · 320 에서 자르는 것 0 (D8-3 · R-SHADOW-1)', () => {
+  for (const viewport of [
+    { width: 393, height: 852 },
+    { width: 320, height: 568 },
+  ] as const) {
+    test(`${String(viewport.width)}px — 세로 · 가로 픽셀 토글 동일`, async ({ page }) => {
+      await hideDevPanel(page);
+      await page.setViewportSize(viewport);
+      await logInWithScenario(page, 'children:success');
+      const label = page
+        .locator(
+          '.haru-activity-card--front .haru-activity-card__header > .haru-tag .haru-tag__label',
+        )
+        .first();
+      await expect(label).toBeVisible();
+      await settle(page);
+      const geometry = await label.evaluate((element) => {
+        const tag = element.closest('.haru-tag')!.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        return {
+          overflowX: style.overflowX,
+          overflowY: style.overflowY,
+          truncated: element.scrollWidth > element.clientWidth,
+          clip: {
+            x: Math.max(0, Math.floor(tag.left) - 12),
+            y: Math.max(0, Math.floor(tag.top) - 12),
+            width: Math.ceil(tag.width) + 24,
+            height: Math.ceil(tag.height) + 24,
+          },
+        };
+      });
+      expect(geometry.overflowX).toBe('hidden');
+      expect(geometry.overflowY).toBe('hidden');
+      // 공간이 충분한 폭 — 말줄임이 걸리지 않는다
+      expect(geometry.truncated).toBe(false);
+      const clipped = await page.screenshot({ clip: geometry.clip, animations: 'disabled' });
+      // 실측 이력: padding/margin 보정 전에는 이 토글이 10px(`g` 내림획 1행 · 오른쪽 AA 1열)을 드러냈다
+      await label.evaluate((element) => {
+        (element as HTMLElement).style.setProperty('overflow', 'visible');
+      });
+      await settle(page);
+      const unclipped = await page.screenshot({ clip: geometry.clip, animations: 'disabled' });
+      expect(clipped.equals(unclipped), 'Tag 글자 overflow 가 픽셀을 잘랐다').toBe(true);
+    });
+  }
+
+  test('196px — 말줄임이 걸리고 Tag 가 헤더 안에 머문다 (뒤집기 버튼 자리 확보)', async ({
+    page,
+  }) => {
+    await hideDevPanel(page);
+    await logInWithScenario(page, 'children:success');
+    await page.setViewportSize({ width: 196, height: 426 });
+    await settle(page);
+    const header = page.locator('.haru-activity-card--front .haru-activity-card__header').first();
+    const result = await header.evaluate((element) => {
+      const label = element.querySelector<HTMLElement>('.haru-tag .haru-tag__label')!;
+      const flip = element.querySelector<HTMLElement>('.haru-activity-card__flip')!;
+      const card = element.closest('.haru-activity-card')!.getBoundingClientRect();
+      const box = flip.getBoundingClientRect();
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      return {
+        truncated: label.scrollWidth > label.clientWidth,
+        headerOverflow: element.scrollWidth - element.clientWidth,
+        flipInsideCard: box.left >= card.left && box.right <= card.right,
+        flipHit: hit !== null && flip.contains(hit),
+      };
+    });
+    expect(result.truncated).toBe(true);
+    expect(result.flipInsideCard).toBe(true);
+    expect(result.flipHit).toBe(true);
+  });
+});

@@ -244,6 +244,19 @@ export function seedReportState(state: MockReportState, scenario: ReportScenario
   }
 }
 
+/**
+ * 서버의 리포트 · 주기 진행을 지운다 — 전체 데이터 삭제 · 탈퇴 **완료** 시 (Stage 8 `P8-BIP-02` · `P8-BIP-03` 의 Mock,
+ * handoff `H8-1-N5`). 발행 리포트 0 · PDF 작업 0 · 주기 = 첫 주기 `in_progress` 0/0 (`empty` seed 와 같은 상태).
+ * seed 플래그를 채워 둔다 — 지운 뒤 scenario seed 가 다시 들어오지 않는다 (`wipeSessionState` 와 같은 규칙).
+ */
+export function wipeReportState(state: MockReportState): void {
+  const initial = createMockReportState();
+  state.reports = initial.reports;
+  state.cycle = initial.cycle;
+  state.pdfJobs.clear();
+  state.seeded = 'empty';
+}
+
 // ── 전이 (서버 Job 흉내 — 테스트 helper) ─────────────────────────────────
 
 const CYCLE_TRANSITIONS: Readonly<Record<ReportStatus, readonly ReportStatus[]>> = {

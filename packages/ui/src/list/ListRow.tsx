@@ -19,6 +19,16 @@ export interface ListRowProps {
    */
   meta?: ReactNode;
   /**
+   * `meta` 가 한 줄에 안 들어갈 때 **meta 를 통째로 다음 줄**(subtitle 아래, 시작 정렬)로 내린다 — opt-in, 기본 `false`
+   * (Stage 8 `D8-2` ② · `VG8-B-08`, Stage 8 Design Spec §8.1). 기본은 meta 가 줄지 않고 subtitle 이 좁아져 단어마다 끊긴다.
+   *
+   * - 들어가면(`subtitle + gap 8 + meta ≤ 텍스트 열`) 지금과 같은 한 줄 · meta 우측 정렬.
+   * - 안 들어가면 meta 가 2번째 줄 시작으로. subtitle 은 내용 폭(열보다 길 때만 단어 경계에서 줄바꿈) · meta 는 줄바꿈 0.
+   * - 줄 간격 0 (caption 행 높이 그대로 쌓인다 — 새 토큰 0). `meta` 가 없으면 효과 없음.
+   * - **`false` 일 때 DOM · class · CSS 변화 0** — 기존 사용처(Library 등) 그대로.
+   */
+  metaWrap?: boolean;
+  /**
    * 행 우측 요소 — chevron · IconButton · Checkbox.
    * `onPress` 를 함께 주면 행 전체가 `<button>` 이 되므로 **인터랙티브 요소를 넣지 않는다**
    * (중첩 버튼 금지). 인터랙티브 trailing 이 필요하면 `onPress` 없이 쓴다.
@@ -46,6 +56,7 @@ export function ListRow({
   subtitle,
   media,
   meta,
+  metaWrap = false,
   trailing,
   onPress,
   disabled = false,
@@ -66,7 +77,9 @@ export function ListRow({
         {meta === undefined ? (
           subtitleNode
         ) : (
-          <span className="haru-list-row__meta-row">
+          <span
+            className={cx('haru-list-row__meta-row', metaWrap && 'haru-list-row__meta-row--wrap')}
+          >
             {subtitleNode}
             <span className="haru-list-row__meta">{meta}</span>
           </span>

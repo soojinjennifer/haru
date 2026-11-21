@@ -20,7 +20,10 @@
  * `children/history`(목록 schema 만, `N6-12`) · `CapabilitySnapshotSource` 3값 · `ChildProfile.profileUpdatedAt`.
  * Stage 7 범위(`S7-A`): `progress`(`WeeklyProgress` · `GrowthThemeStage`) · `reports`(overview · summary · detail · pdf) ·
  * `highlight-clips` 확장(`ReportHighlightClip` · `RecordingDeletedDetails`) · `rules/report-cycle`(C7-11).
- * 나머지 도메인 schema(data-management)는 해당 Stage 에서 추가한다.
+ * Stage 8 범위(`S8-A`): `data-management`(`DataManagementSummary` · `DeletionRequest` · `CreateDeletionRequest` ·
+ * `DeleteAccountRequest`) · `SessionListItem` + `hasRecording`(C8-2) · `Caregiver.email`(C8-10) ·
+ * `DeletionScope += account`(C8-4) · error code `ACCOUNT_DELETION_PENDING`(C8-5, 30종).
+ * 동의 이력(`ConsentHistory`, C8-6)은 Backend 요구로만 문서화한다 — 여기에 만들지 않는다 (`N8-06` ⓑ).
  */
 export * from './activity/index.js';
 export * from './analysis/index.js';
@@ -29,6 +32,7 @@ export * from './books/index.js';
 export * from './children/index.js';
 export * from './common/index.js';
 export * from './consent/index.js';
+export * from './data-management/index.js';
 export * from './enums/index.js';
 export * from './health/index.js';
 export * from './highlight-clips/index.js';

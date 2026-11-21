@@ -113,3 +113,19 @@
   margin-inline: var(--field-padding-x);
   background-color: var(--color-divider);
 }
+
+/*
+ * Trial 안내(`C13-11`) + 그 아래 슬롯 (Stage 8 `C13-S8-7` — 기기 draft 삭제 TextLink, Spec §2.7 · `Q8-12` ⓓ).
+ * 안내 ↔ 슬롯 간격 8. 슬롯은 시작 정렬(링크가 행 전체로 늘어나지 않게). 슬롯이 없으면 안내 1개만 있어 간격이 생기지 않는다.
+ * `R-SHADOW-1`: 새 overflow 0.
+ */
+.haru-trial-notice {
+  display: flex;
+  flex-direction: column;
+  /* provisional: P-41 (docs/decisions/stage-0-approvals.md §4 · Stage 8 Spec §5.3) */
+  gap: var(--space-2);
+}
+
+.haru-trial-notice__footer {
+  align-self: flex-start;
+}

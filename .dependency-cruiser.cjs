@@ -151,7 +151,7 @@ module.exports = {
       path: 'node_modules',
     },
     exclude: {
-      path: '(^|/)(dist|build|coverage|playwright-report|test-results)(/|$)',
+      path: '(^|/)(dist|dist-preview|build|coverage|playwright-report|test-results)(/|$)',
     },
     tsPreCompilationDeps: true,
     combinedDependencies: false,

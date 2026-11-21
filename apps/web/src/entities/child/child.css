@@ -75,12 +75,12 @@
  * 다른 섹션 라벨과 같은 recipe(`Text caption-1 · tone secondary · weight bold · tracking section-label`, `D6-10` ③)의
  * 토큰을 그대로 쓴다.
  *
- * 세로 간격 (`D6-10` ③ `VG6-G-09`) — 언어 카드 아래 → 첫 행 = Figma **53**. 라벨 위 `--child-routine-label-offset`(7) +
+ * 세로 간격 (`D6-10` ③ `VG6-G-09`) — 언어 카드 아래 → 첫 행 = Figma **53**. 라벨 위 `--section-label-offset`(7 — Stage 8 `VG6-H-09` A 로 공통 이름 승격) +
  * 라벨 줄 16 + 라벨 ↔ 첫 행 `space-2-5`(10) — 섹션 gap 20 과 합쳐 53, 글자 중심 = 카드 아래 +35 (Figma 와 같다).
  * 산식 근거는 토큰 정의(`component/index.css` `S6-H` 블록).
  */
 .haru-child-routine .haru-radio-group__legend {
-  padding-block-start: var(--child-routine-label-offset);
+  padding-block-start: var(--section-label-offset);
   font-size: var(--text-caption-1);
   line-height: var(--text-caption-1--line-height);
   letter-spacing: var(--section-label-letter-spacing);

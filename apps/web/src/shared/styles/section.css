@@ -1,0 +1,37 @@
+/*
+ * 섹션 라벨 행 공통 recipe — Stage 8 `S8-F` `VG6-H-09` **A** (`N8-15` · `Q8-15`, `D8-1`, Spec §11.1 · §2.0 · AC-8-41).
+ *
+ * Figma 라벨 행(`244:1426` 등) = h34(pad 10 · 텍스트 14 · pad 10) → gap 1 → 내용 · 섹션 gap 18.
+ * HARU = 섹션 gap 20(`AD-S2R-04`) + 라벨 위 `--section-label-offset` 7 + caption-1 줄 16 + 라벨 ↔ 내용 `space-2-5` 10
+ *      → 앞 내용 아래 → 글자 중심 **35** · 글자 중심 → 내용 **18** · 합 **53** (독서 루틴 `VG6-H-05` 와 같은 리듬).
+ *
+ * ```
+ * <section class="haru-section">          ← 라벨(SectionLabel recipe Text) + 내용
+ *   SectionLabel                            caption-1 · secondary · bold · tracking="section-label"
+ *   내용
+ * ```
+ *
+ * - 라벨 위 여백은 **앞 형제가 있는 섹션에만** 준다 — 화면 첫 섹션은 앞 내용이 없어 "앞 내용 아래 → 글자 중심" 이 정의되지 않고,
+ *   첫 라벨의 위치는 화면 위 여백(`py-6` 등)이 이미 정한다.
+ * - SectionLabel 컴포넌트를 만들지 않는다 (Stage 2 결정 · `VG6-H-06` 조건 ③) — 이 class 는 섹션 **간격**만 정한다.
+ * - `R-SHADOW-1`: overflow 0.
+ */
+/*
+ * 내용이 여러 요소인 섹션(예: `YOUR CHILD` = 아이 정보 필드 묶음 — fragment 로 여러 형제)은 **내용 사이 간격을 그대로** 둔다
+ * (`--section-content-gap`, 기본 `space-2` 8 = 이전 `gap-2`). recipe 가 바꾸는 것은 **라벨 ↔ 첫 내용 = 10** 뿐이다 —
+ * 라벨 아래 margin = 10 − 내용 간격.
+ */
+.haru-section {
+  --section-content-gap: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-content-gap);
+}
+
+.haru-section > :first-child {
+  margin-block-end: calc(var(--space-2-5) - var(--section-content-gap));
+}
+
+* + .haru-section {
+  padding-block-start: var(--section-label-offset);
+}

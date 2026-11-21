@@ -35,7 +35,12 @@ import {
   type CurrentChildProfileState,
 } from '../../../entities/child-profile';
 import { childCopy } from '../../../shared/copy/child-copy';
-import { errorCopyForCode, networkErrorCopy, retryLabel } from '../../../shared/copy/error-copy';
+import {
+  deletionPendingCopy,
+  errorCopyForCode,
+  networkErrorCopy,
+  retryLabel,
+} from '../../../shared/copy/error-copy';
 import { validateChildInfo, type ChildInfoFormState } from '../../../shared/lib/child-info';
 import { clockDate, createSystemClock, type Clock } from '../../../shared/lib/clock';
 import { childInfoEditCopy as copy } from '../copy';
@@ -134,7 +139,7 @@ function EditContent({ profile, now }: { profile: ChildProfile; now: Date }) {
     saving.isError && (server === null || server.unplaced)
       ? saving.isOffline
         ? copy.offline
-        : copy.saveFailed
+        : (deletionPendingCopy(saving.errorCode) ?? copy.saveFailed)
       : null;
 
   /** 서버 필드 오류가 새로 도착했는가 — 바뀔 때마다 첫 오류 필드로 포커스한다. */
@@ -165,14 +170,14 @@ function EditContent({ profile, now }: { profile: ChildProfile; now: Date }) {
 
   return (
     <div ref={rootRef} className="flex flex-1 flex-col gap-5" data-state="ready">
-      <section className="flex flex-col gap-2">
+      <section className="haru-section">
         <Text variant="caption-1" tone="secondary" weight="bold" tracking="section-label">
           {childCopy.childSection}
         </Text>
         <ChildIdentityFields form={form} onChange={change} now={now} errors={fieldErrors} />
       </section>
 
-      <section className="flex flex-col gap-3">
+      <section className="haru-section">
         <Text variant="caption-1" tone="secondary" weight="bold" tracking="section-label">
           {childCopy.homeSection}
         </Text>

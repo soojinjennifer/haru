@@ -13,6 +13,7 @@
  * | ⭐ Activity Card 오프라인 캐시 (`haru.activity-card.v1`) | 결정 `D-11` 삭제 시점 ④ — Stage 4 **AC-4-83** (이월 `QA-3-002`) |
  * | ⭐ 로컬 녹음 (청크 · 색인 · 업로드 큐 · 미전송 전이) | **아동 음성**이다 — Stage 4 **AC-4-72**, `rules/architecture.md` §9 "로그아웃 시 로컬 녹음·캐시 정리". ⚠️ 업로드되지 않은 녹음도 지운다 (이 기기를 떠나는 사용자의 아동 음성을 남기지 않는다) |
  * | Query 캐시 | 이전 사용자의 서버 상태가 다음 화면에 비치지 않게 한다 (S2-R6) |
+ * | 전체 삭제 요청 기기 표시 (`haru.data-deletion.pending.v1`) | Stage 8 `N8-31` ⓐ (AC-8-97) — 이 기기를 떠나면 감시도 끝난다. 요청 id 뿐(PII 0)이지만 다음 사용자의 감시 대상이 아니다 |
  *
  * **로컬 정리는 `signOut()` 실패와 무관하게 수행한다.** 사용자가 이미 "이 기기에서 나간다"고
  * 확인했고, 남은 아동 데이터를 기기에 두는 쪽이 더 나쁜 결과다. 실패는 그대로 던져서 화면이
@@ -31,6 +32,11 @@ export interface SessionCleanupDeps {
   clearLocalRecordings: () => Promise<void>;
   /** `QueryClient.clear` 만 필요하다. */
   clearQueryCache: () => void;
+  /**
+   * 전체 삭제 요청 기기 표시 (`N8-31` ⓐ, Plan §5.7 "로그아웃 · 탈퇴 정리에 이 키 포함"). 로그아웃 · 탈퇴는 지운다.
+   * **전체 삭제 완료 정리는 지우지 않는다**(no-op) — 표시는 정리 **성공 후** 감시자가 지운다(실패면 남겨 재시도).
+   */
+  clearDataDeletionMarker: () => void;
 }
 
 export async function performSessionCleanup(deps: SessionCleanupDeps): Promise<void> {
@@ -40,6 +46,7 @@ export async function performSessionCleanup(deps: SessionCleanupDeps): Promise<v
     // 순서 주의: 로컬 데이터(draft · 카드 캐시 · 로컬 녹음)를 먼저 지운다. 캐시 정리는 재조회를 유발할 수 있다.
     deps.clearOnboardingDraft();
     deps.clearActivityCardCache();
+    deps.clearDataDeletionMarker();
     try {
       await deps.clearLocalRecordings();
     } finally {

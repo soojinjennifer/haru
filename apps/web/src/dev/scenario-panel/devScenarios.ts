@@ -12,6 +12,10 @@ import { activityScenarioGroup } from '../../mocks/activities/MockActivityApi';
 import { analysisScenarioGroup } from '../../mocks/analysis/analysisScenarios';
 import { booksScenarioGroup } from '../../mocks/books/MockBooksApi';
 import { childrenScenarioGroup } from '../../mocks/children/childProfileRecords';
+import {
+  accountScenarioGroup,
+  dataManagementScenarioGroup,
+} from '../../mocks/data-management/dataManagementScenarios';
 import { healthScenarioGroup } from '../../mocks/health/MockHealthApi';
 import { highlightClipScenarioGroup } from '../../mocks/highlight-clips/highlightClipScenarios';
 import { homeScenarioGroup } from '../../mocks/home/MockHomeApi';
@@ -60,5 +64,8 @@ export const DEV_SCENARIO_GROUPS: readonly ScenarioGroupDefinition<string>[] = [
   reportScenarioGroup,
   reportPdfScenarioGroup,
   highlightClipScenarioGroup,
+  // Stage 8 (`S8-A`, Plan §8) — 데이터 관리 · 세션 녹음 삭제 · 전체 삭제 · 탈퇴 (API_CONTRACTS §5.4 Rev 12)
+  dataManagementScenarioGroup,
+  accountScenarioGroup,
   statesScenarioGroup,
 ];

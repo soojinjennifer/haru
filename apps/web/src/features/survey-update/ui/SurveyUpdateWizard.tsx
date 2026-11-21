@@ -42,7 +42,12 @@ import {
   type SurveyCard,
 } from '../../../entities/survey';
 import { ROUTES } from '../../../shared/config/routes';
-import { errorCopyForCode, networkErrorCopy, retryLabel } from '../../../shared/copy/error-copy';
+import {
+  deletionPendingCopy,
+  errorCopyForCode,
+  networkErrorCopy,
+  retryLabel,
+} from '../../../shared/copy/error-copy';
 import { surveyUpdateCopy as copy } from '../copy';
 import {
   LAST_SURVEY_UPDATE_STEP,
@@ -188,7 +193,7 @@ function WizardContent({
       ? null
       : wizard.submitFailure.offline
         ? copy.offline
-        : copy.saveFailed;
+        : (deletionPendingCopy(wizard.submitFailure.code) ?? copy.saveFailed);
 
   return (
     <div className="flex flex-1 flex-col" data-state="ready">

@@ -41,6 +41,7 @@ import { ROUTES } from '../../../shared/config/routes';
 import {
   ERROR_COPY,
   errorCopyForCode,
+  deletionPendingToastMessage,
   joinErrorMessage,
   unknownErrorCopy,
 } from '../../../shared/copy/error-copy';
@@ -84,7 +85,8 @@ function draftOf(reflection: Reflection): Draft {
 function failureMessage(code: ErrorCode | undefined, offline: boolean): string {
   if (offline) return copy.offline;
   if (code === 'SESSION_INVALID_TRANSITION') return joinErrorMessage(unknownErrorCopy);
-  return joinErrorMessage(errorCopyForCode(code));
+  // 쓰기 차단 = 설명만 (Toast 1줄 표면, Spec §2.9 `VG8-C-08`)
+  return deletionPendingToastMessage(code) ?? joinErrorMessage(errorCopyForCode(code));
 }
 
 export function ReflectionCard({ sessionId }: ReflectionCardProps) {

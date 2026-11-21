@@ -6,6 +6,8 @@
  * - Stage 6 `C13-S6-1` (Spec §2.4 · §10.3, `N6-38`): **2그룹 5행** — `YOUR CHILD`(Profile · Child info ·
  *   Update survey answers · Growth focus) · `ACCOUNT`(Log out). 알림·데이터 관리·탈퇴·동의 이력 행 없음
  *   (알림 = `D-18` 디자이너 대기, 데이터 관리·탈퇴 = Stage 8 — `ACCOUNT` 그룹에 붙는다).
+ * - Stage 8 `C13-S8-1` (Spec §2.1 · §10.1, `Q8-02` ⓐ): `ACCOUNT` = *Data & privacy* · *Account* (이동 행) → *Log out* (동작 행).
+ *   동의 이력 행 없음 (`N8-06` ⓑ).
  */
 export const settingsCopy = {
   /** TopBar 제목 — Design Spec §2.14. */
@@ -26,6 +28,11 @@ export const settingsCopy = {
     childInfo: 'Child info',
     surveyUpdate: 'Update survey answers',
     growthFocus: 'Growth focus',
+  },
+  /** 그룹 `ACCOUNT` 의 이동 행 (Stage 8 Spec §10.1, `Q8-02` ⓐ) — Log out 은 `logOut.rowLabel`. */
+  accountRows: {
+    dataPrivacy: 'Data & privacy',
+    account: 'Account',
   },
 
   logOut: {

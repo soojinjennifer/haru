@@ -571,10 +571,13 @@
    * ④ 독서 루틴 라벨 위 여백 — 언어 카드 아래 → 첫 행 = Figma **53** (섹션 gap 18 + 라벨 행 pad 10 + 글자 14 + pad 10 + gap 1).
    *    HARU: 섹션 gap 20(`AD-S2R-04`) + **7** + caption-1 줄 16 + `space-2-5` 10 = 53. 7 = 글자 중심을 Figma 와 같은 높이
    *    (카드 아래 +35 = 18 + 10 + 14/2)에 두는 값이다 (20 + 7 + 16/2 = 35). 스케일(짝수)로는 합 17 이 나오지 않는다.
+   * Stage 8 `S8-F` (`VG6-H-09` A — `N8-15` · `Q8-15`, `D8-1`): 독서 루틴 전용 이름 `--child-routine-label-offset` 을 **공통 섹션 라벨
+   *    recipe** 이름 `--section-label-offset` 으로 승격했다 (값 그대로 7 · Tier 3). 같은 화면의 모든 섹션 라벨 행이 이 값 + 라벨 ↔ 내용
+   *    `space-2-5` 10 을 쓴다 (`apps/web/src/shared/styles/section.css`).
    */
   --choice-card-radius: 30px;
   --section-label-letter-spacing: 0.72px;
-  --child-routine-label-offset: 7px;
+  --section-label-offset: 7px;
 
   /* ===== Stage 7 `S7-B` — Progress · 4주 리포트 (Stage 7 Spec §5.2 `T7-4`~`T7-15`, `D7-5`) =====
    * 실측: Figma Dev Mode MCP 로컬 서버 `get_metadata(163:2564 · 163:2544)` + `get_variable_defs(31:102)` (2026-11-19)

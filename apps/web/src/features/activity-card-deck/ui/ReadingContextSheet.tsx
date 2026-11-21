@@ -20,7 +20,7 @@
  * - 문구는 feature copy 모듈에서 온다. 코드 키(`after_pickup` …)를 화면에 노출하지 않는다.
  */
 import { Button, Icon, IconButton, InlineAlert, RadioGroup, SelectTrigger, Sheet } from '@haru/ui';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { ReadingContextSchema, type ReadingContext } from '@haru/contracts';
 
 import { activityDeckCopy } from '../copy';
@@ -31,6 +31,11 @@ export const READING_TIME_OPTIONS: readonly string[] = Array.from({ length: 48 }
   const minute = index % 2 === 0 ? '00' : '30';
   return `${hour}:${minute}`;
 });
+
+/** 시간 목록 radio 묶음 이름 — 키보드 확정 처리가 이 이름으로 대상을 가린다. */
+const READING_TIME_NAME = 'reading-time';
+/** native radio 묶음에서 focus 와 선택을 함께 옮기는 키 (Home · End 는 native radio 가 처리하지 않는다). */
+const MOVE_KEYS: ReadonlySet<string> = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
 
 export interface ReadingContextChoice {
   readingContext: ReadingContext;
@@ -65,6 +70,52 @@ export function ReadingContextSheet({
   const [view, setView] = useState<'choices' | 'time'>('choices');
   const failureRef = useRef<HTMLDivElement>(null);
   const failureShown = failure !== null && view === 'choices';
+  const backId = useId();
+  const timeTriggerId = useId();
+  /**
+   * 뷰 전환 뒤 focus 를 옮길 곳 (`S4B-F1-OPEN` ④ · AC-8-43). 두 뷰는 같은 `Sheet` 의 내용만 바꾸므로
+   * 시트의 focus trap 은 다시 돌지 않는다 — 누른 요소가 사라지면 focus 가 body 로 떨어진다.
+   * 목록을 열면 시트 안 첫 요소(`Back`), 돌아오면 목록을 연 트리거로 보낸다 (Dialog/Sheet 규칙과 같다).
+   */
+  const focusAfterViewChange = useRef<string | null>(null);
+
+  useEffect(() => {
+    const target = focusAfterViewChange.current;
+    if (target === null) return;
+    focusAfterViewChange.current = null;
+    document.getElementById(target)?.focus();
+  }, [view]);
+
+  /**
+   * 시간 목록의 **키보드 선택** (AC-8-47 · WCAG 2.1.1 — `S8-G` 감사에서 발견). native radio 는 화살표로
+   * focus 를 옮기면서 **그 자리에서 선택(change)** 한다. 포인터 탭과 같은 `onChange` 로 곧장 돌아가면
+   * 키보드 사용자는 첫 칸 옆(00:30 · 23:30)밖에 고를 수 없었다. 그래서 화살표 이동은
+   * 선택만 바꾸고 목록에 머물며, **Enter · Space 가 확정**(돌아가기)이다. 포인터 동작은 그대로다.
+   */
+  const keyboardMove = useRef(false);
+
+  useEffect(() => {
+    if (view !== 'time') return undefined;
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement) || target.name !== READING_TIME_NAME) return;
+      if (MOVE_KEYS.has(event.key)) {
+        keyboardMove.current = true;
+        return;
+      }
+      // 이미 선택된 칸에서의 Space 는 change 가 나지 않는다 — Enter 와 같이 확정으로 받는다
+      if (event.key === 'Enter' || (event.key === ' ' && target.checked)) {
+        event.preventDefault();
+        setCustomTime(target.value);
+        focusAfterViewChange.current = timeTriggerId;
+        setView('choices');
+      }
+    };
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown, true);
+    };
+  }, [view, timeTriggerId]);
 
   // 안내가 나타나는 순간 1회 — 보이는 만큼만 움직인다(`nearest`). jsdom 에는 `scrollIntoView` 가 없다.
   useEffect(() => {
@@ -97,10 +148,12 @@ export function ReadingContextSheet({
         // `Back` = 헤더 왼쪽 (`D4-64`, 4b Spec §16.7)
         leading={
           <IconButton
+            id={backId}
             icon={<Icon name="chevron-left" size="md" decorative />}
             label={copy.back}
             variant="plain"
             onPress={() => {
+              focusAfterViewChange.current = timeTriggerId;
               setView('choices');
             }}
           />
@@ -109,12 +162,17 @@ export function ReadingContextSheet({
         <RadioGroup
           legend={copy.timeLabel}
           legendVisuallyHidden
-          name="reading-time"
+          name={READING_TIME_NAME}
           variant="list"
           options={READING_TIME_OPTIONS.map((time) => ({ value: time, label: time }))}
           value={customTime}
           onChange={(value) => {
             setCustomTime(value);
+            if (keyboardMove.current) {
+              keyboardMove.current = false;
+              return;
+            }
+            focusAfterViewChange.current = timeTriggerId;
             setView('choices');
           }}
         />
@@ -157,12 +215,14 @@ export function ReadingContextSheet({
         />
         {context === 'custom_time' ? (
           <SelectTrigger
+            id={timeTriggerId}
             label={copy.timeLabel}
             placeholder={copy.timePlaceholder}
             value={customTime}
             options={READING_TIME_OPTIONS.map((time) => ({ value: time, label: time }))}
             onChange={setCustomTime}
             onOpen={() => {
+              focusAfterViewChange.current = backId;
               setView('time');
             }}
             required

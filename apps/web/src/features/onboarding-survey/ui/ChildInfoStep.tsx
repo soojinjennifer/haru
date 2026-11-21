@@ -170,6 +170,11 @@ export function ChildInfoStep({
 
   return (
     <div className="flex flex-col gap-5">
+      {/*
+        `YOUR CHILD` 편집 아이콘 헤더 행(44)은 공통 섹션 recipe(`.haru-section`)를 쓰지 않는다 — `VG6-H-09` ⓑ-1 을 구현 후 실측했더니
+        아이콘 hit(44) 아래 끝이 카드 위 끝을 **4px 침범**했다(hit bottom 334 > card top 330, 393 Trial Step 1). Spec §11.1 대로 ⓑ-2
+        (현행 유지 — Δ+13 허용 차이 후보, 사용자 등록 전)로 되돌렸다. 나머지 섹션(ABOUT YOU · AT HOME)은 A recipe.
+      */}
       <section className="flex flex-col gap-2">
         {/* SectionLabel recipe + 편집 전환 (§4.3 신호 ②) — 컴포넌트를 만들지 않는다. */}
         <div className="haru-child-section-header">
@@ -178,6 +183,8 @@ export function ChildInfoStep({
           </Text>
           {editing ? (
             <TextLink
+              /* `D8-3` (`H8-6-N4`) — 같은 자리 IconButton(hit 44)과 같은 누르는 영역. 보이는 모습 변화 0. */
+              hitArea="touch"
               onPress={() => {
                 setEditing(false);
               }}
@@ -237,7 +244,7 @@ export function ChildInfoStep({
         )}
       </section>
 
-      <section className="flex flex-col gap-2">
+      <section className="haru-section">
         <Text variant="caption-1" tone="secondary" weight="bold" tracking="section-label">
           {copy.caregiverSection}
         </Text>
@@ -255,7 +262,7 @@ export function ChildInfoStep({
         />
       </section>
 
-      <section className="flex flex-col gap-3">
+      <section className="haru-section">
         <Text variant="caption-1" tone="secondary" weight="bold" tracking="section-label">
           {copy.homeSection}
         </Text>

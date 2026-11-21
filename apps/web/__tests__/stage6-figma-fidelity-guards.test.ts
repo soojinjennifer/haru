@@ -124,12 +124,12 @@ describe('VG6-G-09 — 언어 카드 아래 → 첫 독서 루틴 행 = Figma 53
     );
     expect(SPACE_TOKENS).toContain('--space-2-5: calc(var(--spacing) * 2.5)');
     const sectionGap = spacing * 5; // ChildInfoStep / ChildInfoEditForm 부모 gap-5
-    const offset = px(tokenValue(COMPONENT_TOKENS, '--child-routine-label-offset'));
+    const offset = px(tokenValue(COMPONENT_TOKENS, '--section-label-offset'));
     const line = px(tokenValue(TYPO_PRIMITIVES, '--haru-type-caption-1-line'));
     const toRow = spacing * 2.5;
 
     expect(rule(CHILD_CSS, '.haru-child-routine .haru-radio-group__legend')).toContain(
-      'padding-block-start: var(--child-routine-label-offset)',
+      'padding-block-start: var(--section-label-offset)',
     );
     expect(rule(CHILD_CSS, '.haru-child-routine .haru-radio-group__options')).toContain(
       'margin-block-start: var(--space-2-5)',

@@ -54,7 +54,7 @@ test('카드 헤더 링크 → 상세 → Back = 앱 안 이전 화면 `/progres
 }) => {
   await logInToHome(page);
   await page.getByRole('navigation').getByRole('link', { name: 'Progress' }).click();
-  await page.getByRole('link', { name: 'Open 4-week report, Apr 13 – May 10' }).click();
+  await page.getByRole('link', { name: /^4-week full report\s*Apr 13 – May 10 · / }).click();
   await expect(page).toHaveURL(new RegExp(`/progress/reports/${LATEST}$`));
   await expect(page.locator(READY)).toBeVisible();
   await expect(page.getByText('Apr 13 – May 10', { exact: true })).toBeVisible();
@@ -117,7 +117,7 @@ test('viewed — 미열람 리포트 최초 표시 1회 · 재진입 0 · 열람
     .poll(async () => (await requestOperations(page)).filter((op) => op === VIEWED_OP).length)
     .toBe(1);
   await page.getByRole('button', { name: 'Back' }).click();
-  await page.getByRole('link', { name: 'Open 4-week report, Apr 13 – May 10' }).click();
+  await page.getByRole('link', { name: /^4-week full report\s*Apr 13 – May 10 · / }).click();
   await expect(page.locator(READY)).toBeVisible();
   await settle(page);
   expect((await requestOperations(page)).filter((op) => op === VIEWED_OP)).toHaveLength(1);

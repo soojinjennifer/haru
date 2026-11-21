@@ -59,17 +59,30 @@ describe('가값 승인 자료 목록 (Plan §17-3)', () => {
    * **P-24**(Library 1라운드 `--color-fg-tertiary` = `#9aabaa`, `stage-3-approvals.md` §20.4)
    * 가 Stage 3 신규다.
    *
-   * `P-18`~`P-22` 는 **토큰이 존재하지 않아 등재 대상이 아니다** — `P-20`(`--toggle-*`)은
-   * 확정됐고 나머지는 토큰으로 만들어지지 않았다 (approvals §26.5 가 §21.5 기록을 정정).
+   * `P-18`~`P-22` 중 `P-20`(`--toggle-*`)만 이 목록에 없다 — 확정. `P-18` 은 토큰(`--list-row-height-min`)이
+   * **존재하지만** `provisional` 주석이 없고, `P-22` 는 에셋 가값이다 (`D8-3` `H8-6-N7` 사실 정정 —
+   * 둘 다 Final QA 재제시에 포함, `D8-4` 로 등재).
    * 등재 기준은 **`packages/design-tokens` 의 `provisional` 주석** 이다.
    */
-  it('P-01 … P-17 + P-23 + P-24 + P-25 + P-30 … P-33 + P-35 … P-40 를 제시한다', () => {
+  it('P-01 … P-19 + P-21 … P-33 + P-35 … P-43 를 제시한다', () => {
     expect(PROVISIONAL_ITEMS.map((item) => item.id)).toStrictEqual([
       ...Array.from({ length: 17 }, (_, index) => `P-${String(index + 1).padStart(2, '0')}`),
+      // `D8-4` (`D8-3-N3`) — 토큰 주석 없는 확정 후보
+      'P-18',
+      // Stage 8 `S8-G` — Plan 부록 B.2-④ (`S3-PROV-2` 잔여) 후보 2건
+      'P-19',
+      'P-21',
+      // `D8-4` (`D8-3-N3`) — 에셋 가값
+      'P-22',
       'P-23',
       'P-24',
       // Stage 4 `D4-16` — 세션 Discard 흰 라벨 on #aeaeb2 (AC-4-119 ③).
       'P-25',
+      // Stage 4b `D4-58` NB-7 · Stage 5 `D5-4` (S8-G 등재)
+      'P-26',
+      'P-27',
+      'P-28',
+      'P-29',
       // Stage 6 `S6-E1` — DiamondChart (Stage 6 Spec §5.3, `D6-8`).
       'P-30',
       'P-31',
@@ -82,10 +95,15 @@ describe('가값 승인 자료 목록 (Plan §17-3)', () => {
       'P-38',
       'P-39',
       'P-40',
+      // Stage 8 Spec §5.3 (`Q8-19` · `D8-2` ④)
+      'P-41',
+      'P-42',
+      // `D8-3` (`H8-6-N3`) — 로그인 Create an account 대비
+      'P-43',
     ]);
   });
 
-  it('확정 12건 / 디자이너 대기 18건으로 사용자 결정이 반영되어 있다', () => {
+  it('확정 12건 / 디자이너 대기 29건으로 사용자 결정이 반영되어 있다', () => {
     const waiting = PROVISIONAL_ITEMS.filter((item) => item.status === 'waiting').map(
       (item) => item.id,
     );
@@ -97,9 +115,17 @@ describe('가값 승인 자료 목록 (Plan §17-3)', () => {
       'P-04',
       'P-16',
       'P-17',
+      'P-18',
+      'P-19',
+      'P-21',
+      'P-22',
       'P-23',
       'P-24',
       'P-25',
+      'P-26',
+      'P-27',
+      'P-28',
+      'P-29',
       'P-30',
       'P-31',
       'P-32',
@@ -110,6 +136,9 @@ describe('가값 승인 자료 목록 (Plan §17-3)', () => {
       'P-38',
       'P-39',
       'P-40',
+      'P-41',
+      'P-42',
+      'P-43',
     ]);
     expect(PROVISIONAL_ITEMS.filter((item) => item.status === 'confirmed')).toHaveLength(12);
   });

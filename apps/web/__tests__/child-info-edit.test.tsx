@@ -114,22 +114,34 @@ describe('설정 목록 `/settings` (Spec §2.4 · C13-S6-1 · AC-6-15 · 16)', 
       settingsCopy.rows.surveyUpdate,
       settingsCopy.rows.growthFocus,
     ]);
-    expect(within(account).getAllByRole('listitem')).toHaveLength(1);
-    expect(within(account).getByRole('button').textContent).toBe(settingsCopy.logOut.rowLabel);
+    // Stage 8 `C13-S8-1` (`Q8-02` ⓐ · AC-8-13): 이동 행 2개 → 동작 행 Log out 마지막
+    expect(within(account).getAllByRole('listitem')).toHaveLength(3);
+    expect(
+      within(account)
+        .getAllByRole('button')
+        .map((button) => button.textContent),
+    ).toEqual([
+      settingsCopy.accountRows.dataPrivacy,
+      settingsCopy.accountRows.account,
+      settingsCopy.logOut.rowLabel,
+    ]);
 
     // 시각 SectionLabel 2개 (대문자 copy)
     expect(screen.getByText(settingsCopy.groups.child.sectionLabel)).toBeTruthy();
     expect(screen.getByText(settingsCopy.groups.account.sectionLabel)).toBeTruthy();
-    // 이동 행 4개에만 chevron — 로그아웃(동작 행)에는 없다
+    // 이동 행에만 chevron — 로그아웃(동작 행)에는 없다
     expect(child.querySelectorAll('.haru-settings-row__chevron')).toHaveLength(4);
-    expect(account.querySelectorAll('.haru-settings-row__chevron')).toHaveLength(0);
+    expect(account.querySelectorAll('.haru-settings-row__chevron')).toHaveLength(2);
+    const logOutRow = within(account).getAllByRole('listitem')[2] as HTMLElement;
+    expect(logOutRow.querySelectorAll('.haru-settings-row__chevron')).toHaveLength(0);
   });
 
-  it('명세에 없는 행 0 — 알림 · 데이터 관리 · 탈퇴 · 동의 이력 (AC-6-15 · AC-6-2)', async () => {
+  it('명세에 없는 행 0 — 알림 · 탈퇴 · 동의 이력 (AC-6-15 · AC-6-2 · Stage 8 `N8-06` ⓑ)', async () => {
     await renderAt([ROUTES.settings]);
     await screen.findByRole('list', { name: settingsCopy.groups.child.listLabel });
 
-    expect(screen.getAllByRole('listitem')).toHaveLength(5);
+    // Stage 6 5행 + Stage 8 ACCOUNT 이동 행 2 (`Q8-02` ⓐ)
+    expect(screen.getAllByRole('listitem')).toHaveLength(7);
     for (const label of [/notification/i, /manage data/i, /delete account/i, /consent history/i]) {
       expect(screen.queryByText(label)).toBeNull();
     }
@@ -140,6 +152,8 @@ describe('설정 목록 `/settings` (Spec §2.4 · C13-S6-1 · AC-6-15 · 16)', 
     [settingsCopy.rows.childInfo, ROUTES.settingsChild],
     [settingsCopy.rows.surveyUpdate, ROUTES.settingsChildSurvey],
     [settingsCopy.rows.growthFocus, ROUTES.settingsGrowthCapability],
+    [settingsCopy.accountRows.dataPrivacy, ROUTES.settingsData],
+    [settingsCopy.accountRows.account, ROUTES.settingsAccount],
   ])('행 "%s" → %s', async (label, route) => {
     await renderAt([ROUTES.settings]);
     fireEvent.click(await screen.findByRole('button', { name: label }));

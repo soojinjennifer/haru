@@ -204,7 +204,7 @@ const ENUM_SNAPSHOTS: readonly EnumSnapshot[] = [
   {
     name: 'DeletionScope',
     options: DeletionScopeSchema.options,
-    expected: ['session_recording', 'all_data'],
+    expected: ['session_recording', 'all_data', 'account'],
   },
   {
     name: 'DeletionRequestStatus',

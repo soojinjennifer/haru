@@ -293,7 +293,9 @@ test.describe('접근성 — 숫자 미낭독 · 토글 0 · 헤더 링크 (AC-7
     const card = page.getByRole('region', { name: '4-week full report' });
     const links = card.getByRole('link');
     await expect(links).toHaveCount(1);
-    const link = card.getByRole('link', { name: 'Open 4-week report, Apr 13 – May 10' });
+    // `D8-3` (`H8-6-N1`) — 이름 = 보이는 내용 (제목 + 범위가 든 설명)
+    const link = card.getByRole('link', { name: /^4-week full report\s*Apr 13 – May 10 · / });
+    await expect(link).not.toHaveAttribute('aria-label', /.*/);
     await expect(link.locator('a, button, input, [tabindex]')).toHaveCount(0);
     const rect = await link.boundingBox();
     expect(rect?.height ?? 0).toBeGreaterThanOrEqual(44);

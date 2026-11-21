@@ -49,6 +49,7 @@ import { useNavigate } from 'react-router';
 import { BookCover, useBookSearch } from '../../entities/book';
 import { useAddOwnBook } from '../../entities/library';
 import { ROUTES } from '../../shared/config/routes';
+import { deletionPendingCopy } from '../../shared/copy/error-copy';
 import { libraryCopy } from '../../shared/copy/library-copy';
 
 /** 검색 결과 자리 행 수 (§7.2 "Loading(`Skeleton` ×3)"). */
@@ -71,6 +72,8 @@ export function AddOwnBookForm() {
   }
 
   const duplicate = add.errorCode === 'BOOK_ALREADY_OWNED';
+  // 삭제 진행 중 쓰기 차단 — 같은 표면에 문구만 (AC-8-32 · Spec §2.9).
+  const blocked = deletionPendingCopy(add.errorCode);
   const trimmedTitle = title.trim();
 
   return (
@@ -87,7 +90,11 @@ export function AddOwnBookForm() {
         />
       ) : null}
       {add.isError && !duplicate ? (
-        <InlineAlert tone="error" title={libraryCopy.add.errorTitle} />
+        <InlineAlert
+          tone="error"
+          title={blocked?.title ?? libraryCopy.add.errorTitle}
+          {...(blocked === null ? {} : { description: blocked.description })}
+        />
       ) : null}
 
       {/*

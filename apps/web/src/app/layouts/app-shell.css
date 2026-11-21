@@ -43,3 +43,23 @@
    */
   padding-block-end: var(--layout-tabbar-bottom-gap);
 }
+
+/*
+ * 키보드 focus 가 sticky 바 **아래로 숨지 않게** — WCAG 2.4.11 (Stage 8 `S8-G`, AC-8-47).
+ *
+ * Tab 이동 때 브라우저는 focus 요소를 스크롤 뷰포트 **가장자리까지만** 끌어온다. 하단은 탭바
+ * 래퍼(overhang 35 + 바 70 + 간격 16 = 121), 상단은 TopBar(40)가 그 가장자리를 덮으므로, 실측에서
+ * Library 의 *See all* 이 탭바 밑(y 776–792 ⊂ 766–836)으로 **완전히 가려진 채** focus 되었다.
+ * `scroll-padding` 은 스크롤 정렬 기준선만 옮긴다 — 정지 상태 레이아웃 · 픽셀은 바뀌지 않는다.
+ * 값은 바 높이 토큰의 합이며 새 수치를 만들지 않는다 (rules/frontend.md §6).
+ */
+[data-app-shell-viewport]:has(.haru-app-shell__bar-top) {
+  scroll-padding-block-start: calc(var(--layout-safe-top) + var(--topbar-height));
+}
+
+[data-app-shell-viewport]:has(.haru-app-shell__bar-bottom) {
+  scroll-padding-block-end: calc(
+    var(--layout-safe-bottom) + var(--layout-tabbar-center-overhang) + var(--layout-tabbar-height) +
+      var(--layout-tabbar-bottom-gap)
+  );
+}

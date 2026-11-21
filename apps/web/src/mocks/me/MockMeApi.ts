@@ -17,6 +17,9 @@
  * | `vpc-pending` · `vpc-failed` | `parentVerification.status` 로 VPC 슬롯에 머묾              |
  * | `onboarding-incomplete`    | `onboardingStatus='in_progress'` → Guard 가 온보딩으로        |
  *
+ * Stage 8 (`C8-10`): 모든 응답의 `caregiver.email` = 가상 주소 `MOCK_CAREGIVER_EMAIL` (읽기 전용 — `PATCH` 로 바뀌지 않는다).
+ * Stage 8 (`N8-10` ⓐ): 전체 데이터 삭제 · 탈퇴 완료 뒤에는 `success` 계열이 온보딩 전 상태(`not_started` · 아이 없음)다.
+ *
  * `S4-H4` (NB-16): scenario 와 별개로, 세션 endpoint 가 `ONBOARDING_INCOMPLETE` 를 낸 뒤에는
  * (`MockOnboardingState.serverIncomplete()`) `onboardingStatus='in_progress'` 를 돌려준다 — 제출이 우선한다.
  *
@@ -49,6 +52,7 @@ import type { Clock } from '../../shared/lib/clock';
 import type { IdFactory } from '../../shared/lib/idFactory';
 import type { MockChildProfileState } from '../children/childProfileState';
 import type { MockConsentState } from '../consent/consentState';
+import type { MockDeletionState } from '../data-management/deletionState';
 import type { MockOnboardingState } from '../onboarding/onboardingState';
 import {
   createMeResponseFixture,
@@ -101,6 +105,11 @@ export interface MockMeApiDeps {
    * `child.firstName` 이 새 이름을 쓴다 (AC-6-22). 상태가 아직 없으면 fixture 이름(`Emma`).
    */
   childProfileState?: MockChildProfileState | undefined;
+  /**
+   * Stage 8 — 삭제 요청 서버 상태. 전체 데이터 삭제 · 탈퇴가 `completed` 면 아이 참조가 사라지고 온보딩 전 상태가 된다
+   * (`N8-10` ⓐ — Guard 가 온보딩으로 보낸다). 없으면(단위 테스트 단독 조립) 반영하지 않는다.
+   */
+  deletionState?: MockDeletionState | undefined;
   requestLog?: RequestLog | undefined;
 }
 
@@ -145,6 +154,10 @@ export function createMockMeApi(deps: MockMeApiDeps): MeApi {
           return createMeResponseFixture(clock, { onboardingStatus: 'in_progress' });
 
         default:
+          // Stage 8 — 전체 데이터 삭제 · 탈퇴가 끝나 서버에 아이가 없다 → 온보딩 전 상태 (`N8-10` ⓐ). 다시 제출하면 아래가 완료로 바꾼다.
+          if (deps.deletionState?.childDataDeleted === true && !onboardingState.submitted()) {
+            return createMeResponseFixture(clock, { onboardingStatus: 'not_started' });
+          }
           // 세션 endpoint 가 `ONBOARDING_INCOMPLETE` 를 낸 뒤면 같은 서버의 `me` 도 미완료다 (`S4-H4`, `P4B-BIP-08`)
           return onboardingState.serverIncomplete()
             ? createMeResponseFixture(clock, { onboardingStatus: 'in_progress' })

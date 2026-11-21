@@ -26,6 +26,9 @@ function makeDeps(
       clearActivityCardCache: vi.fn(() => {
         calls.push('clearActivityCardCache');
       }),
+      clearDataDeletionMarker: vi.fn(() => {
+        calls.push('clearDataDeletionMarker');
+      }),
       clearLocalRecordings: vi.fn(async () => {
         calls.push('clearLocalRecordings');
         await clearLocalRecordings();
@@ -38,7 +41,7 @@ function makeDeps(
 }
 
 describe('performSessionCleanup', () => {
-  it('세션 · 로컬 draft · 카드 캐시(AC-4-83) · 로컬 녹음(AC-4-72) · Query 캐시를 이 순서로 정리한다', async () => {
+  it('세션 · 로컬 draft · 카드 캐시(AC-4-83) · 전체 삭제 기기 표시(AC-8-97) · 로컬 녹음(AC-4-72) · Query 캐시를 이 순서로 정리한다', async () => {
     const { calls, deps } = makeDeps();
 
     await performSessionCleanup(deps);
@@ -47,6 +50,7 @@ describe('performSessionCleanup', () => {
       'signOut',
       'clearOnboardingDraft',
       'clearActivityCardCache',
+      'clearDataDeletionMarker',
       'clearLocalRecordings',
       'clearQueryCache',
     ]);
@@ -62,6 +66,7 @@ describe('performSessionCleanup', () => {
       'signOut',
       'clearOnboardingDraft',
       'clearActivityCardCache',
+      'clearDataDeletionMarker',
       'clearLocalRecordings',
       'clearQueryCache',
     ]);
@@ -81,6 +86,7 @@ describe('performSessionCleanup', () => {
       'signOut',
       'clearOnboardingDraft',
       'clearActivityCardCache',
+      'clearDataDeletionMarker',
       'clearLocalRecordings',
       'clearQueryCache',
     ]);

@@ -1,0 +1,23 @@
+/*
+ * 데이터 관리 (Stage 8 `C13-S8-2`, Spec §2.2) — 섹션 안 설명 문장 ↔ ListGroup 간격.
+ *
+ * 섹션 = SectionLabel → (설명 → ListGroup). 라벨 ↔ 설명은 공통 섹션 recipe `.haru-section` 10 (`VG6-H-09` A — `Q8-15`, `S8-F`),
+ * 설명 ↔ ListGroup 은 12 다. Figma 근거가 없는 C-13 레이아웃 값이라 가값으로 둔다.
+ *
+ * `R-SHADOW-1`: 새 overflow 0 — `ListGroup` 그림자(`--shadow-bubble`, 좌우 4 · 아래 10)는 문서 흐름 안에 있고
+ * 거터 24 · 섹션 간격 16 안에 든다.
+ */
+.haru-data-section__body {
+  display: flex;
+  flex-direction: column;
+  /* provisional: P-41 (docs/decisions/stage-0-approvals.md §4 · Stage 8 Spec §5.3) */
+  gap: var(--space-3);
+}
+
+/* 이동 행 chevron — 설정 목록(`.haru-settings-row__chevron`)과 같은 idiom · 같은 토큰. */
+.haru-data-row__chevron {
+  display: inline-flex;
+  align-items: center;
+  /* provisional: P-24 (docs/decisions/stage-0-approvals.md §4) */
+  color: var(--color-fg-tertiary);
+}

@@ -1,6 +1,6 @@
 /** `entities/session` 공개 진입점 — Stage 4 Storytime Session (Plan §9.3, FR-09~11). */
 export { sessionKeys } from './sessionKeys';
-export type { SessionDetailQueryKey } from './sessionKeys';
+export type { SessionDetailQueryKey, SessionListQueryKey } from './sessionKeys';
 export { useSessionDetail } from './useSessionDetail';
 export type { UseSessionDetailResult } from './useSessionDetail';
 export { useCreateSession } from './useCreateSession';

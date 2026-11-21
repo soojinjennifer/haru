@@ -66,7 +66,6 @@ export const progressOverviewCopy = {
 
   reportCard: {
     title: '4-week full report',
-    openLabel: (range: string) => `Open 4-week report, ${range}`,
     published: {
       description: (range: string) =>
         `${range} · a deeper read on the four themes, with the moments behind them.`,

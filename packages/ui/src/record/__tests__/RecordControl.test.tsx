@@ -14,8 +14,15 @@ const css = readFileSync(
 
 describe('RecordControl (Stage 4 Design Spec §2.6)', () => {
   it('is a single button named by the action, not the state (§2.6.3)', () => {
-    render(<RecordControl state="idle" label="Start recording" caption="Tap to recording" />);
-    const button = screen.getByRole('button', { name: 'Start recording' });
+    // `D8-3` — 이름 = 보이는 캡션 + 동작 (label-in-name, WCAG 2.5.3)
+    render(
+      <RecordControl
+        state="idle"
+        label="Tap to recording, Start recording"
+        caption="Tap to recording"
+      />,
+    );
+    const button = screen.getByRole('button', { name: 'Tap to recording, Start recording' });
     expect(button.getAttribute('type')).toBe('button');
     expect(button.getAttribute('aria-pressed')).toBeNull();
   });
@@ -75,9 +82,13 @@ describe('RecordControl (Stage 4 Design Spec §2.6)', () => {
 
   it('paused = `298:1227`: mic glyph + caption `Tap to resume` · no pulse class target', () => {
     const { container } = render(
-      <RecordControl state="paused" label="Resume recording" caption="Tap to resume" />,
+      <RecordControl
+        state="paused"
+        label="Tap to resume, Resume recording"
+        caption="Tap to resume"
+      />,
     );
-    const button = screen.getByRole('button', { name: 'Resume recording' });
+    const button = screen.getByRole('button', { name: 'Tap to resume, Resume recording' });
     expect(button.classList.contains('haru-record--paused')).toBe(true);
     expect(button.getAttribute('aria-disabled')).toBeNull();
     expect(container.querySelector('.haru-record__caption')?.textContent).toBe('Tap to resume');
@@ -94,12 +105,12 @@ describe('RecordControl (Stage 4 Design Spec §2.6)', () => {
     const { container } = render(
       <RecordControl
         state="disabled"
-        label="Start recording"
+        label="Tap to recording, Start recording"
         caption="Tap to recording"
         onToggle={onToggle}
       />,
     );
-    const button = screen.getByRole('button', { name: 'Start recording' });
+    const button = screen.getByRole('button', { name: 'Tap to recording, Start recording' });
     expect(button.getAttribute('aria-disabled')).toBe('true');
     expect(button.hasAttribute('disabled')).toBe(false);
     fireEvent.click(button);
@@ -116,9 +127,9 @@ describe('RecordControl (Stage 4 Design Spec §2.6)', () => {
 
   it('permission-denied = `298:1245`: Figma mic-off glyph `298:1254` (stroke 3.333, VG-F2-01) + `Mic is off` · gray-2 ring/core · P-25 marker', () => {
     const { container } = render(
-      <RecordControl state="permission-denied" label="Microphone is off" caption="Mic is off" />,
+      <RecordControl state="permission-denied" label="Mic is off" caption="Mic is off" />,
     );
-    expect(screen.getByRole('button', { name: 'Microphone is off' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Mic is off' })).toBeTruthy();
     expect(container.querySelector('.haru-record__glyph svg.lucide-mic-off')).toBeNull();
     const paths = container.querySelectorAll('.haru-record__glyph path');
     expect(paths).toHaveLength(6);

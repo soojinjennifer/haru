@@ -12,12 +12,20 @@
  * | Growth focus | `/settings/growth-capability` | `S6-D` |
  *
  * 로그아웃(`ACCOUNT` 그룹)은 이동이 아니라 동작 행이라 이 표에 없다 (chevron 없음 — Spec §2.4).
+ *
+ * Stage 8 `C13-S8-1` (Spec §2.1, `Q8-02` ⓐ · AC-8-13) — `ACCOUNT` 그룹의 **이동 행**을 `ACCOUNT_SETTINGS_ROWS` 로 둔다.
+ * 순서 = 이동 행 먼저, 동작 행(Log out) 마지막 — 화면이 이 표 뒤에 Log out 을 붙인다.
+ *
+ * | 행 | 이동 | 화면 등록 단위 |
+ * |---|---|---|
+ * | Data & privacy | `/settings/data` | `S8-B` |
+ * | Account | `/settings/account` | `S8-B` route · 화면 내용 `S8-D` |
  */
 import { ROUTES } from '../../../shared/config/routes';
 import { settingsCopy } from '../copy';
 
 export interface SettingsNavRow {
-  readonly id: 'profile' | 'childInfo' | 'surveyUpdate' | 'growthFocus';
+  readonly id: 'profile' | 'childInfo' | 'surveyUpdate' | 'growthFocus' | 'dataPrivacy' | 'account';
   readonly label: string;
   readonly to: string;
 }
@@ -31,4 +39,9 @@ export const CHILD_SETTINGS_ROWS: readonly SettingsNavRow[] = [
     label: settingsCopy.rows.growthFocus,
     to: ROUTES.settingsGrowthCapability,
   },
+];
+
+export const ACCOUNT_SETTINGS_ROWS: readonly SettingsNavRow[] = [
+  { id: 'dataPrivacy', label: settingsCopy.accountRows.dataPrivacy, to: ROUTES.settingsData },
+  { id: 'account', label: settingsCopy.accountRows.account, to: ROUTES.settingsAccount },
 ];

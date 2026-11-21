@@ -37,16 +37,19 @@ import {
 } from '../../../entities/survey';
 import { onboardingCopy } from '../copy';
 import { CARD_STEPS, isCardStep, LAST_STEP, previousStep } from '../model/steps';
+import { hasAnyAnswers } from '../model/useOnboardingDraft';
 import { useOnboardingWizard } from '../model/useOnboardingWizard';
 
 import { ChildInfoStep } from './ChildInfoStep';
-import { DraftDiscardNotice, TrialNotice } from './OnboardingNotices';
+import { DraftDiscardNotice, TrialNotice, type TrialNoticeFooter } from './OnboardingNotices';
 
 export interface OnboardingWizardProps {
   step: OnboardingStep;
   /** 테스트 주입 지점 (기본은 `localStorage` + 시스템 시계). */
   store?: OnboardingDraftStore | undefined;
   clock?: Clock | undefined;
+  /** Trial 안내 바로 아래 슬롯 (Stage 8 `C13-S8-7` — page 가 기기 draft 삭제를 조합한다). */
+  trialNoticeFooter?: TrialNoticeFooter | undefined;
 }
 
 /** 단계 제목 — copy 에 없는 단계(instrument 확장)는 제목 없이 렌더한다 (§10-3). */
@@ -55,7 +58,7 @@ function stepTitle(step: OnboardingStep): string | undefined {
   return titles[step];
 }
 
-export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) {
+export function OnboardingWizard({ step, store, clock, trialNoticeFooter }: OnboardingWizardProps) {
   const copy = onboardingCopy.wizard;
   const wizard = useOnboardingWizard({ step, store, clock });
   const session = useSurveyDeckSession();
@@ -231,7 +234,16 @@ export function OnboardingWizard({ step, store, clock }: OnboardingWizardProps) 
           onDismiss={wizard.draft.dismissDiscardNotice}
         />
         {/* Trial 안내는 **미로그인일 때만** 렌더한다 (`R-07`). */}
-        {step === 'child_info' ? <TrialNotice isTrial={wizard.isTrial} /> : null}
+        {step === 'child_info' ? (
+          <TrialNotice
+            isTrial={wizard.isTrial}
+            footer={trialNoticeFooter?.({
+              hasAnswers: hasAnyAnswers(wizard.answers),
+              childFirstName: wizard.answers.child_info?.firstName,
+              clear: wizard.draft.clear,
+            })}
+          />
+        ) : null}
 
         {onCardStep ? (
           <SurveyCardDeck

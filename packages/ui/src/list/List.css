@@ -163,6 +163,25 @@
   color: var(--color-fg-tertiary);
 }
 
+/*
+ * `metaWrap` (opt-in — Stage 8 `D8-2` ② · `VG8-B-08`, Spec §8.1) — 안 들어가면 **meta 가 통째로 다음 줄 시작**으로 내려간다.
+ * 한 줄에 들어가면 위 기본 규칙(`space-between` — meta 우측)과 같다. 줄이 나뉘면 meta 는 그 줄의 유일한 항목이라
+ * `space-between` 이 시작 정렬로 둔다. 가로 gap 8(`--space-2`) 은 그대로 · 줄 간격 0.
+ * 이 class 가 없으면(기본) 아무 규칙도 적용되지 않는다 — 기존 사용처 diff 0.
+ */
+.haru-list-row__meta-row--wrap {
+  flex-wrap: wrap;
+  row-gap: 0;
+}
+
+.haru-list-row__meta-row--wrap .haru-list-row__subtitle {
+  flex: 0 1 auto;
+}
+
+.haru-list-row__meta-row--wrap .haru-list-row__meta {
+  white-space: nowrap;
+}
+
 /* ===== hover / pressed =================================================== */
 @media (hover: hover) and (pointer: fine) {
   .haru-list-row__content--pressable:hover:not(:disabled) {

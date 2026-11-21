@@ -64,6 +64,52 @@ describe('ListRow — media / meta 슬롯 (Library §3.5)', () => {
     expect(container.querySelector('.haru-list-row__subtitle')?.textContent).toBe('3 sessions');
   });
 
+  /*
+   * `metaWrap` (Stage 8 `D8-2` ② · `VG8-B-08`, Spec §8.1) — opt-in. 기본(off) 은 class · DOM 변화 0 (기존 사용처 diff 0).
+   * 실제 줄 나눔(meta 가 다음 줄 시작으로)은 레이아웃이라 e2e(`settings-data.spec.ts` 320 · 393 실측 + baseline)가 본다.
+   */
+  it('metaWrap 기본 off — meta-row 의 class 가 지금과 같다 (변형 class 0)', () => {
+    const { container } = render(
+      <ListGroup>
+        <ListRow title="Grumpy Monkey" subtitle="3 sessions" meta="Rated 4.5" />
+      </ListGroup>,
+    );
+
+    expect(container.querySelector('.haru-list-row__meta-row')?.className).toBe(
+      'haru-list-row__meta-row',
+    );
+  });
+
+  it('metaWrap — meta-row 에 wrap 변형이 붙는다 · DOM 순서(subtitle → meta)는 같다', () => {
+    const { container } = render(
+      <ListGroup>
+        <ListRow
+          title="Storytime"
+          subtitle="Dec 28, 2025 · 12 min"
+          meta="Not uploaded yet"
+          metaWrap
+        />
+      </ListGroup>,
+    );
+
+    const metaRow = container.querySelector('.haru-list-row__meta-row');
+    expect(metaRow?.className).toBe('haru-list-row__meta-row haru-list-row__meta-row--wrap');
+    expect([...(metaRow?.children ?? [])].map((child) => child.className)).toStrictEqual([
+      'haru-list-row__subtitle',
+      'haru-list-row__meta',
+    ]);
+  });
+
+  it('metaWrap 은 meta 가 없으면 효과가 없다 (래퍼 0)', () => {
+    const { container } = render(
+      <ListGroup>
+        <ListRow title="Grumpy Monkey" subtitle="3 sessions" metaWrap />
+      </ListGroup>,
+    );
+
+    expect(container.querySelector('.haru-list-row__meta-row')).toBeNull();
+  });
+
   it('행 접근성 이름에 제목·보조·평점이 모두 들어간다', () => {
     render(
       <ListGroup>

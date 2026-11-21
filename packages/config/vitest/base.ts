@@ -23,6 +23,7 @@ export const COVERAGE_THRESHOLDS = {
 export const COVERAGE_EXCLUDE = [
   '**/node_modules/**',
   '**/dist/**',
+  '**/dist-preview/**',
   '**/coverage/**',
   '**/*.config.{ts,js,cjs,mjs}',
   '**/*.d.ts',

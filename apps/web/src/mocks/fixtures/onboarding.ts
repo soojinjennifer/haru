@@ -29,6 +29,7 @@ import {
 } from '@haru/contracts';
 
 import { MOCK_BOOKS } from './books';
+import { MOCK_CHILD_FIRST_NAME } from './me';
 
 /** Baseline v1 문항 문구 — 서버가 소유하는 값이다 (AC-2-24: 화면은 응답 값만 표시한다). */
 const BASELINE_PROMPTS: Record<string, string> = {
@@ -129,7 +130,8 @@ export function createResumeDraftAnswers(): OnboardingDraftAnswers {
  */
 export function createChildInfoDraftAnswers(): NonNullable<OnboardingDraftAnswers['child_info']> {
   return {
-    firstName: 'Nova',
+    // `OBS-5-7` (Stage 8 `S8-A`) — 다른 Mock 화면(완료 버블 · 회고 카드 · Me)과 같은 아이 이름을 쓴다
+    firstName: MOCK_CHILD_FIRST_NAME,
     birthYearMonth: '2021-04',
     gender: null,
     languageEnvironment: ['english'],

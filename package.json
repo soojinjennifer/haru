@@ -24,9 +24,12 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "assert:no-mocks": "node scripts/assert-no-mocks.mjs",
+    "build:preview": "pnpm --filter @haru/web run build:preview",
+    "assert:preview": "node scripts/assert-preview.mjs",
     "assets:optimize": "node scripts/assets-optimize.mjs"
   },
   "devDependencies": {
+    "@axe-core/playwright": "~4.14.0",
     "@eslint/js": "^10.0.1",
     "@haru/config": "workspace:*",
     "@playwright/test": "~1.63.0",

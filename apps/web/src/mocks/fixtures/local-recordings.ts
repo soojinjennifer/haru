@@ -71,6 +71,12 @@ export const MOCK_NOTICE_AGE_MS = 7 * DAY_MS + 60_000;
 /** 48시간 + 1분 전 — 업로드 미확정 안내 경계를 넘은 시각 (`S4-H3`, AC-4-149). */
 export const MOCK_STALLED_AGE_MS = 2 * DAY_MS + 60_000;
 
+/** `data-management:recording-delete-local-pending` — 1시간 전에 끝난 미업로드 녹음 (7일 안내 · 48h 안내 둘 다 아직 아님). */
+export const MOCK_LOCAL_PENDING_AGE_MS = 60 * 60_000;
+
+/** 같은 seed 의 다음 업로드 시도 — 1시간 뒤. 데모 · e2e 중 큐가 스스로 올려 버리지 않게 한다 (강제 처리만 시도한다). */
+export const MOCK_LOCAL_PENDING_RETRY_IN_MS = 60 * 60_000;
+
 export function mockChunkBytes(seq: number, size = MOCK_RECORDER_CHUNK_BYTES): Uint8Array {
   return new Uint8Array(size).fill(seq % 256);
 }
@@ -182,6 +188,37 @@ export async function seedStalledUpload(
     completeKey: `seed-complete-${sessionId}`,
     uploadedPartNos: [],
     nextAttemptAtMs: clock.now(),
+    lastFailure: 'network',
+    stalledNoticeAtMs: null,
+  };
+  await kv.put('uploads', sessionId, entry);
+}
+
+/**
+ * `data-management:recording-delete-local-pending` (Stage 8 `S8-A`, Plan §8) — 서버 세션은 `completed` + 녹음 `pending`,
+ * 이 기기에는 미업로드 녹음(part 1 · 청크 5개) + 업로드 큐 항목이 있다. 세션 녹음 삭제가 **서버 확정 후** 로컬 청크를 지우고
+ * 큐를 취소하는지(`rules/architecture.md` §7) 저장소 계수로 검증한다. 큐 항목의 다음 시도는 1시간 뒤다 — 그 전에 큐가
+ * 업로드를 끝내 버리면 "로컬에 남은 녹음" 을 재현할 수 없다.
+ */
+export async function seedPendingLocalUpload(
+  target: LocalRecordingSeedTarget,
+  kv: LocalKeyValueStore,
+  sessionId: string,
+  clock: Clock,
+): Promise<void> {
+  await seedCompletedRecording(target, sessionId, clock, MOCK_LOCAL_PENDING_AGE_MS);
+  const entry: UploadQueueEntry = {
+    version: 1,
+    sessionId,
+    enqueuedAtMs: clock.now() - MOCK_LOCAL_PENDING_AGE_MS + MOCK_STALE_CHUNKS * 1000,
+    state: 'failed_retrying',
+    priority: 'normal',
+    attempts: 1,
+    recordingId: null,
+    initKey: `seed-init-${sessionId}`,
+    completeKey: `seed-complete-${sessionId}`,
+    uploadedPartNos: [],
+    nextAttemptAtMs: clock.now() + MOCK_LOCAL_PENDING_RETRY_IN_MS,
     lastFailure: 'network',
     stalledNoticeAtMs: null,
   };

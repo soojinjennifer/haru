@@ -132,9 +132,10 @@ export function ReportCard({ view, pdfAction }: ReportCardProps) {
             <Link
               to={progressReportPath(view.report.id)}
               className="haru-report-card__header haru-report-card__header--link haru-focus-ring"
-              aria-label={copy.openLabel(
-                formatCalendarRange(view.report.periodStart, view.report.periodEnd),
-              )}
+              /*
+                `D8-3` (`H8-6-N1` · N7-37 개정) — `aria-label` 없음: 이름 = **보이는 내용**(제목 + 범위가 든 설명).
+                보이는 제목이 이름 안에 있어야 음성 제어(*"click 4-week full report"*)가 동작한다 (WCAG 2.5.3).
+              */
             >
               {headerContent}
             </Link>

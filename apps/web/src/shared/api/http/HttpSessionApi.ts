@@ -44,6 +44,8 @@ export function childSessionsPath(childId: string, query: ListSessionsRequestInp
   const params = new URLSearchParams({ limit: String(parsed.limit) });
 
   if (parsed.status !== undefined) params.set('status', parsed.status);
+  // Stage 8 `C8-2` — `true` / `false` 문자열로 보낸다. 생략 = 필터 없음.
+  if (parsed.hasRecording !== undefined) params.set('hasRecording', String(parsed.hasRecording));
   if (parsed.cursor !== undefined) params.set('cursor', parsed.cursor);
 
   return `/children/${encodeURIComponent(childId)}/sessions?${params.toString()}`;

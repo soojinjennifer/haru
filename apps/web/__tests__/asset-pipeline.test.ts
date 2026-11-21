@@ -16,6 +16,7 @@ import { describe, expect, it } from 'vitest';
 
 const REPO = join(import.meta.dirname, '..', '..', '..');
 const CHARACTER_DIR = join(REPO, 'apps', 'web', 'src', 'shared', 'assets', 'character');
+const COVER_DIR = join(REPO, 'apps', 'web', 'src', 'shared', 'assets', 'book-covers');
 
 interface Manifest {
   dependencies?: Record<string, string>;
@@ -51,6 +52,26 @@ describe('assets:optimize 산출물', () => {
     expect(manifest(join(REPO, 'package.json')).scripts?.['assets:optimize']).toBe(
       'node scripts/assets-optimize.mjs',
     );
+  });
+});
+
+describe('S8-I — 중립 대체 표지 (N8-13 ⓐ · P3-BIP-19)', () => {
+  const covers = readdirSync(COVER_DIR).filter((entry) => /\.(png|webp|avif|jpe?g)$/.test(entry));
+
+  it('표지 디렉토리에는 생성된 중립 표지 3종(PNG)만 있다', () => {
+    expect(covers.sort()).toEqual([
+      'neutral-cover-indigo.png',
+      'neutral-cover-orange.png',
+      'neutral-cover-teal.png',
+    ]);
+  });
+
+  it('상용 그림책 표지 파일이 앱 소스에 없다', () => {
+    const commercial = /where-the-wild-things-are|the-most-magnificent-idea|grumpy-monkey/;
+    const images = walk(join(REPO, 'apps', 'web', 'src')).filter((file) =>
+      /\.(png|webp|avif|jpe?g|gif|svg)$/.test(file),
+    );
+    expect(images.filter((file) => commercial.test(file))).toEqual([]);
   });
 });
 

@@ -24,6 +24,7 @@ import { useNavigate } from 'react-router';
 import {
   unansweredRequiredQuestions,
   type ChoiceQuestionId,
+  type ErrorCode,
   type OnboardingDraftAnswers,
   type OnboardingInstrument,
   type SaveSurveyUpdateStepRequest,
@@ -58,7 +59,7 @@ export interface SurveyUpdateWizardController {
   missingRequired: readonly ChoiceQuestionId[];
   submitPending: boolean;
   /** 제출 실패 표시 — `null` 이면 실패 없음. */
-  submitFailure: { readonly offline: boolean } | null;
+  submitFailure: { readonly offline: boolean; readonly code: ErrorCode | undefined } | null;
   /** 이전 단계로 (첫 단계면 진입 화면). 떠나는 단계를 저장한다. */
   goBack: () => void;
   /** 다음 단계로. 필수 미응답이면 아무 일도 하지 않는다. 떠나는 단계를 저장한다. */
@@ -208,7 +209,9 @@ export function useSurveyUpdateWizard({
     },
     missingRequired: unansweredRequiredQuestions(instrument, answers, step),
     submitPending: submission.isPending,
-    submitFailure: submission.isError ? { offline: submission.isOffline } : null,
+    submitFailure: submission.isError
+      ? { offline: submission.isOffline, code: submission.errorCode }
+      : null,
     goBack,
     goNext,
     submit,

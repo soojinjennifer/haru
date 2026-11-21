@@ -9,14 +9,16 @@
  * Stage 1 은 `health` 만, Stage 2-AUTH 는 `me`, Stage 2-CONSENT 는 `consents`,
  * Stage 2-ONBOARDING 은 `onboarding` · `books` 를 추가한다 (Plan §16 D-8). 나머지 도메인
  * (auth · children · activities · library · sessions · recordings ·
- * analysis · reports · notifications · data-management) 은 해당 Stage 에서 이 타입에 추가한다.
+ * analysis · reports · notifications · data-management · account) 은 해당 Stage 에서 이 타입에 추가한다.
  * 빈 stub 은 만들지 않는다.
  */
+import type { AccountApi } from './account-api';
 import type { ActivityApi } from './activity-api';
 import type { AnalysisApi } from './analysis-api';
 import type { BooksApi } from './books-api';
 import type { ChildrenApi } from './children-api';
 import type { ConsentApi } from './consent-api';
+import type { DataManagementApi } from './data-management-api';
 import type { HealthApi } from './health-api';
 import type { HighlightClipApi } from './highlight-clip-api';
 import type { HomeApi } from './home-api';
@@ -76,4 +78,10 @@ export interface ApiClients {
   readonly reportPdf: ReportPdfApi;
   /** Stage 7 — 하이라이트 클립 재생 URL (FR-18, C7-8). */
   readonly highlightClips: HighlightClipApi;
+  /**
+   * Stage 8 — 데이터 관리 요약 · 세션별 녹음 목록/삭제 · 전체 데이터 삭제 요청 (FR-21 · §7.8, Rev 12 `C8-1`~`C8-3`).
+   */
+  readonly dataManagement: DataManagementApi;
+  /** Stage 8 — 탈퇴 (`DELETE /v1/me`, Rev 12 `C8-4`). */
+  readonly account: AccountApi;
 }

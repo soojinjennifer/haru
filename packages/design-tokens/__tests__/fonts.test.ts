@@ -159,7 +159,7 @@ describe('빌드 산출물 — CSS Variable export (AC-1-11)', () => {
     // Stage 5 `S5-B` 12종 → 274 (회고 카드 7 · 별 2 · 입력 2 · Chip select border 1 — `T5-2`~`T5-11`, `D5-4`).
     // `S5-B` 후속 `VG5B-1` ⓑ 1종 → 275 (`--chip-select-label-size` 12.5).
     // Stage 6 `S6-E1` 7종 → 282 (DiamondChart `T6-1`~`T6-3` · `T6-5` 굵기 · `T6-7` · `T6-8` 2, `D6-8`).
-    // Stage 6 `S6-H` 3종 → 285 (`--choice-card-radius` · `--section-label-letter-spacing` · `--child-routine-label-offset`, `D6-10`).
+    // Stage 6 `S6-H` 3종 → 285 (`--choice-card-radius` · `--section-label-letter-spacing` · `--child-routine-label-offset`, `D6-10`). Stage 8 `S8-F` 에서 마지막 것을 `--section-label-offset` 으로 이름만 바꿨다(`VG6-H-09` A — 개수 변화 0).
     // Stage 7 `S7-B` 38종 → 323 (Stage 7 Spec §5.2 `T7-4`~`T7-15`, `D7-5` — 색 `color-mix` 는 Tier 2).
     // Stage 7 `D7-6` ① `--bar-chart-label-line` 1종 → 324 (`VG7-B-03` ⓑ).
     expect(manifest.counts['component']).toBe(324);

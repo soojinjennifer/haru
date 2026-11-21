@@ -8,7 +8,8 @@
  * 모듈 단위 등록 지점 1개 — 이 화면은 한 번에 하나만 마운트된다. 값(입력)은 담지 않는다.
  */
 import { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router';
+
+import { useBackNavigation } from '../../../shared/hooks/useBackNavigation';
 
 let registered: (() => void) | null = null;
 
@@ -33,13 +34,14 @@ export function useRegisterChildInfoEditBack(handler: () => void): void {
 
 /** TopBar 가 호출한다 — 폼이 있으면 폼에 묻고, 없으면 뒤로 간다. */
 export function useChildInfoEditBack(): () => void {
-  const navigate = useNavigate();
+  // 앱 안 기록 없으면 논리적 부모 `/settings` 로 replace (`VG6-D-12`, Spec §6.3)
+  const goBack = useBackNavigation();
 
   return () => {
     if (registered !== null) {
       registered();
       return;
     }
-    void navigate(-1);
+    goBack();
   };
 }

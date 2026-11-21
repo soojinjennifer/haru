@@ -9,7 +9,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { Capability, ChildProfile } from '@haru/contracts';
 import { Route, Routes, useLocation } from 'react-router';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AppRoutes } from '../src/app/router';
 import { CAPABILITY_AXIS_ORDER } from '../src/entities/child-profile';
@@ -27,6 +27,10 @@ import { createHarness } from '../src/test/harness';
 
 const GROWTH_PUT = 'PUT /v1/children/:childId/growth-capability';
 const SETTINGS_PATH = '/__test/settings-growth';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 function LocationProbe() {
   const location = useLocation();
@@ -353,6 +357,9 @@ describe('설정 모드 (Spec §2.3 settings · AC-6-30 · 64 — route 는 `set
   });
 
   it('바꾸면 Save 활성 · "Current" 는 원래 옵션 · 저장 → Toast "Saved" → 뒤로 (AC-6-31)', async () => {
+    // 설정 목록에서 들어온 앱 안 기록이 있다 (MemoryRouter 는 window.history 를 쓰지 않는다) → 뒤로 = 이전 화면.
+    // 기록이 없을 때의 부모 replace 는 Stage 8 `VG6-D-12` (`stage8-cleanup.test.tsx` · e2e) 가 본다.
+    vi.spyOn(globalThis.history, 'state', 'get').mockReturnValue({ idx: 1 });
     const harness = await renderSettings();
     await ready();
     const current = (await profileOf(harness)).growthCapability as Capability;

@@ -14,7 +14,8 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 
-import { gotoApp, hideDevPanel } from './support/gallery';
+import { A11Y_STOPS } from './support/a11y-stops';
+import { gotoApp, hideDevPanel, settle } from './support/gallery';
 import { logInToHome, startSession } from './support/session';
 
 interface Probe {
@@ -130,6 +131,40 @@ test.describe('클래식 스크롤바 — 가로 넘침 0 · 컬럼 = clientWidt
       await page.getByRole('button', { name: 'Submit', exact: true }).click();
       await expect(page.getByRole('heading', { name: 'Session Complete' })).toBeVisible();
       expectNoOverflow(await probe(page));
+    });
+  }
+});
+
+/**
+ * Stage 8 `S8-H` — **전 route** 로 확장 (AC-8-56 "클래식 스크롤바 포함" · Plan §12.4 · `S8-H` 행).
+ *
+ * 위 describe 는 Stage 2–4 대표 화면만 본다. 여기서는 접근성 감사 · 반응형과 **같은 정류장 목록**(49 — 시트 ·
+ * 다이얼로그 열린 상태 포함)을 393×852 에서 열고, 같은 화면에서 뷰포트만 바꿔 같은 프로브를 돈다.
+ * 크기 = 스크롤이 생기는 좁은 높이(320×568 · 393×600) + 넓은 폭(1024×500) + 가로 웹(852×393, AC-8-95).
+ */
+const STOP_SIZES = [
+  { width: 320, height: 568 },
+  { width: 393, height: 600 },
+  { width: 1024, height: 500 },
+  { width: 852, height: 393 },
+] as const;
+
+test.describe('클래식 스크롤바 — 전 route 가로 넘침 0 · 컬럼 = clientWidth 가운데 (S8-H · AC-8-56)', () => {
+  test.beforeEach(async ({ page }) => {
+    await hideDevPanel(page);
+  });
+
+  for (const stop of A11Y_STOPS) {
+    test(`${stop.id} — ${stop.route}`, async ({ page }) => {
+      test.setTimeout(120_000);
+      await stop.open(page);
+      for (const size of STOP_SIZES) {
+        await page.setViewportSize(size);
+        await settle(page);
+        await test.step(label(size), async () => {
+          expectNoOverflow(await probe(page));
+        });
+      }
     });
   }
 });

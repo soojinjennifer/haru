@@ -382,12 +382,15 @@ describe('`BookDetailSheet` 저장 실패 알림 (사용자 지적 2026-10-10)',
    * 시트만 직접 띄운다 — scenario key 는 **그룹 단위**라 `library:error` 를 주면 overview 도
    * 함께 실패해 캐러셀 자체가 사라진다 (Shelf 상태 화면 테스트와 같은 이유).
    */
-  async function renderDetail(book: LibraryBook): Promise<{
+  async function renderDetail(
+    book: LibraryBook,
+    scenarios: readonly string[] = ['library:error'],
+  ): Promise<{
     rerender: (next: LibraryBook) => void;
   }> {
     const harness = createHarness({
       initialEntries: [ROUTES.library],
-      scenarios: ['library:error'],
+      scenarios,
     });
     await harness.bundle.authGateway.signInWithEmail({ ...CREDENTIALS });
 
@@ -438,6 +441,21 @@ describe('`BookDetailSheet` 저장 실패 알림 (사용자 지적 2026-10-10)',
     expect(toast.classList.contains('haru-toast--error')).toBe(true);
     /* 시트 안(ActionBar 아래)에는 알림이 남지 않는다 — 다른 내용을 밀어내지 않는다. */
     expect(within(dialog()).queryByText(libraryCopy.bookSheet.saveFailed)).toBeNull();
+  });
+
+  /*
+   * Stage 8 `VG8-C-09` ① · `VG8-C-08` — 삭제 진행 중 쓰기 차단(`ACCOUNT_DELETION_PENDING`)이면 같은 Toast 에 차단 문구.
+   * Toast 는 1줄 표면이라 **설명만** (제목 + 설명 이어 붙이기 금지 — "paused" 반복 0).
+   */
+  it('삭제 진행 중 쓰기 차단 → 같은 Toast 에 차단 설명만 (Spec §2.9 `VG8-C-08` · `VG8-C-09` ①)', async () => {
+    await renderDetail(FAVORITES[0] as LibraryBook, ['account:deletion-pending-write-blocked']);
+    pressSave();
+
+    const toast = await toastNode();
+    expect(toast.textContent).toContain('Your data is being deleted, so changes are paused.');
+    expect(toast.textContent).not.toContain('Changes are paused');
+    expect(toast.textContent).not.toContain(libraryCopy.bookSheet.saveFailed);
+    expect(toast.classList.contains('haru-toast--error')).toBe(true);
   });
 
   it('한 책의 실패가 **다음 책으로 새지 않는다** (교체 전환 뒤 시트에 알림이 없다)', async () => {

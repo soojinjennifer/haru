@@ -22,7 +22,7 @@ import {
   useReportPdfRequests,
   type FetchLike,
 } from '../../../entities/report';
-import { isNetworkError } from '../../../shared/api/helpers';
+import { isHaruApiError, isNetworkError } from '../../../shared/api/helpers';
 import { createIdempotencyKey } from '../../../shared/lib/idempotency';
 import { useFileSharePort } from '../../../shared/platform/file-share';
 import { reportPdfCopy } from '../copy';
@@ -133,7 +133,13 @@ export function useReportPdf(reportId: string, options: UseReportPdfOptions): Us
         dispatch({ type: 'server-status', key, status: status.status });
       },
       (error: unknown) => {
-        dispatch({ type: 'request-failed', key, offline: isNetworkError(error) });
+        dispatch({
+          type: 'request-failed',
+          key,
+          offline: isNetworkError(error),
+          // 요청 자체가 삭제 진행 중 쓰기 차단으로 거절됐는가 — 조회 · 파일 받기 실패는 해당 없음 (`VG8-C-09` ②)
+          blocked: isHaruApiError(error) && error.code === 'ACCOUNT_DELETION_PENDING',
+        });
       },
     );
   }, [dispatch, now, prepareFile, queryClient, queryKey, reportId, requests]);

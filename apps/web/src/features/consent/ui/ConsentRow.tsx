@@ -38,10 +38,12 @@ export function ConsentRow({ document, checked, onChange }: ConsentRowProps) {
         결정 `D-4` — 문서는 **외부 링크**로 연다. `/legal/*` page 도 본문 fixture 도 만들지 않는다.
         `external` 이 `target="_blank" rel="noopener noreferrer"` 와 외부 링크 아이콘을 붙인다.
       */}
+      {/* `D8-3` (`H8-6-N4`) — 행 안 단독 링크: 보이는 모습 그대로, 누르는 영역만 44. */}
       <TextLink
         href={document.url}
         external
         externalHint={consentCopy.guardianConsent.externalHint}
+        hitArea="touch"
       >
         <span className="haru-visually-hidden">{copy.viewLabelFor(document.title)}</span>
         <span aria-hidden="true">{copy.viewLabel}</span>

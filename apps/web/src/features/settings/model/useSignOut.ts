@@ -28,6 +28,7 @@ import {
   createOnboardingDraftStore,
   type OnboardingDraftStore,
 } from '../../../shared/lib/onboarding-draft';
+import { dataDeletionMarkerStore } from '../../../shared/lib/data-deletion-marker';
 import { performSessionCleanup } from '../../../shared/lib/session-cleanup';
 import { wipeWebRecordingStorage } from '../../../shared/platform/recording-storage';
 
@@ -70,6 +71,10 @@ export function useSignOut(options: UseSignOutOptions = {}): SignOutMutation {
         },
         clearActivityCardCache: () => {
           activityCardCache.clear();
+        },
+        // 전체 삭제 요청 기기 표시 — 이 기기를 떠나면 감시도 끝난다 (`N8-31` ⓐ, AC-8-97)
+        clearDataDeletionMarker: () => {
+          dataDeletionMarkerStore.clear();
         },
         clearLocalRecordings:
           options.clearLocalRecordings ??

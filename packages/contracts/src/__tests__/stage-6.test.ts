@@ -312,6 +312,7 @@ describe('변경 0 확인 (C-9 · C-10 · `N6-09` · AC-6-08)', () => {
   });
 
   it('error code 는 29종 그대로다 (신규 0)', () => {
-    expect(ERROR_CODES).toHaveLength(29);
+    // Stage 8 `C8-5` 가 `ACCOUNT_DELETION_PENDING` 1종을 더했다 — 이 Stage 의 불변식(신규 0)은 그 1종을 뺀 29종으로 본다.
+    expect(ERROR_CODES.filter((code) => code !== 'ACCOUNT_DELETION_PENDING')).toHaveLength(29);
   });
 });

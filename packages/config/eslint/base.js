@@ -60,6 +60,7 @@ export const DESIGN_TOKEN_RESTRICTED_SYNTAX = [
 export const HARU_IGNORES = [
   '**/node_modules/**',
   '**/dist/**',
+  '**/dist-preview/**',
   '**/build/**',
   '**/coverage/**',
   '**/.pnpm-store/**',

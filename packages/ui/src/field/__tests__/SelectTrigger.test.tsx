@@ -83,6 +83,50 @@ describe('SelectTrigger (Stage 2 Design Spec §4.1)', () => {
     );
   });
 
+  /*
+   * Stage 8 `S8-G` (AC-8-47 · WCAG 2.1.1) — native radio 는 화살표 이동 = 그 자리 선택(change) 이다.
+   * 고르면 닫히는 시트가 화살표 1회에 닫혀 키보드로는 이웃 한 칸밖에 고를 수 없었다.
+   * jsdom 은 화살표로 radio 를 옮기지 않으므로 브라우저 순서(keydown → change)를 그대로 흉내 낸다.
+   */
+  it('화살표 이동은 고르기만 하고 시트를 닫지 않는다 · Enter 가 확정이다', () => {
+    render(<Controlled />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Gender/ }));
+    const boy = screen.getByRole('radio', { name: 'Boy' });
+    fireEvent.keyDown(screen.getByRole('radio', { name: 'Girl' }), { key: 'ArrowDown' });
+    fireEvent.click(boy); // 브라우저가 화살표 뒤에 내는 change
+    flushSheetExit();
+
+    expect(screen.getByRole('dialog', { name: 'Gender' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Gender/ }).textContent).toContain('Boy');
+
+    fireEvent.keyDown(boy, { key: 'Enter' });
+    flushSheetExit();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('이미 선택된 칸의 Space 도 확정이다 (change 가 나지 않는 경우)', () => {
+    render(<Controlled initial="boy" />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Gender/ }));
+    const boy = screen.getByRole('radio', { name: 'Boy' });
+    expect(fireEvent.keyDown(boy, { key: ' ' })).toBe(false);
+    flushSheetExit();
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('포인터 선택은 그대로 바로 닫힌다 (화살표 표시가 남지 않는다)', () => {
+    render(<Controlled />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Gender/ }));
+    // 화살표 없이 포인터로 고른다
+    fireEvent.click(screen.getByRole('radio', { name: 'Girl' }));
+    flushSheetExit();
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
   it('Esc 로 닫으면 포커스가 트리거로 돌아온다', () => {
     render(<Controlled />);
 

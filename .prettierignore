@@ -1,6 +1,7 @@
 # 의존성 · 빌드 산출물
 node_modules/
 dist/
+dist-preview/
 build/
 coverage/
 .pnpm-store/
@@ -18,3 +19,4 @@ pnpm-lock.yaml
 docs/
 My Prompt/
 *.md
+.wrangler/

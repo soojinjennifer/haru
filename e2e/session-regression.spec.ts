@@ -194,7 +194,7 @@ test.describe('AC-4-97 — 터치 타깃 ≥ 44 (실제 hit-test · 세션 상�
     expect(results.map((row) => row.name)).toEqual(
       expect.arrayContaining([
         'button · Close session',
-        'button · Start recording',
+        'button · Tap to recording, Start recording',
         'button · Discard',
         'button · Submit',
       ]),
@@ -308,7 +308,7 @@ test.describe('AC-4-97 — 터치 타깃 ≥ 44 (실제 hit-test · 세션 상�
     expect(failures(results)).toStrictEqual([]);
   });
 
-  test('마이크 시트 (4b `S4-H2`) — Not now · 뒤 Record `Microphone is off`', async ({ page }) => {
+  test('마이크 시트 (4b `S4-H2`) — Not now · 뒤 Record `Mic is off` (`D8-5`)', async ({ page }) => {
     await startSession(page, 'recorder:mic-permission-revoked');
     await page.getByRole('button', { name: 'Start recording' }).click();
     const sheet = page.getByRole('dialog', { name: 'Your microphone is off' });
@@ -324,7 +324,7 @@ test.describe('AC-4-97 — 터치 타깃 ≥ 44 (실제 hit-test · 세션 상�
     await settle(page);
     const after = await probeTouchTargets(page, SESSION);
     record(after);
-    expect(after.map((row) => row.name)).toContain('button · Microphone is off');
+    expect(after.map((row) => row.name)).toContain('button · Mic is off');
     expect(failures(after)).toStrictEqual([]);
   });
 
