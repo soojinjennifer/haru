@@ -1,6 +1,6 @@
 # HARU API Contracts
 
-Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (**Rev 8: Stage 4 승인 결정 `D4-1`~`D4-22` 반영, 2026-10-13 plan-agent** · 최신 **Rev 8.9**: `D4-87`·`D4-88` 설계 변경, 2026-11-01 plan-agent · **APPROVED (2026-11-02, user, `D4-97`)** · 구현 반영 **Rev 9**: Stage 5 `S5-A`, 2026-11-08 development-agent — 설계 근거 = 승인된 Stage 5 Plan §7 · `D5-4` · 최신 구현 반영 **Rev 10**: Stage 6 `S6-A`, 2026-11-15 development-agent — 설계 근거 = 승인된 Stage 6 Plan(개정 2) §7 · §8 · `D6-3` · `D6-8` · 최신 설계 변경 **Rev 10.1**: 설문 재응답 복귀 단계, 2026-11-18 plan-agent — 근거 = 사용자 결정 `D6-9` ② · Stage 6 Plan 개정 3 · **구현 반영 완료 (`S6-G`, 2026-11-18 development-agent — `docs/qa/stage-6-handoff.md` `H6-9`)** · 최신 설계 변경 **Rev 11**: Stage 7 Plan rev 2(`D7-5` 승인 + Spec 정정 `M7-1`~`M7-12`), 2026-11-19 plan-agent · **구현 반영 Rev 11.1**: `S7-A`, 2026-11-19 development-agent — `docs/qa/stage-7-handoff.md` `H7-1`)
+Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (**Rev 8: Stage 4 승인 결정 `D4-1`~`D4-22` 반영, 2026-10-13 plan-agent** · 최신 **Rev 8.9**: `D4-87`·`D4-88` 설계 변경, 2026-11-01 plan-agent · **APPROVED (2026-11-02, user, `D4-97`)** · 구현 반영 **Rev 9**: Stage 5 `S5-A`, 2026-11-08 development-agent — 설계 근거 = 승인된 Stage 5 Plan §7 · `D5-4` · 최신 구현 반영 **Rev 10**: Stage 6 `S6-A`, 2026-11-15 development-agent — 설계 근거 = 승인된 Stage 6 Plan(개정 2) §7 · §8 · `D6-3` · `D6-8` · 최신 설계 변경 **Rev 10.1**: 설문 재응답 복귀 단계, 2026-11-18 plan-agent — 근거 = 사용자 결정 `D6-9` ② · Stage 6 Plan 개정 3 · **구현 반영 완료 (`S6-G`, 2026-11-18 development-agent — `docs/qa/stage-6-handoff.md` `H6-9`)** · 최신 설계 변경 **Rev 11**: Stage 7 Plan rev 2(`D7-5` 승인 + Spec 정정 `M7-1`~`M7-12`), 2026-11-19 plan-agent · **구현 반영 Rev 11.1**: `S7-A`, 2026-11-19 development-agent — `docs/qa/stage-7-handoff.md` `H7-1` · 최신 설계 변경 **Rev 12**: Stage 8 Plan rev 2(`D8-1` 승인 + Spec 정합 `M8-1`~`M8-6`), 2026-11-20 plan-agent · **구현 반영 Rev 12.1**: `S8-A`, 2026-11-20 development-agent — `docs/qa/stage-8-handoff.md` `H8-1` · **Rev 12.2**: `S8-C`, 2026-11-20 development-agent — `H8-3` · **Rev 12.3**: `S8-F`, 2026-11-21 development-agent — `H8-5` · **Rev 12.4**: `S8-J` Handoff 최종 동기화, 2026-11-21 development-agent — `H8-10`)
 
 > **Rev 8 (2026-10-13, plan-agent — Stage 4 Plan 승인 후 적용)** — `docs/plans/stage-4-plan.md` §7.5 의 **18 지점**을 반영했다 (목록 20건 중 무효 2건 제외).
 > 적용 지점: §2.2(enum 수 정정 `P4-FIX-3` + Stage 4 신규 2종) · **§3.1 전이표 2행 추가(12 → 14 — `D4-13`)** · §3.2(`SessionSummary.bubble` 렌더 지점·null 거동·길이 요구 — `D4-20`·`D4-21`·`D4-22` / `SessionTransitionRequest.to='abandoned'` 세 경로 주석 / `StickerAward` / `readingContext`) · §3.3(`partNo`·`mimeType` = `S4-A` spike 확정 대기) · **§3.9 `RecordingStatus` 신설** · §4 Stage 3·4 표(이월 표기 · 네이티브 후속 단계 주석) · §5.1.1(`RecorderAdapter`·`recordingApi`·`UploadTransport`) · **§5.4 신규 scenario key 2건** · **§6 `G-08`·`G-09` Resolved**.
@@ -28,6 +28,11 @@ Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (**Rev 8: Stage 4 승�
 > **Rev 10.1 구현 반영 (2026-11-18, development-agent — `S6-G` G-2, `docs/qa/stage-6-handoff.md` `H6-9`)** — 설계 그대로 구현, 설계와 다른 점 0. `packages/contracts/src/survey-update/survey-update.ts` `SaveSurveyUpdateStepRequestSchema` 4변형에 `currentStep: SurveyUpdateStepSchema.optional()` · Mock `MockChildrenApi.saveSurveyUpdateStep` = `draft.currentStep = body.currentStep ?? body.step` · `ChildrenApi.saveSurveyUpdateStep(request, options?: SurveyUpdateSaveOptions)` (`keepalive?: boolean` — Http adapter 가 `fetch` `keepalive: true` 로 전달, Mock 무시) · 화면 규칙은 `features/survey-update/model/useSurveyUpdateWizard.ts` (이동 PUT = 도착 단계 · 카드 화면 unmount 시 미저장 편집 PUT 1회 · `pagehide` 시 `useSurveyUpdatePageHideSave`). 첫 카드 → 진입 화면 뒤로는 **이탈**로 다룬다(편집 없으면 PUT 0 — 이전 구현은 항상 1건).
 > **Rev 11 (2026-11-19, plan-agent — Stage 7 설계 반영, 근거: 승인된 `docs/plans/stage-7-plan.md` **rev 2** §7 C7-1~C7-12 · **C7-2a** · **C7-4b** · §8 · 사용자 결정 `D7-1`~`D7-5`(`docs/decisions/stage-7-approvals.md`) · Spec 정정 `M7-5`·`M7-6`)** — **설계 변경만**(구현 = `S7-A`, 구현 반영은 development-agent 가 Rev 11.x 로 기록). 반영 지점: **§4 Stage 7 절 재작성** · §5.3 reports 행 · §5.4 Stage 7 key(의미 보강 + 신규) · §6 `G-01` Resolved · `G-11` 채택 안 함. **contracts 변경(설계)**: 신규 schema `WeeklyProgress`(C7-1) · enum `GrowthThemeStage`(C7-1a — `src/enums/` 에 두면 §2 enum 스냅샷 +1, 소속 파일은 구현 시 확정) · `ReportOverview` 구체화(C7-2 — 초안의 `latestSnapshot`·`archive[]` **제거**, `progress` 단위 분→초) · **`ReportOverview` 필드 의미 확정(C7-2a — schema 모양 변경 0)**: `latestReport` 와 `currentCycle` 은 독립이며 화면이 **조합**한다 · 발행 직후 `currentCycle` = 다음 주기 `in_progress` · `deferred` = 이월되어 합쳐진 현재 주기 · `ReportSummary`(C7-3) · `ReportDetail`(C7-4 — 초안의 `deltas` **제거**, 숫자 미노출 `N7-15`) · **`personaHistory[].trigger: CapabilitySnapshotSource`(C7-4b — Stage 6 enum 재사용, 신규 enum 0, `N7-42`)** · `ReportHighlightClip`(C7-5) · `ReportPdfStatus`(C7-6, `ready` refine) · 상수 `REPORT_PDF_POLL_INTERVAL_MS`·`REPORT_PDF_POLL_TIMEOUT_MS`(C7-6a) · (선택) `reportCycleIndex`(C7-11). endpoint **+1**(`GET …/progress/weekly`) · error code **신규 0**(29종 유지, C7-10) · `NotificationKind` 변경 0(C7-9). Backend 요구 `P7-BIP-01`~`16`(Plan §10).
 > **Rev 11.1 구현 반영 (2026-11-19, development-agent — Stage 7 `S7-A`, `docs/qa/stage-7-handoff.md` `H7-1`)** — Rev 11 설계를 구현했다. **설계와 다른 점 / 구현으로 확정한 점**: ① 오류 표의 `NOT_FOUND` = 기존 code **`RESOURCE_NOT_FOUND`**(신규 code 0, 29종 유지) ② `GrowthThemeStage` 소속 = `src/progress/weekly.ts`(§2 enum 스냅샷 36종 불변) ③ `CapabilityScores` = 신규 `CapabilityScoresSchema`(4역량 각 1행 `CapabilityScore`, 중복·누락 거부 — Stage 6 `CapabilityScoreSchema` 재사용) ④ `dialogueMetrics` 의 schema 이름 = `ReportDialogueSchema`(Stage 5 `metricsPreview` 금지 표면 테스트와 충돌 회피 — 필드 이름 `dialogueMetrics` 는 그대로) ⑤ `ReportHighlightClipSchema` · `RecordingDeletedDetailsSchema` 소속 = `src/reports/highlight-clip.ts`(Stage 5 `highlight-clips` 모듈 표면 불변 — `HighlightClipSummarySchema.extend`) ⑥ `momentOfWeek.pageRef` = 양의 정수 | null ⑦ `REPORT_NOT_READY.details.retryAfter` = `IsoDateTime`(선택) ⑧ C7-11 = `reportCycleIndex` + `reportCyclePeriod` · `shiftCalendarDate` · `calendarDaysBetween`(달력 날짜 문자열 순수 산식 — Mock 이 같은 산식으로 주기·주 날짜를 만든다, 화면 호출 0) ⑨ PDF 요청 전 `GET …/pdf` = `RESOURCE_NOT_FOUND` ⑩ 주간 조회 `weekStart` 가 `availableWeeks` 밖이면 `VALIDATION_FAILED`(`details.fields: ['weekStart']`). **파일**: contracts `src/progress/weekly.ts` · `src/reports/{summary,overview,detail,highlight-clip,pdf}.ts` · `src/rules/report-cycle.ts` · API Client `progressApi` · `reportApi`(overview · list · detail · markViewed) · `reportPdfApi`(request · getStatus) · `highlightClipApi`(getPlaybackUrl) (`apps/web/src/shared/api/*`) · Http 골격 `shared/api/http/Http{Progress,Report,ReportPdf,HighlightClip}Api.ts` · Mock `mocks/progress/` · `mocks/reports/`(상태 저장형 `reportState.ts` — 3 Mock 공유) · `mocks/highlight-clips/` · `mocks/media/`(가짜 PDF · WAV 런타임 생성, `data:` URL) · fixture `mocks/fixtures/{weekly-progress,reports}.ts` · 파일 공유 포트 `shared/platform/file-share/`(Web) + `mocks/platform/MockFileSharePort.ts`, 선택 지점 `app/providers/apiClients.ts`. Hook(entities)은 화면 단위(`S7-C`~`F`)에서 만든다.
+> **Rev 12 (2026-11-20, plan-agent — Stage 8 설계 반영, 근거: 승인된 `docs/plans/stage-8-plan.md` **rev 2** §7 `C8-1`~`C8-10` · §8 · 사용자 결정 `D8-1`(`docs/decisions/stage-8-approvals.md` — `N8-02` ⓐ · `N8-06` ⓑ · `N8-08` ⓐ · `N8-09` ⓐ · `Q8-10` ⓐ) · Spec 정정 `M8-1`·`M8-4`)** — **설계 변경만**(구현 = `S8-A`, 구현 반영은 development-agent 가 Rev 12.x 로 기록). 반영 지점: ① **§1.2 error code +1 `ACCOUNT_DELETION_PENDING`(409)** — 29 → **30종** (`C8-5`) ② **§2.2 `DeletionScope` += `account`** (`C8-4`) ③ **§3.13 신설** — Stage 8 schema 스케치(`DataManagementSummary` · `SessionListItem` · `DeletionRequest` · `CreateDeletionRequest` · `DeleteAccountRequest` · `ConsentHistory`(문서 전용) · **`Caregiver.email`** `C8-10`) ④ §4 Stage 2 표 `GET /v1/me` 응답에 `caregiver.email` ⑤ **§4 Stage 4 표에 `GET /v1/recordings/:recordingId` 등재** (`C8-8` — `O-2` · `RU-8` 정정) · 세션 목록 행에 `hasRecording` · `SessionListItem` (`C8-2`) ⑥ **§4 Stage 8 표 재작성** (`C8-1`·`C8-3`·`C8-4`·`C8-5`·`C8-6`·`C8-9`) ⑦ §5.3 · §5.4 Stage 8 key (`deletion-failed` · `recording-delete-local-pending` · `account` 그룹 · `deletion-pending-write-blocked`) + `data-management:success` fixture 요구(`M8-4`). **동의 이력(`GET /v1/consents`)은 Frontend 미구현(`N8-06` ⓑ)** — contract 는 Backend 요구로만 남고 `packages/contracts` · API Client · Mock 에 만들지 않는다.
+> **Rev 12.1 구현 반영 (2026-11-20, development-agent — Stage 8 `S8-A`, `docs/qa/stage-8-handoff.md` `H8-1`)** — Rev 12 설계를 구현했다(`C8-1`~`C8-5` · `C8-9` · `C8-10`, `C8-6` 구현 0). **설계와 다른 점 / 구현으로 확정한 점**: ① **`SessionListItem.recording` = `RecordingStatus.nullable().default(null)`** — 입력에 key 가 없으면 `null` 로 채운다. 설계 스케치(`recording: RecordingStatus | null` 필수)와 "추가만 — 기존 parse 호환"(AC-8-05)을 함께 만족시키는 형태다. parse **결과** 타입은 `RecordingStatus | null` 필수이며, Backend 는 key 를 항상 보낸다(`P8-BIP-04`) ② `DeletionRequest` 불변식을 parse 로 강제 — `sessionId` 는 `session_recording` 일 때만 값(그 밖 `null`) · `completed` 면 `completedAt` 필수 · `received`/`processing` 이면 `completedAt null` · `failed` 는 둘 다 허용 ③ `DataManagementSummary.activeDeletionRequest` 는 진행 중(`received`·`processing`) `all_data`·`account` 만 허용(refine) · `retentionPolicy` = `RetentionPolicySchema { rawAudioDays: int > 0 }` ④ **`recordingsCount` = 삭제 가능한 녹음 수** — `hasRecording=true` 목록 행 중 `recording.uploadStatus` ∈ `uploaded`·`pending`·`failed` 인 행 수. `deleted`·`expired` 행은 목록에는 남지만(`Q8-07` ⓐ) 세지 않는다 (`VG8-A-04`, Spec §2.2 개정 — S8-B 에서 정정. 0 이어도 목록에 `deleted`·`expired` 행이 있을 수 있다) ⑤ `CreateDeletionRequest` · `DeleteAccountRequest` = **`.strict()`**(PII 등 다른 필드 parse 실패 — Plan §5.5) ⑥ `Caregiver.email` = `z.email()` 필수 · `UpdateCaregiverRequest` 에는 없음(섞여 와도 parse 결과에서 빠진다) ⑦ 진행 중 판정 helper `isDeletionInProgress()` · `IN_PROGRESS_DELETION_STATUSES` 를 contracts 에 둔다(Mock · Frontend · 향후 Backend 공유) ⑧ 세션 녹음 삭제 응답 = `DeletionRequest(session_recording, status='completed', completedAt=requestedAt)` — 즉시 처리. 이미 삭제/만료 → `RECORDING_DELETED` + `details.reason`(`deleted`|`expired`, 기존 `RecordingDeletedDetailsSchema`) ⑨ `hasRecording` 쿼리 직렬화 = `true`/`false` 문자열, 생략 = 필터 없음 ⑩ Mock `account` 그룹은 Plan §8 의 `success`·`error`·`offline`·`deletion-pending-write-blocked` 에 **공통 key `loading`·`retry` 를 더했다**(§5.4 "전체" 적용 공통 key — 신규 key 0). 파일: `packages/contracts/src/data-management/{deletion-request,summary,index}.ts` · `sessions/list.ts` · `me/me.ts` · `enums/deletion.ts` · `common/error-codes.ts`. Mock: `apps/web/src/mocks/data-management/` · `mocks/account/` · `mocks/common/writeGuard.ts`(쓰기 차단 메서드 목록) · `mocks/fixtures/data-management.ts`. Http: `shared/api/http/HttpDataManagementApi.ts` · `HttpAccountApi.ts`.
+> **Rev 12.3 구현 반영 (2026-11-21, development-agent — Stage 8 `S8-F`, `docs/qa/stage-8-handoff.md` `H8-5`)** — contracts 모양 변경 **0**. ① **Mock key +1 `data-management:deletion-completed-offscreen`** (`N8-31` ⓐ — `D8-2` ①): 서버는 `all_data` 요청을 이미 `completed` 로 가진다(완료 효과 적용 — 요약 진행 요청 0 · `me` 온보딩 전) · 기기에는 그 요청 id 가 표시돼 있다(`mocks/data-management/dataDeletionMarkerSeed.ts` — 서버 key 아님) ② Frontend 는 진행 중 `all_data` 요청 id 를 기기에 1개 표시(`haru.data-deletion.pending.v1` — id · scope · 시각, PII 0)하고 앱 조립 지점 감시자 1곳이 `GET /v1/data-deletion-requests/:id` 로 완료를 감지한다 — 화면 밖 · 폴링 상한 후 · 앱 재시작 후 완료도 같은 경로. 화면과 감시자는 같은 query key 를 쓰며 폴링 주체는 감시자 하나(요청 중복 0) ③ 다른 기기(표시 없음)의 로컬 정리는 서버 신호가 없어 덮지 못한다 → Handoff 한계(R8-15). 진행 상태 폴링 상한 5s × 60 = 가값 `P-42`.
+> **Rev 12.2 구현 반영 (2026-11-20, development-agent — Stage 8 `S8-C`, `docs/qa/stage-8-handoff.md` `H8-3`)** — contracts 모양 변경 **0**. ① **Mock key +1 `data-management:deletion-retry`** (RETRY — `H8-1-N4`): 번들 안 **첫** `all_data` 요청은 `received → processing → failed`, *Try again* 으로 만든 두 번째 요청부터 `received → processing → completed` (결정적) ② 전체 삭제 · 탈퇴 **완료 효과**에 리포트 · 주기 진행 · 주간 Progress 를 포함한다 (`H8-1-N5`) — Mock: 발행 리포트 0 · 주기 1 `in_progress` 0/0 · `GET …/progress/weekly` = 빈 주. Backend 요구(`P8-BIP-02`)의 "자식 → 부모 hard delete" 범위에 `reports` · 주간 집계가 포함됨을 Mock 이 표현한다 ③ 진행 상태 폴링 = **5s · 상한 60회(5분)** · 종착(`completed`·`failed`) · `RESOURCE_NOT_FOUND`·`FORBIDDEN` 에서 정지 · 화면이 보일 때만 — `apps/web/src/entities/data-management/deletionPolling.ts` (상한 수치는 Plan 에 없다 — `H8-3` 결정 요청) ④ `POST /v1/data-deletion-requests` 의 `Idempotency-Key` = 제출 의도마다 1개 — 실패 후 재확인은 같은 키, 성공 응답을 받으면 비운다(`failed` 후 *Try again* = 새 요청 · 새 키).
+> **Rev 12.4 최종 동기화 (2026-11-21, development-agent — Stage 8 `S8-J`, `docs/qa/stage-8-handoff.md` `H8-10`)** — contracts 모양 변경 **0**. `packages/contracts` 와 이 문서를 대조했다: ① §1.2 error code 30종 · HTTP 매핑 = `common/error-codes.ts` `ERROR_CODES` · `ERROR_CODE_HTTP_STATUS` 와 순서까지 1:1 ② §4 endpoint 표 = `apps/web/src/shared/api/http/Http*.ts` 의 경로 · method · `Idempotency-Key` 와 1:1 (표에만 있고 API Client 가 없는 것: `GET …/capability-snapshots` · `GET …/personas` — schema 만, `GET /v1/consents` — 문서 전용 `N8-06` ⓑ) ③ **§5.4 Catalogue 누락 4 key 등재** — `onboarding` 그룹의 `prefilled-child-info` · `missing-prefill` · `instrument-v2` · `owned-books-empty` (Stage 2 온보딩 재구성 Plan §8 에서 정의 · Mock 구현됨 · 이 Catalogue 에만 없었다) ④ 실제 Mock 폴더 · Scenario 그룹 26개 목록은 §5.1 끝 "구현된 폴더" 메모 ⑤ Frontend 호출 지점이 없는 API Client 메서드(contract · Mock · Http 골격만 유지): `sessionApi.list` · `recordingApi.status` · `notificationApi.getPreferences` · `updatePreferences` · `deletePushDevice` · `libraryApi.createGiftRequest`(증정 신청은 앱 밖 — `D-26`) ⑥ **§3.8 추적 ID 정정** — `characterLine` 길이 요구에 붙어 있던 `P3-BIP-16` 은 Stage 3 QA 에서 *책 평점 집계* 로 배정된 ID 라 충돌했다 → `HX-3-03` (Handoff 장부 §6.8). Backend 인계 입구 = `docs/BACKEND_HANDOFF.md` §3.
 Reflects: `docs/decisions/stage-0-approvals.md` #7 · #8 · #13 · #14 · #15 · #16 · #17 · #19 · #27 · C-1~C-10 · C-12 · C-13 · C-15 · C-16 · C-18 (Rev 5) · #33 · C-19 (Rev 6)
 Decision log: `docs/decisions/stage-0-approvals.md` + **`docs/decisions/stage-3-approvals.md` (Stage 3 — §3 · §6 · §6.1 · §7 · §7.1 · §8 · §8.1~§8.6)** — 이 문서와 다르면 결정 기록이 우선한다. 라벨: `CONFIRMED (사용자 결정 YYYY-MM-DD, #id)` · `RECOMMENDED` · `NEEDS DECISION (법무, L-xx)`.
 Based on: PRD v1.4, `docs/ARCHITECTURE.md` (DRAFT 2026-09-14), `docs/DATA_MODEL.md` (DRAFT 2026-09-14), design-agent `docs/FIGMA_SCREEN_MAP.md` · `docs/COMPONENT_MAP.md` (DRAFT 2026-09-14) — Rev 2: Figma 대비 gap §6 추가
@@ -100,7 +105,8 @@ Author: plan-agent (2026-09-14)
 | `PDF_NOT_READY` | 409 | PDF 생성 중 | FR-17 |
 | `GIFT_REQUEST_DUPLICATE` | 409 | 같은 책 진행 중 신청 존재 | FR-22 |
 | `BOOK_ALREADY_OWNED` | 409 | 이미 서재에 있는 책을 다시 등록 (`POST …/library/books`) — **구현됨** (Library Plan §7.4) | FR-23 |
-| `DELETION_ALREADY_REQUESTED` | 409 | | FR-21 |
+| `DELETION_ALREADY_REQUESTED` | 409 | 진행 중인 같은 범위 삭제 요청 존재 (`all_data` · `account` 는 caregiver 당 1건) | FR-21 |
+| `ACCOUNT_DELETION_PENDING` | 409 | 🆕 **Rev 12 설계 (`C8-5`, `N8-09` ⓐ) — 구현됨 (Rev 12.1 `S8-A`, 30종)** — 전체 데이터 삭제 · 탈퇴가 진행 중(`deletion_pending`)인 계정의 쓰기 요청 거부. 삭제 · 탈퇴 endpoint 자신은 이 코드가 아니라 `DELETION_ALREADY_REQUESTED`. Frontend 는 각 화면의 기존 실패 표면에 "삭제 진행 중" 문구만 표시 | FR-21, NFR |
 | `IDEMPOTENCY_KEY_REUSED` | 422 | 동일 key 다른 body | — |
 | `RATE_LIMITED` | 429 | | 기술 요구사항 |
 | `PROVIDER_UNAVAILABLE` | 503 | AI/STT/PDF 일시 장애 (사용자에게는 지연 안내) | FR-05, §13 |
@@ -176,7 +182,7 @@ Author: plan-agent (2026-09-14)
 | `GiftRequestStatus` | `requested, approved, shipped, delivered, cancelled, rejected` | FR-22, §13 |
 | `CaregiverRelationship` | `mother, father, grandparent, babysitter, tutor, therapist, other` | §3.1, §7.2 |
 | `OnboardingStep` | `child_info, temperament, books, goals, capability_items` | 5단계 구성·순서 **CONFIRMED (사용자 결정 2026-09-14, C-9)** — PRD §7.2 / 식별자 문자열 **RECOMMENDED** |
-| `DeletionScope` | `session_recording, all_data` | FR-21, §7.8 |
+| `DeletionScope` | `session_recording, all_data, account` — **Rev 12: `account` 추가 설계 (`C8-4`, `N8-02` ⓐ 전체 삭제 ↔ 탈퇴 분리) — 구현됨 (Rev 12.1 `S8-A`)** | FR-21, §7.8 |
 | `DeletionRequestStatus` | `received, processing, completed, failed` | FR-21 |
 | `NotificationKind` | `session_invite, short_feedback_ready, report_published, report_deferred_encourage, upload_failed_48h, report_delayed` | FR-08/13/16, §13 |
 | `ConsentSource` (Stage 2) | `signup_email, signup_oauth, settings, reconsent` | `docs/DATA_MODEL.md` §5 `consent_events.source` — **RECOMMENDED** (Stage 2 Plan §7.1 · §18-④) |
@@ -849,7 +855,7 @@ Backend 가 121자를 보내는 순간 `HomeSummarySchema.parse` 가 던지고 *
 **가이드 값**이다. Backend 는 120 을 하드 제한이 아니라 **생성 프롬프트의 길이 가이드**로 쓴다.
 
 Stage 8 Handoff 대상: `BACKEND_HANDOFF.md` (`GET /v1/children/:childId/home` 응답 제약) ·
-`ANALYSIS_PIPELINE_REQUIREMENTS.md` (생성 문구 길이 가이드). 추적 ID **`P3-BIP-16`**.
+`ANALYSIS_PIPELINE_REQUIREMENTS.md` (생성 문구 길이 가이드). 추적 ID ~~`P3-BIP-16`~~ → **`HX-3-03`** (Rev 12.4 정정 — `P3-BIP-16` 은 Stage 3 QA 에서 *책 평점 집계* 에 배정된 ID 라 충돌했다. Handoff 장부 `BACKEND_HANDOFF.md` §6.8).
 
 ### 3.9 ⭐ `RecordingStatus` — `recordingApi.status` 응답 (Rev 8 신설, 2026-10-13)
 
@@ -938,6 +944,44 @@ HighlightClipSummary = { id, sessionId, durationSeconds: int ≥ 1 /* 10~15 는 
 SignedMediaUrl = { url: url, expiresAt: datetime }
 ```
 
+### 3.13 ⭐ Stage 8 — Data Management · Deletion · Account (Rev 12 설계 — 구현 Rev 12.1 `S8-A`)
+
+근거: Stage 8 Plan rev 2 §7. 아래는 설계 스케치이며 **구현으로 확정한 점은 머리말 Rev 12.1 ①~⑩** 이다 (특히 ① `SessionListItem.recording` `default(null)` · ② `DeletionRequest` 불변식 · ④ `recordingsCount` 정의 · ⑤ 요청 `.strict()`).
+
+```ts
+// C8-1 — GET /v1/data-management
+DataManagementSummary = {
+  retentionPolicy: { rawAudioDays: int > 0 },        // 서버 정책 값 — 화면에 90 하드코딩 금지
+  recordingsCount: int ≥ 0,
+  activeDeletionRequest: DeletionRequest | null,     // 진행 중 all_data · account 1건 (기존 초안 pendingDeletionRequests[] 대체)
+}
+
+// C8-2 — GET /v1/children/:childId/sessions (추가만 — 기존 parse 호환)
+ListSessionsRequest  += { hasRecording?: boolean }
+SessionListItem = SessionSummary & { recording: RecordingStatus | null }   // §3.9
+
+// C8-3 · C8-4
+DeletionRequest = { id, scope: DeletionScope /* + 'account' */, sessionId: Id | null,
+                    status: DeletionRequestStatus, requestedAt: datetime, completedAt: datetime | null }
+CreateDeletionRequest = { scope: 'all_data', confirmation: true }   // literal true (N8-08 ⓐ — 문구 타이핑 없음)
+DeleteAccountRequest  = { confirmation: true }                      // → DeletionRequest(scope='account')
+
+// C8-10 — GET /v1/me · PATCH /v1/me 응답 (M8-1 · Q8-10 ⓐ)
+Caregiver += { email: string /* email 형식, required, 읽기 전용 — UpdateCaregiver 에는 없음 */ }
+
+// C8-6 — 문서 전용 (N8-06 ⓑ: packages/contracts · API Client · Mock 에 만들지 않는다)
+ConsentHistory = { items: { type: ConsentType, documentId, documentTitle, documentVersion,
+                            action: 'granted', occurredAt: datetime }[] }
+```
+
+| 설계 판단 | 내용 |
+|---|---|
+| `Caregiver.email` required | 계정은 언제나 로그인 식별자를 가진다(Email · Google · Apple — C-5). Apple 비공개 릴레이면 그 주소 그대로. 기존 `Me` Mock fixture 전부 가상 주소로 갱신. 로그 · 에러 리포트에 원문 금지 |
+| 세션 녹음 삭제 응답 | `DELETE /v1/sessions/:sessionId/recording` → `DeletionRequest(scope='session_recording', sessionId)`. 이미 삭제 · 만료면 `RECORDING_DELETED` — Frontend 는 오류가 아니라 "이미 삭제됨" 으로 반영 |
+| 삭제 후 표현 | `SessionDetail.recording.uploadStatus='deleted'` + `deletedAt` (§3.9 그대로). 분석 전 세션 종결 표현은 `OAQ-17` 미결 — enum 추가 0 (`C8-7`) |
+| 녹음 삭제 범위 | 원본 오디오 + 하이라이트 클립. 전사 · 지표 · 관찰 유지 (`N8-03` ⓐ) — Backend 요구 `P8-BIP-01` |
+| Handoff | `P8-BIP-01`~`09` (Stage 8 Plan §10) |
+
 ---
 
 ## 4. Endpoint Groups by Stage
@@ -979,7 +1023,7 @@ Auth 자체(가입·로그인·비밀번호 재설정·OAuth)는 HTTP API가 아
 
 | Method | Path | Request | Response | Key errors | PRD |
 |---|---|---|---|---|---|
-| GET | `/v1/me` | — | `Me` (caregiver, consentStatus{required[], missing[]}, parentVerification{status: `ParentVerificationStatus`} (RECOMMENDED, C-3), onboardingStatus, child?{id, firstName}, plan) | AUTH_REQUIRED | FR-01, FR-02, FR-03 |
+| GET | `/v1/me` | — | `Me` (caregiver{… + **`email`** — Rev 12 `C8-10`, §3.13}, consentStatus{required[], missing[]}, parentVerification{status: `ParentVerificationStatus`} (RECOMMENDED, C-3), onboardingStatus, child?{id, firstName}, plan) | AUTH_REQUIRED | FR-01, FR-02, FR-03 |
 | PATCH | `/v1/me` | `UpdateCaregiver` (displayName, relationship, timezone) | `Me` | VALIDATION_FAILED | §7.2 Step1, §7.8 |
 | GET | `/v1/consent-documents/current` (public) | — | `CurrentConsentDocuments` (documents[{type, documentId, version, required, title, url}] — C-1 5종, §3.4) | — | FR-02 |
 | POST | `/v1/consents` (IK) | `RecordConsents` (items[{type, documentId, action: 'granted'}], source) — `revoked` 없음 (C-4) | `ConsentStatus` | CONSENT_VERSION_OUTDATED, VALIDATION_FAILED (필수 항목 누락) | FR-02, §7.1 |
@@ -1059,7 +1103,8 @@ Home 상단 설정 아이콘(`26:44`) → 설정 목록. Stage 2는 `/` Home ske
 | POST | `/v1/sessions/:sessionId/recordings` (IK, CG) | `RecordingUploadInit` (§3.3) | `RecordingUploadInit` | CONSENT_REQUIRED, RECORDING_NOT_ALLOWED_FOR_MODE, SESSION_INVALID_TRANSITION | FR-14, NFR 오프라인 |
 | POST | `/v1/recordings/:recordingId/upload-tokens` (IK, CG) | `RefreshUploadTokens` (partNos) | `RecordingUploadInit` | RECORDING_DELETED | NFR 오프라인 (토큰 만료) |
 | POST | `/v1/recordings/:recordingId/complete` (IK, CG) | `RecordingUploadComplete` (§3.3) | `RecordingUploadComplete` | RECORDING_INCOMPLETE, UPLOAD_TOKEN_EXPIRED | FR-14 |
-| GET | `/v1/children/:childId/sessions` | cursor, `?status=` | `Paginated<SessionSummary>` | — | FR-20 히스토리, §7.8 세션별 삭제 목록 |
+| GET | `/v1/children/:childId/sessions` | cursor, `?status=`, **`?hasRecording=`** (Rev 12 `C8-2`) | `Paginated<SessionListItem>` — `SessionSummary` + `recording: RecordingStatus \| null` (Rev 12 `C8-2`, 추가만) | — | FR-20 히스토리, §7.8 세션별 삭제 목록 |
+| GET | `/v1/recordings/:recordingId` | — | `RecordingStatus` (§3.9) — `recordingApi.status` | RESOURCE_NOT_FOUND, RECORDING_DELETED, FORBIDDEN | FR-14, FR-21 — **Rev 12 등재 (`C8-8`, `O-2` · `RU-8` 정정: §3.9 · §5.1.1 에만 있고 이 표에 없었다)** |
 
 클라이언트 전용(계약 아님): RecordingController 상태, 로컬 UploadQueue 상태, 마이크 권한 상태.
 
@@ -1151,15 +1196,19 @@ Home 상단 설정 아이콘(`26:44`) → 설정 목록. Stage 2는 `/` Home ske
 
 | Method | Path | Request | Response | Key errors | PRD |
 |---|---|---|---|---|---|
-| GET | `/v1/data-management` | — | `DataManagementSummary` (retentionPolicy{rawAudioDays: 90}, recordingsCount, pendingDeletionRequests) | — | §7.8 보관 정책 안내 |
-| DELETE | `/v1/sessions/:sessionId/recording` (IK) | — | `DeletionRequest` | RECORDING_DELETED, DELETION_ALREADY_REQUESTED | FR-21 |
-| POST | `/v1/data-deletion-requests` (IK) | `CreateDeletionRequest` (scope='all_data', confirmation) | `DeletionRequest` | DELETION_ALREADY_REQUESTED | FR-21, NFR |
-| GET | `/v1/data-deletion-requests/:id` | — | `DeletionRequest` | — | FR-21 |
-| DELETE | `/v1/me` (IK) | `DeleteAccount` (confirmation) | `DeletionRequest` | — | §7.8 탈퇴 (범위 DATA_MODEL §12.2 B-5 결정) |
-| GET | `/v1/consents` (동의 이력 보기 — 선택 기능 (C-19, 미구현 시 QA FAIL 아님)) | — | `ConsentHistory` | — | FR-02, PRD §12.1 동의 이력 |
+| GET | `/v1/data-management` | — | `DataManagementSummary` (§3.13 — retentionPolicy{rawAudioDays}, recordingsCount, **activeDeletionRequest \| null**) — Rev 12 `C8-1` | AUTH_REQUIRED | §7.8 보관 정책 안내 |
+| GET | `/v1/children/:childId/sessions?hasRecording=true` | cursor | `Paginated<SessionListItem>` (Stage 4 표 — Rev 12 `C8-2`) | — | FR-21 세션별 녹음 삭제 목록 |
+| DELETE | `/v1/sessions/:sessionId/recording` (IK) | — | `DeletionRequest` (`scope='session_recording'`) | RECORDING_DELETED, DELETION_ALREADY_REQUESTED, ACCOUNT_DELETION_PENDING | FR-21 |
+| POST | `/v1/data-deletion-requests` (IK) | `CreateDeletionRequest` (`scope='all_data'`, `confirmation: true` literal) | `DeletionRequest` | DELETION_ALREADY_REQUESTED | FR-21, NFR |
+| GET | `/v1/data-deletion-requests/:id` | — | `DeletionRequest` | RESOURCE_NOT_FOUND | FR-21 |
+| DELETE | `/v1/me` (IK) | `DeleteAccountRequest` (`confirmation: true` literal) | `DeletionRequest` (`scope='account'`) | DELETION_ALREADY_REQUESTED | §7.8 탈퇴 — **CONFIRMED (`D8-1`, `N8-02` ⓐ): 탈퇴 = 계정 + 전체 데이터 삭제, 전체 데이터 삭제 = 아동 데이터 삭제 · 계정 유지** |
+| (모든 쓰기) | — | — | — | **ACCOUNT_DELETION_PENDING** (Rev 12 `C8-5`) | 삭제 · 탈퇴 진행 중 쓰기 차단 |
+| GET | `/v1/consents` (동의 이력 보기 — 선택 기능 (C-19)) | — | `ConsentHistory` (§3.13 — 문서 전용) | — | FR-02, PRD §12.1 동의 이력 — **Frontend 미구현 CONFIRMED (`D8-1`, `N8-06` ⓑ)**: Backend 요구로만 (`P8-BIP-08`) |
 | — | 동의 철회 | — | — | — | **범위 제외 — CONFIRMED (사용자 결정 2026-09-14, C-4)**. Contract·`action='revoked'`·Mock 없음. COPPA 관계는 NEEDS DECISION (법무, L-03) |
 
 > 세션별 녹음 삭제 UI와 `DELETE /v1/sessions/:sessionId/recording` 호출은 Stage 8 (C-15). Stage 4는 LocalRecordingStore 로컬 삭제 기반만 (PLANNING §4.1 FR-21).
+>
+> **Rev 12 API Client (`C8-9`, 설계 → 구현됨 Rev 12.1 `S8-A` — `shared/api/data-management-api.ts` · `account-api.ts`, `ApiClients.dataManagement` · `.account`, 쓰기 차단 대상 메서드 목록 = `mocks/common/writeGuard.ts` `DELETION_PENDING_WRITE_METHODS`)**: `dataManagementApi { summary, listRecordingSessions, deleteSessionRecording, createDeletionRequest, getDeletionRequest }` · `accountApi { deleteAccount }` — Mock + Http 골격. `consentApi.history` 는 만들지 않는다(`N8-06` ⓑ). 세션 녹음 삭제는 **서버 확정 응답 후** 로컬 청크 삭제 + UploadQueue 취소 (rules/architecture §7). 삭제 요청은 SessionOutbox 대상이 아니다 — 오프라인이면 보내지 않고 안내 (Stage 8 Plan §5.3). Backend 요구: `P8-BIP-01`~`09`.
 
 ---
 
@@ -1180,6 +1229,8 @@ apps/web/src/
 │   └── scenarios/              scenario 정의 + 전환 스위치 (방식은 Stage 1 Plan에서 확정)
 └── app/providers/              Adapter 선택 지점 1곳 (Mock | Http)
 ```
+
+> **구현된 폴더 (Rev 12.4, `S8-J` 확인)** — 위 트리는 Stage 0 설계안이다. 실제 `apps/web/src/mocks/` = `account` · `activities` · `analysis` · `auth` · `books` · `children` · `common`(연결 · 지연 · 멱등 · 쓰기 차단) · `consent` · `data-management` · `fixtures` · `health` · `highlight-clips` · `home` · `library` · `me` · `media`(합성 WAV · PDF) · `notifications` · `onboarding` · `platform`(녹음 · 공유 · push 권한 포트 Mock) · `progress` · `recorder` · `recordings` · `reflections` · `reports` · `scenarios` · `sessions`. API Client Interface 20종 = `shared/api/*-api.ts`, Http 골격 = `shared/api/http/Http*.ts` + `TusUploadTransport.ts`. Scenario 그룹 26개(group 이름 → key 목록)는 `docs/BACKEND_HANDOFF.md` §5.2.
 
 #### 5.1.1 녹음 업로드 계층 명칭 (interface + Mock 구조 CONFIRMED (사용자 결정 2026-09-14, #27) — 명칭은 rules/frontend §1이 이 절을 기준으로 참조)
 
@@ -1258,7 +1309,7 @@ apps/web/src/
 | analysis / short feedback | 5 | `success`, `loading`, `error`, `retry`, `offline` | **`analysis-pending`**, **`analysis-completed`**, **`analysis-failed`**, `analysis-low-quality`, `analysis-not-available`, `recording-deleted` (`completed` + Detail `uploadStatus=deleted`, `N5-12` ⓐ), 🆕 `analysis-pending-then-completed`, 🆕 `analysis-feedback-missing` (Rev 9) |
 | children (profile · update · growth-capability · survey-update) + activity-cards 추천 (Rev 10) | 6 | `success`, `loading`, `empty`, `error`, `retry`, `offline` | `children`: `profile-updated`, `persona-changed`, `persona-fallback`, `all-scores-missing`, `scores-partially-missing`, `validation-failed`, `survey-update-draft`, `survey-update-submitted` · `activity-cards`: `cold-to-warm`, `difficulty-lowered` |
 | reports / highlight clips / PDF (+ progress weekly — Rev 11) | 7 | `success`, `loading`, `empty`, `error`, `retry`, `offline` | **`report-eligible`**, **`report-not-eligible`**, `report-deferred`, 🆕 `report-deferred-first`, `report-delayed`, 🆕 `report-published-unviewed`, 🆕 `report-persona-unchanged`, 🆕 `report-no-previous`, `pdf-generating`, 🆕 `pdf-failed`, 🆕 `pdf-timeout`, `share-cancelled`, 🆕 `share-unsupported`, `clip-expired`, 🆕 `clip-url-expired`, `recording-deleted` (highlight clips) · `progress`: 🆕 `progress-first-week`, 🆕 `progress-multi-week` |
-| data management / deletion / account / consent history (이월 — C-15) | 8 | `success`, `loading`, `empty`, `error`, `retry` | `deletion-processing`, `deletion-already-requested`, `recording-deleted` |
+| data management / deletion / account (이월 — C-15) — Rev 12 | 8 | `success`, `loading`, `empty`, `error`, `retry`, `offline` | `deletion-processing`, 🆕 `deletion-failed`, 🆕 `deletion-retry`(Rev 12.2), `deletion-already-requested`, 🆕 `deletion-completed-offscreen`(Rev 12.3), `recording-deleted`, 🆕 `recording-delete-local-pending` · `account`: `success`, `error`, `offline`, 🆕 `deletion-pending-write-blocked` — consent history 그룹 없음(`N8-06` ⓑ) |
 
 ### 5.4 Scenario Key Catalogue — **scenario key의 유일한 기준 (Single Source)**
 
@@ -1294,6 +1345,10 @@ apps/web/src/
 | `vpc-pending` | — | **RECOMMENDED (C-3 슬롯)** — 동의 기록 후 `Me.parentVerification.status='pending'` → Route Guard가 VPC 단계 슬롯에 머묾. 방식 결정(법무 L-01) 후 동작 조정 | me, onboarding (Route Guard) | 2 | — |
 | `vpc-failed` | — | **RECOMMENDED (C-3 슬롯)** — VPC 검증 실패 또는 거절 → `Me.parentVerification.status='failed'`, 실패 안내·재시도 경로 표시, 온보딩 진입 차단 (아동 데이터 쓰기 없음). 기본 scenario는 `success`(통과). 방식 결정(법무 L-01) 후 동작 조정 | me, onboarding (Route Guard) | 2 | — |
 | `capability-all-missing` | — | **RECOMMENDED (C-8)** — 한 역량의 문항이 모두 `not_observed` 인 submit 응답 (해당 역량 `score: null`) → 프로필·다이아몬드 표시 검증. 처리 규칙은 Stage 2 Plan | onboarding submit, children profile | 2 | — |
+| `prefilled-child-info` | — | 🆕 Rev 12.4 등재 (Stage 2 온보딩 재구성 Plan §8 정의 · 구현됨) — 서버 draft 에 아이 정보가 있는 상태로 `About your child` 진입 | onboarding | 2 | — |
+| `missing-prefill` | — | 🆕 Rev 12.4 등재 (같은 출처) — draft 에 `child_info` 가 없는 상태로 진입 (기기 변경 · draft 폐기) | onboarding | 2 | — |
+| `instrument-v2` | — | 🆕 Rev 12.4 등재 (같은 출처) — 문항 수 · 버전이 다른 instrument (카드 수 · 소요 시간이 파생값인지 — `AC-2R-09`) | onboarding | 2 | — |
+| `owned-books-empty` | — | 🆕 Rev 12.4 등재 (같은 출처, `R-04`) — Q5 책 카탈로그(`instrument.questions[owned_books].options`)가 비어 있음 | onboarding | 2 | — |
 | `offline-cached-card` | — | `offline` + 최근 Activity Card 캐시 존재 | home, activity-cards | 3 | — |
 | `conversation-only-option` | — | 카드 옵션에 `kind=conversation_only` 포함 | activity-cards | 3 | — |
 | `reread-option` | — | 카드 옵션에 `kind=reread_book` 포함 | activity-cards | 3 | — |
@@ -1356,7 +1411,12 @@ apps/web/src/
 | `progress-first-week` | — | 🆕 Rev 11 — 가입 첫 주: `availableWeeks` 1개 (주 chip = 정적 라벨) | progress | 7 | — |
 | `progress-multi-week` | — | 🆕 Rev 11 — `availableWeeks` 4개(달 넘김·연 넘김 각 1) · 이전 주 선택 시 다른 fixture | progress | 7 | — |
 | `deletion-processing` | — | 삭제 요청 `received → processing → completed` | data management | 8 | — |
-| `deletion-already-requested` | — | `DELETION_ALREADY_REQUESTED` | data management | 8 | — |
+| `deletion-already-requested` | — | `DELETION_ALREADY_REQUESTED` · summary 에 진행 요청 표시 | data management | 8 | — |
+| `deletion-failed` | — | 🆕 Rev 12 — 전체 삭제 `received → processing → failed` | data management | 8 | — |
+| `deletion-retry` | — | 🆕 Rev 12.2 (`S8-C`) — RETRY: 첫 전체 삭제 요청 `failed` → 다시 요청 `completed` | data management | 8 | — |
+| `deletion-completed-offscreen` | — | 🆕 Rev 12.3 (`S8-F`, `N8-31` ⓐ) — 화면 밖에서 이미 끝난 전체 삭제: 요약 `activeDeletionRequest = null` · 요청 `GET` 첫 조회 = `completed` · `me` = 온보딩 전. 기기 표시(요청 id)는 서버 key 가 아니라 **로컬 주입**(브라우저 조립 지점 seed) | data management | 8 | — |
+| `recording-delete-local-pending` | — | 🆕 Rev 12 — 세션 녹음 삭제 서버 성공 + 해당 세션 로컬 미업로드 청크 존재 → 서버 확정 후 로컬 삭제 · 큐 취소 | data management | 8 | — |
+| `deletion-pending-write-blocked` | — | 🆕 Rev 12 — 삭제 진행 중 다른 쓰기 → `ACCOUNT_DELETION_PENDING` | account (+ 쓰기 endpoint) | 8 | — |
 | `recording-deleted` | — | `RECORDING_DELETED` / 분석 종결 표현 (`skipped_audio_deleted` 후보 — OAQ-17 결정 전 enum 제외) | recordings (upload-tokens), analysis, highlight clips, data management | 4 | — |
 | ~~`consent-revoked`~~ | — | **제거 — CONFIRMED (사용자 결정 2026-09-14, C-4, 동의 철회 MVP 제외)**. Mock·테스트·문서에 사용 금지 | — | — | — |
 
@@ -1476,6 +1536,7 @@ apps/web/src/
 > | scenario | `apps/web/src/mocks/sessions/sessionFixtureScenarios.ts` `session-greeting:reminder-missing` → 인사 = `MOCK_READY_BUBBLE` · `reminderBubble: null`. 그 밖의 key 는 리마인드 = `MOCK_READY_REMINDER_BUBBLE` |
 > | 화면 | `entities/session/SessionReadyBubble` — `RecordingController` snapshot `readyReminderShown` 이 켜지면 제목 줄 글자만 교체 (같은 노드 · 1줄 clamp · pill 불변). 리마인드가 null/빈 값이면 DOM 불변 |
 
+- ⭐ **Rev 12 — `data-management:success` fixture 요구 (`M8-4`) — 구현됨 (Rev 12.1: 8행 = 지난 세션 2(`uploaded`) + `pending` · `failed` · `book=null`(`uploaded`) · 40자 제목(`uploaded`) · `deleted` · `expired`, 1페이지 5행 + 2페이지 3행 — `apps/web/src/mocks/fixtures/data-management.ts`)**: 세션 녹음 목록 **cursor 2페이지** · 행 `recording.uploadStatus` 5종(`uploaded` 2 · `pending` · `failed` · `expired` · `deleted` 각 1 이상) · `book = null` 1행 · 40자 책 제목 1행 · `recordingsCount` = 목록 중 삭제 가능 행 수(`success` = 6 — `VG8-A-04`). `account` 그룹 `success` · `error` · `offline` = `DELETE /v1/me` 결과. 모든 `Me` fixture 에 가상 `caregiver.email` (`C8-10`).
 - Mock 응답도 contracts schema로 parse (fixture drift 방지).
 - Fixture 아동 데이터는 가상 이름만 사용 (실제 아동 데이터 금지 — rules/frontend.md §5 fixtures 규칙).
 - Figma placeholder 값(표지·제목·리포트 수치)을 fixture로 복사하지 않는다 (M-36).

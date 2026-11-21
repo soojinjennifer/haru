@@ -1,0 +1,50 @@
+{
+  "no-query": {
+    "url": "http://127.0.0.1:4179/",
+    "stillOpenNotice": 0,
+    "scenarioPanel": 0,
+    "requestLogGlobal": false,
+    "coverSrcs": [
+      "/assets/neutral-cover-teal-CLy05OXQ.png",
+      "/assets/neutral-cover-orange-CMvZxbyH.png",
+      "/assets/neutral-cover-indigo-fAXpKkhG.png"
+    ],
+    "consoleErrors": []
+  },
+  "query": {
+    "url": "http://127.0.0.1:4179/",
+    "stillOpenNotice": 1,
+    "scenarioPanel": 0,
+    "requestLogGlobal": false,
+    "coverSrcs": [
+      "/assets/neutral-cover-teal-CLy05OXQ.png",
+      "/assets/neutral-cover-orange-CMvZxbyH.png",
+      "/assets/neutral-cover-indigo-fAXpKkhG.png"
+    ],
+    "consoleErrors": []
+  },
+  "deep /progress": {
+    "status": 200,
+    "finalPath": "/auth/welcome",
+    "mainCount": 1,
+    "headings": [
+      "HARU"
+    ]
+  },
+  "deep /settings/data": {
+    "status": 200,
+    "finalPath": "/auth/welcome",
+    "mainCount": 1,
+    "headings": [
+      "HARU"
+    ]
+  },
+  "deep /dev/gallery": {
+    "status": 200,
+    "finalPath": "/dev/gallery",
+    "mainCount": 1,
+    "headings": [
+      "Page not found"
+    ]
+  }
+}

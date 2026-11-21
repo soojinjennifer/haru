@@ -648,7 +648,7 @@ Icon registry 추가 (Lucide): `file-down` · `arrow-down-to-line` · `share` ·
 | 화면 | 포커스 순서 | 비고 |
 |---|---|---|
 | Progress | TopBar(h1) → chip → (주간 카드 토글 `N7-41` ⓑ) → 리포트 카드 헤더 링크 → PDF 버튼 → 과거 목록 행 → 더 보기 → 탭바 | heading: h1 *Progress* → h2 ×3~4 (*This week's reading* · *Growth themes* · *4-week full report* · SR 전용 h2 *Past reports*). StatTile·Moment 는 heading 없음 |
-| 리포트 카드 헤더 링크 | 이름 = *"Open 4-week report, Apr 13 – May 10"* (`aria-label`, 설명 문장은 링크 밖 `aria-describedby` 아님 — 짧게) | `N7-37` |
+| 리포트 카드 헤더 링크 | ~~이름 = *"Open 4-week report, Apr 13 – May 10"* (`aria-label`, 설명 문장은 링크 밖 `aria-describedby` 아님 — 짧게)~~ → **개정 (2026-11-21, `D8-3`)**: `aria-label` **제거** — 이름 = 링크 안 보이는 내용(제목 *4-week full report* + 설명 + 보조). 이전 이름이 보이는 제목을 포함하지 않아 WCAG 2.5.3 위반(`H8-6-N1` · `stage-8-visual-gap.md` `VG8-G-06`). 시각 · baseline 0 | `N7-37` · `D8-3` |
 | 막대 | §3.4 list · 각 항목 이름 | 총합은 위 텍스트 |
 | Growth themes | 행 텍스트 *"Self-Direction, strong"* · 막대 `aria-hidden` | 숫자 읽지 않음 |
 | 시트 | 열림 → 제목 포커스(기존 Sheet) → RadioGroup → 닫힘 → chip 복귀 | — |

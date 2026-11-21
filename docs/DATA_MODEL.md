@@ -1,5 +1,7 @@
 # HARU Data Requirements (Draft for Backend Developer)
 
+> ⛔ **이관됨 (2026-11-21, Stage 8 `S8-J`, development-agent)** — 이 문서 §1–§14 본문은 **`docs/DATA_REQUIREMENTS.md` Part B** 로 그대로 옮겨졌고, Stage 2–8 Delta 와 Stage 8 결정(`D8-1` · `D8-2`)은 같은 문서 **Part A** 에 있다. **Backend Handoff 정본은 `docs/DATA_REQUIREMENTS.md`** 다. 이 파일은 Stage 0 승인 기록으로 보존하며 더 이상 갱신하지 않는다 (AC-8-82).
+
 Status: APPROVED (2026-09-14, user) — Stage 0 산출물 (Rev 6: #33 · C-19 반영)
 Reflects: `docs/decisions/stage-0-approvals.md` #16 · #17 · C-1 · C-2 · C-3 · C-4 · C-5 · C-6 · C-7 · C-8 · C-9 · C-10 · C-11 · C-12 · C-15 · D-03 · D-04 (Rev 5). #33 · C-19는 데이터 요구사항 변경 없음 (Rev 6)
 Decision log: `docs/decisions/stage-0-approvals.md` — 이 문서와 다르면 결정 기록이 우선한다. 라벨: `CONFIRMED (사용자 결정 YYYY-MM-DD, #id)` · `RECOMMENDED` · `NEEDS DECISION (법무, L-xx)`.

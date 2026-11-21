@@ -1,0 +1,3606 @@
+[
+ {
+  "name": "s4-session-background-notice",
+  "img": [
+   393,
+   852
+  ],
+  "comps": [
+   {
+    "bbox": [
+     100,
+     290,
+     16,
+     22
+    ],
+    "px": 350,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 0.95,
+    "palette": "teal"
+   }
+  ]
+ },
+ {
+  "name": "s4-prompt-drawer",
+  "img": [
+   393,
+   852
+  ],
+  "comps": [
+   {
+    "bbox": [
+     100,
+     290,
+     16,
+     22
+    ],
+    "px": 348,
+    "modeRGB": [
+     90,
+     126,
+     122
+    ],
+    "modeShare": 0.95,
+    "palette": null
+   }
+  ]
+ },
+ {
+  "name": "s4-session-prompts",
+  "img": [
+   393,
+   852
+  ],
+  "comps": [
+   {
+    "bbox": [
+     100,
+     291,
+     16,
+     2
+    ],
+    "px": 28,
+    "modeRGB": [
+     242,
+     250,
+     250
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     100,
+     295,
+     16,
+     17
+    ],
+    "px": 161,
+    "modeRGB": [
+     242,
+     250,
+     250
+    ],
+    "modeShare": 0.98,
+    "palette": null
+   }
+  ]
+ },
+ {
+  "name": "s4-reading-context-sheet",
+  "img": [
+   393,
+   459
+  ],
+  "comps": [
+   {
+    "bbox": [
+     41,
+     2,
+     31,
+     20
+    ],
+    "px": 163,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     74,
+     2,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     32,
+     2,
+     58,
+     39
+    ],
+    "px": 663,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     48,
+     6,
+     5,
+     4
+    ],
+    "px": 8,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     49,
+     13,
+     1,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     66,
+     25,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   }
+  ]
+ },
+ {
+  "name": "s4-session-recording",
+  "img": [
+   393,
+   852
+  ],
+  "comps": [
+   {
+    "bbox": [
+     100,
+     290,
+     16,
+     22
+    ],
+    "px": 350,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 0.95,
+    "palette": "teal"
+   }
+  ]
+ },
+ {
+  "name": "s4-session-recording-320",
+  "img": [
+   320,
+   852
+  ],
+  "comps": [
+   {
+    "bbox": [
+     64,
+     290,
+     16,
+     22
+    ],
+    "px": 350,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 0.95,
+    "palette": "teal"
+   }
+  ]
+ },
+ {
+  "name": "s4-session-paused",
+  "img": [
+   393,
+   852
+  ],
+  "comps": [
+   {
+    "bbox": [
+     100,
+     290,
+     16,
+     22
+    ],
+    "px": 350,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 0.95,
+    "palette": "teal"
+   }
+  ]
+ },
+ {
+  "name": "s3-home-deck",
+  "img": [
+   345,
+   434
+  ],
+  "comps": [
+   {
+    "bbox": [
+     8,
+     62,
+     58,
+     82
+    ],
+    "px": 4687,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 0.99,
+    "palette": "teal"
+   }
+  ]
+ },
+ {
+  "name": "s3-home-deck-scrolled",
+  "img": [
+   345,
+   434
+  ],
+  "comps": [
+   {
+    "bbox": [
+     8,
+     62,
+     58,
+     82
+    ],
+    "px": 4687,
+    "modeRGB": [
+     238,
+     210,
+     190
+    ],
+    "modeShare": 0.99,
+    "palette": "orange"
+   }
+  ]
+ },
+ {
+  "name": "s3-home",
+  "img": [
+   393,
+   852
+  ],
+  "comps": [
+   {
+    "bbox": [
+     32,
+     352,
+     58,
+     82
+    ],
+    "px": 4687,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 0.99,
+    "palette": "teal"
+   }
+  ]
+ },
+ {
+  "name": "s3-library-shelf-sheet",
+  "img": [
+   365,
+   798
+  ],
+  "comps": [
+   {
+    "bbox": [
+     34,
+     81,
+     34,
+     48
+    ],
+    "px": 1594,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 0.97,
+    "palette": "teal"
+   },
+   {
+    "bbox": [
+     34,
+     156,
+     34,
+     48
+    ],
+    "px": 1594,
+    "modeRGB": [
+     238,
+     210,
+     190
+    ],
+    "modeShare": 0.97,
+    "palette": "orange"
+   },
+   {
+    "bbox": [
+     347,
+     227,
+     9,
+     150
+    ],
+    "px": 1294,
+    "modeRGB": [
+     242,
+     242,
+     242
+    ],
+    "modeShare": 0.65,
+    "palette": null
+   },
+   {
+    "bbox": [
+     34,
+     231,
+     34,
+     48
+    ],
+    "px": 1598,
+    "modeRGB": [
+     170,
+     182,
+     206
+    ],
+    "modeShare": 0.97,
+    "palette": "indigo"
+   },
+   {
+    "bbox": [
+     12,
+     234,
+     6,
+     9
+    ],
+    "px": 39,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 0.64,
+    "palette": null
+   },
+   {
+    "bbox": [
+     16,
+     286,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     234,
+     238,
+     238
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     16,
+     289,
+     2,
+     5
+    ],
+    "px": 5,
+    "modeRGB": [
+     234,
+     238,
+     238
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     17,
+     332,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     234,
+     238,
+     238
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     10,
+     343,
+     1,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     10,
+     344,
+     8,
+     32
+    ],
+    "px": 141,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 0.8,
+    "palette": null
+   },
+   {
+    "bbox": [
+     10,
+     349,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     347,
+     500,
+     9,
+     149
+    ],
+    "px": 1293,
+    "modeRGB": [
+     242,
+     242,
+     242
+    ],
+    "modeShare": 0.65,
+    "palette": null
+   },
+   {
+    "bbox": [
+     12,
+     507,
+     6,
+     9
+    ],
+    "px": 39,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 0.64,
+    "palette": null
+   },
+   {
+    "bbox": [
+     16,
+     559,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     234,
+     238,
+     238
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     16,
+     562,
+     2,
+     5
+    ],
+    "px": 5,
+    "modeRGB": [
+     234,
+     238,
+     238
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     17,
+     605,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     234,
+     238,
+     238
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     10,
+     616,
+     1,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     10,
+     617,
+     8,
+     32
+    ],
+    "px": 141,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 0.8,
+    "palette": null
+   },
+   {
+    "bbox": [
+     10,
+     622,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     43,
+     796,
+     2,
+     1
+    ],
+    "px": 2,
+    "modeRGB": [
+     222,
+     226,
+     226
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     26,
+     797,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     194,
+     202,
+     202
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     33,
+     797,
+     3,
+     1
+    ],
+    "px": 3,
+    "modeRGB": [
+     218,
+     226,
+     222
+    ],
+    "modeShare": 1,
+    "palette": null
+   }
+  ]
+ },
+ {
+  "name": "s3-library-book-sheet-back",
+  "img": [
+   365,
+   503
+  ],
+  "comps": [
+   {
+    "bbox": [
+     10,
+     0,
+     15,
+     6
+    ],
+    "px": 42,
+    "modeRGB": [
+     86,
+     126,
+     118
+    ],
+    "modeShare": 0.62,
+    "palette": null
+   },
+   {
+    "bbox": [
+     339,
+     0,
+     17,
+     8
+    ],
+    "px": 55,
+    "modeRGB": [
+     110,
+     118,
+     134
+    ],
+    "modeShare": 0.65,
+    "palette": null
+   }
+  ]
+ },
+ {
+  "name": "s3-library-book-sheet",
+  "img": [
+   365,
+   560
+  ],
+  "comps": [
+   {
+    "bbox": [
+     10,
+     0,
+     26,
+     7
+    ],
+    "px": 77,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 0.4,
+    "palette": null
+   },
+   {
+    "bbox": [
+     249,
+     0,
+     107,
+     139
+    ],
+    "px": 12612,
+    "modeRGB": [
+     242,
+     242,
+     242
+    ],
+    "modeShare": 0.95,
+    "palette": null
+   },
+   {
+    "bbox": [
+     198,
+     1,
+     3,
+     7
+    ],
+    "px": 8,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.88,
+    "palette": null
+   },
+   {
+    "bbox": [
+     39,
+     2,
+     4,
+     3
+    ],
+    "px": 9,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     45,
+     2,
+     5,
+     3
+    ],
+    "px": 8,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     54,
+     2,
+     15,
+     3
+    ],
+    "px": 31,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     74,
+     2,
+     23,
+     4
+    ],
+    "px": 48,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     100,
+     2,
+     14,
+     3
+    ],
+    "px": 22,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     165,
+     2,
+     1,
+     6
+    ],
+    "px": 6,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     169,
+     2,
+     4,
+     6
+    ],
+    "px": 13,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     175,
+     2,
+     1,
+     6
+    ],
+    "px": 6,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     185,
+     2,
+     7,
+     6
+    ],
+    "px": 15,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     194,
+     2,
+     2,
+     5
+    ],
+    "px": 6,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     203,
+     2,
+     1,
+     6
+    ],
+    "px": 6,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     24,
+     9,
+     4,
+     2
+    ],
+    "px": 3,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     30,
+     9,
+     2,
+     1
+    ],
+    "px": 2,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     36,
+     9,
+     5,
+     1
+    ],
+    "px": 3,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     50,
+     9,
+     4,
+     2
+    ],
+    "px": 4,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     56,
+     9,
+     1,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     59,
+     9,
+     3,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     65,
+     9,
+     3,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     75,
+     9,
+     1,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     81,
+     9,
+     3,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     97,
+     9,
+     2,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     101,
+     9,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     43,
+     10,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     78,
+     10,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     89,
+     10,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     94,
+     10,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     108,
+     10,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     136,
+     11,
+     20,
+     18
+    ],
+    "px": 129,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     157,
+     11,
+     9,
+     19
+    ],
+    "px": 50,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.98,
+    "palette": null
+   },
+   {
+    "bbox": [
+     168,
+     11,
+     8,
+     18
+    ],
+    "px": 65,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     179,
+     11,
+     3,
+     18
+    ],
+    "px": 26,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     186,
+     11,
+     2,
+     18
+    ],
+    "px": 21,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     191,
+     11,
+     5,
+     6
+    ],
+    "px": 9,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     198,
+     11,
+     8,
+     18
+    ],
+    "px": 37,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     208,
+     11,
+     7,
+     18
+    ],
+    "px": 44,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     213,
+     11,
+     2,
+     2
+    ],
+    "px": 3,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     217,
+     11,
+     17,
+     18
+    ],
+    "px": 91,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     194,
+     19,
+     2,
+     10
+    ],
+    "px": 11,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     10,
+     20,
+     107,
+     131
+    ],
+    "px": 7384,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 0.63,
+    "palette": "teal"
+   },
+   {
+    "bbox": [
+     75,
+     21,
+     13,
+     12
+    ],
+    "px": 54,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 0.91,
+    "palette": null
+   },
+   {
+    "bbox": [
+     84,
+     21,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     28,
+     30,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     169,
+     32,
+     3,
+     2
+    ],
+    "px": 4,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.75,
+    "palette": null
+   },
+   {
+    "bbox": [
+     174,
+     32,
+     7,
+     3
+    ],
+    "px": 8,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.63,
+    "palette": null
+   },
+   {
+    "bbox": [
+     184,
+     32,
+     7,
+     2
+    ],
+    "px": 9,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.78,
+    "palette": null
+   },
+   {
+    "bbox": [
+     195,
+     32,
+     2,
+     3
+    ],
+    "px": 4,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.25,
+    "palette": null
+   },
+   {
+    "bbox": [
+     29,
+     34,
+     2,
+     3
+    ],
+    "px": 2,
+    "modeRGB": [
+     214,
+     218,
+     218
+    ],
+    "modeShare": 0.5,
+    "palette": null
+   },
+   {
+    "bbox": [
+     38,
+     36,
+     3,
+     7
+    ],
+    "px": 15,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 0.4,
+    "palette": null
+   },
+   {
+    "bbox": [
+     48,
+     36,
+     3,
+     1
+    ],
+    "px": 3,
+    "modeRGB": [
+     214,
+     222,
+     218
+    ],
+    "modeShare": 0.33,
+    "palette": null
+   },
+   {
+    "bbox": [
+     78,
+     36,
+     3,
+     5
+    ],
+    "px": 11,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 0.45,
+    "palette": null
+   },
+   {
+    "bbox": [
+     84,
+     36,
+     2,
+     3
+    ],
+    "px": 2,
+    "modeRGB": [
+     234,
+     238,
+     238
+    ],
+    "modeShare": 0.5,
+    "palette": null
+   },
+   {
+    "bbox": [
+     174,
+     37,
+     8,
+     13
+    ],
+    "px": 24,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.5,
+    "palette": null
+   },
+   {
+    "bbox": [
+     185,
+     37,
+     1,
+     3
+    ],
+    "px": 3,
+    "modeRGB": [
+     194,
+     198,
+     194
+    ],
+    "modeShare": 0.33,
+    "palette": null
+   },
+   {
+    "bbox": [
+     184,
+     37,
+     16,
+     13
+    ],
+    "px": 43,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.81,
+    "palette": null
+   },
+   {
+    "bbox": [
+     48,
+     39,
+     3,
+     2
+    ],
+    "px": 5,
+    "modeRGB": [
+     214,
+     222,
+     218
+    ],
+    "modeShare": 0.4,
+    "palette": null
+   },
+   {
+    "bbox": [
+     194,
+     40,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     218,
+     218,
+     218
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     185,
+     42,
+     1,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     174,
+     182,
+     178
+    ],
+    "modeShare": 0.5,
+    "palette": null
+   },
+   {
+    "bbox": [
+     68,
+     43,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     169,
+     43,
+     3,
+     7
+    ],
+    "px": 15,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.87,
+    "palette": null
+   },
+   {
+    "bbox": [
+     131,
+     55,
+     78,
+     70
+    ],
+    "px": 1682,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.92,
+    "palette": null
+   },
+   {
+    "bbox": [
+     285,
+     69,
+     6,
+     5
+    ],
+    "px": 22,
+    "modeRGB": [
+     242,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     316,
+     69,
+     6,
+     5
+    ],
+    "px": 23,
+    "modeRGB": [
+     242,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     179,
+     74,
+     2,
+     4
+    ],
+    "px": 4,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     223,
+     76,
+     12,
+     11
+    ],
+    "px": 33,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     146,
+     82,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     208,
+     88,
+     30,
+     21
+    ],
+    "px": 274,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.93,
+    "palette": null
+   },
+   {
+    "bbox": [
+     79,
+     89,
+     1,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     226,
+     230,
+     230
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     150,
+     90,
+     2,
+     3
+    ],
+    "px": 4,
+    "modeRGB": [
+     226,
+     230,
+     230
+    ],
+    "modeShare": 0.75,
+    "palette": null
+   },
+   {
+    "bbox": [
+     204,
+     98,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     205,
+     103,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     206,
+     107,
+     3,
+     2
+    ],
+    "px": 5,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.8,
+    "palette": null
+   },
+   {
+    "bbox": [
+     211,
+     107,
+     4,
+     1
+    ],
+    "px": 4,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     219,
+     110,
+     5,
+     2
+    ],
+    "px": 7,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.43,
+    "palette": null
+   },
+   {
+    "bbox": [
+     157,
+     111,
+     4,
+     5
+    ],
+    "px": 8,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.38,
+    "palette": null
+   },
+   {
+    "bbox": [
+     237,
+     111,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     182,
+     190,
+     186
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     144,
+     114,
+     2,
+     2
+    ],
+    "px": 3,
+    "modeRGB": [
+     242,
+     242,
+     238
+    ],
+    "modeShare": 0.67,
+    "palette": null
+   },
+   {
+    "bbox": [
+     150,
+     115,
+     3,
+     4
+    ],
+    "px": 8,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     167,
+     115,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     242,
+     238,
+     238
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     190,
+     115,
+     4,
+     2
+    ],
+    "px": 4,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.75,
+    "palette": null
+   },
+   {
+    "bbox": [
+     211,
+     115,
+     2,
+     3
+    ],
+    "px": 5,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     236,
+     115,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     220,
+     116,
+     2,
+     1
+    ],
+    "px": 2,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     225,
+     118,
+     6,
+     6
+    ],
+    "px": 21,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     236,
+     120,
+     1,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     139,
+     124,
+     6,
+     3
+    ],
+    "px": 9,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.89,
+    "palette": null
+   },
+   {
+    "bbox": [
+     148,
+     124,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     162,
+     124,
+     4,
+     5
+    ],
+    "px": 6,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     169,
+     124,
+     3,
+     3
+    ],
+    "px": 3,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     177,
+     124,
+     1,
+     3
+    ],
+    "px": 3,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.67,
+    "palette": null
+   },
+   {
+    "bbox": [
+     197,
+     124,
+     5,
+     5
+    ],
+    "px": 10,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     204,
+     124,
+     3,
+     5
+    ],
+    "px": 5,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     215,
+     124,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     187,
+     125,
+     2,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.5,
+    "palette": null
+   },
+   {
+    "bbox": [
+     193,
+     125,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     231,
+     125,
+     7,
+     4
+    ],
+    "px": 13,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     216,
+     127,
+     13,
+     3
+    ],
+    "px": 22,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     109,
+     128,
+     6,
+     5
+    ],
+    "px": 20,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 0.7,
+    "palette": null
+   },
+   {
+    "bbox": [
+     133,
+     129,
+     17,
+     9
+    ],
+    "px": 36,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 0.75,
+    "palette": null
+   },
+   {
+    "bbox": [
+     249,
+     261,
+     107,
+     151
+    ],
+    "px": 3036,
+    "modeRGB": [
+     242,
+     242,
+     242
+    ],
+    "modeShare": 0.97,
+    "palette": null
+   },
+   {
+    "bbox": [
+     12,
+     269,
+     6,
+     9
+    ],
+    "px": 39,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     41,
+     295,
+     25,
+     6
+    ],
+    "px": 71,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     75,
+     295,
+     12,
+     6
+    ],
+    "px": 29,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     136,
+     295,
+     6,
+     6
+    ],
+    "px": 17,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     144,
+     295,
+     1,
+     6
+    ],
+    "px": 6,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     148,
+     295,
+     7,
+     6
+    ],
+    "px": 19,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     157,
+     295,
+     3,
+     6
+    ],
+    "px": 9,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     162,
+     295,
+     3,
+     6
+    ],
+    "px": 10,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     168,
+     295,
+     2,
+     6
+    ],
+    "px": 8,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     173,
+     295,
+     3,
+     6
+    ],
+    "px": 8,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     180,
+     295,
+     1,
+     6
+    ],
+    "px": 6,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     186,
+     295,
+     1,
+     6
+    ],
+    "px": 6,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     194,
+     295,
+     1,
+     6
+    ],
+    "px": 6,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     199,
+     295,
+     3,
+     6
+    ],
+    "px": 9,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     208,
+     295,
+     2,
+     6
+    ],
+    "px": 12,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     218,
+     295,
+     1,
+     6
+    ],
+    "px": 6,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     222,
+     295,
+     3,
+     6
+    ],
+    "px": 12,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     230,
+     295,
+     1,
+     6
+    ],
+    "px": 6,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     204,
+     300,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     214,
+     300,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     16,
+     320,
+     2,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     16,
+     324,
+     9,
+     14
+    ],
+    "px": 22,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 0.82,
+    "palette": null
+   },
+   {
+    "bbox": [
+     26,
+     341,
+     40,
+     8
+    ],
+    "px": 81,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     66,
+     343,
+     14,
+     6
+    ],
+    "px": 36,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     80,
+     343,
+     4,
+     1
+    ],
+    "px": 4,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     88,
+     343,
+     16,
+     6
+    ],
+    "px": 56,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     106,
+     343,
+     3,
+     6
+    ],
+    "px": 11,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     164,
+     343,
+     12,
+     6
+    ],
+    "px": 58,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     193,
+     343,
+     13,
+     6
+    ],
+    "px": 57,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     249,
+     343,
+     20,
+     6
+    ],
+    "px": 120,
+    "modeRGB": [
+     242,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     285,
+     343,
+     6,
+     4
+    ],
+    "px": 18,
+    "modeRGB": [
+     242,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     299,
+     343,
+     8,
+     6
+    ],
+    "px": 45,
+    "modeRGB": [
+     242,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     316,
+     343,
+     6,
+     4
+    ],
+    "px": 19,
+    "modeRGB": [
+     242,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     41,
+     347,
+     5,
+     2
+    ],
+    "px": 5,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     48,
+     347,
+     2,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     179,
+     347,
+     1,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     17,
+     367,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     10,
+     378,
+     1,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     10,
+     379,
+     92,
+     32
+    ],
+    "px": 594,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 0.99,
+    "palette": null
+   },
+   {
+    "bbox": [
+     10,
+     384,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     104,
+     391,
+     13,
+     6
+    ],
+    "px": 34,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     131,
+     391,
+     16,
+     6
+    ],
+    "px": 24,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     151,
+     391,
+     2,
+     1
+    ],
+    "px": 2,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     225,
+     391,
+     6,
+     6
+    ],
+    "px": 21,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     236,
+     393,
+     1,
+     2
+    ],
+    "px": 2,
+    "modeRGB": [
+     246,
+     246,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     21,
+     398,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     238,
+     242,
+     242
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     43,
+     558,
+     2,
+     1
+    ],
+    "px": 2,
+    "modeRGB": [
+     222,
+     226,
+     226
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     26,
+     559,
+     1,
+     1
+    ],
+    "px": 1,
+    "modeRGB": [
+     194,
+     202,
+     202
+    ],
+    "modeShare": 1,
+    "palette": null
+   },
+   {
+    "bbox": [
+     33,
+     559,
+     3,
+     1
+    ],
+    "px": 3,
+    "modeRGB": [
+     218,
+     226,
+     222
+    ],
+    "modeShare": 1,
+    "palette": null
+   }
+  ]
+ },
+ {
+  "name": "s3-library-shelf",
+  "img": [
+   345,
+   219
+  ],
+  "comps": [
+   {
+    "bbox": [
+     0,
+     0,
+     107,
+     151
+    ],
+    "px": 16059,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 1,
+    "palette": "teal"
+   },
+   {
+    "bbox": [
+     121,
+     0,
+     107,
+     151
+    ],
+    "px": 16056,
+    "modeRGB": [
+     238,
+     210,
+     190
+    ],
+    "modeShare": 1,
+    "palette": "orange"
+   },
+   {
+    "bbox": [
+     239,
+     0,
+     106,
+     151
+    ],
+    "px": 15928,
+    "modeRGB": [
+     170,
+     182,
+     206
+    ],
+    "modeShare": 1,
+    "palette": "indigo"
+   }
+  ]
+ },
+ {
+  "name": "s3-library-reading-now",
+  "img": [
+   345,
+   118
+  ],
+  "comps": [
+   {
+    "bbox": [
+     14,
+     14,
+     64,
+     90
+    ],
+    "px": 5691,
+    "modeRGB": [
+     238,
+     210,
+     190
+    ],
+    "modeShare": 0.99,
+    "palette": "orange"
+   }
+  ]
+ },
+ {
+  "name": "s3-library",
+  "img": [
+   393,
+   852
+  ],
+  "comps": [
+   {
+    "bbox": [
+     38,
+     108,
+     64,
+     90
+    ],
+    "px": 5691,
+    "modeRGB": [
+     238,
+     210,
+     190
+    ],
+    "modeShare": 0.99,
+    "palette": "orange"
+   },
+   {
+    "bbox": [
+     24,
+     266,
+     107,
+     151
+    ],
+    "px": 16059,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 1,
+    "palette": "teal"
+   },
+   {
+    "bbox": [
+     145,
+     266,
+     107,
+     151
+    ],
+    "px": 16056,
+    "modeRGB": [
+     238,
+     210,
+     190
+    ],
+    "modeShare": 1,
+    "palette": "orange"
+   },
+   {
+    "bbox": [
+     263,
+     266,
+     107,
+     151
+    ],
+    "px": 16065,
+    "modeRGB": [
+     170,
+     182,
+     206
+    ],
+    "modeShare": 1,
+    "palette": "indigo"
+   },
+   {
+    "bbox": [
+     24,
+     539,
+     107,
+     151
+    ],
+    "px": 16059,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 1,
+    "palette": "teal"
+   },
+   {
+    "bbox": [
+     145,
+     539,
+     107,
+     151
+    ],
+    "px": 16056,
+    "modeRGB": [
+     238,
+     210,
+     190
+    ],
+    "modeShare": 1,
+    "palette": "orange"
+   },
+   {
+    "bbox": [
+     263,
+     539,
+     107,
+     151
+    ],
+    "px": 16065,
+    "modeRGB": [
+     170,
+     182,
+     206
+    ],
+    "modeShare": 1,
+    "palette": "indigo"
+   },
+   {
+    "bbox": [
+     40,
+     822,
+     34,
+     30
+    ],
+    "px": 867,
+    "modeRGB": [
+     126,
+     182,
+     174
+    ],
+    "modeShare": 0.24,
+    "palette": null
+   }
+  ]
+ },
+ {
+  "name": "s3-library-list",
+  "img": [
+   345,
+   299
+  ],
+  "comps": [
+   {
+    "bbox": [
+     16,
+     13,
+     34,
+     48
+    ],
+    "px": 1594,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 0.97,
+    "palette": "teal"
+   },
+   {
+    "bbox": [
+     16,
+     88,
+     34,
+     48
+    ],
+    "px": 1594,
+    "modeRGB": [
+     238,
+     210,
+     190
+    ],
+    "modeShare": 0.97,
+    "palette": "orange"
+   },
+   {
+    "bbox": [
+     16,
+     163,
+     34,
+     48
+    ],
+    "px": 1597,
+    "modeRGB": [
+     170,
+     182,
+     206
+    ],
+    "modeShare": 0.97,
+    "palette": "indigo"
+   }
+  ]
+ },
+ {
+  "name": "s3-library-favorites-empty",
+  "img": [
+   393,
+   852
+  ],
+  "comps": [
+   {
+    "bbox": [
+     38,
+     108,
+     64,
+     90
+    ],
+    "px": 5691,
+    "modeRGB": [
+     238,
+     210,
+     190
+    ],
+    "modeShare": 0.99,
+    "palette": "orange"
+   },
+   {
+    "bbox": [
+     24,
+     266,
+     107,
+     151
+    ],
+    "px": 16059,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 1,
+    "palette": "teal"
+   },
+   {
+    "bbox": [
+     145,
+     266,
+     107,
+     151
+    ],
+    "px": 16056,
+    "modeRGB": [
+     238,
+     210,
+     190
+    ],
+    "modeShare": 1,
+    "palette": "orange"
+   },
+   {
+    "bbox": [
+     263,
+     266,
+     107,
+     151
+    ],
+    "px": 16065,
+    "modeRGB": [
+     170,
+     182,
+     206
+    ],
+    "modeShare": 1,
+    "palette": "indigo"
+   },
+   {
+    "bbox": [
+     38,
+     766,
+     36,
+     52
+    ],
+    "px": 1424,
+    "modeRGB": [
+     234,
+     242,
+     242
+    ],
+    "modeShare": 0.27,
+    "palette": null
+   },
+   {
+    "bbox": [
+     40,
+     843,
+     34,
+     9
+    ],
+    "px": 288,
+    "modeRGB": [
+     218,
+     198,
+     178
+    ],
+    "modeShare": 0.42,
+    "palette": null
+   }
+  ]
+ },
+ {
+  "name": "s4-home-offline-cached-393",
+  "img": [
+   393,
+   852
+  ],
+  "comps": [
+   {
+    "bbox": [
+     32,
+     352,
+     58,
+     82
+    ],
+    "px": 4687,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 0.99,
+    "palette": "teal"
+   }
+  ]
+ },
+ {
+  "name": "s4-home-offline-cached-320",
+  "img": [
+   320,
+   852
+  ],
+  "comps": [
+   {
+    "bbox": [
+     32,
+     352,
+     58,
+     82
+    ],
+    "px": 4687,
+    "modeRGB": [
+     134,
+     190,
+     182
+    ],
+    "modeShare": 0.99,
+    "palette": "teal"
+   }
+  ]
+ }
+]

@@ -7,6 +7,7 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 개정 이력: 2026-10-29 design-agent — `docs/design/stage-4b-visual-gap-f2.md`(`S4-F2`) 반영: 토큰 T-31~T-33 등재(§5.3) · `D4-66` aria-live 낭독 철회(§9.1) · `D4-67`/`AD-S4-19` tabular-nums 유지(§2.2 · §9.1) · `D4-65` 확인 다이얼로그 문구 승인(§3.4 · §11.2) · `P-26`·`P-27` 등재 참조(§9.2). 결정 반영 개정이므로 Status 유지.
 개정 이력: 2026-11-03 design-agent — **§18 신설 (`S4-H2R` · `S4-H3`, Plan rev 1.4 §13.3·§13.4 · `D4-112`·`D4-114`)** — §18 **APPROVED (2026-11-03, user — `D4-119` · `D4-120`)**. 기존 절의 Status 는 유지. §7.1 마지막 두 행 · §7.3 · 상위 §7 ③⑤⑥ 의 정정은 §18.8 에 delta 로 적고 §18 승인(`D4-119`)으로 효력 발생.
 개정 이력: 2026-11-02 design-agent — `S4-H1` 마무리: 상위 Spec 정정 §17 신설(`D4-74`·`D4-86`·`D4-87`·`D4-90`·`D4-100`·`D4-101`·`D4-103`~`D4-106`) · 압축 확정 §8.2 · §7.2(`D4-78`·`D4-79`·`D4-81`~`D4-85`) · 토큰 T-34~T-43 등재(§5.3) · §1 · §4 · §9.1 · §11.2 · §12 · §13 갱신. 결정 반영 개정이므로 Status 유지.
+개정 이력: 2026-11-21 design-agent — Stage 8 `D8-3` · `D8-4` 반영: §9.1 Record Control 접근성 이름 — `idle`/`disabled` *Tap to recording, Start recording* · `paused` *Tap to resume, Resume recording* (Figma 캡션 먼저 + 동작, WCAG 2.5.3). 근거 `stage-8-visual-gap.md` S8-G §3.2 · S8-H §3.4. 결정 반영 개정이므로 Status 유지.
 
 ---
 
@@ -413,7 +414,7 @@ Based on: Figma HARU_MVP `YWWu3AFEJpRxvw0T5klq0k` 페이지 `16:2` 섹션 **`296
 | `See all prompts` | `<button>` (이동이 아니라 동작) · `aria-haspopup="dialog"` · 이름 = 보이는 문구 · 터치 44 (`::before` hit slop, 팝업 안에 들어간다 §4 #5) |
 | 상태 pill | 보이는 텍스트 `Recording`/`Paused` · dot `aria-hidden` · pill 자체에 live 없음 — ~~전환 알림은 상위 §9 의 단일 `aria-live="polite"` 영역(*"Recording started." / "Paused." / "Recording resumed."*)~~ **철회 (`D4-66`, 2026-10-29)**: 상태 전환 낭독을 넣지 않는다 — Record Control 접근성 이름 변화로만 전달 |
 | 경과 시간 | `role="timer"` + `aria-live="off"` (상위 §7.1 유지) · `tabular-nums` (`D4-67` 유지 · 허용 차이 `AD-S4-19`: 128 ↔ 134) |
-| Record Control 접근성 이름 | `idle` **Start recording** · `recording` **Pause recording** · `paused` **Resume recording** · `disabled` 이름은 `idle` 과 같고 `aria-disabled` + `aria-describedby`(사유 — 예: 동의 필요) · `permission-denied` **Microphone is off** + `aria-haspopup="dialog"`(안내 시트) |
+| Record Control 접근성 이름 | ~~`idle` **Start recording**~~ → **`idle` *Tap to recording, Start recording*** (`D8-3`) · `recording` **Pause recording** (캡션 없음 — 변화 0) · ~~`paused` **Resume recording**~~ → **`paused` *Tap to resume, Resume recording*** (`D8-4`) — 2026-11-21 개정: Figma 캡션이 있는 변형은 **캡션 먼저 + 동작** (WCAG 2.5.3, 근거 `stage-8-visual-gap.md` S8-G §3.2 · S8-H §3.4) · `disabled` 이름은 `idle` 과 같고 `aria-disabled` + `aria-describedby`(사유 — 예: 동의 필요) · `permission-denied` **Microphone is off** + `aria-haspopup="dialog"`(안내 시트) |
 | 닫기 | `Close session` · 38 → hit 44 (IconButton 기존) · 글리프 HARU SVG `aria-hidden`(§16.4) |
 | Reading Context 시트 legend (`D4-63`) | 보이는 legend 숨김 — **`<legend>` 요소는 유지**하고 `.haru-visually-hidden` 으로 숨긴다(`display:none` 금지 — 그룹 접근성 이름 유지). 시트 `<h2>` 와 같은 문장이 시각적으로 두 번 나오지 않게 하는 것만 목적 — §16.6 |
 | 시간 목록 `Back` (`D4-64`) | 헤더 **왼쪽** leading 슬롯 · 이름 `Back`(copy 기존 값) · 터치 44 · DOM 순서 = Back → (제목) → trailing → 본문 — §16.7 |

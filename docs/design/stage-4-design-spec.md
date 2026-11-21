@@ -2,6 +2,8 @@
 
 Status: **APPROVED (2026-10-13, user)**
 
+개정 이력: 2026-11-21 design-agent — Stage 8 `D8-3` · `D8-4` 반영: §2.6.3 접근성 이름 행 — `idle` *Tap to recording, Start recording* · `paused` *Tap to resume, Resume recording* (Figma 캡션 먼저 + 동작, WCAG 2.5.3). 결정 반영 개정이므로 Status 유지.
+
 > ## ✅ 승인 기록 (`rules/workflow.md` §3)
 >
 > 사용자 발화: **"승인 — 4a 구현 착수"** (2026-10-13). Stage 4 Plan 과 이 Design Spec 이 함께 승인됐다.
@@ -895,7 +897,7 @@ export interface RecordControlProps {
 | 링 2겹 | **CSS 로 재현** — `border: 2px solid var(--color-action-primary-bg)` + opacity. **SVG 에셋을 넣지 않는다** | `[감사 §12: "CSS 로 재현 가능"]` |
 | 코어 | 108 원 · `--color-action-primary-bg` · `--shadow-record-core`(§5.2 `T-3`) | `[감사 §15.5]` |
 | 아이콘 | 마이크 = **HARU 전용 SVG export**(Stage 0 #21) · pause = ⚠️ **막대 radius 0** 이라 Lucide `pause`(둥근 끝)와 **모양이 다를 수 있다** → **글리프 대조 후** 다르면 HARU SVG | `[감사 §12]` |
-| **접근성 이름** | `idle` → **`Start recording`** · `recording` → **`Pause recording`** — **상태가 아니라 동작**을 읽는다 (버튼을 누르면 일어나는 일) | `[계산]` — Figma 라벨 `Tap to recording` 은 **시각 라벨**이고 접근성 이름과 역할이 다르다 |
+| **접근성 이름** | ~~`idle` → **`Start recording`**~~ → **개정 (`D8-3`, 2026-11-21): `idle` → *`Tap to recording, Start recording`*** (보이는 캡션 **먼저** + 동작 — WCAG 2.5.3 label-in-name; `disabled` 동일) · `recording` → **`Pause recording`** (Figma `163:1588` 캡션 없음 — 변화 0) · `paused`(4b Spec §2.5 `298:1227`) → **개정 (`D8-4`): *`Tap to resume, Resume recording`*** — **상태가 아니라 동작**을 읽는 원칙은 유지하고, Figma 캡션이 있는 변형은 캡션을 이름 앞에 붙인다 (근거 `stage-8-visual-gap.md` S8-G §3.2 · S8-H §3.4) | `[계산]` — Figma 라벨 `Tap to recording` 은 **시각 라벨**이고 접근성 이름과 역할이 다르다 |
 | 상태 전달 | ⚠️ **모션만으로 전달하지 않는다** — `aria-pressed` 는 쓰지 않고(토글 의미가 "눌림"이 아니다) **접근성 이름 변경 + 시각 라벨/아이콘 변경** 2중으로 전달한다. `prefers-reduced-motion` 에서 맥동이 멈춰도 상태를 알 수 있어야 한다 | `[문서 인용: DESIGN_SYSTEM §9.3-3]` |
 | 시각 라벨 대비 | 흰 라벨 on teal **2.074:1** = **`D-01` 수용 예외 범위** `[계산 + 직독: approvals:83]`. ⚠️ **크기 10px 은 `D-01` 범위가 아니다** → §5.4-② 가 `--text-caption-2`(11) 흡수를 제안 | — |
 | 마운트 | ⚠️ **상태가 바뀌어도 다시 마운트하지 않는다** — 같은 노드에서 아이콘·라벨만 교체한다 (`R-BASELINE-1`) | — |

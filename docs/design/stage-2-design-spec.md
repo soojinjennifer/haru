@@ -25,6 +25,8 @@
 
 **개정 6 (2026-10-03, design-agent) — 구현 시각 결함 3건 (`S2-FIX-1`~`3`)**: `Status: DRAFT — 사용자 승인 대기`. 사용자가 브라우저에서 발견한 3건을 **Playwright 실측 + Figma 재조회**로 규명하고 수정 명세를 **§16** 에 추가했다. ① 최종 CTA 하단 여백이 `/auth/sign-up` 을 포함해 **모든 `StackLayout` 화면에서 0px** (Figma 44) — 신규 토큰 `--layout-cta-bottom-gap`(44) 1건 제안. ② `RadioGroup variant="card"` 에 `padding-block` 이 없어 2줄 행이 hug 하지 않고(Step 5 비채점 행은 상 17 / 하 0), Step 5 구분선을 **행 안쪽 padding** 으로 그린 것이 비대칭의 직접 원인 — 신규 토큰 0건. ③ `SwipeDeck` 앞 카드가 표면을 **중복**으로 그려 흰 면이 4겹이 되고 덱 단차가 슬래브처럼 읽힌다 — 덱 토큰(8/16/3)은 Figma 와 일치하며 **승인된 §4.2·§5.3 로의 복귀**다. **시각 baseline 8건 재생성 + 2건 확인** (§16.4). Production Code 는 수정하지 않았다.
 
+**개정 7 (2026-11-21, design-agent) — Stage 8 사용자 결정 `D8-3` 반영 (`docs/decisions/stage-8-approvals.md`)**: 동작 · API 명세 **2건만**. ① §4.1 `SelectTrigger` 접근성 행 — 옵션 시트 키보드 동작 확정: **화살표 = 값 선택 반영(시트 유지) · Enter / 선택된 칸 Space = 확정 후 닫힘 · Esc / scrim = 현재 값으로 닫힘 — 화살표로 옮긴 값은 Esc 로 닫아도 유지(되돌리지 않음)**. 포인터 "선택 즉시 반영" 과 같은 모델이며, 이전 판 "Sheet 안에서 화살표 이동" 의 구체화다 (`VG8-G-02`, `stage-8-visual-gap.md` S8-G §2.2). ② §4.6 `TextLink` — 터치 확장 opt-in 옵션 1개 추가(`H8-6-N4`, hit 만 44 · 보이는 모습 변화 0, Stage 8 Spec §9.3). **값 · 레이아웃 · 토큰 변경 0, 시각 baseline 영향 0.**
+
 ---
 
 ## 0. 이 문서를 읽는 법
@@ -837,7 +839,7 @@ TopBar variant=centered  leading=IconButton(chevron-left, "Back")  title="Settin
 | 선택 UI | **기존 `Sheet variant=bottom` 재사용** (`Plan D-8 전제`). Sheet 제목 = 필드 label, 본문 = `RadioGroup variant=list`, 항목 선택 즉시 반영 후 닫힘. scrim `--color-scrim`(`가값 (P-05)`) |
 | 미선택 표현 | placeholder 텍스트("Not selected") + chevron. 값이 없음을 색으로만 표현하지 않는다 |
 | props | `label`, `value`, `placeholder`, `options`(`{value,label}[]`), `onChange`, `error`, `disabled`, `required`, `sheetTitle` |
-| 접근성 | 트리거는 `<button>` + `aria-haspopup="dialog"` + `aria-expanded`. 접근성 이름 = `label + 현재 값`. Sheet는 focus trap, 닫히면 트리거로 포커스 복귀. 키보드: Enter/Space 열기, Esc 닫기, Sheet 안에서 화살표 이동 |
+| 접근성 | 트리거는 `<button>` + `aria-haspopup="dialog"` + `aria-expanded`. 접근성 이름 = `label + 현재 값`. Sheet는 focus trap, 닫히면 트리거로 포커스 복귀. 키보드: Enter/Space 열기, Esc 닫기, Sheet 안에서 화살표 이동. **(개정 7, `D8-3`)** Sheet 안: 화살표 = 값 선택 **즉시 반영**(`onChange`, 시트는 열린 채) · Enter 또는 선택된 칸의 Space = 확정 후 닫힘 · Esc / scrim = 현재 값 그대로 닫힘 — **화살표로 옮긴 값은 Esc 로 닫아도 유지된다**(되돌리지 않음 — 포인터 "즉시 반영" 과 같은 모델, `VG8-G-02`) |
 | Figma 없음 | 옵션 Sheet 레이아웃 · error · disabled · focus → 명세 |
 
 ### 4.2 `SwipeDeck` — Figma `179:1781–1783` (실측 2026-09-23)
@@ -899,7 +901,7 @@ TopBar variant=centered  leading=IconButton(chevron-left, "Back")  title="Settin
 | 색·장식 | `--color-fg-link` + **`text-decoration: underline`** — `CONFIRMED (Figma `179:1721` underline 확인, Stage 1 §3.2.1)`. 링크는 색 단독 구분이 아니다 ✓ |
 | 타이포 | 주변 텍스트 스타일 상속. 단독 줄은 `--text-footnote`(13/590) |
 | 외부 링크 | trailing `external-link` `--size-icon-sm` + 시각 숨김 "Opens in a new tab" (동의 문서, `Plan D-4 전제`) |
-| props | `href`, `onPress`, `tone`, `external`, `children` |
+| props | `href`, `onPress`, `tone`, `external`, `children` · **(개정 7, `D8-3`)** **`hitArea?: 'text' \| 'touch'`** (기본 `'text'` = 글자 상자 그대로 — 본문 안 링크, WCAG 2.5.8 inline 예외). `'touch'` = 칠하지 않는 `::before` 로 hit 만 44×44 이상(글자 상자가 44 보다 큰 축은 넓히지 않음), 색 · 크기 · 밑줄 · 레이아웃 변화 0. 사용처 = consent *View* ×5 · 아이 정보 편집 *Done* · 녹음 목록 *Show more* (Stage 8 Spec §9.3 — 이웃 hit 겹침 0 조건). 참고: `tone` 에는 Stage 4b 의 `subtle`(보조 링크, 자체 `::before` 세로 44)도 있다 — `hitArea` 와의 병용 사용처 0 |
 | 접근성 | 경로 이동 = `<a>`, 동작 = `<button>`. hit area 44(세로 padding 확보). 링크 텍스트만으로 목적지를 알 수 있어야 한다("here" 금지) |
 
 ### 4.7 컴포넌트를 새로 만들지 않는 것 (조합으로 해결)
