@@ -63,7 +63,6 @@ describe('assert:preview', () => {
     ['⑤ 최상위 404.html', { '404.html': '<p>404</p>' }, '⑤'],
     ['⑤ _redirects', { _redirects: '/* /index.html 200' }, '⑤'],
     ['⑥ 실제 도메인 이메일', { 'assets/m.js': 'real.parent@gmail.com' }, '⑥'],
-    ['⑥ 상용 표지', { 'assets/where-the-wild-things-are-abc.png': 'x' }, '⑥'],
   ])('%s → 실패', (_label, extra, mark) => {
     const files: Record<string, string> = {
       'index.html': '<!doctype html>',
@@ -74,6 +73,19 @@ describe('assert:preview', () => {
     const { status, out } = run(fakeDist(files));
     expect(status).toBe(1);
     expect(out).toContain(`FAIL — ${mark}`);
+  });
+
+  it('⑥ 책 표지 에셋은 실패가 아니라 목록으로 출력한다 (D8-7)', () => {
+    const { status, out } = run(
+      fakeDist({
+        'index.html': '<!doctype html>',
+        'assets/index.js': CLEAN_JS,
+        'assets/where-the-wild-things-are-abc.png': 'x',
+      }),
+    );
+    expect(status).toBe(0);
+    expect(out).toContain('⑥ 책 표지 에셋 (1개');
+    expect(out).toContain('where-the-wild-things-are-abc.png');
   });
 
   it('index.html 이 없으면 실패한다 (빌드 전)', () => {

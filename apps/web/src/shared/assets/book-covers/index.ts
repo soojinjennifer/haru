@@ -1,27 +1,26 @@
 /**
- * 책 표지 — **Mock 전용 중립 대체 표지** (Stage 8 `S8-I`, 결정 `N8-13` ⓐ · `D8-1`).
+ * 책 표지 — **Mock 전용 표지 에셋** (Stage 8 `D8-7`, 2026-11-21 — `N8-13` ⓐ 중립 대체를 번복).
  *
- * Stage 3 에서는 Figma 노드의 **상용 그림책 표지** 이미지를 Mock 임시 에셋으로 썼다
- * (사용자 지시 2026-10-05, `stage-3-approvals.md` §12.12). 그 표지가 Mock 데모 웹 프리뷰(C-18)에
- * 노출되지 않도록(`P3-BIP-19` · `R8-04`) **무늬·글자 없는 단색 표지**로 바꿨다.
+ * Figma(디자이너 화면)에 그려진 그림책 표지 image fill 원본이다 (웹 수집 0). 근거와 출처 노드는
+ * `docs/design/stage-8-visual-gap.md` `## D8-7 표지 복원 목록`. Figma 에 표지가 없는 책은
+ * `BookCover` placeholder 로 그린다.
  *
- * - 마스터 PNG 는 `pnpm assets:optimize` 가 **생성**한다 (`scripts/assets-optimize.mjs` `COVER_SPECS`).
- *   손으로 그리거나 편집하지 않는다. 검사 = `pnpm assets:optimize --check`.
- * - 색 = design-tokens palette 원시값 (`--haru-palette-teal` · `-orange` · `-indigo`).
- * - 216 × 309 (`--book-cover-aspect` 7/10 · `D-4` 상한 216 — 서재 캐러셀 약 107px 의 2배).
+ * - 상용 표지이므로 **공개 배포 금지** — Mock 데모 웹 프리뷰(C-18)는 Cloudflare Access 로 초대된
+ *   사람만 본다. 정식 출시 전 법무 확인 `P3-BIP-19`.
+ * - 마스터 PNG 는 `pnpm assets:optimize` 가 상한 360 (`D-4`)으로 줄인다. 검사 = `pnpm assets:optimize --check`.
  *
  * ⚠ **Backend 연동 시 전부 교체된다.** 실제 표지는 서버가 `BookSummary.coverUrl` 로 내려주며
- * (`P3-BIP-15`·`P3-BIP-02`), 그때 이 디렉토리와 `mocks/fixtures/saved-books.ts` 의 매핑을
+ * (`P3-BIP-15`·`P3-BIP-02`), 그때 이 디렉토리와 `mocks/fixtures/book-covers.ts` 의 매핑을
  * 지운다. 화면 코드는 `coverUrl` 만 보므로 교체 범위가 Mock 레이어 안에 갇혀 있다.
  */
-import neutralCoverIndigo from './neutral-cover-indigo.png';
-import neutralCoverOrange from './neutral-cover-orange.png';
-import neutralCoverTeal from './neutral-cover-teal.png';
+import grumpyMonkeyPlayAllDay from './grumpy-monkey-play-all-day.png';
+import theMostMagnificentIdea from './the-most-magnificent-idea.png';
+import whereTheWildThingsAre from './where-the-wild-things-are.png';
 
 export const BOOK_COVER_ASSETS = {
-  'neutral-cover-teal': neutralCoverTeal,
-  'neutral-cover-orange': neutralCoverOrange,
-  'neutral-cover-indigo': neutralCoverIndigo,
+  'where-the-wild-things-are': whereTheWildThingsAre,
+  'the-most-magnificent-idea': theMostMagnificentIdea,
+  'grumpy-monkey-play-all-day': grumpyMonkeyPlayAllDay,
 } as const;
 
 export type BookCoverAssetName = keyof typeof BOOK_COVER_ASSETS;

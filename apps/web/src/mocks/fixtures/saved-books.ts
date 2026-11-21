@@ -2,28 +2,19 @@
  * Home 덱이 쓰는 책 fixture + `★ Save` 조회 helper.
  *
  * ── 왜 `fixtures/books.ts` 의 `MOCK_BOOKS` 를 그대로 쓰지 않는가 ──
- * `MOCK_BOOKS` 는 **온보딩 Step 3 검색 카탈로그**(`D-17` 최소 범위)이고 표지를 갖지 않는다.
+ * `MOCK_BOOKS` 는 **온보딩 Step 3 검색 카탈로그**(`D-17` 최소 범위)다.
  * Home 덱은 사용자 지시(2026-10-05, approvals §12.12)에 따라 **Figma 에 실제로 그려진 책과
  * 그 표지 이미지**를 보여 줘야 한다. 그래서 덱 전용 목록을 따로 둔다 —
  * 검색 카탈로그를 건드리지 않으므로 Stage 2 동작이 그대로 유지된다.
  *
  * 책(제목·저자)은 **Figma 노드에서 왔다** (`163:2649` Activity card · `30:74` Library).
- * 표지는 Stage 8 `S8-I`(`N8-13` ⓐ)에서 Figma 의 상용 표지 이미지를 **중립 대체 표지**(단색)로
- * 바꿨다 — Mock 전용 임시 에셋이며 Backend 연동 시 `coverUrl` 로 교체된다
+ * 표지는 Figma 의 표지 image fill 이다 (Stage 8 `D8-7` — `S8-I` 중립 대체를 번복). 책 id → 표지는
+ * `book-covers.ts` 한 곳에서 정한다. Mock 전용 임시 에셋이며 Backend 연동 시 `coverUrl` 로 교체된다
  * (`shared/assets/book-covers/index.ts`).
  */
 import type { BookSummary, SaveBookTarget } from '@haru/contracts';
 
-import { BOOK_COVER_ASSETS } from '../../shared/assets/book-covers';
-
-/**
- * 번들러가 주는 표지 경로는 `/assets/x.png` 같은 **상대 경로**인데 `BookSummary.coverUrl` 은
- * 절대 URL 이다 (서버는 signed URL 을 내려준다). Mock 에서만 origin 을 붙여 contract 를 지킨다.
- */
-function toAbsolute(assetUrl: string): string {
-  const origin = globalThis.location?.origin ?? 'https://mock.haru.local';
-  return new URL(assetUrl, origin).href;
-}
+import { mockCoverFor } from './book-covers';
 
 /** 고정 uuid — scenario 간에도 같은 id 를 써야 비교가 쉽다. */
 export const DECK_BOOKS: readonly BookSummary[] = [
@@ -31,19 +22,19 @@ export const DECK_BOOKS: readonly BookSummary[] = [
     id: '22222222-2222-4222-8222-000000000004',
     title: 'Where the Wild Things Are',
     author: 'Maurice Sendak',
-    coverUrl: toAbsolute(BOOK_COVER_ASSETS['neutral-cover-teal']),
+    ...mockCoverFor('22222222-2222-4222-8222-000000000004'),
   },
   {
     id: '22222222-2222-4222-8222-000000000009',
     title: 'The Most Magnificent Idea',
     author: 'Ashley Spires',
-    coverUrl: toAbsolute(BOOK_COVER_ASSETS['neutral-cover-orange']),
+    ...mockCoverFor('22222222-2222-4222-8222-000000000009'),
   },
   {
     id: '22222222-2222-4222-8222-000000000010',
     title: 'Grumpy Monkey: Play All Day',
     author: 'Suzanne Lang',
-    coverUrl: toAbsolute(BOOK_COVER_ASSETS['neutral-cover-indigo']),
+    ...mockCoverFor('22222222-2222-4222-8222-000000000010'),
   },
 ];
 

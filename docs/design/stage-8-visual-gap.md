@@ -911,3 +911,54 @@ S8-G §3.2 의 *"`recording` · `paused` 변형은 Figma 캡션이 없어"* 는 
 - development-agent (`D8-4`): paused 이름 *Tap to resume, Resume recording* — copy 상수 1곳 + exact 이름 테스트 갱신(부분 일치 *Resume recording* 쿼리는 그대로 통과 예상) · 감사 `AXE_PENDING['session-paused']` 제거. 시각 · baseline 0.
 - QA: `VG8-H-02` 역량 Tag(196) 전체 텍스트 경로 대조표 행 · `VG8-H-04` `:focus-visible` 상태 토글 바이트 동일 1회.
 - Orchestrator: `VG8-H-07`(*Mic is off*) 결정 필요 여부.
+
+---
+
+## D8-7 표지 복원 목록
+
+> 근거: 사용자 결정 `D8-7` (`docs/decisions/stage-8-approvals.md` §D8-7, 2026-11-21). design-agent 조사 (2026-11-21). 코드 수정 없음 — 이 표는 development-agent 입력이다.
+> 조사 방법: Mock fixture grep(`apps/web/src/mocks/**`) · 표지 렌더 컴포넌트 grep(`coverUrl` · `BookCover`) · Figma `download_assets`(page `16:2` section `31:204`·`179:1700`, frame `30:74`, `163:2649`, instance `113:1994`, page `8:2` · `125:765` · `0:1`) 원본 image fill 을 받아 md5 로 동일성 대조 · git `186b396` · OneDrive `디자인/` md5 대조. 웹 수집 0.
+
+### 1. 표지가 그려지는 자리 (코드 실측)
+
+| 컴포넌트 | size | 화면 |
+|---|---|---|
+| `entities/activity-card/ActivityOptionCard` | `md` 58×83 | Home Activity Card 덱 |
+| `features/library/LibraryShelves` → `BookShelfItem` | `lg` ≈107×151 | Library — Our curated shelf · Favorites 캐러셀 |
+| `features/library/LibraryShelves` → `BookListRow` | `sm` 34×48 | Library — Finished together 행 |
+| `entities/library/ReadingNowCard` | `xl` 64×90 | Library — Reading now |
+| `features/library/BookDetailSheet` · `LibraryShelfSheet` · `GiftRequestList` · `AddOwnBookForm` | sm~xl | 책 상세 시트 · See all 시트 · 증정 요청 목록 · 직접 등록 |
+| `entities/session/SessionBookChip` | 16×22 | Storytime 세션 책 칩 |
+
+표지를 그리지 **않는** 곳: 온보딩 Step 3 책 검색(텍스트 목록), Data management 녹음 목록, Progress/Report(`bookTitle` 텍스트만).
+
+### 2. 책별 목록
+
+| 책 제목 | Mock 위치 | 표시 화면 (표지) | 출처 | 내보낸 파일 |
+|---|---|---|---|---|
+| Where the Wild Things Are (`…0004`, DECK) | `fixtures/saved-books.ts` `DECK_BOOKS[0]` (현재 `neutral-cover-teal`) | Home 카드 · curated/Favorites · Finished · 상세/See all 시트 · 세션 칩 · (DM 목록 텍스트) | git `186b396` 135×193 · **Figma** shelf `I113:1994;113:1982`, 행 `30:142` (135×193) / **section `31:204` 안 1050×1050 fill**(좌우 흰 여백, 노드 미특정) · OneDrive `디자인/책이미wl3.jpg` 135×193 (=git) | `covers/where-the-wild-things-are.png` **748×1050** (1050 원본에서 흰 여백 crop) |
+| The Most Magnificent Idea (`…0009`) | `DECK_BOOKS[1]` (`neutral-cover-orange`) · `library.ts` Reading now(`bookAt(1)`) | 위와 같음 + **Reading now** | git 239×240 · **Figma** shelf `I113:1994;113:1972` (500×501 jpeg), Home card `163:2649` (240×240) · OneDrive `디자인/책이미지.jpg` · `*/assets/book-src.jpg` 500×501 (=Figma, md5 동일), `*/assets/book-magnificent.png` 240×240 (=`163:2649`) | `covers/the-most-magnificent-idea.png` **500×501** |
+| Grumpy Monkey: Play All Day (`…0010`) | `DECK_BOOKS[2]` (`neutral-cover-indigo`) | 위와 같음 (Reading now 제외) | git 193×193 · **Figma** shelf `I113:1994;113:1977`, 행 `30:150` (193×193) / page `125:765`·`8:2` 안 **500×500** fill (노드 미특정) · OneDrive `디자인/책이미3.jpg` 193×193 (=git) | `covers/grumpy-monkey-play-all-day.png` **500×500** |
+| Goodnight Moon | `fixtures/books.ts` `MOCK_BOOKS[0]` (→ `SHELF_BOOKS[3]`) | curated 4번째 · Finished 4번째 (placeholder) · 온보딩 검색(표지 없음) | 없음 | — |
+| The Very Hungry Caterpillar | `MOCK_BOOKS[1]` (`SHELF_BOOKS[4]`) | curated (placeholder) · 검색 | 없음 | — |
+| Brown Bear, Brown Bear | `MOCK_BOOKS[2]` (`SHELF_BOOKS[5]`) | curated (placeholder) · 검색 | 없음 | — |
+| Where the Wild Things Are (`MOCK_BOOKS[3]`, 같은 id `…0004`, **coverUrl 없음**) | `MOCK_BOOKS[3]` (`SHELF_BOOKS[6]`) | curated 7번째 — **같은 책이 표지 있는 칸 + placeholder 칸으로 두 번** 나온다 | 위 Wild Things 표지 재사용 가능 | (위 파일) |
+| Guess How Much I Love You | `MOCK_BOOKS[4]` (`SHELF_BOOKS[7]`) | curated · `GiftRequestList`(shipped) (placeholder) | 없음 | — |
+| Llama Llama Red Pajama | `MOCK_BOOKS[5]` (`SHELF_BOOKS[8]`) | curated · `GiftRequestList`(requested) · gift_pending 책 (placeholder) | 없음 | — |
+| Corduroy · The Snowy Day | `MOCK_BOOKS[6]`·`[7]` | 온보딩 검색만 (표지 없음) | 없음 | — |
+| The Quiet Garden | `fixtures/sessions.ts` `MOCK_SESSION_BOOK_NO_COVER` | 세션 칩 `session:book-no-cover` — **의도된 표지 없음 시나리오** | 해당 없음 (가상) | — 유지 |
+| The Very Long Adventure of the Little Cloud… | `sessions.ts` `MOCK_SESSION_BOOK_LONG_TITLE` | 세션 칩 `session:book-long-title` | 없음 (가상) | — |
+| Moonbeam and the Night Train | `library.ts` `userEnteredBook` (`book: null`) | Finished — **의도된 placeholder 경로** | 해당 없음 | — 유지 |
+| A Quiet Evening | `library.ts` `FALLBACK_BOOK` | 실제로 쓰이지 않음 | 해당 없음 | — |
+| The Little Owl Who Counted All the Stars | `fixtures/data-management.ts` `MOCK_LONG_TITLE_BOOK` | DM 녹음 목록 (텍스트만) | 없음 (가상) | — |
+| The Most Magnificent Thing · The Little Builder · Snowy Night Walk · Goodnight, Little Moon | `fixtures/reports.ts` · `weekly-progress.ts` `bookTitle` | Progress/Report — 텍스트만, 표지 안 그림 | *Magnificent Thing* 만 Figma page `8:2` 500×500 fill 있음 | `covers/the-most-magnificent-thing.png` 500×500 (후보 — 현재 쓸 자리 없음) |
+
+`covers/` = `/private/tmp/claude-501/-Users-soojin-dev-haru/af713c9a-6f8c-46d9-a529-ccbe52d26603/scratchpad/covers/` (저장소 밖 · 세션 scratchpad). Figma 원본 image fill 을 무손실 PNG 로 변환했고 리사이즈는 하지 않았다. 해상도: `lg` 107×151 기준 7/10 crop 후 Magnificent Idea 351×501 · Grumpy 350×500 · Wild 735×1050 — 모두 **2배(214×302) 이상**. git `186b396` 3종(135~239px)은 `lg` 2배에 못 미친다 → Figma 고해상도 판을 권장.
+
+### 3. 발견 · 보고 사항 (결정 필요)
+
+1. **Figma 라벨 ↔ 이미지 불일치**: shelf instance `113:1994` 의 제목 텍스트는 *The Color Monster · After the Fall · The Dot* 인데 이미지는 *Magnificent Idea · Grumpy Monkey · Wild Things* 다. Mock 은 이미지 쪽 제목을 쓴다 (Stage 3 결정 그대로).
+2. **Figma 에만 있는 표지**: *The Colour Monster Goes to School* (492×500, page `8:2`·`0:1`), *After the Fall* (963×1200, page `8:2`·`0:1`). Mock 에 해당 책이 없어 내보내지 않았다 — 책을 fixture 에 추가하는 것은 Figma 에 없는 데이터 추가라 승인 사항이다.
+3. **Wild Things 원본은 DVD 표지**다 (*"…and other Maurice Sendak stories"*, 등급 마크). Figma 그대로이며 바꾸지 않았다.
+4. `MOCK_BOOKS[3]` 이 `DECK_BOOKS[0]` 과 **같은 id 인데 coverUrl 이 없어** curated 선반에 같은 책이 표지/placeholder 로 두 번 나온다 — 복원 시 함께 정리할지 결정 필요.
+5. Figma 노드 미특정 2건(Wild 1050 · Grumpy 500): `download_assets` 가 페이지/섹션 단위로만 반환해 소속 노드 id 를 좁히지 못했다. md5 로 이미지 동일성만 확인.

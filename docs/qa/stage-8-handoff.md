@@ -796,6 +796,62 @@ H8-9.6 과 같은 실행(이 단위와 `S8-H` 를 한 번에 검증했다).
 
 ---
 
+## H8-14 (D8-7)
+
+`D8-7`(2026-11-21 사용자 결정 — 프리뷰 책 표지 복원) 반영 (2026-11-21, development-agent). **커밋하지 않았다.** 근거: `docs/decisions/stage-8-approvals.md` D8-7 · 조사 `docs/design/stage-8-visual-gap.md` `## D8-7 표지 복원 목록`.
+
+### H8-14.1 Gate
+
+| Gate | 결과 |
+|---|---|
+| Plan / Design Spec | rev 2.3 `APPROVED (D8-1)` · `APPROVED (D8-1)` |
+| 결정 | `D8-7` (사용자 2026-11-21) — `N8-13` ⓐ · `D8-4` 중립 표지 유지 번복 |
+| Backend 작업 | 없음. `apps/` = `web` 만 · `supabase/` 없음 · `apps/mobile` 없음 |
+| 에셋 출처 | design-agent 가 Figma `download_assets` 로 받은 image fill (scratchpad `covers/`). 웹 다운로드 0 |
+
+### H8-14.2 반영 (판정은 QA)
+
+| 항목 | 구현 | 파일 |
+|---|---|---|
+| 표지 3종 복원 | Figma 고해상도판 `where-the-wild-things-are` (748×1050) · `the-most-magnificent-idea` (500×501) · `grumpy-monkey-play-all-day` (500×500) 를 마스터로 넣고 `pnpm assets:optimize` 가 **상한 360** 으로 축소 → 360×505 (305 KB) · 360×361 (141 KB) · 360×360 (184 KB). `the-most-magnificent-thing` 은 쓰지 않음 | `apps/web/src/shared/assets/book-covers/*.png` · `index.ts` |
+| 상한 216 → 360 | 원본이 정사각(500)이라 216 상한이면 `lg` 107×151 칸(`object-fit: cover`)에서 높이 1.4배밖에 안 됨. 360 = 정사각 높이 기준 2.4배 · Wild Things 폭 기준 3.4배 (`D-4` 단계 중 하나) | `scripts/assets-optimize.mjs` |
+| 중립 표지 삭제 | `neutral-cover-{teal,orange,indigo}.png` 삭제 · 생성 코드(`COVER_SPECS` · `COVER_SIZE` · palette 읽기) 제거 | 위 2곳 |
+| 같은 id = 같은 표지 | 신규 `mocks/fixtures/book-covers.ts` `mockCoverFor(bookId)` — 책 id → 표지 매핑 한 곳. `DECK_BOOKS` 3권과 `MOCK_BOOKS[3]`(Wild Things, 같은 id `…0004`)이 같은 URL. curated 7번째 칸이 placeholder → 표지. 책 추가 · 삭제 0 | `fixtures/{book-covers,saved-books,books,library}.ts` |
+| `assert:preview` ⑥ | 상용 표지 금지 검사 **제거** → 표지 에셋 **목록 출력**(실패 조건 아님). 이메일 검사 · ⓪~⑤ 유지 | `scripts/assert-preview.mjs` |
+| 테스트 | `assert-preview.test.ts` ⑥ 상용 표지 실패 케이스 → "표지는 목록 출력 · exit 0" 케이스 · `asset-pipeline.test.ts` 표지 디렉토리 = D8-7 3종만 · `the-most-magnificent-thing`/`neutral-cover` 부재 · `MockBooksApi.test.ts` "검색 결과는 표지 없음" → "같은 id 는 덱과 같은 coverUrl · 표지 없는 책은 없음"(양쪽 존재 확인) | `apps/web/__tests__/*` · `mocks/__tests__/MockBooksApi.test.ts` |
+| 문서 | 배포 절차서 §0 "상용 그림책 표지" 행 · §1 ⑥ 행 정정 (공개 배포 금지 · `P3-BIP-19`) · `BACKEND_HANDOFF.md` P3-BIP-19 2행 | `docs/qa/stage-8-preview-deploy.md` · `docs/BACKEND_HANDOFF.md` |
+
+화면 코드 · 토큰 · Shared UI · contracts 변화 0. 온보딩 검색은 표지를 그리지 않으므로 Wild Things `coverUrl` 추가의 화면 영향 0. Mock 시나리오 신규 0 · PENDING 신규 0 (`P3-BIP-19` 서술만 갱신).
+
+### H8-14.3 baseline (R-BASELINE-1)
+
+비교 모드 1차 전체 e2e: **20 failed · 1134 passed** — 전부 시각 비교. diff 를 픽셀 연결성분(채널 Δ>5, 3px 팽창)으로 분해:
+
+| 원인 | baseline |
+|---|---|
+| 표지 칸 자체 (클러스터 크기 = 표지 크기 58×82 · 107×151 · 64×90 · 34×48 · 16×22, 1차 expected 안 중립 단색 비율 94~99%) | `s3-home` · `s3-home-deck` · `-scrolled` · `s4-home-offline-cached-393/320` · `s3-library-shelf` · `-reading-now` · `-list` · `s4-session-recording` · `-paused` · `-recording-320` · `s4-session-background-notice` |
+| curated 7번째 Wild Things placeholder → 표지 (같은 id 정합) | `s3-library-shelf-sheet` (y 531 칸) |
+| 반투명 시트 · scrim · glass 탭바 뒤 비침 (책 칩 · 서재 표지 위치와 일치, 육안 확인) | `s4-prompt-drawer` · `s4-session-prompts`(scrim 아래 책 칩) · `s4-reading-context-sheet`(시트 위 상단 카드 표지) · `s3-library-book-sheet`(시트 뒤 서재 표지) · `-book-sheet-back`(시트 상단 모서리) · `-shelf-sheet`(시트 가장자리) · `s3-library` · `-favorites-empty`(탭바 glass 아래 Finished 표지) |
+| 임계 아래라 1차에서 통과했으나 `=all` 로 재기록 | `s4-session-discard-dialog` — 19px, x 67–79 · y 2–4 = 다이얼로그 상단 너머 책 칩 표지 |
+
+설명되지 않는 클러스터 0 → `pnpm test:e2e --update-snapshots=all` (**1154 passed**, 31.6m). 변경 baseline **21개**(위 표), 나머지 189개 md5 동일.
+
+### H8-14.4 검증 (2026-11-21)
+
+| 명령 | 결과 |
+|---|---|
+| `typecheck` · `lint` · `lint:boundaries` · `test` · `build` · `format:check` · `assert:no-mocks` · `build:preview` · `assert:preview` · `assets:optimize --check` | 전부 exit 0 — **239 files / 3,598 tests**. `assert:preview` ⑥ 표지 3개 목록 출력 |
+| 재생성 후 전체 e2e 단독 (비교 모드) | **1154 passed · 0 failed (31.0m)** · 실행 전후 baseline 210개 md5 동일 |
+
+### H8-14.5 보고
+
+| # | 내용 |
+|---|---|
+| `H8-14-N1` | 표지 상한을 216 → **360** 으로 올렸다 (위 근거). `D-4` 단계 안의 값이지만 표지 그룹 상한 변경이므로 확인 요청 |
+| `H8-14-N2` | Wild Things 표지는 Figma 원본 그대로 DVD 표지(등급 마크 포함) — 바꾸지 않음 (visual-gap D8-7 §3-3) |
+
+---
+
 ## H8-13 (S8-I 배포 방식 변경 — Workers + GitHub)
 
 사용자 지시(2026-11-21) *"GitHub 를 써서 배포해서 다른 사람들이 git 과 이 주소에서 확인할 수 있게 하고 싶다"* 반영 (2026-11-21, development-agent). **커밋하지 않았다.** 배포 · 로그인 · 계정 접근 · GitHub 연결은 하지 않았다 (`D8-1` — 사용자 수행 `S8-I-U`).

@@ -1,7 +1,9 @@
 /**
  * 책 검색 fixture — 결정 **D-17** 최소 범위 (`GET /v1/books/search`).
  *
- * 가상 목록이며 표지(`coverUrl`)를 넣지 않는다 — Stage 2 화면은 표지를 그리지 않는다 (Stage 3).
+ * 가상 목록이다. 표지(`coverUrl`)는 `book-covers.ts` 가 책 id 로 정한다 — Figma 에 표지가 있는 책
+ * (Where the Wild Things Are)만 갖고, 덱(`saved-books.ts`)의 같은 id 와 **같은 URL** 이다 (Stage 8 `D8-7`).
+ * 온보딩 Step 3 검색 화면은 표지를 그리지 않는다.
  * 검색은 대소문자 무시 부분 일치이고 결과 순서는 목록 순서 그대로다 (결정적).
  */
 import {
@@ -9,6 +11,8 @@ import {
   type BookSummary,
   type SearchBooksResponse,
 } from '@haru/contracts';
+
+import { mockCoverFor } from './book-covers';
 
 /** 고정 uuid — scenario 간에도 같은 id 를 써야 비교가 쉽다. */
 export const MOCK_BOOKS: readonly BookSummary[] = [
@@ -31,6 +35,7 @@ export const MOCK_BOOKS: readonly BookSummary[] = [
     id: '22222222-2222-4222-8222-000000000004',
     title: 'Where the Wild Things Are',
     author: 'Maurice Sendak',
+    ...mockCoverFor('22222222-2222-4222-8222-000000000004'),
   },
   {
     id: '22222222-2222-4222-8222-000000000005',

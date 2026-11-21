@@ -1,6 +1,6 @@
 # Stage 8 — Mock 데모 웹 프리뷰 배포 절차서 (사용자 수행 `S8-I-U`)
 
-Status: **READY FOR USER — rev 2 (Workers + GitHub)** (2026-11-21, development-agent `S8-I` · H8-13) · 근거: Plan `docs/plans/stage-8-plan.md` §5.6 · §12 `S8-I`/`S8-I-U` · 결정 `D8-1` (`N8-11` ⓑ Cloudflare + Cloudflare Access · `N8-12` ⓑ · `N8-13` ⓐ) · 사용자 지시 2026-11-21 *"GitHub 를 써서 배포해서 다른 사람들이 git 과 이 주소에서 확인할 수 있게 하고 싶다"*
+Status: **READY FOR USER — rev 2 (Workers + GitHub)** (2026-11-21, development-agent `S8-I` · H8-13) · 근거: Plan `docs/plans/stage-8-plan.md` §5.6 · §12 `S8-I`/`S8-I-U` · 결정 `D8-1` (`N8-11` ⓑ Cloudflare + Cloudflare Access · `N8-12` ⓑ · `N8-13` ⓐ — 표지는 `D8-7` 로 번복) · 사용자 지시 2026-11-21 *"GitHub 를 써서 배포해서 다른 사람들이 git 과 이 주소에서 확인할 수 있게 하고 싶다"*
 
 > **rev 2 변경**: 배포 방식을 *Pages Direct Upload*(폴더 끌어다 놓기) → **Workers + GitHub 연결(Workers Builds)** 로 바꿨다. Cloudflare 새 대시보드의 *Create an app* 화면이 이 방식이다. 저장소 루트의 `wrangler.jsonc`(정적 자산만 — Worker 스크립트 없음)가 배포 설정이다. 이전 Pages 절차는 **부록 A (대체됨)** 에 남겼다.
 
@@ -33,7 +33,7 @@ Agent 는 계정 생성 · 로그인 · 배포 · GitHub 연결을 하지 않는
 | 산출물 | Cloudflare 빌드 서버가 GitHub 의 커밋으로 `pnpm build:preview` 를 돌려 만든 `apps/web/dist-preview/` (`index.html` · `assets/`) |
 | 모드 | Mock 전용 (`vite build --mode preview` 가 `VITE_API_MODE=mock` 을 강제 — `http` 를 주면 빌드가 멈춘다) |
 | 데이터 | 가상 fixture 만 (아이 이름 `Emma` · 이메일 `sam@example.com` 등 예약 도메인). 실제 아동 데이터 0 · Secret 0 |
-| 상용 그림책 표지 | 없음 — 중립 단색 표지로 교체됨 (`N8-13` ⓐ) |
+| 상용 그림책 표지 | **있음** — Figma 표지 3종(Where the Wild Things Are · The Most Magnificent Idea · Grumpy Monkey: Play All Day). 사용자 결정 `D8-7`(2026-11-21)로 `N8-13` ⓐ 중립 대체를 번복했다. 근거: 프리뷰는 Cloudflare Access 로 **초대된 사람만** 본다. **공개 배포 금지** — Access 를 끄거나 공개 주소로 바꾸지 않는다. 정식 출시 전 법무 확인 `P3-BIP-19`. Figma 에 표지가 없는 책은 placeholder |
 | dev 전용 UI | 없음 — UI gallery · Scenario Panel 은 산출물에 들어가지 않는다. 시나리오 전환은 `?scenario=` 쿼리만 (`N8-12` ⓑ) |
 | sourcemap | 없음 (프리뷰에서만 끈다 — 로컬 · CI 빌드는 그대로) |
 | SPA 처리 | `wrangler.jsonc` 의 `not_found_handling: "single-page-application"` — 모르는 경로에 `index.html` 을 200 으로 준다 (AC-8-68). `404.html` · `_redirects` 는 두지 않는다 (`assert:preview` ⑤) |
@@ -75,7 +75,7 @@ pnpm assert:preview            # 반드시 "통과" + 종료 코드 0
 | ③ | Secret 패턴 0 (service role · 개인 키 · AWS/Google/OpenAI/Stripe/GitHub/Slack 키 · JWT) |
 | ④ | 빌드 환경의 `VITE_*` 이름과 값을 **출력**한다 — 이름이 KEY/SECRET/TOKEN 류면 실패. 정상 출력은 *"없음"* (Cloudflare 빌드 로그에서도 이 줄을 볼 수 있다) |
 | ⑤ | 최상위 `404.html` · `_redirects` 0 (SPA 처리는 `wrangler.jsonc` 가 맡는다) |
-| ⑥ | 예약 도메인(`example.com` 등) 밖의 이메일 주소 0 · 상용 표지 에셋 0 |
+| ⑥ | 예약 도메인(`example.com` 등) 밖의 이메일 주소 0. 책 표지 에셋은 **목록만 출력**(실패 조건 아님 — `D8-7` 로 상용 표지 금지 검사 제거) |
 
 ---
 

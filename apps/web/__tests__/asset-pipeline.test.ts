@@ -55,23 +55,24 @@ describe('assets:optimize 산출물', () => {
   });
 });
 
-describe('S8-I — 중립 대체 표지 (N8-13 ⓐ · P3-BIP-19)', () => {
+describe('D8-7 — 책 표지 (Figma image fill, 중립 대체 번복)', () => {
   const covers = readdirSync(COVER_DIR).filter((entry) => /\.(png|webp|avif|jpe?g)$/.test(entry));
 
-  it('표지 디렉토리에는 생성된 중립 표지 3종(PNG)만 있다', () => {
+  it('표지 디렉토리에는 D8-7 표지 3종(PNG)만 있다 — 중립 단색 표지는 없다', () => {
     expect(covers.sort()).toEqual([
-      'neutral-cover-indigo.png',
-      'neutral-cover-orange.png',
-      'neutral-cover-teal.png',
+      'grumpy-monkey-play-all-day.png',
+      'the-most-magnificent-idea.png',
+      'where-the-wild-things-are.png',
     ]);
   });
 
-  it('상용 그림책 표지 파일이 앱 소스에 없다', () => {
-    const commercial = /where-the-wild-things-are|the-most-magnificent-idea|grumpy-monkey/;
+  it('D8-7 에서 쓰지 않기로 한 표지는 앱 소스에 없다', () => {
     const images = walk(join(REPO, 'apps', 'web', 'src')).filter((file) =>
       /\.(png|webp|avif|jpe?g|gif|svg)$/.test(file),
     );
-    expect(images.filter((file) => commercial.test(file))).toEqual([]);
+    expect(images.filter((file) => /the-most-magnificent-thing|neutral-cover/.test(file))).toEqual(
+      [],
+    );
   });
 });
 

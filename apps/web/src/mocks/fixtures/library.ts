@@ -5,8 +5,8 @@
  *  - **가상 데이터만** 담는다 (실제 아동 데이터 금지).
  *  - **결정적**이다 — id·시각·순서가 scenario 와 무관하게 호출 순서만으로 정해진다.
  *    시각은 주입 clock 의 기준 시각에서 **상대 오프셋**으로 만든다.
- *  - 표지는 **Mock 전용 중립 대체 표지**다 (`shared/assets/book-covers` — `L-D4` 의 상용 표지를
- *    Stage 8 `S8-I` 에서 교체 · `N8-13` ⓐ).
+ *  - 표지는 **Mock 전용 표지 에셋**(Figma image fill)이다 (`shared/assets/book-covers` — Stage 8 `D8-7`
+ *    에서 `S8-I` 중립 대체를 번복). 책 id → 표지는 `book-covers.ts` 한 곳에서 정한다.
  *  - `shelf-partial`(1·2권) · `unrated` · `reading-now-none` · `favorites-empty` ·
  *    `user-entered-book` 은 **Figma 에 없는 상태**다 → 이 fixture 가 유일한 검증 수단이다.
  *
@@ -46,7 +46,7 @@ function daysAgo(clock: Clock, days: number): string {
 }
 
 /**
- * 표지 있는 책 3권(Figma `30:74` 의 책 · 표지는 중립 대체) + 표지 없는 카탈로그 책.
+ * 표지 있는 책 3권(Figma `30:74` 의 책과 표지 — `D8-7`) + 카탈로그 책(같은 id 면 같은 표지, 없으면 placeholder).
  * 캐러셀이 **3-up × 3페이지**(dots 3개 `[실측 113:1986]`)를 실제로 그릴 수 있어야 하므로
  * 큐레이션 섹션에 9권을 넣는다. 페이지 수는 `ceil(items / 3)` 로 **데이터에서 파생**된다.
  */

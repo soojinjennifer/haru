@@ -13,6 +13,7 @@ import { createImmediateTimer, NetworkError } from '../../shared/api/helpers';
 import { createFixedClock } from '../../shared/lib/clock';
 import { createSeededIdFactory } from '../../shared/lib/idFactory';
 import { createMockBooksApi, BOOKS_SCENARIO_KEYS } from '../books/MockBooksApi';
+import { DECK_BOOKS } from '../fixtures/saved-books';
 import { createRequestLog } from '../request-log';
 import { createScenarioSource, createScenarioStore } from '../scenarios';
 
@@ -57,11 +58,17 @@ describe('검색', () => {
     expect(response.items[0]?.author.length).toBeGreaterThan(0);
   });
 
-  it('Stage 2 fixture 는 표지를 넣지 않는다 (표지는 Stage 3)', async () => {
+  it('같은 책 id 는 덱과 같은 표지 URL 이고, Figma 표지가 없는 책은 표지가 없다 (D8-7)', async () => {
     const { api } = makeApi();
     const response = await api.search({ q: 'the' });
 
-    expect(response.items.every((book) => book.coverUrl === undefined)).toBe(true);
+    expect(response.items.length).toBeGreaterThan(1);
+    for (const book of response.items) {
+      const deck = DECK_BOOKS.find((candidate) => candidate.id === book.id);
+      expect(book.coverUrl, book.title).toBe(deck?.coverUrl);
+    }
+    expect(response.items.some((book) => book.coverUrl !== undefined)).toBe(true);
+    expect(response.items.some((book) => book.coverUrl === undefined)).toBe(true);
   });
 
   it('같은 검색어는 항상 같은 결과다 (결정성)', async () => {

@@ -13,7 +13,10 @@
 //   ⑤ 최상위 404.html 0 SPA fallback 은 루트 `wrangler.jsonc` 의 `not_found_handling: "single-page-application"`
 //                       (Workers 정적 자산 — H8-13) 이 맡는다. `404.html` · `_redirects` 는 그 처리와 겹치거나 덮을 수
 //                       있어 두지 않는다 (Pages Direct Upload 부록 방식에서도 같은 규칙)
-//   ⑥ 실제 데이터 0     산출물의 이메일 주소는 예약 도메인(`example.com` 등)만 · 상용 그림책 표지 에셋 0 (`N8-13` ⓐ)
+//   ⑥ 실제 데이터 0     산출물의 이메일 주소는 예약 도메인(`example.com` 등)만
+//                       책 표지 에셋은 **목록만 출력**한다 (실패 조건 아님). 상용 표지 금지 검사(`N8-13` ⓐ)는
+//                       사용자 결정 `D8-7`(2026-11-21)로 제거했다 — 프리뷰는 Cloudflare Access 로 초대된 사람만
+//                       보며 Figma 표지 3종을 보인다. 공개 배포 금지 · 정식 출시 전 법무 확인 `P3-BIP-19`
 //
 // 하나라도 어긋나면 종료 코드 1.
 
@@ -158,7 +161,7 @@ report(
   '',
 );
 
-// ⑥ 실제 데이터 0 — 이메일은 예약 도메인만 (RFC 2606 · 6761), 상용 표지 에셋 0
+// ⑥ 실제 데이터 0 — 이메일은 예약 도메인만 (RFC 2606 · 6761)
 const RESERVED_EMAIL_DOMAIN =
   /@(?:[a-z0-9-]+\.)*(?:example\.(?:com|net|org)|example|test|invalid|localhost|local)$/i;
 const emails = new Set();
@@ -174,16 +177,15 @@ report(
   [...emails].filter((email) => !RESERVED_EMAIL_DOMAIN.test(email)),
   `(발견 ${emails.size}개: ${[...emails].join(', ') || '없음'})`,
 );
-const COMMERCIAL_COVER = /where-the-wild-things-are|the-most-magnificent-idea|grumpy-monkey/;
-report(
-  '⑥ 상용 그림책 표지 에셋',
-  files
-    .filter(
-      (file) => /\.(png|webp|avif|jpe?g|gif)$/.test(file) && COMMERCIAL_COVER.test(basename(file)),
-    )
-    .map(rel),
-  '(N8-13 ⓐ)',
+// 책 표지 (`D8-7`) — 실패 조건이 아니다. 무엇이 배포되는지 빌드 로그에 남긴다.
+const BOOK_COVER = /where-the-wild-things-are|the-most-magnificent-idea|grumpy-monkey-play-all-day/;
+const coverFiles = files
+  .filter((file) => /\.(png|webp|avif|jpe?g|gif)$/.test(file) && BOOK_COVER.test(basename(file)))
+  .map(rel);
+console.log(
+  `${TAG} ⑥ 책 표지 에셋 (${coverFiles.length}개, D8-7 — 초대 전용 프리뷰 · 공개 배포 금지):`,
 );
+for (const file of coverFiles) console.log(`  ${file}`);
 
 if (failed) {
   console.error(`${TAG} 실패 — 위 항목을 고친 뒤 pnpm build:preview 부터 다시 실행하세요.`);
